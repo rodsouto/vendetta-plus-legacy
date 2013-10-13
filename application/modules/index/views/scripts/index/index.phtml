@@ -1,0 +1,53 @@
+
+     <?php
+     
+     echo "<div><style>#divMejoras ul {list-style-type: none;}</style>";
+       echo "<div class='width66 left'>";
+
+     echo "<ul class='redMenu' id='menuHome'>
+          <li><a href='/index/index/register'>".$this->t("Registrate")."</a></li>
+          <li><a href='http://board.".Mob_Server::getDomain()."'>".$this->t("Foro")."</a></li>
+          <li><a href='http://www.facebook.com/VendettaPlus' target='_blank'>".$this->t("Facebook")."</a></li>";
+          $twitterUrl = Mob_Server::getTwitterUrl();
+          if ($twitterUrl !== null) echo "<li><a href='$twitterUrl' target='_blank'>".$this->t("Twitter")."</a></li>";
+          echo "</ul>";
+       
+     echo $this->contentBox()->open("Login"); 
+     if (!empty($this->msgLogin)) {
+        echo "<p>$this->msgLogin</p>";
+     }
+     
+     if ($this->intentos != 0) echo "<p>".sprintf($this->t("Te quedan x intentos"), 5-$this->intentos)."</p>";
+     if (!isset($this->noForm)) echo $this->loginForm;
+     echo "<p><a href='/index/index/password'>".$this->t("¿Olvidaste tu password?")."</a></p>"; 
+     echo $this->contentBox()->close();
+     
+     echo $this->contentBox()->open("Registrate");
+     if (isset($_GET["altaok"])) {
+      echo "<p>".$this->t("Registro ok")."</p>";
+     } else {
+          /*echo "<p>¿Quieres ser el mejor mafioso? construye <a href='/mob/habitaciones'>".$this->t("habitaciones")."</a> para obtener mas recursos y tener las mejores tecnologias disponibles, <a href='/mob/reclutamiento'>".$this->t("tropas de ataque")."</a> y <a href='/mob/seguridad'>".$this->t("tropas de defensa")."</a> para tener el mejor ejercito y dominar la ciudad, <a href='/mob/entrenamiento'>".$this->t("entrenamientos")."</a> para que sean mas fuertes, controla el <a href='/mob/mapa'>".$this->t("mapa")."</a> de la ciudad para ver que aliados o enemigos estan cerca tuyo, mira la <a href='/mob/clasificacion'>".$this->t("clasificacion")."</a> para conocer quienes sona ctualmente los mas poderosos, entre muchas otras cosas.</p>";
+          echo "<br /><p>¿Quieres probar suerte? <a href='/index/index/register'>".$this->t("Registrate ahora")."!</a></p>";*/
+        echo stripslashes($this->t("txt_descripcion_home"));          
+          
+     }
+     echo $this->contentBox()->close();       
+
+        echo $this->contentBox()->open("Mejores Jugadores");
+          echo $this->getRankingJugadores("home");
+          echo "<p><a href='/mob/clasificacion'>".$this->t("Ver ranking completo.")."</a></p>";
+         echo $this->contentBox()->close();
+       
+         /*echo $this->contentBox()->open("Mejoras");
+         echo "<div style='height: 295px;' id='divMejoras'>".$this->t("html mejoras")."</div>";
+         echo $this->contentBox()->close();*/
+
+       echo "</div>";
+       echo "<div class='width33 right'>";
+        echo '<iframe src="http://www.facebook.com/plugins/likebox.php?href='.urlencode(Mob_Server::getFacebookPage()).'&amp;width=264&amp;colorscheme=light&amp;connections=8&amp;stream=true&amp;header=true&amp;height=560" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:264px;height:560px;background-color: white;" allowTransparency="true"></iframe>';
+       echo "</div>";
+     echo "</div>";
+     
+     
+  
+     ?>

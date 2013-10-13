@@ -1,0 +1,35 @@
+<?php
+
+echo $this->contentBox()->open("Solicitud para la familia");
+
+if (isset($this->warning)) {
+  echo "<p>".$this->t("No tienes permisos suficientes").".</p>";
+} else {
+
+  if ($this->accion == "enviar") {
+  
+    if (!$this->formGuardado) {
+        echo $this->form;
+    } else {
+        echo "<p>".$this->t("La solicitud ha sido enviada").".</p>";
+    }
+    
+  } else {
+      $solicitudes = Mob_Loader::getModel("Familias_Solicitudes")->getSolicitudes($this->idFamilia);
+  
+      if(empty($solicitudes)) {
+          echo "<p>".$this->t("No hay solicitudes pendientes").".</p>";
+      } else {  
+        foreach ($solicitudes as $s) {
+        
+            echo "<p>".sprintf($this->t("Solicitud enviada por x"), $this->escape(Mob_Loader::getModel("Usuarios")->getUsuario($s["id_usuario"]))).":</p>";
+            echo "<p>".$this->escape($s['texto'])."</p>";
+            echo "<p>
+                <a href='/mob/familias/solicitud/ver/{$this->idFamilia}/aceptar/{$s['id_solicitud']}'>".$this->t("Aceptar")."</a> 
+                <a href='/mob/familias/solicitud/ver/{$this->idFamilia}/rechazar/{$s['id_solicitud']}'>".$this->t("Rechazar")."</a></p><br />";
+        }
+      }
+  }
+
+}
+echo $this->contentBox()->close();

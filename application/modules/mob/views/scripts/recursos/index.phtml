@@ -1,0 +1,179 @@
+<?php
+  echo $this->contentBox()->open("Produccion Total");
+     $data = Mob_Loader::getModel("Edificio")->getTodosEdificios($this->idUsuario, false);
+     $arm = $mun = $alc = $dol = 0;
+     
+      $habArmeria = Mob_Server::getHabRecurso(1);
+      $habMunicion = Mob_Server::getHabRecurso(2);
+      $habTaberna = Mob_Server::getHabRecurso(3);
+      $habContrabando = Mob_Server::getHabRecurso(4);
+      $habCerveceria  = Mob_Server::getHabRecurso(5);             
+
+     foreach ($data as $d) {
+      $habs = Mob_Loader::getModel("Habitacion")->getByIdEdificio($d["id_edificio"]);
+
+      $produccion = Mob_Habitacion_Manager::getProduccion($habs[$habArmeria->getNombreBdd()], $habs[$habMunicion->getNombreBdd()], 
+                                                            $habs[$habTaberna->getNombreBdd()], $habs[$habContrabando->getNombreBdd()], 
+                                                            $habs[$habCerveceria->getNombreBdd()],
+                                                            $d["id_edificio"]);
+
+      $arm += $produccion["arm"];
+      $mun += $produccion["mun"];
+      $dol += $produccion["dol"];
+      $alc += $produccion["alc"];
+     }
+     
+     if ($alc < 0) $alc = 0;
+     
+     ?>
+     <table>
+      <tr>
+        <td class="c"><?php echo $this->t("Recurso");?></td>
+        <td class="c"><?php echo $this->t("Hora");?></td>
+        <td class="c"><?php echo $this->t("Dia");?></td>
+      </tr>
+      <tr>
+        <td class="c"><?php echo $this->t("Armas");?></td>
+        <th><?php echo $this->numberFormat($arm);?></th>
+        <th><?php echo $this->numberFormat($arm*24);?></th>
+      </tr>
+      <tr>
+        <td class="c"><?php echo $this->t("Municion");?></td>
+        <th><?php echo $this->numberFormat($mun);?></th>
+        <th><?php echo $this->numberFormat($mun*24);?></th>
+      </tr>
+      <tr>
+        <td class="c"><?php echo $this->t("Alcohol");?></td>
+        <th><?php echo $this->numberFormat($alc);?></th>
+        <th><?php echo $this->numberFormat($alc*24);?></th>
+      </tr>
+      <tr>
+        <td class="c"><?php echo $this->t("Dolares");?></td>
+        <th><?php echo $this->numberFormat($dol);?></th>
+        <th><?php echo $this->numberFormat($dol*24);?></th>
+      </tr>
+     </table>
+     <?php
+     
+  echo $this->contentBox()->close();
+  echo $this->contentBox()->open($this->t("Edificio")." ".@implode(":", Mob_Loader::getModel("Edificio")->getCoord($this->edificioActual->getId()))." / ".$this->t("Recursos")." / ".$this->t("Hora"));
+?>
+<table width=550> 
+    <tr>
+        <td class=c width=100>&nbsp;</td>
+        <td class=c width=80><?php echo $this->t("recursos_arm");?></td>
+        <td class=c width=80><?php echo $this->t("recursos_mun");?></td>
+        <td class=c width=80><?php echo $this->t("recursos_alc");?></td>
+        <td class=c width=80><?php echo $this->t("recursos_dol");?></td>
+    </tr>
+    <tr>
+        <td class=c><?php echo $this->t("Salario base");?></td>
+        <th><font class="positive">10</font></th>
+        <th><font class="positive">10</font></th>
+        <th><font class="positive">10</font></th>
+        <th>0</th>
+    </tr>
+    <?php 
+
+    $prodArm = $prodMun = $prodAlc = 10;
+    $prodDol = 0;
+    
+    $armeria = $this->edificioActual->getHabitacion($habArmeria->getNombreBdd());
+    if ($armeria->getNivel() > 0) {
+    $prodArm += $armeria->getProduccion(false);
+    echo "<tr>
+        <td class=c>".$this->escape($armeria->getNombre())." (". $armeria->getNivel().")</td>
+        <th><font class='positive'>". $this->numberFormat($armeria->getProduccion(false)) ."</font></th>
+        <th>0</th>
+        <th>0</th>
+        <th>0</th>
+    </tr>";
+    }
+
+    $municion = $this->edificioActual->getHabitacion($habMunicion->getNombreBdd());
+    if ($municion->getNivel() > 0) {
+    $prodMun += $municion->getProduccion(false);
+    echo "<tr>
+        <td class=c>".$this->escape($municion->getNombre())." (". $municion->getNivel().")</td>
+        <th>0</th>
+        <th><font class='positive'>". $this->numberFormat($municion->getProduccion(false)) ."</font></th>
+        <th>0</th>
+        <th>0</th>
+    </tr>";
+    }
+
+    $cerveceria = $this->edificioActual->getHabitacion($habCerveceria->getNombreBdd());
+    if ($cerveceria->getNivel() > 0) {
+    $prodAlc += $cerveceria->getProduccion(false);
+    echo "<tr>
+        <td class=c>".$this->escape($cerveceria->getNombre())." (". $cerveceria->getNivel().")</td>
+        <th>0</th>
+        <th>0</th>
+        <th><font class='positive'>". $this->numberFormat($cerveceria->getProduccion(false)) ."</font></th>
+        <th>0</th>
+    </tr>";
+    }
+        
+    $contrabando = $this->edificioActual->getHabitacion($habContrabando->getNombreBdd());
+    $consumoContrabando = 0;
+    if ($contrabando->getNivel() > 0) {
+    $prodDol += $contrabando->getProduccion(false);
+    $consumoContrabando = -1*$contrabando->getConsumoAlcohol();
+    echo "<tr>
+        <td class=c>".$this->escape($contrabando->getNombre())." (". $contrabando->getNivel().")</td>
+        <th>0</th>
+        <th>0</th>
+        <th><font class='".($consumoContrabando < 0 ? "negative" : "")."'>". $this->numberFormat($consumoContrabando) ."</font></th>
+        <th><font class='positive'>". $this->numberFormat($contrabando->getProduccion(false)) ."</font></th>
+    </tr>";
+    }
+    
+    $taberna = $this->edificioActual->getHabitacion($habTaberna->getNombreBdd());
+    $consumoTaberna = 0;
+    if ($taberna->getNivel() > 0) {
+    $prodDol += $taberna->getProduccion(false);
+    $consumoTaberna = -1*$taberna->getConsumoAlcohol();
+    echo "<tr>
+        <td class=c>".$this->escape($taberna->getNombre())." (". $taberna->getNivel().")</td>
+        <th>0</th>
+        <th>0</th>
+        <th><font class='".($consumoTaberna < 0 ? "negative" : "")."'>". $this->numberFormat($consumoTaberna) ."</font></th>
+        <th><font class='positive'>". $this->numberFormat($taberna->getProduccion(false)) ."</font></th>
+    </tr>";
+    }
+
+    ?>
+    <tr>
+        <th colspan=5></th>
+    </tr>
+    <tr>
+        <td class=c>=</td>
+        <th><font class="positive"><?php echo $this->numberFormat($prodArm);?></font></th>
+        <th><font class="positive"><?php echo $this->numberFormat($prodMun);?></font></th>
+        <?php
+         $prodAlc = $prodAlc + $consumoContrabando + $consumoTaberna;
+        ?>
+        <th><font class="<?php echo $prodAlc < 0 ? "negative" : "positive";?>"><?php echo $this->numberFormat($prodAlc);?></font></th>
+        <th><font class="positive"><?php echo $this->numberFormat($prodDol);?></font></th>
+    </tr>
+    <tr>
+        <td colspan=5 height=10></td>
+    </tr>
+    <tr>
+        <td class=c><?php echo $this->t("Capacidad de Almacenamiento");?></td> 
+        <th><?php echo $this->numberFormat($almacenamientoArm = $this->edificioActual->getHabitacion(Mob_Server::getDeposito(1))->getAlmacenamiento());?></th>
+        <th><?php echo $this->numberFormat($almacenamientoMun = $this->edificioActual->getHabitacion(Mob_Server::getDeposito(2))->getAlmacenamiento());?></th>
+        <th><?php echo $this->numberFormat($almacenamientoAlc = $this->edificioActual->getHabitacion(Mob_Server::getDeposito(4))->getAlmacenamiento());?></th>
+        <th><?php echo $this->numberFormat($almacenamientoDol = $this->edificioActual->getHabitacion(Mob_Server::getDeposito(3))->getAlmacenamiento());?></th>
+    </tr> 
+    <tr>
+        <td class=c><?php echo $this->t("Almacenados en forma segura");?></td> 
+        <th><?php echo $this->numberFormat($almacenamientoArm/10);?></th>
+        <th><?php echo $this->numberFormat($almacenamientoMun/10);?></th>
+        <th><?php echo $this->numberFormat($almacenamientoAlc/10);?></th>
+        <th><?php echo $this->numberFormat($almacenamientoDol/10);?></th>
+    </tr>
+</table>
+
+<?php
+echo $this->contentBox()->close();

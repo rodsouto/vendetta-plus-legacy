@@ -1,0 +1,33 @@
+<?php
+
+if ($this->action == "ver") {
+
+  echo $this->contentBox()->open(sprintf($this->translate("Guerras de x"), Mob_Loader::getModel("Familias")->getNombre($this->idFamilia)));
+      echo "<table>";
+      echo "<tr><td class='c'>".$this->t("Enemigo")."</td><td class='c'>".$this->t("Fecha de inicio")."</td><td class='c'>".$this->t("Fecha de finalizacion")."</td><td class='c'>".$this->t("Resultado")."</td><td class='c'>&nbsp;</td>";
+      foreach (Mob_Loader::getModel("Guerras")->getFinalizadas($this->idFamilia) as $g) {
+        
+        $idEnemigo = $g["id_familia_1"] == $this->idFamilia ? $g["id_familia_2"] : $g["id_familia_1"];
+        
+        $numeroEnemigo = $g["id_familia_1"] == $this->idFamilia ? 2 : 1;
+        
+        if (Mob_Loader::getModel("Familias")->existe($g["id_familia_$numeroEnemigo"])) {
+            $familiaEnemiga = "<a href='/mob/familias?idf=".$g["id_familia_$numeroEnemigo"]."' class='ajax'>".Mob_Loader::getModel("Familias")->getNombre($g["id_familia_$numeroEnemigo"])." [".
+            Mob_Loader::getModel("Familias")->getEtiqueta($g["id_familia_$numeroEnemigo"])
+            ."]</a>";
+        } else $familiaEnemiga = $g["nombre_$numeroEnemigo"];      
+        
+        echo "<tr><td>".$familiaEnemiga."</td><td>".$g["fecha_inicio"]."</td>
+        <td>".$g["fecha_fin"]."</td><td>".$this->t($g["ganador"] == 0 ? "Empate" : ($g["ganador"]== $idEnemigo ? "Perdida" : "Ganada"))."</td>
+        <td><a href='/mob/guerras/ver?idg=".$g["id_guerra"]."' class='ajax'>".$this->t("Ver detalles")."</a></td>";
+      }
+      echo "</table>";
+  echo $this->contentBox()->close();  
+
+} else {
+
+  echo $this->contentBox()->open("Declarar guerra");
+      echo isset($this->message) ? $this->message :$this->form;
+  echo $this->contentBox()->close();
+  
+}

@@ -1,0 +1,13 @@
+<?php
+
+echo $this->contentBox()->open($this->t("Poder de ataque")." ( % )");
+echo "<table>";
+  echo "<tr><th rowspan='2'>".$this->t("Edificios")."</th><th colspan='10'>".$this->t("Honor")."</th></tr>
+  <tr><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th></tr>";
+  foreach(include APPLICATION_PATH ."/configs/honor.php" as $edis => $honor) {
+    echo "<tr><th>$edis</th>";
+      foreach ($honor as $val) echo "<td>$val</td>";
+    echo "</tr>";
+  }
+echo "</table>";
+echo $this->contentBox()->close();

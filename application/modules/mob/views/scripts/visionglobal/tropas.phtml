@@ -1,0 +1,35 @@
+<?php
+
+$data = Mob_Loader::getModel("Edificio")->getEdificios($this->idUsuario);
+
+echo "<table>";
+
+$info = array("id_edificio" => "Edificio");
+foreach (Mob_Data::getTropas() as $tropa) $info[$tropa] = Mob_Loader::getTropa($tropa)->getNombre();
+//$info["total"] = "Total";
+echo '<tr><td class="c" colspan="'.(sizeof($data)+2).'">'.$this->t("Vision global de las Tropas").' '.Mob_Loader::getModel("Usuarios")->getUsuario($this->idUsuario).'</td></tr>';
+
+$tropasEdificios = array();
+
+foreach ($info as $fila => $txt) {
+  echo "<tr><td class='c'>$txt</td>";
+  $totalTropa = 0;  
+  foreach ($data as $idEdificio => $coord) {
+    if ($fila == "id_edificio") {
+      echo "<th>$coord</td>";    
+    } elseif ($fila != "total") {
+      if (!isset($tropasEdificios[$idEdificio])) {
+        $tropasEdificios[$idEdificio] = Mob_Loader::getModel("Tropa")->getByEdificio($idEdificio);
+      }
+      // fila tropas
+      $t = $this->numberFormat($tropasEdificios[$idEdificio][lcfirst($fila)]);
+      if ($t == 0) $t = "";
+      echo "<th>".$t."</th>";
+      $totalTropa += $tropasEdificios[$idEdificio][lcfirst($fila)];
+    }
+  }
+  echo "<th class='c'>".($fila == "id_edificio" ? "Total" : $this->numberFormat($totalTropa))."</th>";
+  echo "</tr>";
+}
+
+echo "</table>";

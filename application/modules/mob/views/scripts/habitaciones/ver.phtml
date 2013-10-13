@@ -1,0 +1,32 @@
+<?php
+echo $this->contentBox()->open("Habitacion");
+
+try {
+  $hab = Mob_Loader::getHabitacion($_GET["v"]);
+} catch (Exception $e) {
+  $hab = null;
+}
+
+if ($hab == null) {
+  echo "<p>Habitacion inexistente.</p>";
+} else {
+?>
+<table width="600" border="0">
+  <tbody>
+    <tr>
+        <th><?php echo $this->t("Nombre");?></th>
+        <th><?php echo $this->escape($hab->getNombre());?></th>
+    </tr>
+    <tr>
+        <th></th>
+        <th colspan="2"><img src="<?php echo Mob_Server::getStaticUrl()."img/hab/".$hab->getImagen();?>"></th>
+    </tr>
+    <tr>
+        <th colspan="2"><?php echo $this->escape($hab->getDescripcion());?></th></tr><tr><th><?php echo $this->t("Puntos por nivel");?></th>
+        <th><?php echo $this->numberFormat($hab->getPuntos());?></th>
+    </tr>
+  </tbody>
+</table>
+<?php
+}
+echo $this->contentBox()->close();

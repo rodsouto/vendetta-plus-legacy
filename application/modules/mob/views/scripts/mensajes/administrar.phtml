@@ -1,0 +1,15 @@
+<?php
+
+echo $this->contentBox()->open("Administrar carpeta");
+    echo "<table><tr><th>Carpeta</th><th>Accion</th></tr>";
+    foreach (Mob_Loader::getModel("Mensajes_Carpetas")->getCarpetas($this->idUsuario) as $k => $v) {
+        printf("<tr><th>%s</th><th>%s</th></tr>", $v["nombre"], 
+                    "<a href='/mob/mensajes/administrar?borrar=".$v["id_carpeta"]."'>Borrar</a>
+                                    <a href='/mob/mensajes/administrar?editar=".$v["id_carpeta"]."'>Editar</a>");
+    }
+    echo "</table>";
+echo $this->contentBox()->close();
+
+echo $this->contentBox()->open("Añadir carpeta");
+    echo $this->formNuevaCarpeta;
+echo $this->contentBox()->close();

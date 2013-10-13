@@ -1,0 +1,9 @@
+<?php
+
+echo $this->contentBox()->open("Escribir Mensaje");
+if (isset($_GET["ok"])) {
+    echo "<p>".$this->t("Mensaje enviado correctamente")."</p>";
+} else {
+    echo $this->formEscribir;
+}
+echo $this->contentBox()->close();

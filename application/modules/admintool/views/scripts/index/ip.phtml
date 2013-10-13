@@ -1,0 +1,13 @@
+<?php
+
+echo $this->contentBox()->open("Usuarios con la misma IP: $this->ip");
+
+foreach (Mob_Loader::getModel("Logueos")->getByIp($this->ip) as $u) {
+  echo "<p>{$u['fecha']}: <a href='/admintool/index/user/id/".$u["id_usuario"]."'>".Mob_Loader::getModel("Usuarios")->getFullName($u["id_usuario"])."</a></p>";
+}
+
+echo $this->contentBox()->close();
+
+
+
+?>

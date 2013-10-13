@@ -1,0 +1,50 @@
+<?php
+$ciudad = (int)$this->form->ciudad->getValue();
+$barrio = (int)$this->form->barrio->getValue();
+
+$cacheId = "mapa_".$ciudad."_".$barrio;
+
+echo $this->contentBox()->open("Mapa");
+echo $this->form;
+
+if(!$html = Mob_Cache_Factory::getInstance("html")->load($cacheId)) {
+  $edificios = Mob_Loader::getModel("Edificio")->getInfoBarrio($ciudad, $barrio);
+
+  $html = "<div id='map'>";
+  $html .= "<table>";
+  $n = 1;
+  foreach (range(1, 15) as $f) {
+      $html .= "<tr>";
+      foreach (range(1, 17) as $c) {
+          $return = $link = $class = "";
+          if (isset($edificios[$n])) {
+              $familia = "";
+              if (Mob_Loader::getModel("Familias_Miembros")->tieneFamilia($edificios[$n]["id_usuario"])) {
+                $idFamilia = Mob_Loader::getModel("Familias_Miembros")->getIdFamilia($edificios[$n]["id_usuario"]);
+                $familia = "[".Mob_Loader::getModel("Familias")->getEtiqueta($idFamilia)."]"; 
+              }
+              $return = $this->t("Posición")." $ciudad:$barrio:$n<br>".
+              $this->escape(Mob_Loader::getModel("Usuarios")->getUsuario($edificios[$n]["id_usuario"]))
+              ." $familia<br>".(int)$edificios[$n]["puntos"]." ".$this->t("Puntos");
+              $link = "<a href='/mob/misiones?c1=$ciudad&c2=$barrio&c3=$n'>&nbsp;</a>";
+          
+              if ($edificios[$n]["puntos"] < 1000) $class = "c0";
+              elseif ($edificios[$n]["puntos"] < 10000) $class = "c1";
+              elseif ($edificios[$n]["puntos"] < 20000) $class = "c2";
+              else $class = "c3";
+          } else {
+            $return = $n;
+          }
+          
+          $html .= "<th".(isset($edificios[$n]) ? ' class="'.$class.' hasTip"' : "").' class="hasTip" title="'.$return.'">'.$link.'</th>';
+          $n++;
+      }
+      $html .= "</tr>";
+  }
+  $html .= "</table>";
+  $html .= "</div>";
+  Mob_Cache_Factory::getInstance("html")->save($html, $cacheId);
+}
+
+echo $html;
+echo $this->contentBox()->close();

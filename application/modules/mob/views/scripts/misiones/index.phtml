@@ -1,0 +1,10 @@
+<?php
+
+echo $this->contentBox()->open("Visión Global");
+echo "<p><a href='/mob/visionglobal/tropas' target='_blank'>".$this->t("Vision global de las Tropas")."</a></p>";
+echo "<p><a href='/mob/visionglobal/misiones' class='ajax'>".$this->t("Vision global de las Misiones")."</a></p>";
+echo $this->contentBox()->close();
+
+if (isset($_GET["ok"]) && isset($this->coordDest)) echo "<p class='okMessage'>".sprintf($this->t("Tropas en camino al edificio x"), $this->coordDest)."</p>";
+
+echo $this->formMisiones;

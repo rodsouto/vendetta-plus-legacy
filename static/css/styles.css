@@ -1,0 +1,628 @@
+* {margin:0;padding:0;}
+
+
+
+body {background-color: #E0DDCA;}
+
+#home #content {padding-top:15px;width:100%;}
+
+.game_vendetta div#logo {background:transparent url(/img/logoplus2.png) no-repeat scroll center center;}
+
+.game_space4k div#logo {background:transparent url(/img/logo_space.jpg) no-repeat scroll center center;}
+
+div#logo {height:150px;position: relative;}
+
+div#logo h1 {position:absolute;top:0;height:0;width: 100%;height:100%;}
+
+div#logo h1 a {display: block;height: 100%; width: 100%;text-indent: -3000px;}
+
+.frmReclutamiento .totalTropas {width: 30px;}
+
+/* Home - Login */
+
+#login_box {background:transparent url(/img/login_bg.jpg) no-repeat scroll left top;
+
+height:64px;
+
+margin:0 auto;
+
+text-align:center;
+
+width:449px;}
+
+#login_box div {padding-top:15px;}
+
+
+
+body {background-color:#000000;font-family:Tahoma,Arial,Helvetica,sans-serif;}
+
+#col_left {background:transparent url(http://s10.vendetta.es/vendetta/vendetta/img/left_bg.jpg) repeat-y scroll right top;
+
+float:left;
+
+height:100%;
+
+width:19%;}
+
+#col_right {background:transparent url(http://s10.vendetta.es/vendetta/vendetta/img/right_bg.jpg) repeat-y scroll left top;
+
+float:left;
+
+height:100%;
+
+width:19%;}
+
+#wraper {margin:0 auto;
+overflow: hidden;
+width:800px;}
+
+
+
+#menu {list-style-type:none;
+
+margin:0 auto;}
+
+#menu li {line-height:18px;font-size:10pt;
+
+font-weight:bold;}
+
+#menu li.last a {border:0 none;}
+
+.game_vendetta #menu li.titulo {background:transparent url(/img/bgmenu.png) repeat-x scroll 0 0;}
+
+.game_space4k #menu li.titulo {background:transparent url(/img/bgmenuspace.png) repeat-x scroll 0 0;}
+
+#menu li.titulo {
+
+color:#FFFFFF;
+
+height:44px;
+
+line-height:44px;
+
+padding-left:30px;
+
+text-align:left;}
+
+.game_vendetta #menu li a, .game_vendetta #menu li form {border-bottom:1px solid #A6A18B;}
+
+.game_space4k #menu li a, .game_space4k #menu li form {border-bottom:1px solid #24201F;}
+
+
+
+#menu li a, #menu li form {
+
+display:block;
+
+font-size:12px;
+
+font-weight:normal;
+
+margin:0 auto;
+
+padding:5px 0 5px 20px;
+
+text-align:left;
+
+width:80%;}
+
+#menu li.separator{background-color:#6E0000;
+
+height:6px;
+
+margin:10px auto;}
+
+
+
+
+
+.titulo, h2, .c {padding:10px 0;text-align:center;background-color:#24201F;}
+
+/*.game_vendetta .titulo, .game_vendetta h2, .game_vendetta .c {background-color:#24201F;}
+
+.game_space4k .titulo, .game_space4k h2, .game_space4k .c {background-color:#2C3976;}*/
+
+h2 {
+
+clear:both;
+
+color:#FFFFFF;
+
+font-size:10pt;
+
+font-weight:bold;
+
+margin:0 auto;
+
+}
+
+#content {
+
+/*background-color:#DFDBC9;*/
+
+font-size:10pt;
+
+text-align:center;
+
+}
+
+
+
+a:hover {
+
+color:#444444;
+
+}
+
+a {
+
+font-size:10pt;
+
+font-weight:bold;
+
+text-decoration:none;
+
+}
+
+
+
+.game_vendetta a {color: #7e2223;}
+
+.game_space4k a {color: #084B8A;}
+
+
+
+.game_vendetta #menu_div {background-color:#e7e4c3;}
+
+.game_space4k #menu_div {background-color:#8F8F8F;}
+
+#menu_div {width:190px;}
+
+
+
+#header{background:transparent url(http://s10.vendetta.es/vendetta/vendetta/img/header_bg.jpg) no-repeat scroll center center;
+
+height:141px;
+
+margin-bottom:10px;}
+
+.hab {clear:both;
+
+font-size:10pt;
+
+margin:5px auto;}
+
+/*.left {float:left;
+
+text-align:center;
+
+width:50%;}
+
+.rigth {float:left;
+
+text-align:center;
+
+width:50%;}*/
+
+.left {float: left;}
+
+.right {float: right;}
+
+
+
+.c {color:#FFFFFF;
+
+font-size:10pt;
+
+font-weight:bold;
+
+text-align:center;}
+
+
+
+td {/*font-size:10pt;*/
+
+/*font-variant:small-caps;*/
+
+text-align:center;}
+
+
+
+.hab_container {clear:both;
+
+margin:10px auto;
+
+overflow:hidden;
+
+text-align:left;
+
+width:96%;}
+
+.hc_left {float:left;
+
+width:80%;}
+
+.hc_img{float:left;}
+
+.hc_desc {float:right;
+
+font-size:9pt;
+
+width:78%;}
+
+.hc_next {float:right;
+
+text-align:center;
+
+width:19%;}
+
+
+
+a.positive:hover, a.negative:hover {color: auto;}
+
+.game_vendetta .positive {color:#00C000;font-weight:bold;}
+.game_space4k .positive {color:#2EFE2E;font-weight:bold;}
+.game_vendetta .neutro {color:#F68B00;font-weight:bold;}
+.game_space4k .neutro {color:#FFE900;font-weight:bold;}
+/*.game_vendetta .negative {color:#C00000;font-weight:bold;}
+.game_space4k .negative {color:#FF5F5F;font-weight:bold;}*/
+.negative {color:#C00000;font-weight:bold;}
+              
+
+body {
+
+font-family:Arial,Helvetica,sans-serif;
+
+font-size:62.5%;
+
+text-align:center;
+
+color: #0c0b09;
+
+margin-bottom: 1em;
+
+}
+
+.frmContent {margin: auto;}
+
+
+
+.frmContent label, .frmContent input {
+
+display: block;
+
+float: left;
+
+margin-bottom: 10px;
+
+}
+
+
+
+.obligatorio {color: red; font-weight: bold;}
+
+#content {float:right;
+
+padding-top:60px;
+
+text-align:left;
+
+width:600px;}
+
+.login_0 #content {padding-top:5px;}
+
+.frmContent input {
+
+width: 150px;
+
+}
+
+ #barraRecursos {border-collapse:collapse;
+
+ border-bottom:5px solid #000000;
+
+height:10px;
+
+position:absolute;
+
+text-align:center;
+
+width:600px;}
+
+.game_space4k #recursosTitulo {background: transparent url(/img/bgmenuspace.png) repeat-x scroll 0pt 0pt;}
+
+.game_vendetta #recursosTitulo {background: transparent url(/img/bgmenu.png) repeat-x scroll 0pt 0pt;}
+
+#recursosTitulo {color: white ! important; font-weight: bold; height: 44px;}
+
+.frmContent label {
+
+text-align: right;
+
+width: 50%;
+
+padding-right: 20px;
+
+}
+
+
+
+br {
+
+clear: left;
+
+}
+
+
+
+.boton {
+
+margin:auto;
+
+text-align:left;
+
+width:300px;
+
+}
+
+
+
+#menu_div {float: left;}
+
+
+
+.menu_recursos {list-style-type: none;margin: 20px;}
+
+.menu_recursos li {display: inline;margin: 10px;}
+
+td.f {
+
+background-color:#FF3F3F;
+
+color:#000000;
+
+font-size:10pt;
+
+font-weight:bold;
+
+text-align:center;
+
+}
+
+table {width: 100%;}
+
+.game_vendetta .content_box {background-color:#FFFCDB;border-bottom:4px solid #7D2221;}
+
+.game_space4k .content_box {background-color:#848484;border-bottom:4px solid #084B8A;}
+
+.content_box {margin-bottom:15px;
+
+padding:3px 5px;}
+
+/*.content_box h2 {background: url(/img/navigation_bg.gif) no-repeat top left;font-variant:small-caps;}
+
+*/
+
+.content_box .content_box_text {
+
+overflow:hidden;
+
+padding-top:10px;
+
+text-align:center;}
+
+
+
+.game_vendetta .content_box .content_box_text {color:#5F5347;}
+
+.game_space4k .content_box .content_box_text {color:#ffffff;}
+
+
+
+th {
+
+/*background:#DFDBC9 none repeat scroll 0 0;*/
+
+/*color:#000000;*/
+
+font-size:10pt;
+
+/*font-weight:normal;*/
+
+text-align:center;
+
+}
+
+
+
+th {
+
+padding:5px;
+
+}
+
+
+
+.game_vendetta table {background-color:#FFFCDB;}
+
+.game_space4k table {background-color:#848484;}
+
+table {
+
+border-collapse:collapse;
+
+border-spacing:0;
+
+}
+
+textarea {height:100px;
+
+width:90%;}
+
+#listadoTropas {height:100px;width:300px;}
+
+
+
+table.tooltip {
+
+background-color:#FFFFE1;
+
+color:#000000;
+
+
+
+font-size:12px;
+
+padding:2px;
+
+}
+
+#topbar {}
+
+.game_space tr.highlightrank {background: transparent url(/img/bgmenuspace.png) repeat-x scroll 0pt 0pt;}
+
+.game_vendetta tr.highlightrank {background: transparent url(/img/bgmenu.png) repeat-x scroll 0pt 0pt;}
+
+tr.highlightrank {color: white ! important;}
+
+tr.highlightrank a {color:#FFFFFF;} 
+
+#techtree {
+
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+
+	color: #FFFF80;
+
+	background-color: #200000;
+
+}
+
+
+
+a:link#techtree {
+
+	color: #FFFF80;
+
+}
+
+
+
+a:hover#techtree {
+
+	color: #FFFFF2;
+
+}
+
+
+
+.okMessage {background-color: #C3FF68; border-bottom: 4px solid #A1C820;text-align: center; font-color: white; font-weight: bold;padding: 3px 5px;margin-bottom: 15px;}
+.errorMessage {background-color: #FF9F9F;border-bottom: 4px solid #AF0000;font-weight: bold;margin-bottom: 15px;padding: 3px 5px;text-align: center;}
+
+.simpleForm {margin:0 auto;
+
+width:50%;}
+
+.simpleForm div div{margin-bottom:5px;overflow:hidden;}
+
+.simpleForm div label{display:block;float:left;width:200px;}
+
+.simpleForm div input{float:left;}
+
+.simpleForm .submit {float:none;margin:0 auto;}
+
+.newMsg {background: #A6A18B url(/img/comments.png) no-repeat scroll 10px center;}
+
+ul.errors {text-align:center;width:100%;}
+
+.width66 {width: 66%;}
+
+.width33 {width: 33%;}
+
+
+
+.game_vendetta .redMenu {background: url(/img/bgmenu.png) repeat-x scroll 0pt 0pt transparent;}
+
+.game_space4k .redMenu {background: url(/img/bgmenuspace.png) repeat-x scroll 0pt 0pt transparent;}
+
+.redMenu {color: white ! important; font-weight: bold; height: 44px;margin-bottom:5px;}
+
+.redMenu li {list-style-type:none;float: left;}
+
+.redMenu li a {color:#FFFFFF;
+
+display:block;
+
+line-height:44px;
+
+padding:0 5px;}
+
+#menuHome li {width: 25%; text-align: center;}
+
+
+
+#map {}
+
+#map table {width: 544px;height:480px;margin: 0 auto;}
+
+.game_vendetta #map table th.c0 {background: transparent url(/img/T00.gif) no-repeat 0 0;}
+.game_vendetta #map table th.c1 {background: transparent url(/img/T10.gif) no-repeat 0 0;}
+.game_vendetta #map table th.c2 {background: transparent url(/img/T20.gif) no-repeat 0 0;}
+.game_vendetta #map table th.c3 {background: transparent url(/img/T30.gif) no-repeat 0 0;}
+
+.game_space4k #map table th.c0 {background: transparent url(/img/planeta1.png) no-repeat 0 0;}
+.game_space4k #map table th.c1 {background: transparent url(/img/planeta2.png) no-repeat 0 0;}
+.game_space4k #map table th.c2 {background: transparent url(/img/planeta3.png) no-repeat 0 0;}
+.game_space4k #map table th.c3 {background: transparent url(/img/planeta4.png) no-repeat 0 0;}
+
+#map table th {background-color:transparent;
+
+height:32px;
+
+padding:0;
+
+width:32px;}
+
+.game_vendetta #map table {background: url("/img/map2.png") no-repeat scroll 0 0 transparent;}
+.game_space4k #map table {background: url("/img/galaxy.jpg") no-repeat scroll 0 0 transparent;}
+
+#map table th a {display:block;
+
+height:100%;
+
+width:100%;}
+.game_vendetta .loading {background: transparent url(/img/loading.gif) no-repeat center center;}
+.game_space4k .loading {background: transparent url(/img/loadingspace.gif) no-repeat center center;}
+
+.visionGlobal #barraRecursos {display: none;}
+.tip{background-color: #FFFFE1;border: 1px solid #444444;color: #000000;display: none;font-size: 11px;
+font-weight: bold;padding: 5px;position: absolute;white-space: nowrap;z-index: 100000;}
+.tip li {list-style-type: none;}
+
+.msgRow {border-bottom: 1px solid #24201F;
+    margin-bottom: 10px;
+    overflow: hidden;
+    padding-bottom: 10px;}
+.msgRow input {float: left;
+    width: 5%;}
+.msgTxtW {float: left;
+    width: 94%;}
+.msgTxt {margin: 5px 0;}
+#msgChecksAction {margin-bottom: 15px;}
+#chatBar {background-color: #FFFFFF;
+    bottom: 0;
+    position: fixed;
+    width: 200px;}
+#openChat {
+border-top: 1px solid #CCCCCC;
+    display: block;
+    height: 25px;
+    line-height: 25px;}    
+#chatUserList {display: none;}
+#chatUserList ul {list-style-type: none;}
+#chatUserList ul li {}
+#chatUserList ul li a {display: block;
+    font-weight: normal;
+    padding: 3px 0;}        
+    
+    .shareBattle, .shareAlliance, .sharePlayer {margin: 5px auto;width: 300px;}
+    .clear {clear: both;}

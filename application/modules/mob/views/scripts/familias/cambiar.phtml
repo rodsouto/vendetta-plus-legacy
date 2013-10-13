@@ -1,0 +1,9 @@
+<?php
+
+echo $this->contentBox()->open($this->titulo);
+if (!$this->formGuardado) {
+    echo $this->form;
+} else {
+    echo "<p>".$this->t("Datos modificados correctamente").".</p>";
+}
+echo $this->contentBox()->close();

@@ -1,0 +1,206 @@
+<?php
+
+$idRango = Mob_Loader::getModel("Familias_Miembros")->getIdRango($this->idFamilia, $this->idUsuario);
+
+$estaLogueado = $this->getJugador() != null;
+
+if ($this->getJugador() !== null && !$this->esMiFamilia && Mob_Loader::getModel("Familias_Miembros")->esCapoSubCapo($this->idUsuario, $this->getJugador()->getIdFamilia())) {
+  if (!Mob_Loader::getModel("Guerras")->estanEnGuerra($this->idFamilia, $this->getJugador()->getIdFamilia())) {
+    echo "<p style='background-color:#FFFCDB;text-align: center;padding: 2px;'><a href='/mob/familias/guerra/?idf={$this->idFamilia}' class='ajax'>"
+    .$this->t("Declarar guerra")."</a></p>";
+  } else {
+    if (Mob_Loader::getModel("Guerras_Rendicion")->envioRendicion($this->getJugador()->getIdFamilia(), $this->idFamilia)) {
+      echo "<p style='background-color:#FFFCDB;text-align: center;padding: 2px;'>
+              ".$this->t("Esta familia todavia no decidio que hacer con la propuesta de rendicion.")." 
+              <a href='/mob/familias/rendicion/?idf={$this->idFamilia}&go=cancelar' class='ajax'>".$this->t("Ya no quieres rendirte?")."</a>
+            </p>";
+    } else if (Mob_Loader::getModel("Guerras_Rendicion")->envioEmpate($this->getJugador()->getIdFamilia(), $this->idFamilia)) {
+      echo "<p style='background-color:#FFFCDB;text-align: center;padding: 2px;'>
+              ".$this->t("Esta familia todavia no decidio que hacer con la propuesta de empate.")." 
+              <a href='/mob/familias/rendicion/?idf={$this->idFamilia}&go=cancelar' class='ajax'>".$this->t("Quieres retirar la propuesta?")."</a>
+            </p>";
+    } else {
+      if (Mob_Loader::getModel("Guerras_Rendicion")->envioRendicion($this->idFamilia, $this->getJugador()->getIdFamilia()) || 
+            Mob_Loader::getModel("Guerras_Rendicion")->envioEmpate($this->idFamilia, $this->getJugador()->getIdFamilia())) {
+        echo "<p style='background-color:#FFFCDB;text-align: center;padding: 2px;'>
+              ".$this->t("Tienes una solicitud recibida de parte de esta familia.")." 
+            </p>";
+      } else {
+      echo "<p style='background-color:#FFFCDB;text-align: center;padding: 2px;'>
+              <a href='/mob/familias/rendicion/?type=0&idf={$this->idFamilia}' class='ajax'>".$this->t("Enviar solicitud de rendicion")."</a>
+            </p>";
+echo "<p style='background-color:#FFFCDB;text-align: center;padding: 2px;'>
+              <a href='/mob/familias/rendicion/?type=1&idf={$this->idFamilia}' class='ajax'>".$this->t("Enviar solicitud de empate")."</a>
+            </p>";
+      }            
+    }
+  }
+}
+
+if ($this->getJugador() !== null && $this->esMiFamilia) {
+  $pendientes = Mob_Loader::getModel("Guerras_Rendicion")->getPendientes($this->idFamilia);
+  if (!empty($pendientes)) {
+    echo $this->contentBox()->open("Solicitudes recibidas en guerra");
+    foreach ($pendientes as $p) {
+      $idFamiliaRendicion = $p["id_familia_1"] == $this->idFamilia ? $p["id_familia_2"] : $p["id_familia_1"];
+      $textoRendicion = $p["type"] == 0 ? "quiere rendirse." : "propone un empate.";
+      echo "<p><a href='/mob/familias/rendicion/go/ver?&idf=".$idFamiliaRendicion."' class='ajax'>".Mob_Loader::getModel("Familias")->getNombre($idFamiliaRendicion)." $textoRendicion</a></p>";
+    }
+    echo $this->contentBox()->close();
+  }
+}
+
+if ($this->esMiFamilia && Mob_Loader::getModel("Familias_Rangos")->puede($idRango, "aceptar_miembro")) {
+    $solicitudes = Mob_Loader::getModel("Familias_Solicitudes")->getTotal($this->idFamilia);
+    echo "<p style='background-color:#FFFCDB;text-align: center;padding: 2px;'>".(empty($solicitudes) ? $this->t("Ninguna solicitud") : 
+            "<a href='/mob/familias/solicitud/ver/{$this->idFamilia}' class='ajax'>".sprintf($this->t("Tienes x solicitudes pendientes"), $solicitudes)."</a>")."</p>";
+}
+
+$data = Mob_Loader::getModel("Familias")->getFamilia($this->idFamilia);
+
+$this->pageTitle = $data["nombre"]." [".$data["etiqueta"]."]";
+
+echo $this->contentBox()->open("Familia");
+
+$addthisTitle = $this->escape($data["nombre"])." [".$this->escape($data["etiqueta"])."]";
+$addthisUrl = 'addthis:url="http://'.$_SERVER["HTTP_HOST"].'/mob/familias/ver?idf='.$this->idFamilia.'"'; 
+echo '<!-- AddThis Button BEGIN -->
+<div class="addthis_toolbox addthis_default_style shareAlliance">
+<a class="addthis_button_facebook_like" '.$addthisUrl.' addthis:title="'.$addthisTitle.'" fb:like:layout="button_count"></a>
+<a class="addthis_button_tweet" '.$addthisUrl.' addthis:title="'.$addthisTitle.'"></a>
+<a class="addthis_counter addthis_pill_style" '.$addthisUrl.' addthis:title="'.$addthisTitle.'"></a>
+</div>
+<script type="text/javascript">var addthis_config = {"data_track_clickback":true};</script>
+<script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=ra-4dbc75a60ccf7e09"></script>
+<!-- AddThis Button END -->';
+
+echo "<table>";
+echo "<tr><td colspan='2'>".(!empty($data["logo"]) ? "<img src='/img/logos/".$this->idFamilia."/".$this->escape($data["logo"])."' />" : "(".$this->t("ningún Logo existente").")")."</td></tr>";
+echo "<tr><td>".$this->t("Etiqueta")."</td><td>[".$this->escape($data["etiqueta"])."]</td></tr>";
+echo "<tr><td>".$this->t("Nombre")."</td><td>".$this->escape($data["nombre"])."</td></tr>";
+//echo "<p>Pagina de inicio ".(!empty($data["web"]) ? "<a href='".$data["web"]."'>".$data["web"]."</a>" : "(Ninguna pagina de inicio)")."<p>";
+echo "<tr><td>".$this->t("Puntuacion de la familia")."</td><td>".
+    $this->numberFormat(Mob_Loader::getModel("Familias_Miembros")->getPuntos($this->idFamilia))."</td></tr>";
+echo "<tr><td>".$this->t("Miembros")."</td><td><a href='/mob/familias/miembros?idf={$this->idFamilia}' class='ajax'>".
+    $this->numberFormat(Mob_Loader::getModel("Familias_Miembros")->getTotalMiembros($this->idFamilia))."</a></td></tr>";
+$totalGuerras = Mob_Loader::getModel("Guerras")->getTotalFinalizadas($this->idFamilia);  
+echo "<tr><td>".$this->t("Historial de guerras")."</td><td>".
+    ($totalGuerras == 0 ? $this->t("Ninguna guerra") : 
+        "<a href='/mob/familias/guerra?idf={$this->idFamilia}&view' class='ajax'>$totalGuerras ".$this->t("Guerras")."</a>")."</td></tr>";
+if ($estaLogueado) {
+  if ($this->esMiFamilia) {
+      echo "<tr><td>".$this->t("Tu estado")."</td><td>".Mob_Loader::getModel("Familias_Miembros")->getRango($this->idFamilia, $this->idUsuario)."</td></tr>";
+  } elseif (!$this->getJugador()->tieneFamilia()) {
+      echo "<tr><td colspan='2'><a href='/mob/familias/solicitud/enviar/".$this->idFamilia."' class='ajax'>".$this->t("Enviar solicitud de ingreso")."</a></td></tr>";
+  }          
+}
+echo "</table>";
+echo $this->contentBox()->close();
+
+
+$guerras = Mob_Loader::getModel("Guerras")->getActualesByFamilia($this->idFamilia);
+if (!empty($guerras)) {
+  echo $this->contentBox()->open("Guerras activas");
+  foreach ($guerras as $g) {
+    $enemigo = $g["id_familia_1"] == $this->idFamilia ? $g["id_familia_2"] : $g["id_familia_1"];
+    echo "<p><a href='/mob/familias/ver?idf=$enemigo' class='ajax'>".Mob_Loader::getModel("Familias")->getFullName($enemigo)."</a> - 
+    <a href='/mob/guerras/ver?idg=".$g["id_guerra"]."' class='ajax'>+Info</a></p>";
+  }
+  echo $this->contentBox()->close();
+}
+
+
+
+echo $this->contentBox()->open("Descripcion de la familia");
+echo "<table>";
+   
+if (empty($data["descripcion"])) {
+  $descripcion = $this->t("Ninguna descripcion");
+} else {
+  $descripcion = $this->escape($data["descripcion"]);
+  $bbcode = Zend_Markup::factory('Bbcode');
+  
+  $bbcode->addMarkup(
+      'alliance',
+      Zend_Markup_Renderer_RendererAbstract::TYPE_CALLBACK,
+      array(
+          'callback' => new Mob_Markup_Renderer_Html_Alliance(),
+          'group'    => 'inline'
+      )
+  );
+  
+  $bbcode->addMarkup(
+      'player',
+      Zend_Markup_Renderer_RendererAbstract::TYPE_CALLBACK,
+      array(
+          'callback' => new Mob_Markup_Renderer_Html_Player(),
+          'group'    => 'inline'
+      )
+  );
+  
+  $descripcion = nl2br($bbcode->render($descripcion));
+}
+
+echo "<tr><td>".$descripcion."</td></tr>";
+if ($this->getJugador() != null && Mob_Loader::getModel("Familias_Miembros")->esCapoSubCapo($this->idUsuario, $this->idFamilia)) {
+  echo "<tr><td><a href='/mob/familias/cambiar/descripcion/1' class='ajax'>".$this->t("Cambiar descripcion")."</a></td></tr>";
+  echo "<tr><td><a href='/mob/familias/cambiar/logo/1' class='ajax'>".$this->t("Subir logo de la familia")."</a></td></tr>";
+  //echo "<p><a href='/mob/familias/cambiar/web/1'>Cambiar pagina web de la familia</a></p>";
+  echo "<tr><td><a href='/mob/familias/cambiar/nombre/1' class='ajax'>".$this->t("Cambiar la abreviatura o el nombre de la familia")."</a></td></tr>";
+}
+echo "</table>";
+echo $this->contentBox()->close();
+
+if ($this->esMiFamilia) {
+  
+  if (Mob_Loader::getModel("Familias_Rangos")->puede($idRango, "leer_mensaje")) {
+    echo $this->contentBox()->open("Mensajes");
+    echo "<table>";
+    $mensajes = Mob_Loader::getModel("Familias_Mensajes")->getByFamilia($this->idFamilia);
+    if (empty($mensajes)) {
+      echo "<tr><td>".$this->t("No hay ningun mensaje")."</td></tr>";
+    } else {
+      foreach ($mensajes as $m) {
+          echo "<tr>";
+          echo "<td>".$this->escape(Mob_Loader::getModel("Usuarios")->getUsuario($m["id_usuario"]))." (".$m["fecha"].")</td>";
+          echo "<td>".nl2br($this->escape($m["mensaje"]));
+          if (Mob_Loader::getModel("Familias_Rangos")->puede($idRango, "borrar_mensaje")) {
+            echo "<br /> <a href='/mob/familias?delm=".$m["id_mensaje"]."' class='ajax'>".$this->t("Borrar")."</a>";
+          }
+          echo "</td>";
+          echo "</tr>";
+          echo "<tr><td colspan='2'><br /></td></tr>";
+      }
+    }
+    echo "</table>";
+    echo $this->contentBox()->close();
+  }
+  
+  if (Mob_Loader::getModel("Familias_Rangos")->puede($idRango, "escribir_mensaje")) {
+    echo $this->contentBox()->open("Nuevo mensaje");
+    echo "<table>";
+    echo "<tr><td>";
+    echo $this->formNuevoMensaje;
+    echo "</td></tr></table>";
+    echo $this->contentBox()->close();
+  }
+  echo $this->contentBox()->open();
+  echo "<table>";
+  
+  
+  if (Mob_Loader::getModel("Familias_Rangos")->puede($idRango, "enviar_circular")) {
+    echo "<tr><td><a href='/mob/familias/correo' class='ajax'>".$this->t("Enviar correo circular")."</a></td></tr>";
+  }
+  
+  if (Mob_Loader::getModel("Familias_Miembros")->esCapoSubCapo($this->idUsuario, $this->idFamilia)) {
+    echo "<tr><td><a href='/mob/familias/administrar' class='ajax'>".$this->t("Administrar miembros")."</a></td></tr>";
+  }
+  
+  if (Mob_Loader::getModel("Familias_Miembros")->esCapo($this->idUsuario, $this->idFamilia)) {
+    echo "<tr><td><a href='/mob/familias/borrar' class='ajax'>".$this->t("Borrar familia")."</a></td></tr>";
+  } else {
+    echo "<tr><td><a href='/mob/familias/abandonar' class='ajax'>".$this->t("Abandonar familia")."</a></td></tr>";
+  }
+  echo "</table>";
+  echo $this->contentBox()->close();
+}

@@ -1,0 +1,23 @@
+<?php
+
+echo $this->contentBox()->open("Arbol Tecnologico");
+echo "<table class='techTree'><tr><td class='c'>".$this->t("Entrenamiento")."</td><td class='c'>".$this->t("Requisitos")." (".$this->t("Nivel").")</td></tr>";
+foreach (Mob_Loader::getEntrenamientos() as $obj) {
+  $class = $this->getJugador()->getEdificioActual()->cumpleRequisitosEnt($obj) ? "imgTechOk" : "imgTechError";
+  echo "<tr><th><div class='bgImgTech'><img src='".Mob_Server::getStaticUrl()."img/ent/".$obj->getImagen()."' class='$class'/></div><a class='ajax' href='/mob/entrenamiento/ver?e=".$obj->getNombreBdd()."'>".$obj->getNombre()."</a></th>";
+  $requisitos = $obj->getRequisitos();
+  if (empty($requisitos)) {
+    echo "<th>-</th>";
+  } else {
+    echo "<th>";
+    foreach ($requisitos as $req => $nivel) {
+      $class = $this->getJugador()->getEdificioActual()->getEntrenamiento($req)->getNivel() >= $nivel ? "levelTechOk" : "levelTechError";
+      $req = Mob_Loader::getEntrenamiento($req);
+      echo "<a class='ajax' href='/mob/entrenamiento/ver?e=".$req->getNombreBdd()."'>".$req->getNombre()."</a> <span class='$class'>($nivel)</span><br />";
+    }
+    echo "</th>";
+  }
+  echo "</tr>";
+}
+echo "</table>";
+echo $this->contentBox()->close();

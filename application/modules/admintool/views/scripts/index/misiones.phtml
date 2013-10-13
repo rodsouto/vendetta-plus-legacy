@@ -1,0 +1,18 @@
+<?php
+
+echo $this->contentBox()->open("Detalle de misiones jugador ".Mob_Loader::getModel("Usuarios")->getFullName($this->idUsuario));
+  echo $this->form;
+//Zend_Debug::dump(
+  echo "<table><tr><td>Tipo mision</td><td>Fecha</td><td>Emisor</td><td>Receptor</td><td>Origen</td><td>Destino</td></tr>";//<tr><th class='c'>Fecha</th><th class='c'>IP</th><th class='c'>Otros Usuarios con esta IP</th></tr>
+  $ips = array(); 
+  foreach (Mob_Loader::getModel("Misiones_Todas")->getLastByIdUsuario($this->idUsuario, $this->form->tipo_mision->getValue()) as $m) {
+    $idReceptor = Mob_Loader::getModel("Edificio")->getUsuarioByCoord($m["coord_dest_1"], $m["coord_dest_2"], $m["coord_dest_3"], true);
+    echo "<tr><td>".$this->translate("mision_".$m["mision"])."</td>
+    <td>".$m["fecha_inicio"]."</td>
+    <td><a href='/admintool/index/user/id/".$m["id_usuario"]."'>".Mob_Loader::getModel("Usuarios")->getFullName($m["id_usuario"])."</a></td>
+    <td><a href='/admintool/index/user/id/".$idReceptor."'>".Mob_Loader::getModel("Usuarios")->getFullName($idReceptor)."</a></td>
+    <td>".$m["coord_orig_1"].":".$m["coord_orig_2"].":".$m["coord_orig_3"]."</td>
+    <td>".$m["coord_dest_1"].":".$m["coord_dest_2"].":".$m["coord_dest_3"]."</td></tr>";
+  }
+  echo "</table>";
+echo $this->contentBox()->close();

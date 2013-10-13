@@ -1,0 +1,38 @@
+<?php
+
+$types = array("hab" => "habitaciones", "ent" => "entrenamientos", "tr" => "tropas");
+$type = isset($_GET["type"]) && isset($types[$_GET["type"]]) ? $types[$_GET["type"]] : "habitaciones";
+
+?>
+<style>
+.imgTechOk {border: 4px dashed #00FF00;}
+.imgTechError {border: 4px dashed #FF0000;}
+.levelTechOk {color: #00FF00;}
+.levelTechError {color: #FF0000;}
+.bgImgTech {background-color: #674335; width: 137px; height: 77px; margin: 0pt auto;}
+.techTree th {border-bottom:2px solid #24201F;}
+</style>
+<center>
+<table border="2" align="center" id="techtree">
+	<tbody><tr>
+		<td width="25%">
+			<a class='ajax' href="/mob/arboltecnologico?type=hab" id="techtree"><?php echo $this->t("Habitaciones");?></a>
+		</td>
+		<td width="25%">
+			<a class='ajax' href="/mob/arboltecnologico?type=ent" id="techtree"><?php echo $this->t("Entrenamientos");?></a>
+		</td>
+		<td width="25%">
+			<a class='ajax' href="/mob/arboltecnologico?type=tr" id="techtree"><?php echo $this->t("Tropas");?></a>
+		</td>
+
+		<td width="25%">
+			<font color="#00ff00"><?php echo $this->t("Disponible");?></font><br/><font color="#ff0000"><?php echo $this->t("No disponible");?></font>
+		</td>
+	</tr>
+</tbody></table>
+<br/>
+<?php 
+echo $this->render("arboltecnologico/$type.phtml");
+?>
+		
+	</center>

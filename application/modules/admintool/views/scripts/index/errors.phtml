@@ -1,0 +1,17 @@
+<?php
+
+echo $this->contentBox()->open("Errors");
+
+  foreach (Mob_Loader::getModel("Errores")->fetchAll(null, "id_error DESC", 50) as $error) {
+    $e = unserialize($error->error);
+    $a = get_object_vars($e);
+    $e = $a["exception"];
+    
+    if ($e instanceof Exception) {
+      echo "<h3>".$error["id_error"].": ".$e->getMessage()."</h3>";
+      echo nl2br($e->getTraceAsString());
+    }
+    echo "<br /><br />";
+  }
+
+echo $this->contentBox()->close();

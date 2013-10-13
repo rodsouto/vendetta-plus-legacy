@@ -1,0 +1,72 @@
+<?php
+
+echo $this->contentBox()->open("Reclutamiento");
+$estaLogueado = $this->getJugador() != null; 
+if ($estaLogueado && !$this->edificioActual->tieneCampoEntrenamiento()) {
+    echo "<p>".$this->t("Necesitas un campo de entrenamiento")."</p>";
+} else {
+
+    if ($estaLogueado) $this->edificioActual->setData();
+
+    if ($this->errorBorrar) {
+        echo "<p>".$this->t("Las unidades estan siendo entrenadas")."</p>";
+    }
+
+    echo $this->formListado;
+    echo "<br />";
+
+    $form = new Mob_Form_Reclutamiento;
+
+    $tropas = $estaLogueado ? $this->edificioActual->getTropas(true, 
+            array_keys(Mob_Loader::getModel("Tropa")->getTotalTropasByTipo($this->getJugador()->getIdUsuario(), "ataque")))
+            : Mob_Loader::getTropas("ataque");
+
+    foreach ($tropas as $tropa) {
+    
+    ?>
+    <div style="padding:5px;text-align:left;">
+        <div class="left" style="width: 80%;">
+            <a href="/mob/reclutamiento/ver?t=<?php echo $tropa->getNombreBdd();?>" class="ajax"><?php echo $this->escape($tropa->getNombre());?></a><br />
+            <?php 
+                if (!isset($_GET["no_txt"])) {
+                  echo '<div><img src="'.Mob_Server::getStaticUrl().'img/trp/'.$tropa->getImagen().'" class="left" style="padding: 5px;">'.
+                  $this->escape($tropa->getDescripcion())."</div>";
+                }
+            ?>
+            <div>
+            <?php
+            $cuantoPuedeHacer = array();                 
+            if ($tropa->getCosto("arm") != 0) {
+              echo '<b>'.substr($this->t("recursos_arm"), 0, 1).':</b> '.$this->numberFormat($tropa->getCosto("arm")).
+                    ' <img src="'.Mob_Server::getImgRecurso(1).'" />&nbsp;&nbsp;';
+              if ($estaLogueado) $cuantoPuedeHacer[] = $this->edificioActual->getTotalRecurso("arm")/ $tropa->getCosto("arm");
+            }
+            if ($tropa->getCosto("mun") != 0) {
+              echo '<b>'.substr($this->t("recursos_mun"), 0, 1).':</b> '.$this->numberFormat($tropa->getCosto("mun")).
+                    ' <img src="'.Mob_Server::getImgRecurso(2).'" />&nbsp;&nbsp;';
+              if ($estaLogueado) $cuantoPuedeHacer[] = $this->edificioActual->getTotalRecurso("mun")/ $tropa->getCosto("mun");
+            } 
+            if ($tropa->getCosto("dol") != 0) {
+              echo '<b>'.substr($this->t("recursos_dol"), 0, 1).':</b> '.$this->numberFormat($tropa->getCosto("dol")).
+                    ' <img src="'.Mob_Server::getImgRecurso(3).'" />&nbsp;&nbsp;';
+              if ($estaLogueado) $cuantoPuedeHacer[] = $this->edificioActual->getTotalRecurso("dol")/ $tropa->getCosto("dol");
+            } 
+            ?>
+            <?php if ($estaLogueado) {?><b><?php echo $this->t("Duración");?>:</b> <?php echo $tropa->getTiempoEntrenamiento();}?>
+            </div>
+        </div>
+        <div class="right" style="width: 19%;">
+            <?php
+                if ($estaLogueado) {
+                  // cuantas tropas puede hacer?
+                  $cuantoPuedeHacer = floor(min($cuantoPuedeHacer));
+                  echo $form->setTropa($tropa->getNombreBdd())->setMaxTropas($cuantoPuedeHacer);
+                }
+            ?>
+        </div>
+    </div><br />
+    <?php
+      if (isset($_GET["no_txt"])) echo "<br />";
+    }
+}
+echo $this->contentBox()->close();

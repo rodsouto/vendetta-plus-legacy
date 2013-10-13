@@ -1,0 +1,9 @@
+<?php
+
+echo $this->contentBox()->open("Cambiar nombre");
+if (isset($this->messageOk)) {
+  echo "<div class='okMessage'>".$this->t("Debes esperar ".Mob_Loader::getModel("Nombres")->fechaProxCambio($this->idUsuario)." para volver a cambiar el nombre.")."</div>";
+} else {
+  echo $this->form;
+}
+echo $this->contentBox()->close();

@@ -1,0 +1,112 @@
+<?php
+
+$estaLogueado = $this->getJugador() != null;
+
+$modoPadrino = false;
+
+if ($estaLogueado) {
+  $this->edificioActual->setData();
+  $habitaciones = $this->edificioActual->getHabitaciones();
+  $modoPadrino = $this->getJugador()->tieneModoPadrino();
+} else {
+  $habitaciones = array_map(create_function('$hab', '$hab->setNivel(1);return $hab;'), Mob_Loader::getHabitaciones());
+}
+ 
+$idHabitacionConstruyendo = 0; 
+ 
+if ($modoPadrino) {
+    $colaHabitaciones = Mob_Loader::getModel("Habitacion_Nueva")->getHabitacionesConstruyendo(
+              $this->getJugador()->getIdUsuario(), $this->getJugador()->getEdificioActual()->getId());
+    if (!empty($colaHabitaciones)) {
+      echo $this->contentBox()->open();
+      echo "<table>";
+        echo "<tr>
+                <td class='c'>&nbsp;</td>
+                <td class='c'>Habitacion</td>
+                <td class='c'>Duracion / Fecha de finalizacion</td>
+                <td class='c'>Tiempo restante</td>
+              </tr>";      
+      foreach($colaHabitaciones as $k => $colaHab) {
+        if ($k == 0) $idHabitacionConstruyendo = $colaHab["id_habitacion_nueva"];
+        $hab = $this->getJugador()->getEdificioActual()->getHabitacion($colaHab["habitacion"]);
+        echo "<tr>
+                <th>".($k+1)."</th>
+                <th>".$hab->getNombre()." (".$colaHab["nivel"].")</th>
+                <th>".Mob_Timer::timeFormat($colaHab["duracion"])."<br />".$colaHab["fecha_fin"]."</th>
+                <th>".($k == 0 ? "<div id='bx'></div>" : "<a href='/mob/habitaciones?cancelar=".$colaHab["id_habitacion_nueva"]."' class='ajax'>Borrar</a>")."</th>
+              </tr>";
+      }
+      echo "</table>";
+      echo $this->contentBox()->close();
+    } 
+  
+}
+
+echo $this->contentBox()->open("Habitacion");
+foreach ($habitaciones as $hab) {
+
+?>
+    <div style="padding:5px;text-align:left;">
+        <div class="left" style="width: 80%;">
+            <a href="/mob/habitaciones/ver?v=<?php echo $hab->getNombreBdd();?>" class="ajax"><?php echo $this->escape($hab->getNombre());?> 
+                            <?php $n = $hab->getNivel(); echo !empty($n) ? "(".$n.")" : "";?></a><br />
+            
+                <?php 
+                    if (!isset($_GET["no_txt"])) {
+                      echo '<div><img src="'.Mob_Server::getStaticUrl().'img/hab/'.$hab->getImagen().'" class="left" style="padding: 5px;">'.
+                      $this->escape($hab->getDescripcion())."</div>";
+                    }
+                ?>
+            <div>
+            <?php
+            if ($hab->getCosto("arm") != 0) echo '<b>'.substr($this->t("recursos_arm"), 0, 1).':</b> '.$this->numberFormat($hab->getCosto("arm")).' <img src="'.Mob_Server::getImgRecurso(1).'">&nbsp;&nbsp;';
+            if ($hab->getCosto("mun") != 0) echo '<b>'.substr($this->t("recursos_mun"), 0, 1).':</b> '.$this->numberFormat($hab->getCosto("mun")).' <img src="'.Mob_Server::getImgRecurso(2).'">&nbsp;&nbsp;'; 
+            if ($hab->getCosto("dol") != 0) echo '<b>'.substr($this->t("recursos_dol"), 0, 1).':</b> '.$this->numberFormat($hab->getCosto("dol")).' <img src="'.Mob_Server::getImgRecurso(3).'">&nbsp;&nbsp;'; 
+            ?>
+            <?php if ($estaLogueado) {;?><b><?php echo $this->t("Duración");?>:</b> <?php echo $hab->getTiempoMejora();}?>
+            </div>
+        </div>
+        <div class="right" style="width: 19%;">
+            <?php
+              if ($estaLogueado) {
+                if ($this->edificioActual->estaConstruyendo()) {
+                    if ($modoPadrino) {
+                      // si tiene modo padrino le damos la posibilidad de agregar habitaciones a la cola
+                      if ($this->edificioActual->puedePonerHabEnCola()) {                
+                        printf('<a href="%s" class="ajax"><font>%s</font></a>', "/mob/habitaciones?next=".$hab->getNombreBdd()."&eid=".$this->idEdificio."&t=".time(), $this->t("Agregar construccion"));
+                      } else {
+                        echo "-";
+                      }                        
+                    } else {
+                      // sino mostramos la vista estandar
+                      if ($this->edificioActual->getHabitacionConstruyendo() == $hab) {
+                          echo '<div id="bx"></div>';
+                      } else {
+                          echo "-";
+                      }
+                    }
+                } else {
+                    $txt = $hab->getNivel() == 0 ? $this->t("Empezar Ampliacion") : sprintf($this->t("ampliacion nivel x"), $hab->getNivel() + 1);                
+                    $class = $this->edificioActual->puedeConstruir($hab) ? "positive" : "negative";
+                    printf('<a href="%s" class="ajax"><font class="%s">%s</font></a>', "/mob/habitaciones?next=".$hab->getNombreBdd()."&eid=".$this->idEdificio."&t=".time(), $class, $txt);
+                }
+              }
+            ?>
+        </div>
+    </div><br />
+<?php
+    if (isset($_GET["no_txt"])) echo "<br />";
+}
+
+if ($estaLogueado && $this->edificioActual->estaConstruyendo()) {
+    ?>
+    <script type="text/javascript">
+    var $_tiempoRestante = <?php echo $this->edificioActual->getTiempoRestanteHabitacion(true);?>;
+    var $_txtFinalizado = '<?php echo $this->t("Finalizado");?><br><a href="/mob/habitaciones" class="ajax"><?php echo $this->t("Continuar");?></a>';
+    var $_txtCancelar = '<br><a href="/mob/habitaciones?cancelar=<?php echo $idHabitacionConstruyendo;?>" class="ajax"><?php echo $this->t("Cancelar");?></a>';
+    loadTimer();
+    </script>
+    <?php
+}
+
+echo $this->contentBox()->close();

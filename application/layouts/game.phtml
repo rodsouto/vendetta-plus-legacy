@@ -1,0 +1,207 @@
+<?php
+echo $this->doctype();
+
+$estaLogueado = Zend_Auth::getInstance()->hasIdentity();
+
+$tieneFamilia = false;
+$chatActivado = false;
+if ($estaLogueado 
+        && $tieneFamilia = Mob_Loader::getModel("Familias_Miembros")->tieneFamilia($this->idUsuario) 
+            && $chatActivado) {
+
+    $this->headScript()->appendFile(Mob_Server::getStaticUrl()."js/chat.js");
+    $this->headLink()->appendStylesheet(Mob_Server::getStaticUrl()."css/chat.css")
+                            ->appendStylesheet(Mob_Server::getStaticUrl()."css/screen.css")
+                            ->appendStylesheet(Mob_Server::getStaticUrl()."css/screen_ie.css");
+
+}
+
+?>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title><?php 
+    if (!empty($this->pageTitle)) {
+        echo $this->pageTitle." - ";
+    } else {
+        if ($estaLogueado) echo Mob_Loader::getModel("Usuarios")->getUsuario($this->idUsuario)." - "; 
+    }
+    echo Mob_Server::getGameName()." ".Mob_Server::getSubdomain();?></title>
+    <?php
+        echo $this->headMeta();
+        echo $this->headLink();
+        echo $this->headScript()->appendFile(Mob_Server::getStaticUrl()."js/scripts.js")
+                                ->appendFile(Mob_Server::getStaticUrl()."js/jquery.history.js")
+                                ->appendFile(Mob_Server::getStaticUrl()."js/timer.js")
+                                ->appendFile(Mob_Server::getStaticUrl()."js/jquery.monnaTip.js");
+        echo $this->getAnalytics();                                
+    ?>     
+</head>
+<body class="game_<?php echo Mob_Server::getGameType();?>">
+<div id="wraper" class="login_<?php echo (int)$estaLogueado;?>">
+  <div id="topbar"></div>
+  <div id="logo"></div>
+  <?php if (!$estaLogueado) { ?>
+    <div id="notice" style="padding: 4px; background-color: red; font-weight: bold; color: white; font-size: 12px;height: 25px; line-height: 25px;">
+    <p><a href="/index/index/register" style="color: white;"><?php echo $this->t("Estas probando el juego como invitado, mejor registrate ahora!");?></a>
+    ... o si no, <a href="/" style="color: white;">logeate aqui</a></p>
+    </div>
+  <?php } 
+  ?>
+  <div id="menu_div">
+          <ul id="menu">
+              <li class="titulo">Menu</li>
+              <?php
+              if (Mob_Loader::getModel("Roles")->hasAnyRol($this->idUsuario)) {   
+                echo '<li><a href="/admintool">Admin Tool</a></li>';
+              }
+              ?>   
+              <li><?php echo Mob_Timer::dateFormat(time());?></li>
+              <?php
+              if ($estaLogueado) {
+                if (Mob_Loader::getModel("Mensajes")->tieneMensajesNuevos($this->idUsuario)) {
+                  echo "<li class='newMsg'><a href='/mob/mensajes/listado?c=0'>".$this->t("Nuevo mensaje")."</a></li>";
+                }
+                
+                if (Mob_Loader::getModel("Mensajes")->tieneAlertasNuevas($this->idUsuario)) {
+                  echo "<li class='newMsg'><a href='/mob/mensajes/listado?c=alerts'>".$this->t("Nueva alerta")."</a></li>";
+                }
+              
+              ?>
+                <li style="margin-top: 10px;"><a href="/mob/visiongeneral" id="linkV" class="ajax"><span><?php echo $this->t("Vision general");?></span></a></li>
+              <?php
+              }
+              ?>
+                <li><a href="/mob/habitaciones" id="linkH" class="ajax"><span><?php echo $this->t("Habitaciones");?></span></a></li>
+                <li><a href="/mob/reclutamiento" id="linkR" class="ajax"><span><?php echo $this->t("Reclutamiento");?></span></a></li>
+                <li><a href="/mob/seguridad" id="linkS" class="ajax"><span><?php echo $this->t("Seguridad");?></span></a></li>
+                <li><a href="/mob/entrenamiento" id="linkE" class="ajax"><span><?php echo $this->t("Entrenamiento");?></span></a></li>
+              <?php
+              if ($estaLogueado) {
+              ?>
+                <li><a href="/mob/edificios" class="ajax"><span><?php echo $this->t("Edificios");?></span></a></li>
+              <?php
+              }
+              ?>
+              <li><a href="/mob/buscar" class="ajax"><span><?php echo $this->t("Buscar");?></span></a></li>
+              <?php 
+              if ($estaLogueado) {
+              ?>
+                <li>
+                    <?php
+                      $request = Zend_Controller_Front::getInstance()->getRequest();
+                      $action = implode("/", array($request->getModuleName(), $request->getControllerName(), $request->getActionName()));
+                    ?>
+                    <form method="post" id="frmBuilding" action="/<?php echo $action;?>">
+                        <?php
+                          $style = "border: 0pt none ; margin: 0pt 5px; padding: 0pt; width: 10px; display: inline;font-size: 18px; font-weight: bold;";
+                          $edificios = $this->getJugador()->getEdificios($this->idUsuario);
+                          
+                          // busco el anterior y el siguiente
+                          $anterior = $siguiente = 0;
+                          $saveAnterior = $saveSiguiente = false;
+                          foreach ($edificios as $id => $edi) {
+  
+                            if ($saveSiguiente) {
+                              $siguiente = $id;
+                              break;
+                            } 
+                            
+                            if ($id == $this->idEdificio) {
+                              $saveSiguiente = true;
+                              if ($saveAnterior) $anterior = $saveAnterior;
+                            }
+                            
+                            $saveAnterior = $id;
+                          }
+                           
+                          if ($anterior != 0) echo "<a href='?building=$anterior' id='prevBuilding' style='$style'>-</a>";
+                          echo $this->formSelect("building", $this->idEdificio, null, $edificios);
+                          if ($siguiente != 0) echo "<a href='?building=$siguiente' id='nextBuilding' style='$style'>+</a>"; 
+                          ?>
+                    </form>
+                </li>
+                <li><a href="/mob/arboltecnologico" class="ajax"><span><?php echo $this->t("Arbol Tecnologico");?></span></a></li>
+                <li><a href="/mob/familias" id="linkF" class="ajax"><span><?php echo $this->t("Familias");?></span></a></li>
+                <li><a href="/mob/recursos" class="ajax"><span><?php echo $this->t("Recursos");?></span></a></li>
+              <?php
+              }
+              ?>
+              <li><a href="/mob/mapa" class="ajax"><span><?php echo $this->t("Mapa");?></span></a></li>
+              <?php 
+              if ($estaLogueado) {
+              ?>
+                <li><a href="/mob/index/simulador" class="ajax"><span><?php echo $this->t("Simulador");?></span></a></li>
+                <li><a href="/mob/mercado" id="linkB" class="ajax"><span><?php echo $this->t("Mercado");?></span></a></li>
+                <li><a href="/mob/misiones" id="linkA" class="ajax"><span><?php echo $this->t("Misiones");?></span></a></li>
+                <li><a href="/mob/mensajes" id="linkM" class="ajax"><span><?php echo $this->t("Mensajes");?></span></a></li>
+              <?php
+              }
+              ?>
+              <li><a href="/mob/guerras" class="ajax"><span><?php echo $this->t("Guerras");?></span></a></li>
+              <li><a href="/mob/records" class="ajax"><span><?php echo $this->t("Records");?></span></a></li>
+              <li><a href="/mob/batallas" class="ajax"><span><?php echo $this->t("Batallas");?></span></a></li>
+              <li><a href="/mob/clasificacion" id="linkC" class="ajax"><span><?php echo $this->t("Clasificacion");?></span></a></li>
+              <?php
+                  $config = Zend_Controller_Front::getInstance()->getParam('bootstrap')->getOptions();
+                  $boardUrl = "http://board.".Mob_Server::getDomain();
+                  
+                  if (!empty($config["games"][Mob_Server::getGameType()]["boards"][$this->language])) {
+                    $boardUrl = "http://".$this->language.".board.".Mob_Server::getDomain();
+                  }
+              ?>
+              <li><a href="<?php echo $boardUrl;?>" target="_blank"><span><?php echo $this->t("Foro");?></span></a></li>
+              <?php 
+              if ($estaLogueado) {
+              ?>
+                <li><a href="/mob/opciones" class="ajax"><span><?php echo $this->t("Opciones");?></span></a></li>
+                <li style="margin-bottom: 10px;" class="last"><a href="/mob/logout"><span><?php echo $this->t("Salir");?></span></a></li>
+              <?php
+              }
+              ?>              
+              
+          </ul>
+          </div>
+          
+          <div id="content">
+          <?php
+          
+          echo $this->layout()->content;  
+          ?>
+          </div>
+<?php
+
+if ($chatActivado) {
+    echo '<div id="chatBar">
+    <div id="chatUserList">';
+
+    $n = 0;
+    if ($tieneFamilia) {
+      echo "<ul>";
+      foreach (Mob_Loader::getModel("Familias_Miembros")->getMiembrosOnline(
+        Mob_Loader::getModel("Familias_Miembros")->getIdFamilia($this->idUsuario)
+      ) as $m) {
+        if ($m["id_usuario"] == $this->idUsuario) continue;
+        $n++;
+        $nombreUsuario = $this->escape(Mob_Loader::getModel("Usuarios")->getUsuario($m["id_usuario"]));
+        echo "<li><a href='javascript:void(0)' onclick='javascript:chatWith(\"$nombreUsuario\", ".$m["id_usuario"].")'>".$nombreUsuario."</a></li>";
+      }
+      echo "</ul>";
+    }
+
+    echo '</div>
+    <a href="#" id="openChat">Chat ('.$n.')</a></div>';
+}
+echo '</div>';
+
+
+  echo $this->testBar();
+?>
+
+</body>
+</html>
+<?php
+
+if (isset($_GET["totalObjects"])) {
+  var_dump(new StdClass);
+}
+

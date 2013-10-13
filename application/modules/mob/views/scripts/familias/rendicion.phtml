@@ -1,0 +1,33 @@
+<?php
+
+if ($this->action == "ver") {
+
+  $rendicion = Mob_Loader::getModel("Guerras_Rendicion")->getRendicion($this->idf, $this->miIdFamilia);
+
+  echo $this->contentBox()->open(sprintf($this->t($rendicion['type'] == 0 ? "Declaracion de rendicion de x" : "Propuesta de empate de x"), Mob_Loader::getModel("Familias")->getNombre($this->idf)));
+  
+  if (empty($rendicion)) {
+    echo "<p>".$this->t("No se hallo ningun resultado.")."</p>";
+  } else {
+    echo "<p>\"".$this->escape($rendicion["texto"])."\"</p>";
+    
+    if ($this->getJugador() !== null) {
+      if (Mob_Loader::getModel("Familias_Miembros")->esCapoSubCapo($this->idUsuario, $this->miIdFamilia)) {
+        echo "<br /><p><a href='/mob/familias/rendicion/go/aceptar?idf={$this->idf}&type={$rendicion['type']}'>".$this->t("Aceptar y finalizar la guerra")."</a></p><br />
+            <p><a href='/mob/familias/rendicion/go/rechazar?idf={$this->idf}&type={$rendicion['type']}'>".$this->t("Rechazar y continuar la guerra")."</a></p>";      
+      } else {
+        echo "<p>".$this->t("Solo el capo puede aceptar o rechazar las solicitudes recibidas.")."</p>";
+      }
+    }
+    
+  }  
+  echo $this->contentBox()->close();
+} elseif ($this->action == "verMsg") {
+  echo $this->contentBox()->open(Mob_Loader::getModel("Familias")->getNombre($this->miIdFamilia));
+    echo "<p>".$this->msg."</p>";
+  echo $this->contentBox()->close();
+} else {
+  echo $this->contentBox()->open("Declarar rendicion");
+      echo isset($this->message) ? $this->message :$this->form;
+  echo $this->contentBox()->close();
+}

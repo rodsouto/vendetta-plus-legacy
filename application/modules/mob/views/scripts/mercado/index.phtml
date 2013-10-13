@@ -1,0 +1,68 @@
+<?php
+
+function buildTablaMercado($v, $view) {
+  $recursosVendedor = "";
+  if ($v["cantidad"] - $v["cantidad_dev"] > 0) $recursosVendedor = $view->t("recursos_".$v["recurso"]).": ".$view->numberFormat($v["cantidad"] - $v["cantidad_dev"]);
+  $recursosComprador = array();
+  
+  $recursosComprador = array();
+  foreach (array("arm", "mun", "dol") as $rec) {
+      if ($v["compra_".$rec] && $v["compra_".$rec] - $v["compra_".$rec."_dev"] > 0) $recursosComprador[] = $view->t("recursos_".$rec).": ".$view->numberFormat($v["compra_".$rec]-$v["compra_".$rec."_dev"]);
+  }
+  $recursosComprador = implode(", ", $recursosComprador);
+
+  if ($v["aceptada"] == 0) {
+    $link = "[<a href='/mob/mercado/index/cancelar/".$v["id_mercado"]."'>Cancelar</a>]";
+  } else {
+    $link = Mob_Timer::timeFormat(strtotime($v["fecha_fin"])-time());
+  }
+  if ($v["id_comprador"] == $view->idUsuario) {
+    $nombre = Mob_Loader::getModel("Usuarios")->getFullName($v["id_vendedor"]);
+    $envio = $recursosComprador;
+    $recepcion = $recursosVendedor;
+    if ($v["aceptada"] == 0) $link .= " [<a href='/mob/mercado/index/aceptar/".$v["id_mercado"]."'>Aceptar</a>]";
+    $idSocio = $v["id_vendedor"];
+  } else {
+    $nombre = Mob_Loader::getModel("Usuarios")->getFullName($v["id_comprador"]);
+    $envio = $recursosVendedor;
+    $recepcion = $recursosComprador;
+    $idSocio = $v["id_comprador"];
+  }
+  
+  if (empty($envio)) $envio = "-";
+  if (empty($recepcion)) $recepcion = "-";
+
+  return "<tr>
+            <th><a href='/mob/jugador?id=$idSocio'>$nombre</a></th>
+            <th>$envio</th>
+            <th>$recepcion</th>
+            <th>$link</th>
+        </tr>";
+}
+
+if ($this->formOk) {
+    echo "<p class='okMessage'>Propuesta comercial enviada correctamente.</p>";
+}
+
+echo $this->contentBox()->open("Nueva transaccion");
+echo $this->formPropuesta;
+echo $this->contentBox()->close();
+
+echo $this->contentBox()->open("Transacciones en curso");
+echo "<table>";
+echo "<tr><td class='c'>Jugador</td><td class='c'>Pendiente envio</td><td class='c'>Pendiente recepcion</td><td class='c'>Tiempo restante</td></tr>";
+foreach (Mob_Loader::getModel("Mercado")->getEnCurso($this->idUsuario) as $v) {
+    echo buildTablaMercado($v, $this);
+}
+echo "</table>";
+echo $this->contentBox()->close();
+
+echo "<a name='pendientes' id='pendientes'></a>";
+echo $this->contentBox()->open("Transacciones pendientes de aceptacion");
+echo "<table>";
+echo "<tr><td class='c'>Jugador</td><td class='c'>Cantidad a enviar</td><td class='c'>Cantidad a recibir</td><td class='c'>&nbsp;</td></tr>";
+foreach (Mob_Loader::getModel("Mercado")->getPendientes($this->idUsuario) as $v) {
+    echo buildTablaMercado($v, $this);
+}
+echo "</table>";
+echo $this->contentBox()->close();

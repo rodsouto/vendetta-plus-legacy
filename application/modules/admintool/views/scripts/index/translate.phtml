@@ -1,0 +1,29 @@
+<style>
+#langs li {display: inline; margin: 0 5px;}
+</style>
+<?php
+
+echo $this->contentBox()->open("Language");
+
+echo "<h3>Translate</h2>";
+echo "<ul id='langs'>";
+foreach ($this->idiomas as $l => $activado) echo "<li><a href='/admintool/index/translate/do/list/lang/$l'>$l</a></li>";
+echo "</ul>";
+
+echo "<br /><a href='/admintool/index/translate/do/add'>Add</a>";
+
+echo $this->contentBox()->close();
+
+if (!empty($this->action)) {
+  echo $this->contentBox()->open(ucwords($this->action));
+  if (isset($this->form1)) echo $this->form1->render()."<br />";
+  echo $this->form;
+  
+  if (isset($this->paginator)) echo $this->paginationControl($this->paginator, 'Sliding', 'paginationControl.phtml');
+  
+  echo $this->contentBox()->close();
+}
+
+
+
+?>

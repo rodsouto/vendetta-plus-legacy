@@ -1,0 +1,33 @@
+<?php
+
+echo $this->contentBox()->open("Ranking");
+echo $this->formRanking;
+
+$frontendOptions = array('lifetime' => 300, 'automatic_serialization' => true);
+$backendOptions = array('cache_dir' => 'cacheFiles/html/clasificacion');
+$cache = Zend_Cache::factory('Core', 'File', $frontendOptions, $backendOptions);
+
+// tipo de ranking y pagina
+$request = Zend_Controller_Front::getInstance()->getRequest();
+
+$tipo = $this->formRanking->getTipo();
+
+$html = $this->{"getRanking".$tipo}();
+
+$pagina = $this->{"getRanking".$tipo}("getQuery")->getPart("limitoffset")/100+1;
+
+$form = "";
+if ($tipo == "Jugadores") {
+  $form = new Mob_Form_Paginacion;
+  $params = array_filter(array(
+      "type" => isset($_GET["type"]) ? $_GET["type"] : null,
+      "order" => isset($_GET["order"]) ? $_GET["order"] : null
+  ));
+  $form->addHidden($params);
+  $form->build(2000, 100);
+  $form->setAction("/mob/clasificacion");
+}
+echo "<br />"; echo $form;
+echo $html;
+echo $form;
+echo $this->contentBox()->close();

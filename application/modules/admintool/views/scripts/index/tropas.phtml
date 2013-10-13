@@ -1,0 +1,13 @@
+<?php
+
+echo $this->contentBox()->open("Tropas");
+  echo $this->form;
+  
+  if (isset($this->formAgregar)) {
+    echo "<br />";
+    echo $this->formAgregar;
+    /*foreach ($this->tropasUsuario as $tropa => $cantidad) {
+      echo Mob_Loader::getTropa($tropa)->getNombre().": ".$this->numberFormat($cantidad)." <br />";
+    }*/
+  }
+echo $this->contentBox()->close();

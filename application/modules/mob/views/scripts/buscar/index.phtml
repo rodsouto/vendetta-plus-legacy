@@ -1,0 +1,52 @@
+<?php
+
+echo $this->contentBox()->open("Buscar");
+echo $this->form;
+echo $this->contentBox()->close();
+
+if ($this->buscar) {
+
+    $buscar = $this->form->texto->getValue();
+
+    if ($this->form->tipo->getValue() == "j") {
+        // busco jugadores
+        echo '<table width="550">
+            <tr>
+                <td class="c">'.$this->t("Jugador").'</td>
+                <td class="c">'.$this->t("Puntos").'</td>
+            </tr>';
+            $usuarios = Mob_Loader::getModel("Usuarios")->buscar($buscar);
+            
+            foreach ($usuarios as $usuario) {
+              $idFamilia = Mob_Loader::getModel("Familias_Miembros")->getIdFamilia($usuario["id_usuario"]);
+              echo '<tr>
+                  <th><a href="/mob/jugador?id='.$usuario['id_usuario'].'">'.$usuario['usuario'].'</a> '.
+                  ($idFamilia > 0 ? " <a href='/mob/familias/ver?idf=$idFamilia'>[".Mob_Loader::getModel("Familias")->getEtiqueta($idFamilia)."]</a>" : "")
+                  .'</th>
+                  <th>'.$this->numberFormat($usuario["total"]).'</th>
+              </tr>';
+            }
+        echo "<tr><td colspan='2'>".count($usuarios)." ".$this->t("Resultados")." (200 max.)</td></tr>";
+        echo '</table>';
+    } else {
+        // busco familias
+        echo '<table width="550">
+            <tr>
+                <td class="c">'.$this->t("Familia").'</td>
+                <td class="c">'.$this->t("Miembros").'</td>
+                <td class="c">'.$this->t("Puntos").'</td>
+            </tr>';
+            $familias = Mob_Loader::getModel("Familias")->buscar($buscar);
+            
+            foreach ($familias as $familia) {
+              echo '<tr>
+                  <th><a href="/mob/familias/ver?idf='.$familia["id_familia"].'">'.$familia['nombre'].' ['.$familia['etiqueta'].']</a></th>
+                  <th>'.$this->numberFormat(Mob_Loader::getModel("Familias_Miembros")->getTotalMiembros($familia["id_familia"])).'</th>
+                  <th>'.$this->numberFormat(Mob_Loader::getModel("Familias_Miembros")->getPuntos($familia["id_familia"])).'</th>
+              </tr>';
+            }
+        echo "<tr><td colspan='2'>".count($familias)." ".$this->t("Resultados")." (200 max.)</td></tr>";
+        echo '</table>';
+    }
+
+}

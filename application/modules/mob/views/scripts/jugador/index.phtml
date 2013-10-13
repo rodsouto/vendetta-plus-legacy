@@ -1,0 +1,35 @@
+<?php
+
+$nombreJugador = $this->pageTitle = $this->escape(Mob_Loader::getModel("Usuarios")->getFullName($this->idJugador));
+
+echo $this->contentBox()->open($nombreJugador);
+
+echo '<!-- AddThis Button BEGIN -->
+<div class="addthis_toolbox addthis_default_style sharePlayer">
+<a class="addthis_button_facebook_like" fb:like:layout="button_count" addthis:title="'.$nombreJugador.'"></a>
+<a class="addthis_button_tweet" addthis:title="'.$nombreJugador.'"></a>
+<a class="addthis_counter addthis_pill_style" addthis:title="'.$nombreJugador.'"></a>
+</div>
+<script type="text/javascript">var addthis_config = {"data_track_clickback":true};</script>
+<script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=ra-4dbc75a60ccf7e09"></script>
+<!-- AddThis Button END -->';
+
+echo $this->getInfoJugador($this->idJugador, $this->idUsuario, false);
+
+if ($this->getJugador() != null) echo "<p><a class='ajax' href='/mob/mensajes/nuevo?id_dest=".$this->idJugador."'>".$this->t("Escribir Mensaje")."</a></p>";
+echo $this->contentBox()->close();
+/*
+echo $this->contentBox()->open($this->t("Guestbook"));
+    echo $this->formGuestbook;
+    
+    Mob_Loader::getModel("Timeline")->getFirmasRecibidas($this->idJugador);
+echo $this->contentBox()->close();
+*/
+echo $this->contentBox()->open("Edificios");
+echo "<table>";
+    echo "<tr><td>".$this->t("Posicion")."</td><!--<td>".$this->t("Nombre")."</td>--><td>".$this->t("Puntos")."</td></tr>";
+    foreach (Mob_Loader::getModel("Edificio")->fetchAll("id_usuario = ".$this->idJugador, array("coord1 asc", "coord2 asc", "coord3 asc")) as $e) {
+        echo "<tr><td><a class='ajax' href='/mob/misiones?c1={$e['coord1']}&c2={$e['coord2']}&c3={$e['coord3']}'>{$e['coord1']}:{$e['coord2']}:{$e['coord3']}</a></td><!--<td>-</td>--><td>".$this->numberFormat($e['puntos'])."</td></tr>";
+    }
+echo "</table>";
+echo $this->contentBox()->close();

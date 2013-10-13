@@ -1,0 +1,195 @@
+<?php
+
+/*echo "<div style='border: 4px solid rgb(125, 34, 33); padding: 5px; background-color: rgb(255, 252, 219); margin-bottom: 10px;'>";
+echo '<p>Si has perdido tropas <a href="/mob/jugador?id=117">enviale un mensaje a admin</a> con las tropas que te faltan y en las proximas horas te seran devueltas.</p>
+<br /><p>If you have lost troops <a href="/mob/jugador?id=117">send a message to admin</a> with the troops that are missing and in the next few hours it will be returned.</p>';
+echo "</div>";*/
+
+/*echo $this->contentBox()->open("Vision General \"". $this->getJugador()->getNombre() ."\"");
+  echo "<table>";
+    if (Mob_Loader::getModel("Mensajes")->tieneMensajesNuevos($this->idUsuario)) {
+        echo "<tr><td colspan='2'><a href='/mob/mensajes/listado?c=0'>Nuevo mensaje (Carpeta: Bandeja de entrada)</a></td></tr>";
+    }
+    echo "<tr><td>Hora del servidor</td><td>".Mob_Timer::dateFormat(time())."</td></tr>";
+  echo "</table>";
+echo $this->contentBox()->close();*/
+
+try {
+  $feed = Zend_Feed_Reader::import('http://board.vendetta-plus.com/syndication.php?fid=22&limit=15');
+  $feedData = array();
+  foreach ($feed as $entry) {
+      if($entry->getDateModified()->get() < strtotime("-2 days")) break;
+      
+      $feedData[] = array(
+          'title'        => $entry->getTitle(),
+          'date' => $entry->getDateModified(),
+          'link'         => $entry->getLink()
+      );
+   
+  }
+   
+  if (!empty($feedData)) {
+      echo $this->contentBox()->open("Noticias");
+      foreach($feedData as $d) echo "<p><a target='_blank' href='".$d["link"]."'>".$d["title"]."</a></p>";
+      echo $this->contentBox()->close();
+  }
+} catch (Exception $e) {}
+
+echo $this->contentBox()->open("Estadisticas del servidor");
+  echo "<div id='estadisticasServidor'><p>";
+  $replaceEstadistica1 = array(
+                      Mob_Loader::getModel("Misiones")->getTotalTropasByTipo(1), 
+                      Mob_Loader::getModel("Misiones")->getTotalByTipo(1),
+                      Mob_Loader::getModel("Misiones")->getTotalByTipo(3)
+                      ) +
+                    Mob_Loader::getModel("Misiones")->getInfoRecTransportados();
+  echo str_replace(
+                    array("#trp_ataques#", "#ataques#", "#transp#", "#rec_arm#", "#rec_mun#", "#rec_dol#"), 
+                    array_map(array($this, "numberFormat"), $replaceEstadistica1),
+                    $this->t("estadistica_servidor_1")
+                );
+  echo "</p><br />";
+  echo "<p>";printf($this->t("estadistica_servidor_2"), 
+                      $this->numberFormat(Mob_Loader::getModel("Misiones")->getTotalTropasByTipo(2) + Mob_Loader::getModel("Misiones")->getTotalTropasByTipo(5)));
+  echo "<p><br />";
+  echo "<p>".str_replace("#total", $this->numberFormat(Mob_Loader::getModel("Misiones")->getTotalByTipo(4)), $this->t("estadistica_servidor_3"))."</p>";
+  //echo "<p><a href='#' id='hideEstadisticas'>Ocultar</a></p>";
+  echo "</div>";
+  /*echo "<p><a href='#' id='showEstadisticas'>Mostrar</a></p>";
+  echo "<script>
+  $('#showEstadisticas').click(function(event){event.preventDefault();$('#estadisticasServidor').show();
+      $('#showEstadisticas').hide();$('#hideEstadisticas').show();});
+  $('#hideEstadisticas').click(function(event){event.preventDefault();$('#estadisticasServidor').hide();
+      $('#showEstadisticas').show();$('#hideEstadisticas').hide();});
+  $('#hideEstadisticas').trigger('click');
+  </script>";*/
+echo $this->contentBox()->close();
+
+echo $this->contentBox()->open("Tropas");
+echo "<table>";
+echo "<tr><td colspan='3'><a href='/mob/visionglobal/tropas' target='_blank'>".$this->t("Vision global de las Tropas")."</a></td></tr>";
+echo "<tr><td colspan='3'><a href='/mob/visionglobal/misiones' class='ajax'>".$this->t("Vision global de las Misiones")."</a></td></tr>";
+    $misiones = Mob_Loader::getModel("Misiones")->getMisiones($this->idUsuario);
+    $huboMisiones = false;
+    $recursosTxt = array("recursos_arm" => $this->t("recursos_arm"), "recursos_mun" => $this->t("recursos_mun"), 
+                        "recursos_alc" => $this->t("recursos_alc"), "recursos_dol" => $this->t("recursos_dol"));
+    
+    $misionesTxt = array(1 => $this->t("mision_1"), 2 => $this->t("mision_2"), 3 => $this->t("mision_3"), 4 => $this->t("mision_4"), 5 => $this->t("mision_5"));
+    $now = time();
+    foreach ($misiones as $mision) {
+    $huboMisiones = true;
+    if (strtotime($mision["fecha_fin"]) < $now) continue;
+    if($mision["mision"] == 1) {
+        if (Mob_Loader::getModel("Edificio")->esCoordenadaMia(
+                            $mision["coord_dest_1"], 
+                            $mision["coord_dest_2"], 
+                            $mision["coord_dest_3"], 
+                            $this->idUsuario)) {
+            $color = "negative";
+        } else {
+            $color = "neutro";
+        }
+    } else {
+        $color = "positive";
+    }
+    
+    if ($color != "negative") {
+        $htmlTropas = '<ul>';
+        
+        if ($mision["mision"] != 1) {
+          foreach ($recursosTxt as $key => $txt) {
+              $htmlTropas .= '<li>'.$txt.' '.$this->numberFormat($mision[$key]).'</li>';
+          }
+          $htmlTropas .= "<li><br /></li>";
+        }
+        foreach(Zend_Json::decode($mision["tropas"]) as $tropa => $cantidad) {
+            //$htmlTropas .= '<tr><td><img src=\'/img/'.Mob_Loader::getTropa($tropa)->getImagen().'\'></td><td>'.$cantidad.'</td></tr>';
+            $htmlTropas .= '<li>'.$this->escape(Mob_Loader::getTropa($tropa)->getNombre()).' '.$cantidad.'</li>';
+        }
+        $htmlTropas .= '</ul>';
+    } else {
+        $htmlTropas = "";
+    }
+    
+echo '<tr>
+    <td>'.Mob_Timer::timeFormat(strtotime($mision["fecha_fin"])-time()).'</td>
+    <td class="hasTip" title="'.addslashes($htmlTropas).'">
+    <span class="'.$color.'">'.$misionesTxt[$mision["mision"]].'</span></td>
+    <td><b>'.$mision["coord_orig_1"].":".$mision["coord_orig_2"].":".$mision["coord_orig_3"]." >>> ".
+    $mision["coord_dest_1"].":".$mision["coord_dest_2"].":".$mision["coord_dest_3"]
+    ."</b></td>
+</tr>";   
+    }
+    if (!$huboMisiones) {
+        echo '<tr><th colspan="5">'.$this->t("Ninguna unidad").'</th></tr>';    
+    }
+echo "</table>";
+echo $this->contentBox()->close();
+
+echo $this->contentBox()->open("Habitaciones en fase de ampliacion");
+echo "<table>";
+    $habitacionesConstruyendo = $this->getJugador()->getHabitacionesConstruyendo();
+    
+    if (empty($habitacionesConstruyendo)) {
+        echo "<tr><td>-</td></tr>";
+    } else {
+        foreach ($habitacionesConstruyendo as $h) {
+            printf("<tr><td>%s</td><td>%s (%s) %s %s</td></tr>", 
+                    Mob_Timer::timeFormat(strtotime($h["fecha_fin"])-time()),
+                    $this->escape(Mob_Loader::getHabitacion($h["habitacion"])->getNombre()),
+                    $h["nivel"],
+                    $this->t("Edificio"),
+                    $h["coord"]
+                    );
+        }
+    }
+echo "</table>";
+echo $this->contentBox()->close();
+
+echo $this->contentBox()->open("Entrenamiento");
+echo "<table>";
+    $entrenamientosConstruyendo = $this->getJugador()->getEntrenamientosConstruyendo();
+    
+    if (empty($entrenamientosConstruyendo)) {
+        echo "<tr><td>-</td></tr>";
+    } else {
+        foreach ($entrenamientosConstruyendo as $h) {
+            printf("<tr><td>%s</td><td>%s (%s) Edificio %s</td></tr>", 
+                    Mob_Timer::timeFormat(strtotime($h["fecha_fin"])-time()),
+                    $this->escape(Mob_Loader::getEntrenamiento($h["entrenamiento"])->getNombre()),
+                    $h["nivel"],
+                    $h["coord"]
+                    );
+        }
+    }
+echo "</table>";
+echo $this->contentBox()->close();
+
+/*echo $this->contentBox()->open("Edificio " . $this->edificioActual->getId());
+echo "-";
+echo $this->contentBox()->close();
+*/
+echo $this->contentBox()->open("Tropas / Defensa");
+echo "<table>";
+
+
+$cacheId = "tropasVisionGeneral".$this->edificioActual->getId();
+if(!$html = Mob_Cache_Factory::getInstance("html")->load($cacheId)) {
+
+  $tropas = array_merge($this->edificioActual->getTropas(false), $this->edificioActual->getTropasSeguridad(false));
+  $html = "";
+  if (empty($tropas)) {
+      $html = "<tr><td>-</td></tr>";
+  } else {
+    foreach ($tropas as $tropa) {
+        //printf("<tr><td><img src='/img/%s' /></td><td>%s</td><td>%s</td></tr>", $tropa->getImagen(), $tropa->getNombre(), $this->numberFormat($tropa->getCantidad()));
+        $html .= sprintf("<tr><td><a href='/mob/%s/ver?t=%s' class='ajax'>%s</a></td><td>%s</td></tr>", $tropa->getTipo() == 1 ? "reclutamiento" : "seguridad", $tropa->getNombreBdd(), $this->escape($tropa->getNombre()), $this->numberFormat($tropa->getCantidad()));
+    }
+  }
+  Mob_Cache_Factory::getInstance("html")->save($html, $cacheId);
+}
+echo $html;
+echo "</table>";
+echo $this->contentBox()->close();
+
+echo $this->getInfoJugador($this->idUsuario, $this->idUsuario);

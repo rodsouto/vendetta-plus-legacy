@@ -1,0 +1,35 @@
+<?php
+
+echo $this->contentBox()->open("Lista de miembros");
+
+$miFamilia = $this->getJugador() == null ? 0 : (int)$this->getJugador()->getIdFamilia() == (int)$_GET["idf"];
+
+echo "<table>";
+    echo "<tr>
+            <td class='c'><a href='/mob/familias/miembros?order=name&idf=".(int)$_GET["idf"]."' class='ajax'>".$this->t("Jugador")."</a></td>
+            <td class='c'><a href='/mob/familias/miembros?order=pos&idf=".(int)$_GET["idf"]."' class='ajax'>".$this->t("Posicion")."</a></td>
+            <td class='c'><a href='/mob/familias/miembros?order=pts&idf=".(int)$_GET["idf"]."' class='ajax'>".$this->t("Puntos")."</a></td>
+            <td class='c'><a href='/mob/familias/miembros?order=ed&idf=".(int)$_GET["idf"]."' class='ajax'>".$this->t("Edificio")."</a></td>
+            ".($miFamilia ? "<td class='c'><a href='/mob/familias/miembros?order=st&idf=".(int)$_GET["idf"]."'>".$this->t("Estado")."</a></td>": "")."
+    </tr>";
+
+$esCapo = Mob_Loader::getModel("Familias_Miembros")->esCapoSubCapo($this->getJugador() == null ? 0 : $this->getJugador()->getIdUsuario(), (int)$_GET["idf"]);
+
+foreach (Mob_Loader::getModel("Familias_Miembros")->getListadoMiembros($_GET["idf"], isset($_GET["order"]) ? $_GET["order"] : null) as $m) {
+    
+    $stylePuntos = "";
+    if ($miFamilia) {
+      $stylePuntos = "style='color:".(Mob_Loader::getModel("Puntos")->getVariacion($m["id_usuario"]) ? "lime" : "red")."'";
+    }
+    
+    echo "<tr>
+            <td><a href='/mob/jugador?id=".$m["id_usuario"]."' class='ajax'>".$this->escape($m["usuario"])."</a></td>
+            <td>".$this->escape(Mob_Loader::getModel("Familias_Miembros")->getRango((int)$_GET["idf"], $m["id_usuario"]))."</td>
+            <td $stylePuntos>".$this->numberFormat($m["puntos"])."</td>
+            <td>".$m["edificios"]."</td>
+            ".($miFamilia ? "<td>".Mob_Loader::getModel("Familias")->getHtmlEstado($m["id_usuario"], $esCapo)."</td>": "")."
+    </tr>";
+
+}
+echo "</table>";
+echo $this->contentBox()->close();

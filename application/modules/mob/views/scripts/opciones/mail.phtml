@@ -1,0 +1,9 @@
+<?php
+
+echo $this->contentBox()->open("Cambiar email");
+if (isset($this->messageOk)) {
+  echo "<div class='okMessage'>".$this->t("Email cambiado correctamente")."</div>";
+} else {
+  echo $this->form;
+}
+echo $this->contentBox()->close();

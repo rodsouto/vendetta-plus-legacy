@@ -1,0 +1,37 @@
+<?php
+
+echo $this->contentBox()->open("Modo vacaciones");
+
+$estaDeVacaciones = Mob_Loader::getModel("Vacaciones")->estaDeVacaciones($this->idUsuario);
+
+$ultima = Mob_Loader::getModel("Vacaciones")->getUltima($this->idUsuario);
+
+if ($estaDeVacaciones) {
+    $timestampFin = strtotime($ultima["fecha_inicio"])+60*60*24*Mob_Loader::getModel("Vacaciones")->getDiasDuracion()-time();
+    echo "<p>".sprintf($this->t("Te quedan x dias de vacaciones"), Mob_Timer::timeFormat($timestampFin))." <a href='/mob/opciones/vacaciones/desactivar/1'>".$this->t("Salir del modo vacaciones")."</a>. 
+    ".sprintf($this->t("Plazo activar vacaciones"), Mob_Loader::getModel("Vacaciones")->getDiasIntervalo())."</p>";
+} else {
+
+  if ($this->tieneMisionesActivas) {
+  
+    echo "<p>".$this->t("No puedes activar el modo vacaciones hasta que las misiones que has enviado no finalicen.")."</p>";
+      
+  } else {
+    
+    if (!Mob_Loader::getModel("Vacaciones")->puedeActivar($this->idUsuario)) {
+        $timestampFin = strtotime($ultima["fecha_fin"])+60*60*24*Mob_Loader::getModel("Vacaciones")->getDiasIntervalo()-time();
+        echo "<p>".sprintf($this->t("Puedes volver a ponerte en vacaciones dentro de x dias"), Mob_Timer::timeFormat($timestampFin))."</p>";
+    } else {
+        echo "<p>".sprintf($this->t("Info vacaciones"), Mob_Loader::getModel("Vacaciones")->getDiasDuracion())."</p>
+        <p>".$this->t("En cualquier momento puedes desactivarlo y volver a jugar.")."</p>";
+        echo "<p>".sprintf($this->t("Plazo espera post vacaciones"), 
+        Mob_Loader::getModel("Vacaciones")->getDiasIntervalo())."</p>";
+        echo "<p><a href='/mob/opciones/vacaciones/activar/1'>".$this->t("Activar el modo vacaciones")."</a></p>";
+    }
+    
+  }
+  
+}
+
+
+echo $this->contentBox()->close();

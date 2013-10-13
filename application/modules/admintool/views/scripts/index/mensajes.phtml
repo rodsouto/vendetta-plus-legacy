@@ -1,0 +1,12 @@
+<?php
+
+echo $this->contentBox()->open("Mensajes".(!empty($this->idUsuarioMensajes) ? " de ".Mob_Loader::getModel("Usuarios")->getFullName($this->idUsuarioMensajes): ""));
+
+  foreach ($this->mensajes as $m) {
+    echo "<p>From ".Mob_Loader::getModel("Usuarios")->getFullName($m["remitente"])." to ".Mob_Loader::getModel("Usuarios")->getFullName($m["destinatario"])."</p>";
+    echo "<p>".$m["mensaje"]."</p>";
+    echo "<hr />";
+  }
+
+echo $this->paginationControl($this->paginator, 'Sliding', 'paginationControl.phtml');
+echo $this->contentBox()->close();

@@ -1,0 +1,12 @@
+<?php
+echo $this->contentBox()->open("Sumar tropas");
+echo "<img src='/img/export/tropas.jpg' />";
+echo $this->form;
+
+if (!empty($this->tropas)) {
+
+  foreach ($this->tropas as $t => $n) echo "$t: $n<br />";
+
+}
+
+echo $this->contentBox()->close();

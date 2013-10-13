@@ -1,0 +1,26 @@
+<?php
+
+if (isset($_GET["expulsar"]) && !isset($_GET["bye"])) {
+  echo $this->contentBox()->open("Expulsar");
+    echo "<p><a href='/mob/familias/administrar?expulsar=".$this->escape($_GET["expulsar"])."&bye=1'>".
+    sprintf($this->t("Si, quiero expulsar a x"), $this->escape(Mob_Loader::getModel("Usuarios")->getUsuario((int)$_GET["expulsar"]))).".</a></p>";
+  echo $this->contentBox()->close();
+}
+
+echo $this->contentBox()->open("Administrar miembros");
+    echo $this->formAdminMiembros;
+echo $this->contentBox()->close();
+
+if (isset($this->formCapo)) {
+  echo $this->contentBox()->open(sprintf($this->t("Cambiar %s"), $this->t("rangoFamilia0")));
+      echo $this->formCapo;
+  echo $this->contentBox()->close();
+}
+
+echo $this->contentBox()->open("Administrar rangos");
+    echo $this->formAdminRangos;
+echo $this->contentBox()->close();
+
+echo $this->contentBox()->open("Añadir rango");
+    echo $this->formAgregarRango;
+echo $this->contentBox()->close();

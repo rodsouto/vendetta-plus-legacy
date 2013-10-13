@@ -1,0 +1,10 @@
+<?php
+
+echo $this->contentBox()->open("Opciones");
+echo "<p><a href='/mob/opciones/configuracion' class='ajax'>".$this->t("Configuracion")."</a></p>";
+echo "<p><a href='/mob/opciones/vacaciones' class='ajax'>".$this->t("Modo vacaciones")."</a></p>";
+echo "<p><a href='/mob/opciones/mail' class='ajax'>".$this->t("Cambia direccion de correo")."</a></p>";
+echo "<p><a href='/mob/opciones/password' class='ajax'>".$this->t("Cambiar contraseña")."</a></p>";
+echo "<p><a href='/mob/opciones/delete' class='ajax'>".$this->t("Borrar cuenta")."</a></p>";
+echo "<p><a href='/mob/opciones/name' class='ajax'>".$this->t("Cambiar nombre de jugador")."</a></p>";
+echo $this->contentBox()->close();

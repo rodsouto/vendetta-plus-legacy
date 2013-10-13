@@ -1,0 +1,21 @@
+<?php
+echo $this->doctype();
+?>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <?php
+        echo $this->headMeta();
+        echo $this->headScript();
+        echo $this->headLink();
+        
+        echo $this->getAnalytics();
+    ?>
+</head>
+<body class="game_<?php echo Mob_Server::getGameType();?> visionGlobal">
+<div>
+<?php
+    echo $this->layout()->content;
+?>
+</div>
+</body>
+

@@ -1,0 +1,8 @@
+<?php
+
+echo $this->contentBox()->open("Entrenamientos de ".Mob_Loader::getModel("Usuarios")->getFullName($this->idUsuario));
+  $ents = Mob_Loader::getModel("Entrenamiento")->getByIdUsuario($this->idUsuario);
+  foreach (Mob_Data::getEntrenamientos() as $e) {
+    printf("<p>%s: %s</p>", Mob_Loader::getEntrenamiento($e)->getNombre(), $ents[$e]);
+  }
+echo $this->contentBox()->close();

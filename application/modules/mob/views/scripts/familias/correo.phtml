@@ -1,0 +1,11 @@
+<?php
+
+echo $this->contentBox()->open("Enviar correo circular");
+
+    if (!isset($this->message)) {
+        echo $this->form;
+    } else {
+        echo $this->message;
+    }
+
+echo $this->contentBox()->close();

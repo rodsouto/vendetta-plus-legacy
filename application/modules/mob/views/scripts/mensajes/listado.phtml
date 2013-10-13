@@ -1,0 +1,13 @@
+<?php
+
+if (empty($this->idCarpeta)) {
+  $txtCarpeta = "Bandeja de Entrada";
+} else {
+  $txtCarpeta = $this->idCarpeta == "alerts" ? "Alertas" : Mob_Loader::getModel("Mensajes_Carpetas")->getNombre($this->idCarpeta);
+}
+ 
+echo $this->contentBox()->open($txtCarpeta);
+echo $this->formListado;
+echo $this->paginationControl($this->paginator, 'Sliding', 'paginationControl.phtml',
+array("urlParams" => array("c" => $this->idCarpeta)));
+echo $this->contentBox()->close();

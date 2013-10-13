@@ -1,0 +1,122 @@
+<?php
+
+$estaLogueado = $this->getJugador() != null;
+
+$modoPadrino = false;
+
+if ($estaLogueado) {
+  $entrenamientos =  $this->edificioActual->getEntrenamientos();
+  $modoPadrino = $this->getJugador()->tieneModoPadrino();
+} else {
+  $entrenamientos = array_map(create_function('$ent', '$ent->setNivel(1);return $ent;'), Mob_Loader::getEntrenamientos());
+}
+
+$idEntrenamientoConstruyendo = 0;
+
+if ($modoPadrino) {
+    $colaEntrenamientos = Mob_Loader::getModel("Entrenamiento_Nuevo")->getEntrenamientosConstruyendo(
+              $this->getJugador()->getIdUsuario(), $this->getJugador()->getEdificioActual()->getId());
+    if (!empty($colaEntrenamientos)) {
+      echo $this->contentBox()->open();
+      echo "<table>";
+        echo "<tr>
+                <td class='c'>&nbsp;</td>
+                <td class='c'>Entrenamiento</td>
+                <td class='c'>Duracion / Fecha de finalizacion</td>
+                <td class='c'>Tiempo restante</td>
+              </tr>";      
+      foreach($colaEntrenamientos as $k => $colaEnt) {
+        if ($k == 0) $idEntrenamientoConstruyendo = $colaEnt["id_entrenamiento_nuevo"];
+        $ent = $this->getJugador()->getEdificioActual()->getEntrenamiento($colaEnt["entrenamiento"]);
+        echo "<tr>
+                <th>".($k+1)."</th>
+                <th>".$ent->getNombre()." (".$colaEnt["nivel"].")</th>
+                <th>".Mob_Timer::timeFormat($colaEnt["duracion"])."<br />".$colaEnt["fecha_fin"]."</th>
+                <th>".($k == 0 ? "<div id='bx'></div>" : "<a href='/mob/entrenamiento/?cancelar=".$colaEnt["id_entrenamiento_nuevo"]."' class='ajax'>Borrar</a>")."</th>
+              </tr>";
+      }
+      echo "</table>";
+      echo $this->contentBox()->close();
+    } 
+  
+}
+
+echo $this->contentBox()->open("Entrenamiento");
+
+if ($estaLogueado && !$this->edificioActual->tieneEscuela()) {
+    echo "<p>".$this->t("Necesitas una escuela")."</p>";
+} else {
+
+foreach ($entrenamientos as $ent) {
+
+?>
+    <div style="padding:5px;text-align:left;">
+        <div class="left" style="width: 80%;">
+            <a href="/mob/entrenamiento/ver?e=<?php echo $ent->getNombreBdd();?>" class="ajax"><?php echo $this->escape($ent->getNombre());?> 
+                        <?php $n = $ent->getNivel(); echo !empty($n) ? "(".$n.")" : "";?></a><br />
+            <?php 
+                if (!isset($_GET["no_txt"])) {
+                  echo '<div><img src="'.Mob_Server::getStaticUrl().'img/ent/'.$ent->getImagen().'" class="left" style="padding: 5px;">'.
+                  $this->escape($ent->getDescripcion())."</div>";
+                }
+            ?>
+            <div>
+            <?php
+            if ($ent->getCosto("arm") != 0) echo '<b>'.substr($this->t("recursos_arm"), 0, 1).':</b> '.$this->numberFormat($ent->getCosto("arm")).' <img src="'.Mob_Server::getImgRecurso(1).'">&nbsp;&nbsp;';
+            if ($ent->getCosto("mun") != 0) echo '<b>'.substr($this->t("recursos_mun"), 0, 1).':</b> '.$this->numberFormat($ent->getCosto("mun")).' <img src="'.Mob_Server::getImgRecurso(2).'">&nbsp;&nbsp;'; 
+            if ($ent->getCosto("dol") != 0) echo '<b>'.substr($this->t("recursos_dol"), 0, 1).':</b> '.$this->numberFormat($ent->getCosto("dol")).' <img src="'.Mob_Server::getImgRecurso(3).'">&nbsp;&nbsp;'; 
+            
+            if ($estaLogueado) { ?><b><?php echo $this->t("Duración");?>:</b> <?php echo $ent->getTiempoMejora();} ?>
+            </div>
+        </div>
+        <div class="right" style="width: 19%;">
+            <?php
+            if ($estaLogueado) {
+                  
+                if ($this->getJugador()->estaEntrenando()) {
+                    if ($this->getJugador()->getIdEdificioEntrenamientoActual() == $this->edificioActual->getId()) {
+                      if ($modoPadrino) {
+                        // si tiene modo padrino le damos la posibilidad de agregar entrenamientos a la cola
+                        if ($this->getJugador()->puedePonerEntEnCola()) {                
+                          printf('<a href="%s" class="ajax"><font>%s</font></a>', "/mob/entrenamiento?next=".$ent->getNombreBdd()."&eid=".$this->idEdificio."&t=".time(), $this->t("Agregar construccion"));
+                        } else {
+                          echo "-";
+                        }                        
+                      } else {
+                        // sino mostramos la vista estandar
+                        echo '<div id="bx"></div>';
+                      }
+                    } else {
+                      if ($this->getJugador()->getEntrenamientoConstruyendo() == $ent->getNombreBdd()) {
+                        printf($this->t("Esta ampliacion se esta ejecutando en x"), 
+                                implode(":", Mob_Loader::getModel("Edificio")->getCoord($this->getJugador()->getIdEdificioEntrenamientoActual())));
+                      } else {
+                        echo "-";
+                      }
+                    }                  
+                } else {
+                    $txt = $ent->getNivel() == 0 ? $this->t("Empezar Entrenamiento") : sprintf($this->t("ampliacion nivel x", $ent->getNivel() + 1));                
+                    $class = $this->edificioActual->puedeConstruirEntrenamiento($ent) ? "positive" : "negative";
+                    printf('<a href="%s" class="ajax"><font class="%s">%s</font></a>', "/mob/entrenamiento?next=".$ent->getNombreBdd()."&eid=".$this->idEdificio."&t=".time(), $class, $txt);
+                }
+              }
+            ?>
+        </div>
+    </div><br />
+<?php
+  if (isset($_GET["no_txt"])) echo "<br />";
+}
+
+if ($estaLogueado && $idEntrenamientoConstruyendo != 0) {
+    ?>
+    <script type="text/javascript">
+    var $_tiempoRestante = <?php echo $this->getJugador()->getTiempoRestanteEntrenamiento(true);?>;
+    var $_txtFinalizado = '<?php echo $this->t("Finalizado");?><br><a href="/mob/entrenamiento" class="ajax"><?php echo $this->t("Continuar");?></a>';
+    var $_txtCancelar = '<br><a href="/mob/entrenamiento?cancelar=<?php echo $idEntrenamientoConstruyendo;?>" class="ajax"><?php echo $this->t("Cancelar");?></a>';
+    loadTimer();
+    </script>
+    <?php
+}
+
+}
+echo $this->contentBox()->close();

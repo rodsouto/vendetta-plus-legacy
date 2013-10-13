@@ -1,0 +1,40 @@
+<?php
+
+echo $this->contentBox()->open("Supercuentas de Supertramposos");
+
+echo "<p>Sospechosos (habitaciones > 255)</p>";
+
+$habitaciones = Mob_Data::getHabitaciones();
+
+$modelHab = Mob_Loader::getModel("Habitacion");
+
+$cacheId = "querySupercuentas";
+if(!$data = Mob_Cache_Factory::getInstance("html")->load($cacheId)) {
+  $query = $modelHab->select();
+  foreach ($habitaciones as $hab) {
+    $query->orWhere(lcfirst($hab)." > 255");
+  }
+  $data = $modelHab->fetchAll($query);
+  Mob_Cache_Factory::getInstance("html")->save($data, $cacheId);
+}
+
+$baneados = array();
+
+echo "<table>";
+echo "<tr><td>Id usuario</td>";
+foreach ($habitaciones as $h) echo "<td>$h</td>";
+echo "</tr>";
+foreach ($data as $hab) {
+  if (!isset($baneados[$hab['id_usuario']])) {
+    $baneados[$hab['id_usuario']] = Mob_Loader::getModel("Usuarios")->estaBaneado($hab['id_usuario']);
+  }
+  if ($baneados[$hab['id_usuario']]) continue; 
+  echo "<tr>";
+  echo "<td><a href='/mob/jugador?id={$hab['id_usuario']}'>{$hab['id_usuario']}</a></td>";
+  foreach ($habitaciones as $h) {
+    echo "<td>".($hab[lcfirst($h)] > 255 ? "<span style='color:red;'>".$hab[lcfirst($h)]."</span>" : $hab[lcfirst($h)])."</td>";
+  }
+  echo "</tr>";
+}
+echo "</table>";
+echo $this->contentBox()->close();

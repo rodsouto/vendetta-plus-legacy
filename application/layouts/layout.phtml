@@ -1,0 +1,26 @@
+<?php
+echo $this->doctype();
+?>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <?php
+        echo $this->headMeta();
+        echo $this->headLink();
+        echo $this->headScript();
+        
+        echo $this->getAnalytics();
+    ?>
+</head>
+<body id="home" class="game_<?php echo Mob_Server::getGameType();?>">
+<div id="wraper">
+  <div id="logo"><h1><a href='/'><?php echo Mob_Server::getGameName();?></a></h1></div>
+  <div id="content">
+<?php 
+
+echo $this->layout()->content;
+
+?>
+</div>
+</div>
+</body>
+

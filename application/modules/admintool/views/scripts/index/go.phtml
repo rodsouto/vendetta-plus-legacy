@@ -1,0 +1,25 @@
+<?php
+
+echo $this->contentBox()->open("Buscar jugador");
+  echo $this->form;
+  
+  if (isset($this->usuarios)) {
+    if (!empty($this->usuarios)) {
+      foreach ($this->usuarios as $u) {
+        echo "<p><a href='/admintool/index/user/id/{$u['id_usuario']}'>{$u['usuario']}</a></p>";
+      }
+    } else {
+      echo "<p>No se encontro ningun jugador.</p>";
+    }
+  }
+echo $this->contentBox()->close();
+
+echo $this->contentBox()->open("Coincidencias de IP ultimas 48 horas");
+  echo $this->formIp;
+  echo "<table><tr><td>IP</td><td>Total usuarios</td></tr>";
+  foreach (Mob_Loader::getModel("Logueos")->getCoincidenciasIp() as $l) {
+    echo "<tr><td><a href='/admintool/index/ip/find/{$l['ip']}'>{$l['ip']}</a></td><td>{$l['total']}</td></tr>";
+  }
+  echo "</table>";
+echo $this->contentBox()->close();
+

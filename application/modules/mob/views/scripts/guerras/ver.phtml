@@ -1,0 +1,62 @@
+<?php
+
+$datos = Mob_Loader::getModel("Guerras")->getGuerra($this->idg);
+
+if (!empty($datos)) {
+  if (Mob_Loader::getModel("Familias")->existe($datos["id_familia_1"])) {
+    $familia1 = "<a href='/mob/familias?idf=".$datos["id_familia_1"]."' class='ajax'>".Mob_Loader::getModel("Familias")->getNombre($datos["id_familia_1"])." [".
+    Mob_Loader::getModel("Familias")->getEtiqueta($datos["id_familia_1"])
+    ."]</a>";
+  } else $familia1 = $datos["nombre_1"];
+  
+  if (Mob_Loader::getModel("Familias")->existe($datos["id_familia_2"])) {
+    $familia2 = "<a href='/mob/familias?idf=".$datos["id_familia_2"]."' class='ajax'>".Mob_Loader::getModel("Familias")->getNombre($datos["id_familia_2"])." [".
+    Mob_Loader::getModel("Familias")->getEtiqueta($datos["id_familia_2"])
+    ."]</a>";
+  } else $familia2 = $datos["nombre_2"];
+}
+
+echo $this->contentBox()->open();
+   
+  if (!empty($datos)) {
+    $diasGuerra = ceil((time()-strtotime($datos["fecha_inicio"]))/(60*60*24));
+
+    $infoAtaques = Mob_Loader::getModel("Batallas")->getInfoAtaquesGuerra($this->idg);
+    echo "<table><tr><td class='c' colspan=2>$familia1 vs. $familia2</td></tr>";
+    
+    if (!empty($datos["ganador"])) {
+      echo "<tr><td class='c' colspan=2>".$this->t("Ganador")."</td></tr>";
+      echo "<tr><td colspan=2>".($datos["ganador"] == $datos["id_familia_1"] ? $familia1 : $familia2)."</td></tr>";    
+    }
+    
+    echo "<tr><td class='c' colspan=2>".$this->t("Fecha de inicio")."</td></tr>";
+    echo "<tr><td colspan=2>".$datos["fecha_inicio"]."</td></tr>";
+    
+    if ($datos["fecha_fin"] != '0000-00-00 00:00:00') {
+      echo "<tr><td class='c' colspan=2>".$this->t("Fecha de finalizacion")."</td></tr>";
+      echo "<tr><td colspan=2>".$datos["fecha_fin"]."</td></tr>";
+    }
+    
+    echo "<tr><td class='c' colspan=2>".$this->t("Duración")."</td></tr>";
+    echo "<tr><td colspan=2>".Mob_Timer::timeFormat(($datos["fecha_fin"] != '0000-00-00 00:00:00' ? strtotime($datos["fecha_fin"]) : time())-strtotime($datos["fecha_inicio"]))."</td></tr>";
+    
+    echo "<tr><td class='c' colspan=2>".$this->t("Total de ataques").": {$infoAtaques['total']}</td></tr>";
+    echo "<tr><td>{$infoAtaques['familia_1']}</td><td>{$infoAtaques['familia_2']}</td></tr>";
+      
+    echo "<tr><td class='c' colspan=2>".$this->t("Ataques por dia").": ".(round($infoAtaques['total']/$diasGuerra))."</td></tr>";
+    echo "<tr><td>".(round($infoAtaques['familia_1']/$diasGuerra))."</td><td>".(round($infoAtaques['familia_2']/$diasGuerra))."</td></tr>";
+    
+    $infoAtaques = Mob_Loader::getModel("Batallas")->getInfoAtaquesGuerra($this->idg, "-7 days");
+    echo "<tr><td class='c' colspan=2>".$this->t("Ataques durante la ultima semana").": {$infoAtaques['total']}</td></tr>";
+    echo "<tr><td>{$infoAtaques['familia_1']}</td><td>{$infoAtaques['familia_2']}</td></tr>";
+    
+    $infoPerdidas = Mob_Loader::getModel("Guerras")->getPuntosPerdidos($this->idg);
+    echo "<tr><td class='c' colspan=2>".$this->t("Puntos perdidos")."</td></tr>";
+    echo "<tr><td>{$infoPerdidas['familia_1']}</td><td>{$infoPerdidas['familia_2']}</td></tr>";
+    
+    echo "</table>";  
+  } else {
+    echo "<p>No se encontraron datos de esa guerra.</p>";
+  }
+  
+echo $this->contentBox()->close();

@@ -1,0 +1,37 @@
+<?php
+
+echo $this->contentBox()->open("Informacion del usuario ".Mob_Loader::getModel("Usuarios")->getFullName($this->idUsuario)." ".Mob_Loader::getModel("Usuarios")->getEmail($this->idUsuario));
+  echo "<p>Login: ".Mob_Loader::getModel("Usuarios")->getLogin($this->idUsuario)."</p>";
+  echo "<p><a href='/admintool/index/misiones/user/{$this->idUsuario}'>Ver Misiones</a></p>";
+  echo "<p><a href='/admintool/index/mensajes/user/{$this->idUsuario}'>Ver Mensajes</a></p>";
+  echo "<p><a href='/admintool/index/entrenamientos/user/{$this->idUsuario}'>Ver Entrenamientos</a></p>";
+  echo "<p><a href='/admintool/index/edificios/user/{$this->idUsuario}' target='_blank'>Ver Edificios</a></p>";
+  echo "<p><a href='/admintool/index/changemail/user/{$this->idUsuario}'>Cambiar mail</a></p>";
+  echo "<p><a href='/admintool/index/changepass/user/{$this->idUsuario}'>Cambiar password</a></p>";
+  echo "<p><a href='/admintool/index/ban?id_usuario={$this->idUsuario}#banear'>Banear</a></p>";  
+  
+  if (Mob_Loader::getModel("Usuarios")->estaBaneado($this->idUsuario)) {
+    echo "<br /><div class='errorMessage'>Este usuario esta baneado</div>";
+  }
+  
+//Zend_Debug::dump(
+  echo "<table><tr><th class='c'>Fecha</th><th class='c'>IP</th><th class='c'>Otros Usuarios con esta IP</th></tr>";
+  $ips = array(); 
+  foreach (Mob_Loader::getModel("Logueos")->getUltimos($this->idUsuario, 50) as $l) {
+    
+    /*if (!isset($ips[$l['ip']])) {
+      $cacheId = "ip".md5($l['ip']);
+      if(!($ips[$l['ip']] = Mob_Cache_Factory::getInstance("html")->load($cacheId))) {
+        $ipData = Zend_Json::decode(file_get_contents("http://ip2country.hackers.lv/api/ip2country?ip=".$l['ip']));
+        $ips[$l['ip']] = $ipData['c'][$l['ip']];
+        Mob_Cache_Factory::getInstance("html")->save($ips[$l['ip']], $cacheId);
+      }
+      
+    }*/
+    $mismaIp = Mob_Loader::getModel("Logueos")->totalSameIp($l['ip'], $l['id_usuario']);
+    //$country = $ips[$l['ip']];
+    $country = "";
+    echo "<tr><td>{$l['fecha']}</td><td>{$l['ip']} ($country)</td><td><a href='/admintool/index/ip/find/{$l['ip']}'>$mismaIp</a></td></tr>";
+  }
+  echo "</table>";
+echo $this->contentBox()->close();

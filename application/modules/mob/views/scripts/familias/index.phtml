@@ -1,0 +1,15 @@
+<?php
+
+echo $this->contentBox()->open("Familias");
+
+$idFamiliaSolicitud = Mob_Loader::getModel("Familias_Solicitudes")->getFamiliaSolicitud($this->idUsuario);
+
+if ($idFamiliaSolicitud != 0) {
+    echo sprintf($this->t("Solicitud enviada a la familia x"), Mob_Loader::getModel("Familias")->getNombre($idFamiliaSolicitud));
+    echo "<p><a href='/mob/familias?cancelarSolicitud'>".$this->t("Cancelar solicitud.")."</a></p>";
+} else {
+    echo "<p><a href='/mob/familias/fundar'>".$this->t("Fundar familia")."</a></p>";
+    echo "<p><a href='/mob/buscar?t=f'>".$this->t("Buscar familia")."</a></p>";
+}
+
+echo $this->contentBox()->close();

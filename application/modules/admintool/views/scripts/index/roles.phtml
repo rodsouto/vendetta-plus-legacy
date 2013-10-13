@@ -1,0 +1,19 @@
+<?php
+
+echo $this->contentBox()->open("Agregar Nuevo Rol");
+
+echo $this->form;
+
+echo $this->contentBox()->close();
+
+echo $this->contentBox()->open("Administrar Roles");
+echo "<table>";
+foreach (Mob_Loader::getModel("Roles")->fetchAll() as $v) {
+  echo "<tr>
+  <td>".Mob_Loader::getModel("Usuarios")->getFullName($v->id_usuario)."</td>
+  <td>".Mob_Loader::getModel("Roles")->getRol($v->id_rol)."</td>
+  <td><a href='/admintool/index/roles?delete={$v->id}'>Eliminar</a></td>
+  </tr>";
+}
+echo "</table>";
+echo $this->contentBox()->close();

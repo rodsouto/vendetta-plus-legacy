@@ -1,0 +1,28 @@
+<?php
+
+$tipoGuerras = isset($_GET["fin"]) ? "fin" : "act";
+
+echo $this->contentBox()->open($tipoGuerras == "act" ? "Guerras activas" : "Guerras finalizadas");
+  
+  echo "<p><a class='ajax' href='/mob/guerras?".($tipoGuerras == "act" ? "fin" : "act")."'>".$this->t($tipoGuerras == "act" ? "Ver guerras finalizadas" : "Ver guerras activas")."</a></p><br />";
+  
+  $method = $tipoGuerras == "fin" ? "getFinalizadas" : "getActuales";
+  
+  echo "<table><tr><td class='c'>".$this->t("Familias")."</td><td class='c'>".$this->t("Fecha de inicio")."</td>
+  <td class='c'>".$this->t("Duración")."</td><td class='c'>&nbsp;</td></tr>";
+  foreach (Mob_Loader::getModel("Guerras")->$method() as $g) {
+    if (Mob_Loader::getModel("Familias")->existe($g["id_familia_1"])) {
+      $familia1 = "<a href='/mob/familias/ver?idf=".$g["id_familia_1"]."'>".Mob_Loader::getModel("Familias")->getNombre($g["id_familia_1"])."</a>";
+    } else $familia1 = $g["nombre_1"];
+    
+    if (Mob_Loader::getModel("Familias")->existe($g["id_familia_2"])) {
+      $familia2 = "<a href='/mob/familias/ver?idf=".$g["id_familia_2"]."'>".Mob_Loader::getModel("Familias")->getNombre($g["id_familia_2"])."</a>";
+    } else $familia2 = $g["nombre_2"];
+    
+    
+    echo "<tr><td>$familia1 vs $familia2</td><td>".$g["fecha_inicio"]."</td><td>".Mob_Timer::timeFormat(time()-strtotime($g["fecha_inicio"]))."</td>
+    <td><a href='/mob/guerras/ver?idg=".$g["id_guerra"]."' class='ajax'>+Info</a></td></tr>";
+  }
+  echo "</table>";
+  
+echo $this->contentBox()->close();

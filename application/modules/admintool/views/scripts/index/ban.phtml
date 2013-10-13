@@ -1,0 +1,40 @@
+<style>
+#langs li {display: inline; margin: 0 5px;}
+table td {vertical-align: top;border-bottom: 1px solid #ccc;}
+</style>
+<?php
+
+echo $this->contentBox()->open("Usuarios baneados");
+
+$baneados = Mob_Loader::getModel("Usuarios")->getBaneados();
+
+if (isset($_GET["desbanear"]) && !isset($_GET["desbaneado"])) {
+  echo "<p><a href='?desbanear=".$_GET["desbanear"]."&desbaneado=1'>Confirma que deseas desbanear al usuario ".$this->escape(Mob_Loader::getModel("Usuarios")->getUsuario($_GET["desbanear"]))."</a></p>";
+}
+
+if (empty($baneados)) {
+  echo "<p>No hay usuarios baneados.</p>";
+}
+
+echo "<table><tr><td class='c' style='width: 150px;'>Desde</td><td class='c' style='width: 150px;'>Hasta</td><td class='c'>Jugador</td><td class='c' style='width: 150px;'>&nbsp;</td></tr>";
+foreach ($baneados as $ban) {
+  echo "<tr><td>{$ban['fecha']}</td><td>{$ban['fecha_fin']}</td><td style='text-align: left;'><p><a href='/mob/jugador?id={$ban['id_usuario']}'>{$ban['usuario']}</a></p><br />
+  <p>{$ban['motivo']}</p><br /></td><td><a href='?desbanear={$ban['id_usuario']}'>[Desbanear]</a></td></tr>";
+}
+echo "</table>";
+
+echo $this->contentBox()->close();
+
+echo "<a name='banear'></a>";
+echo $this->contentBox()->open("Banear usuario");
+  if (isset($this->usuarioBanear)) {
+    if (isset($this->usuarioBanear[0])){
+      echo "<p><a href='?banear=".$this->usuarioBanear[0]["id_usuario"]."'>Banear a ".$this->usuarioBanear[0]["usuario"]."<a></p>";
+    } else {
+      echo "<p>No se encontro el id_usuario ".$this->form->id_usuario->getValue().".</p>";
+    }
+  } else {
+    echo $this->form;
+  }
+  
+echo $this->contentBox()->close();

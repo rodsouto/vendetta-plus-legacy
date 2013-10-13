@@ -1,0 +1,41 @@
+<?php
+
+$data = Mob_Loader::getModel("Edificio")->getTodosEdificios($this->idUsuario, false);
+
+echo "<table>";
+
+$info = array("id_edificio" => $this->t("Edificio"));
+foreach (array("arm", "mun", "dol", "alc") as $r) $info["recursos_".$r] = $this->t("recursos_".$r);
+foreach ($this->edificioActual->getListadoHabitaciones() as $hab) $info[$hab->getNombreBdd()] = $this->escape($hab->getNombre());
+$info["puntos"] = $this->t("Puntos");
+
+echo '<tr><td class="c" colspan="'.(sizeof($data)+2).'">'.$this->t("Visión Global").' '.$this->escape(Mob_Loader::getModel("Usuarios")->getUsuario($this->idUsuario)).'</td></tr>';
+
+$almacenes = array("recursos_arm" => Mob_Server::getDeposito(1), "recursos_mun" => Mob_Server::getDeposito(2), 
+"recursos_alc" => Mob_Server::getDeposito(4), "recursos_dol" => Mob_Server::getDeposito(3));
+
+foreach ($info as $fila => $txt) {
+    // voy armando fila por fila
+    echo "<tr><td class='c'>$txt</td>";
+    $total = 0;
+    $totalAlmacen = 0;
+    foreach ($data as $d) {
+        $habs = Mob_Loader::getModel("Habitacion")->getByIdEdificio($d["id_edificio"]);
+        $total += isset($habs[$fila]) ? $habs[$fila] : $d[$fila];
+        if (substr($fila, 0, 9) == "recursos_") {
+            $almacenamiento = 10000+150000*$habs[$almacenes[$fila]];
+            $totalAlmacen += $almacenamiento;
+            echo "<th class='".($almacenamiento > $d[$fila] ? "" : "negative")."'>".$this->numberFormat($d[$fila])." (max. ".$this->numberFormat($almacenamiento).")</th>";
+        } else {
+            echo "<th>".($fila == "id_edificio" ? $d["coord1"].":".$d["coord2"].":".$d["coord3"] : $this->numberFormat(isset($habs[$fila]) ? $habs[$fila] : $d[$fila]))."</th>";
+        }
+    }
+    if ($totalAlmacen != 0) {
+        echo "<td class='c'>".$this->numberFormat($total)." (max. ".$this->numberFormat($totalAlmacen).")</td>";
+    } else {
+        echo "<td class='c'>".($fila == "id_edificio" ? "=" : $this->numberFormat($total))."</td>";
+    }
+    echo "</tr>";
+}
+
+echo "</table>";

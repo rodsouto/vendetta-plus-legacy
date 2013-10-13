@@ -1,0 +1,14 @@
+<?php
+if (!empty($this->idUsuarioMail)) {
+echo $this->contentBox()->open("Cambiar email de ".Mob_Loader::getModel("Usuarios")->getFullName($this->idUsuarioPass));
+
+  if (isset($this->messageOk)) {
+    echo "<div class='okMessage'>".$this->translate("Email cambiado correctamente")."</div>";
+  } else {
+    echo $this->form;
+  }
+
+echo $this->contentBox()->close();
+} else {
+  echo "<div class='errorMessage'>No se especifico el usuario.</div>";
+}

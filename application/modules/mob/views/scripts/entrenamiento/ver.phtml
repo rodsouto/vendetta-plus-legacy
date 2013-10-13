@@ -1,0 +1,32 @@
+<?php
+echo $this->contentBox()->open("Entrenamiento");
+
+try {
+  $ent = Mob_Loader::getEntrenamiento($_GET["e"]);
+} catch (Exception $e) {
+  $ent = null;
+}
+
+if ($ent == null) {
+  echo "<p>Entrenamiento inexistente.</p>";
+} else {
+?>
+<table width="600" border="0">
+  <tbody>
+    <tr>
+        <th><?php echo $this->t("Nombre");?></th>
+        <th><?php echo $this->escape($ent->getNombre());?></th>
+    </tr>
+    <tr>
+        <th></th>
+        <th colspan="2"><img src="<?php echo Mob_Server::getStaticUrl();?>img/ent/<?php echo $ent->getImagen();?>"></th>
+    </tr>
+    <tr>
+        <th colspan="2"><?php echo $this->escape($ent->getDescripcion());?></th></tr><tr><th><?php echo $this->t("Puntos por nivel");?></th>
+        <th><?php echo $this->numberFormat($ent->getPuntos());?></th>
+    </tr>
+  </tbody>
+</table>
+<?php
+}
+echo $this->contentBox()->close();

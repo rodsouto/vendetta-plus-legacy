@@ -1,0 +1,18 @@
+<?php
+
+echo $this->contentBox()->open("Agregar IP's compartidas");
+  echo $this->form;
+echo $this->contentBox()->close();
+
+echo $this->contentBox()->open("Listado IP's compartidas");
+  echo "<table><tr><th>Jugador 1</th><th>Jugador 2</th><th>&nbsp;</th></tr>";
+  $data = Mob_Loader::getModel("IpsCompartidas")->fetchAll()->toArray();
+  foreach ($data as $d) {
+    echo "<tr>
+            <td><a href='/admintool/index/user/id/".$d["id_usuario_1"]."'>".Mob_Loader::getModel("Usuarios")->getFullName($d["id_usuario_1"])."</a></td>
+            <td><a href='/admintool/index/user/id/".$d["id_usuario_2"]."'>".Mob_Loader::getModel("Usuarios")->getFullName($d["id_usuario_2"])."</a></td>
+            <td><a href='/admintool/index/sharedips/eliminar/".$d["id_compartida"]."'>Eliminar</a></td>
+          </tr>";
+  }
+  echo "</table>";
+echo $this->contentBox()->close();

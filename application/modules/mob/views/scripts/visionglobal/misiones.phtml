@@ -1,0 +1,70 @@
+<?php
+
+$header = '
+<tr>
+    <th>'.$this->t('Edificio de inicio').'<br />'.$this->t('Edificio de destino').'</td>
+    <th>'.$this->t('Comenzar').'<br />'.$this->t('Llegada').'</td>
+    <th>'.$this->t('Tiempo restante').'</td>
+    <th>'.$this->t('Cantidad').'</td>
+    <th>'.$this->t('Mision').'</td>
+</tr>';
+
+$tiposMisiones = array(1 => $this->t("mision_1"), 2 => $this->t("mision_2"), 3 => $this->t("mision_3"), 4 => $this->t("mision_4"), 5 => $this->t("mision_5"));
+
+$txtEnemigas = $txtMias = $txtRegreso = "";
+
+$misiones = Mob_Loader::getModel("Misiones")->getMisiones($this->idUsuario);
+
+echo $this->contentBox()->open("Tropas");
+echo "<table>";
+  $now = time();
+  foreach ($misiones as $mision) {
+    if (strtotime($mision["fecha_fin"]) < $now) continue;
+    $tropaEnemiga = false;
+    if($mision["mision"] == 1) {
+        $tropaEnemiga = Mob_Loader::getModel("Edificio")->esCoordenadaMia(
+                            $mision["coord_dest_1"], 
+                            $mision["coord_dest_2"], 
+                            $mision["coord_dest_3"], 
+                            $this->idUsuario);
+    }
+    
+    $txtVolver = !$tropaEnemiga && $mision["mision"] != 5 && $mision["id_usuario"] == $this->idUsuario ? "<br />[<a class='ajax negative' href='/mob/visionglobal/misiones?volver=".$mision["id_mision"]."'>".$this->t("Volver")."</a>]": "";
+    
+    $txt = "<tr>
+      <th>".$mision["coord_orig_1"].":".$mision["coord_orig_2"].":".$mision["coord_orig_3"]."<br />
+      ".$mision["coord_dest_1"].":".$mision["coord_dest_2"].":".$mision["coord_dest_3"]."</th>
+      <th>".date("D, d.m.Y - H:i:s", strtotime($mision["fecha_inicio"]))."<br />".
+      date("D, d.m.Y - H:i:s", strtotime($mision["fecha_fin"]))
+      ."</th>
+      <th>".Mob_Timer::timeFormat(strtotime($mision["fecha_fin"])-time())."</th>
+      <th>".$this->numberFormat($mision["cantidad"])."</th>
+      <th>".$tiposMisiones[$mision["mision"]]."$txtVolver</th>
+      </tr>"; 
+    
+    if (!$tropaEnemiga) {
+      if ($mision["mision"] == 5) {
+          $txtRegreso .= $txt;
+      } else {
+          $txtMias .= $txt;
+      }
+    } else {
+      $txtEnemigas .= $txt;
+    }  
+  }
+    
+echo empty($txtMias) ? '<tr><th colspan="5">'.$this->t("Ninguna unidad").'</th></tr>' : $header.$txtMias;
+echo "</table>";
+echo $this->contentBox()->close();
+
+echo $this->contentBox()->open("Tropas Enemigas");
+echo "<table>";
+echo empty($txtEnemigas) ? '<tr><th colspan="5">'.$this->t("Ninguna unidad").'</th></tr>' : $header.$txtEnemigas;
+echo "</table>";
+echo $this->contentBox()->close();
+
+echo $this->contentBox()->open("Tropas");
+echo "<table>";
+echo empty($txtRegreso) ? '<tr><th colspan="5">'.$this->t("Ninguna unidad").'</th></tr>' : $header.$txtRegreso;
+echo "</table>";
+echo $this->contentBox()->close();

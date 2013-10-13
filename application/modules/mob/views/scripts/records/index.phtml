@@ -1,0 +1,42 @@
+<?php
+
+echo $this->contentBox()->open("Records");
+  
+$cacheId = "records_".$this->idUsuario."_".$this->language."_".((int)!empty($this->idUsuario));
+if(!$html = Mob_Cache_Factory::getInstance("html")->load($cacheId)) {
+
+  $html = "<table>";
+  $html .= "<tr><td class='c' style='width: 300px;'>".$this->t("Habitacion")."</td>
+                <td class='c'>".$this->t("Record del servidor")."</td>";
+                if (!empty($this->idUsuario)) $html .= "<td class='c'>".$this->t("Tu record")."</td>";
+            $html .= "</tr>";
+  foreach (Mob_Data::getHabitaciones() as $hab) {
+    $hab = Mob_Loader::getHabitacion($hab);
+    $html .= "<tr><th><a href='/mob/habitaciones/ver?v=".$hab->getNombreBdd()."' class='ajax'>".$hab->getNombre()."</a></th>
+              <th>".Mob_Loader::getModel("Habitacion")->getMax($hab->getNombreBdd())."</th>";
+              if (!empty($this->idUsuario)) $html .= "<th>".Mob_Loader::getModel("Habitacion")->getMax($hab->getNombreBdd(), $this->idUsuario)."</th>";
+            $html .= "</tr>";
+  }
+  $html .= "</table>";
+              
+  $html .= "<table>";
+  $html .= "<tr><td class='c' style='width: 300px;'>".$this->t("Entrenamiento")."</td>
+                <td class='c'>".$this->t("Record del servidor")."</td>";
+                if (!empty($this->idUsuario)) $html .= "<td class='c'>".$this->t("Tu record")."</td>";
+              $html .= "</tr>";
+  foreach (Mob_Data::getEntrenamientos() as $ent) {
+    $ent = Mob_Loader::getEntrenamiento($ent);
+    $html .= "<tr><th><a href='/mob/entrenamiento/ver?e=".$ent->getNombreBdd()."' class='ajax'>".$ent->getNombre()."</a></th>
+              <th>".Mob_Loader::getModel("Entrenamiento")->getMax($ent->getNombreBdd())."</th>";
+              if (!empty($this->idUsuario)) $html .= "<th>".Mob_Loader::getModel("Entrenamiento")->getMax($ent->getNombreBdd(), $this->idUsuario)."</th>";
+            $html .= "</tr>";
+  }
+  $html .= "</table>";
+  
+
+  Mob_Cache_Factory::getInstance("html")->save($html, $cacheId);
+}
+
+echo $html;
+
+echo $this->contentBox()->close();

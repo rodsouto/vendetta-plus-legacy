@@ -1,0 +1,137 @@
+<?php
+echo $this->contentBox()->open("Unidad");
+
+$estaLogueado = $this->getJugador() != null; 
+
+try {
+  $tropa = $estaLogueado ? $this->edificioActual->getTropa($_GET["t"]) : Mob_Loader::getTropa($_GET["t"]);
+} catch (Exception $e) {
+  $tropa = null;
+}
+     
+if ($estaLogueado && ($tropa == null || $tropa->getTipo() != 1)) {
+  echo "<p>Tropa inexistente.</p>";
+} else {
+
+?>
+<table width="600" border="0">	<tbody>
+	<tr>
+		<th><?php echo $this->t("Nombre");?></th>
+		<th><?php echo $this->escape($tropa->getNombre());?></th>
+		<th></th>
+	</tr>
+	<tr>
+		<th></th>
+		<th><?php echo $this->t("Base");?></th>
+		<th><?php echo $this->t("Actualmente");?></th>
+	</tr>
+	<tr>
+		<th><?php echo $this->t("Puntuación de ataque");?></th>
+		<th><?php echo $this->numberFormat($tropa->getAtaqueBase());?></th>
+		<th><?php echo $this->numberFormat($estaLogueado ? $tropa->getAtaque() : $tropa->getAtaqueBase());?></th>
+	</tr>
+	<tr>
+		<th><?php echo $this->t("Valor de defensa");?></th>
+		<th><?php echo $this->numberFormat($tropa->getDefensaBase());?></th>
+		<th><?php echo $this->numberFormat($estaLogueado ? $tropa->getDefensa() : $tropa->getDefensaBase());?></th>
+	</tr>
+	<tr>
+		<th><?php echo $this->t("Capacidad de carga");?></th>
+		<th><?php echo $this->numberFormat($tropa->getCapacidadBase());?></th>
+		<th><?php echo $this->numberFormat($estaLogueado ? $tropa->getCapacidad() : $tropa->getCapacidadBase());?></th>
+	</tr>
+	<tr>
+		<th><?php echo $this->t("Velocidad");?></th>
+		<th><?php echo $this->numberFormat($tropa->getVelocidadBase());?></th>
+		<th><?php echo $this->numberFormat($estaLogueado ? $tropa->getVelocidad() : $tropa->getVelocidadBase());?></th>
+	</tr>
+	<tr>
+		<th><?php echo $this->t("Salario");?></th>
+		<th colspan="2"><?php echo $this->numberFormat($tropa->getSalario());?></th>
+	</tr>
+	<tr>
+		<th>
+		</th>
+		<th colspan="2">
+<img src="<?php echo Mob_Server::getStaticUrl();?>img/trp/<?php echo $tropa->getImagen();?>">	</th></tr>
+	<tr>
+		<th><?php echo $this->t("Descripción");?></th>
+		<th><?php echo $this->escape($tropa->getDescripcion());?></th>
+		<th></th>
+	</tr>
+	<tr>
+		<th><?php echo $this->t("Puntos");?></th>
+		<th><?php echo $this->numberFormat($tropa->getPuntos());?></th>
+		<th></th>
+	</tr>
+	<tr>
+		<th><?php echo $this->t("Requisitos");?></th>
+		<th>
+		<?php
+		if ($tropa->getRequisitos()) {
+            foreach ($tropa->getRequisitos() as $ent => $nivel) {
+                echo $this->escape(Mob_Loader::getEntrenamiento($ent)->getNombre())." (".$nivel.")<br />";
+            }        
+        } else {
+            echo "-";
+        }
+		?>
+		</th>
+		<th></th>
+	</tr>
+	<tr>
+		<th><?php echo $this->t("Bonificación de ataque");?></th>
+		<th>
+		<?php
+		if ($tropa->getBonificacionesAtaque()) {
+            foreach ($tropa->getBonificacionesAtaque() as $ent) {
+                echo $this->escape(Mob_Loader::getEntrenamiento($ent)->getNombre())."<br />";
+            }        
+        } else {
+            echo "-";
+        }
+		?>
+		</th>
+		<th></th>
+	</tr>
+	<tr>
+		<th><?php echo $this->t("Bonificación de defensa");?></th>
+		<th>
+		<?php
+		if ($tropa->getBonificacionesDefensa()) {
+            foreach ($tropa->getBonificacionesDefensa() as $ent) {
+                echo $this->escape(Mob_Loader::getEntrenamiento($ent)->getNombre())."<br />";
+            }        
+        } else {
+            echo "-";
+        }
+		?>
+		</th>
+		<th></th>
+	</tr>
+<?php
+  if (Mob_Server::esDeModificadores()) {
+  ?>
+	<tr>
+		<th><?php echo $this->t("Modificadores");?></th>
+		<th>
+		<?php
+		    if ($tropa->getModificadores() != array()) {
+          foreach ($tropa->getModificadores() as $tropa => $mod) {
+              echo $this->escape(Mob_Loader::getTropa($tropa)->getNombre())." * $mod<br />";
+          }
+        } else {
+          echo "-";
+        }         
+		?>
+		</th>
+		<th></th>
+	</tr>  
+  <?php
+  }
+	?>	
+	
+</tbody></table>
+<?php
+}
+echo $this->contentBox()->close();

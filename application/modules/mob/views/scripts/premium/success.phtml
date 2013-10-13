@@ -1,0 +1,20 @@
+<?php
+
+echo $this->contentBox()->open();
+  
+  if(isset($_SERVER["HTTP_REFERER"]) && strpos($_SERVER["HTTP_REFERER"], "payment.allopass.com") !== false) {
+    $insert = $_GET;
+    $insert["id_usuario"] = $this->idUsuario;
+    $insert["fecha_inicio"] = date("Y-m-d H:i:s");
+    $referer = $_SERVER["HTTP_REFERER"];
+    parse_str(parse_url($referer, PHP_URL_QUERY), $queryString);
+    $insert["id_producto"] = $queryString["idd"];
+    try {
+    Mob_Loader::getModel("Premium")->insert($insert);
+    } catch (Exception $e) {
+    var_dump($e->getMessage());
+    
+    }
+  }
+  
+echo $this->contentBox()->close();

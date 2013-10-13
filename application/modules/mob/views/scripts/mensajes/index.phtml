@@ -1,0 +1,16 @@
+<?php
+
+echo $this->contentBox()->open("Mensajes");
+echo "<p><a href='/mob/mensajes/nuevo' class='ajax'>".$this->t("Escribir Mensaje")."</a></p>";
+//echo "<p><a href='/mob/mensajes/ignorar'>Jugadores suspendidos</a></p>";
+echo "<p><a href='/mob/mensajes/administrar'>Administrar Carpetas</a></p>";
+//echo "<p><a href='/mob/mensajes/opciones'>Opciones</a></p>";
+echo "<p><a href='/mob/mensajes/listado?c=0' class='ajax'>".$this->t("Bandeja de Entrada")." (".Mob_Loader::getModel("Mensajes")->getTotalCarpeta($this->idUsuario, 0).")</a></p>";
+
+echo "<p><a href='/mob/mensajes/listado?c=alerts' class='ajax'>".$this->t("Alertas")." (".Mob_Loader::getModel("Mensajes")->getTotalAlertas($this->idUsuario).")</a></p>";
+
+foreach (Mob_Loader::getModel("Mensajes_Carpetas")->getCarpetas($this->idUsuario) as $c) {
+  echo "<p><a href='/mob/mensajes/listado?c=".$c["id_carpeta"]."' class='ajax'>".$c["nombre"]." (".$c["mensajes"].")</a></p>";    
+}
+
+echo $this->contentBox()->close();

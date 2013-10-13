@@ -1,0 +1,37 @@
+<?php
+
+if (isset($_GET["delete"]) && !isset($_GET["bye"])) {
+  echo $this->contentBox()->open("Borrar edificio");
+    // esto no lo hago por ajax asi cuando elimina el ultimo edificio no hay problema con el redirect al setup
+    echo "<p><a href='/mob/edificios?delete=".$this->escape($_GET["delete"])."&bye=1'>".sprintf($this->t("Si, borrar edificio x"), implode(":", (array)Mob_Loader::getModel("Edificio")->getCoord($_GET["delete"]))).".</a></p>";
+  echo $this->contentBox()->close();
+}
+
+echo $this->contentBox()->open("Edificios");
+
+echo "<table width='100%'>";
+echo "<tr><th>".$this->t("Edificio")."</th><th>".$this->t("Habitacion")
+  ."</th><th>".$this->t("Accion")."</th><th>".$this->t("Puntos")."</th></tr>";
+
+foreach (Mob_Loader::getModel("Edificio")->getTodosEdificios($this->idUsuario, false) as $e) {
+$construyendo = Mob_Loader::getModel("Habitacion_Nueva")->getConstruccionActual($e["id_edificio"]);
+
+$txtContruyendo = "-";
+
+if ($construyendo != array()) {
+    $txtContruyendo = sprintf("%s<br />Tiempo restante: %s",
+                                $this->escape(Mob_Loader::getHabitacion($construyendo["habitacion"])->getNombre()),
+                                Mob_Timer::timeFormat(strtotime($construyendo["fecha_fin"])-time()));
+}
+//         <a href='#'>Editar</a>
+echo "<tr>
+    <td>{$e['coord1']}:{$e['coord2']}:{$e['coord3']}</td>
+    <td>$txtContruyendo</td>
+    <td>
+        <a href='/mob/edificios?building=".$e["id_edificio"]."' class='ajax' >".$this->t("Cambiar")."</a>
+        <a href='/mob/edificios?delete=".$e["id_edificio"]."' class='ajax' >".$this->t("Borrar")."</a>
+    </td>
+    <td>".$this->numberFormat($e['puntos'])."</td></tr>";
+}
+echo "</table>";
+echo $this->contentBox()->close();
