@@ -143,6 +143,17 @@ abstract class Mob_Combat_Abstract {
         return $return;
     }
     
+    public function getTropasPerdidas($quien) {
+        $return = array();
+        $quien = $quien == "atacante" ? "a" : "d";
+        $tropasOriginales = $this->getTropas($quien);
+        foreach ($this->_tropasRestantes as $tropa => $c) {
+            if ($c[$quien]["total"] != $tropasOriginales[$tropa]) $return[$tropa] = $tropasOriginales[$tropa] - $c[$quien]["total"];
+        }
+
+        return $return;
+    }
+    
     public function getTropas($quien) {
         $return = array();
         $quien = $quien == "atacante" ? "a" : "d";

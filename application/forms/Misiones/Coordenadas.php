@@ -163,6 +163,15 @@ class Mob_Form_Misiones_Coordenadas extends Zend_Form_SubForm {
             $this->getDecorator("Error")->setOption("html", $htmlError);
             return false;
         }
+        
+        $banBaneos = Mob_Loader::getModel("Baneos")->estaBaneado($idUsuarioDestino);
+        $banUsuarios = Mob_Loader::getModel("Usuarios")->estaBaneado($idUsuarioDestino);
+        
+        if ($banBaneos && $banUsuarios && Mob_Loader::getModel("Baneos")->getFechaLastBan($idUsuarioDestino, "fecha") > date("Y-m-d H:i:s", strtotime("-7 days"))) {
+            $htmlError = "<tr><td class='f' colspan=2>".$this->getView()->t("Error: No puedes atacar a un jugador baneado durante los primeros 7 dias del baneo")."</td></tr>";
+            $this->getDecorator("Error")->setOption("html", $htmlError);
+            return false;
+        }
 
         $edificio = Zend_Registry::get("jugadorActual")->getEdificioActual();
 
@@ -182,7 +191,7 @@ class Mob_Form_Misiones_Coordenadas extends Zend_Form_SubForm {
         $this->setSalario(floor(pow($d,0.8 ) * $infoTropas["salario"] / 2512));
         $this->setCarga($infoTropas["carga"]);
         $misionActualizacion = array(
-                                "Este edificio pertenece a" => $userEdificio, 
+                                "Este edificio pertenece a" => "<a href='/mob/jugador?id=$idUsuarioDestino'>$userEdificio</a>", 
                                 "Distancia entre edificios" => $this->getView()->numberFormat($d),
                                 "Salario (Dólar)" =>  $this->getView()->numberFormat($this->getSalario()),
                                 "Capacidad de carga (-Salario)" => $this->getView()->numberFormat($this->getCarga()), 

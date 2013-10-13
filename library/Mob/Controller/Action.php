@@ -3,7 +3,7 @@
 class Mob_Controller_Action extends Zend_Controller_Action {
 
     protected $_jugador;
-
+    public $idUsuario = 0;
     public function init() {
         $ajaxContext = $this->_helper->getHelper('AjaxContext');
         $ajaxContext->addActionContext('index', 'html')

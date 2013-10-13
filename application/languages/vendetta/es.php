@@ -43,6 +43,7 @@
   'hab_caja_desc' => 'Después de realizar un contrabando con éxito, conseguirás una buena cantidad de dólares. Pero, ¡presta atención!. Si no quieres tirar el dinero, debes usar esta caja, para prevenir que desaparezca, y para asegurarte liquidez.',
   'hab_campo_desc' => 'Tal y como dice el nombre, en el campo de entrenamiento, tus \\"chicos\\" entrenarán. El mismo, dependerá según el tipo de unidades que puedas producir, por ejemplo, simples delincuentes, asesinos, profesionales, a los que tus enemigos tendrán un respeto extremo. Dependiendo del nivel, las unidades serán creadas en menor tiempo.',
   'hab_seguridad_desc' => 'Al igual que el entrenamiento de luchadores en el campo de entrenamiento, aquí podrás entrenar a los más jóvenes en defensa. En principio, se quedarán permanentemente, siempre en el hogar, y protegiendo sus habitaciones contra enemigos. Si tus gángsters están de vuelta, automáticamente luchan juntos.',
+  'Habitacion finalizada: %s edificio %s' => 'Habitacion finalizada: %s edificio %s',
   'hab_torreta_desc' => 'A fin de aliviar un poco el trabajo de los defensores, dispones de ciertas construcciones, como esta torreta de fuego automático. Técnicamente, son muy avanzadas, y en el momento en que detecten a un enemigo, abrirán fuego de golpe.',
   'hab_minas_desc' => 'Estas minas son una ayuda incluso más \\"agradable\\". Tus chicos las repartirán a lo largo de la casa. Cuando algún enemigo la pise sin darse cuenta... ¡Buenas noches!',
   'trp_maton_desc' => 'Los Matones son unidades de combate simple, no dejarán escapar la oportunidad de atacar a cualquier unidad enemiga que detecte. En cantidades grandes incluso pueden ser muy peligrosos.',
@@ -257,11 +258,11 @@
   'Fundar' => 'Fundar',
   'Descripción (10000 caracteres)' => 'Descripción (10000 caracteres)',
   'aviso descripcion familia' => 'Los enlaces dentro del juego se pueden poner de la siguiente manera:
-Familia: !A:Etiqueta! / !N:Nombre!
-Jugador: !S:Nombre!
+Familia: [alliance]#id_alliance[/alliance]
+Jugador: [player]#id_player[/player]
 Al guardar, se adjuntan de forma automática los datos identificativos internos (ID). Así podrás cambiar el nombre sin sufrir cambios en el enlace.
 
-Puedes usar <a href=\\\'%s\\\' target=\\\'_blank\\\'>BBCode</a> para darle formato al texto.',
+Puedes usar [link href=%s target=_blank]BBCode[/link] para darle formato al texto.',
   'Mensaje de tu familia enviado por x' => 'Mensaje de tu familia enviado por %s',
   'Nombre' => 'Nombre',
   'leer_mensaje' => 'Leer mensaje',
@@ -419,11 +420,11 @@ Puedes usar <a href=\\\'%s\\\' target=\\\'_blank\\\'>BBCode</a> para darle forma
   'estadistica_servidor_1' => 'Actualmente hay #trp_ataques# tropas involucradas en #ataques# ataques y se estan transportando #rec_arm# armas, #rec_mun# municiones y #rec_dol# dolares en #transp# misiones diferentes.',
   'estadistica_servidor_2' => 'Otras %s tropas estan en movimiento, contando tanto aquellas que regresan de sus misiones como las que estan siendo estacionadas en otro edificio.',
   'estadistica_servidor_3' => '#total edificios estan por ser ocupados.',
-  'txt_descripcion_home' => '<p>¿Quieres ser el Capo de la Mafia más importante en la ciudad? ¿Qué esperas?</p><br />
-<p>Construye habitaciones para obtener más recursos junto con las más avanzadas tecnologías, tropas de ataque e incluso podrás obtener un ejército inmejorable con las tropas de defensa mejor desarrolladas, y así...</p><br />
-<p>¡Dominar la ciudad!</p><br />
-<p>Entrena a tus \\"chicos\\" para volverse más fuertes; vigila el mapa de la ciudad para comprobar aquellos aliados o enemigos que se encuentren cerca de tu zona; revisa la clasificación para conocer quienes son actualmente los mafiosos más poderosos y... ¡muchas cosas más!</p><br />
-<p><a href=\\"/index/index/register\\">¿Quieres probar suerte? ¡Regístrate ahora!</a></p>',
+  'txt_descripcion_home' => '[p]¿Quieres ser el Capo de la Mafia más importante en la ciudad? ¿Qué esperas?[/p]
+[p]Construye habitaciones para obtener más recursos junto con las más avanzadas tecnologías, tropas de ataque e incluso podrás obtener un ejército inmejorable con las tropas de defensa mejor desarrolladas, y así...[/p]
+[p]¡Dominar la ciudad![/p]
+[p]Entrena a tus \\"chicos\\" para volverse más fuertes; vigila el mapa de la ciudad para comprobar aquellos aliados o enemigos que se encuentren cerca de tu zona; revisa la clasificación para conocer quienes son actualmente los mafiosos más poderosos y... ¡muchas cosas más![/p]
+[p][link href=/index/index/register]¿Quieres probar suerte? ¡Regístrate ahora![/link][/p]',
   'Granjeadores Top Semana' => 'Granjeadores Top Semana',
   'Granjeadores Top Mes' => 'Granjeadores Top Mes',
   'Granjeadores Top Año' => 'Granjeadores Top Año',
@@ -439,4 +440,63 @@ Puedes usar <a href=\\\'%s\\\' target=\\\'_blank\\\'>BBCode</a> para darle forma
   'Duración:' => 'Duración:',
   'Informe de batalla' => 'Informe de batalla',
   'Recursos Disponibles' => 'Recursos Disponibles',
+  'Cambiar nombre de jugador' => 'Cambiar nombre de jugador',
+  'Cambiar nombre' => 'Cambiar nombre',
+  'Guerras' => 'Guerras',
+  'Guerras activas' => 'Guerras activas',
+  'Total de ataques' => 'Total de ataques',
+  'Ataques por dia' => 'Ataques por dia',
+  'Ataques durante la ultima semana' => 'Ataques durante la ultima semana',
+  'Puntos perdidos' => 'Puntos perdidos',
+  'Ganador' => 'Ganador',
+  'Enviar solicitud de rendicion' => 'Enviar solicitud de rendicion',
+  'Solicitudes de rendicion' => 'Solicitudes de rendicion',
+  'Declarar guerra' => 'Declarar guerra',
+  'Esta familia todavia no decidio que hacer con la propuesta de rendicion.' => 'Esta familia todavia no decidio que hacer con la propuesta de rendicion.',
+  'Ya no quieres rendirte?' => 'Ya no quieres rendirte?',
+  'Ninguna guerra' => 'Ninguna guerra',
+  'Mejores Jugadores' => 'Mejores Jugadores',
+  'Ver ranking completo.' => 'Ver ranking completo.',
+  '<p><a href=\\"/mob/clasificacion\\">Ver ranking completo.</a></p>' => '<p><a href=\\"/mob/clasificacion\\">Ver ranking completo.</a></p>',
+  'Simulador' => 'Simulador',
+  'Ver guerras finalizadas' => 'Ver guerras finalizadas',
+  'Ver guerras activas' => 'Ver guerras activas',
+  'Fecha de inicio' => 'Fecha de inicio',
+  'Modo vacaciones' => 'Modo vacaciones',
+  'Salir del modo vacaciones' => 'Salir del modo vacaciones',
+  'Te quedan x dias de vacaciones' => 'Te quedan %s dias de vacaciones',
+  'Plazo activar vacaciones' => 'Recuerda que no podras volver a activarlo hasta dentro de %s dias.',
+  'Puedes volver a ponerte en vacaciones dentro de x dias' => 'Puedes volver a ponerte en vacaciones dentro de %s dias.',
+  'Info vacaciones' => 'El modo vacaciones dura %s dias. Durante ese lapso, no podras ser atacado, pero los ataques que esten en curso se realizaran normalmente.',
+  'En cualquier momento puedes desactivarlo y volver a jugar.' => 'En cualquier momento puedes desactivarlo y volver a jugar.',
+  'Plazo espera post vacaciones' => 'Una vez finalizado el modo vacaciones, debes esperar %s dias para volver a activarlo.',
+  'Activar el modo vacaciones' => 'Activar el modo vacaciones',
+  'Declaracion de rendicion de x' => 'Declaracion de rendicion de %s',
+  'Propuesta de empate de x' => 'Propuesta de empate de %s',
+  'No se hallo ningun resultado.' => 'No se hallo ningun resultado.',
+  'Aceptar y finalizar la guerra' => 'Aceptar y finalizar la guerra',
+  'Rechazar y continuar la guerra' => 'Rechazar y continuar la guerra',
+  'Solo el capo puede aceptar o rechazar las solicitudes recibidas.' => 'Solo el capo puede aceptar o rechazar las solicitudes recibidas.',
+  'Enemigo' => 'Enemigo',
+  'Guerras de x' => 'Guerras de %s',
+  'Empate' => 'Empate',
+  'Perdida' => 'Perdida',
+  'Ganada' => 'Ganada',
+  'Ver detalles' => 'Ver detalles',
+  'No puedes activar el modo vacaciones hasta que las misiones que has enviado no finalicen.' => 'No puedes activar el modo vacaciones hasta que las misiones que has enviado no finalicen.',
+  'Estas probando el juego como invitado, mejor registrate ahora!' => 'Estas probando el juego como invitado, mejor registrate ahora!',
+  'Mercado' => 'Mercado',
+  'Resultado' => 'Resultado',
+  'Nueva transaccion' => 'Nueva transaccion',
+  'Nombre comprador' => 'Nombre comprador',
+  'Tasa' => 'Tasa',
+  'Venta' => 'Venta',
+  'Compra' => 'Compra',
+  'Municiones' => 'Municiones',
+  'Transacciones en curso' => 'Transacciones en curso',
+  'Pendiente envio' => 'Pendiente envio',
+  'Pendiente recepcion' => 'Pendiente recepcion',
+  'Transacciones pendientes de aceptacion' => 'Transacciones pendientes de aceptacion',
+  'Cantidad a enviar' => 'Cantidad a enviar',
+  'Cantidad a recibir' => 'Cantidad a recibir',
 );

@@ -17,6 +17,8 @@ defined('APPLICATION_PATH')
 // Define application environment
 defined('APPLICATION_ENV') || define('APPLICATION_ENV', getenv("APPLICATION_ENV") ? getenv("APPLICATION_ENV") : "production");
 
+defined('IS_PRODUCTION') || define('IS_PRODUCTION', (int)(APPLICATION_ENV == "production"));
+
 $rootPath = dirname(__FILE__);
  
 if (getenv("GAME_SERVER_NAME") == "test") {
@@ -32,7 +34,7 @@ if (getenv("GAME_SERVER_NAME") == "test") $publicPath = "vendetta_test";
                             
 defined('PUBLIC_PATH')
     || define('PUBLIC_PATH',
-              realpath(dirname(__FILE__) . '/'.$publicPath));
+              realpath(dirname(__FILE__) . '/'.$publicPath));              
 
 /** Zend_Application */
 require_once 'Zend/Application.php';
@@ -51,10 +53,6 @@ unset($servers["test"]);
 $dbName = getenv("GAME_SERVER_NAME") != false ? getenv("GAME_SERVER_NAME") : array_rand($servers);
 
 $config["resources"]["db"]["params"]["dbname"] = getenv("GAME_TYPE")."_plus_".$dbName;
-
-if (isset($_GET["ver_db"])) {
-  var_dump($config["resources"]["db"]["params"]["dbname"]);  
-}
 
 if (APPLICATION_ENV == "production") {
   $config["resources"]["db"]["params"]["username"] = getenv("GAME_TYPE");

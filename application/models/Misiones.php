@@ -102,7 +102,7 @@ class Mob_Model_Misiones extends Mob_Db_Table_Abstract {
     }
     
     public function regresar($v) {  
-      return $this->insert(array(
+      return $this->update(array(
         "tropas" => $v["tropas"],
         "coord_dest_1" => $v["coord_orig_1"],
         "coord_dest_2" => $v["coord_orig_2"],
@@ -120,7 +120,7 @@ class Mob_Model_Misiones extends Mob_Db_Table_Abstract {
         "id_usuario" => $v["id_usuario"],
         "duracion" => $v["duracion"],
         //"id_mision_original" => $v["id_mision"]
-      ));
+      ), "id_mision = ".(int)$v["id_mision"]);
     }
     
     public function deleteFinalizadas($idUsuario) {

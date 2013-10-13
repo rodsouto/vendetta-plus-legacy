@@ -136,6 +136,7 @@ class Mob_Jugador {
     }
     
     public function getPoderAtaque($cantEdificios = null, $honor = null) {
+        if ($this->_edificio->getId() == null) return 100;
         return self::calcPoderAtaque($this->getTotalEdificios(), $this->_edificio->getEntrenamiento(Mob_Server::getNameEntPoderAtaque())->getNivel());    
     }
     

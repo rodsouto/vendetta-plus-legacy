@@ -33,12 +33,25 @@ class Mob_Form_Misiones_Tropas extends Zend_Form_SubForm {
                                                 "value" => 0,
                                                 "validators" => $validatorsNumber,
                                                 "filters" => array("Int"),
-                                                "size" => 10
+                                                "size" => 10,
+                                                "data-total" => $tropa->getCantidad(),
+                                                "class" => "total-trp"
                                                 )
                                     );
         }
         
+        $scriptTotalTrp = "
+        <script>
+        $('#setTotalTrp').click(function(event){
+          event.preventDefault();
+          $('.total-trp').each(function(){
+            $(this).val($(this).attr('data-total'));
+          });
+        });
+        </script>";
+        
         $htmlHeader = "<tr><td colspan='2' class='c'>".$this->getView()->t("Planificar nuevo ataque")."</td></tr>";
+        $htmlSeleccionarTodo = "<tr><td colspan='2'><a href='#' id='setTotalTrp'>".$this->getView()->t("Seleccionar todas las tropas")."</a>$scriptTotalTrp</td></tr>";
         $htmlThTable = "<tr><th>".$this->getView()->t("Tropas")."</th><th>".$this->getView()->t("Cantidad")."</th></tr>";
         
         $this->setDecorators(array(
@@ -47,6 +60,7 @@ class Mob_Form_Misiones_Tropas extends Zend_Form_SubForm {
                     array(array("Th" => "HtmlContent"), array("html" => $htmlThTable)), 
                     "FormElements",
                     array(array("Info" => "HtmlContent")),
+                    array(array("SeleccionarTodo" => "HtmlContent"), array("html" => !empty($tropas) ? $htmlSeleccionarTodo : "")),
                     ))
                 ->setElementDecorators($tableElementsDecorators);
 

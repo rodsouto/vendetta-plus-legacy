@@ -77,6 +77,10 @@ abstract class Mob_Habitacion_Abstract {
         $attr = "_" . $type;
         return $this->$attr * ($this->getNivel()+1) * ($this->getNivel()+1);
     } 
+
+    public function getCostoBase($type) {
+        return $this->{"_".$type};
+    } 
     
     public function getImagen() {
         return $this->getNombreBdd().".jpg";

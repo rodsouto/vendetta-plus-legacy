@@ -72,24 +72,41 @@ class Mob_Combat_Manager {
     
     protected function _save() {
     
+        // nuevas tropas
+        $pendienteAt = array("id_edificio" => $this->_jugadorAtacante->getEdificioActual()->getId())+$this->_combat->getTropasPerdidas("atacante");
+        $pendientesDef = array("id_edificio" => $this->_jugadorDefensor->getEdificioActual()->getId())+$this->_combat->getTropasPerdidas("defensor");;
+    
+        // recursos
+        $robo = $this->getRobo();
+        foreach ($robo as $rec => $total) {
+          $pendienteAt["recursos_".$rec] = $total;
+          $pendientesDef["recursos_".$rec] = -1*$total;
+        }
+        
+        // puntos
+        $pendienteAt["puntos_tropas"] = $this->_combat->getPuntosPerdidos("atacante");
+        $pendientesDef["puntos_tropas"] = $this->_combat->getPuntosPerdidos("defensor");
+        
+        Mob_Loader::getModel("CronPendientes")->insert($pendienteAt);
+        Mob_Loader::getModel("CronPendientes")->insert($pendientesDef);
         // seteamos tropas restantes del defensor
         // primero todo a cero y despues seteamos la cantidad que haya quedado
-        foreach (Mob_Data::getTropas() as $tropa) {
+        /*foreach (Mob_Data::getTropas() as $tropa) {
           Mob_Loader::getModel("Tropa")->setTropa($this->getIdEdificioDefensor(), $tropa, 0);
         }
         
         foreach ($this->_combat->getTropasRestantes("defensor") as $tropa => $cantidad) {
             Mob_Loader::getModel("Tropa")->setTropa($this->getIdEdificioDefensor(), $tropa, $cantidad);
-        }
+        } */
         
         // restamos a ambos jugadores los puntos de tropas perdidos
-        Mob_Loader::getModel("Usuarios")->restarPuntosTropa($this->_jugadorAtacante->getIdUsuario(), $this->_combat->getPuntosPerdidos("atacante"));
+        /*Mob_Loader::getModel("Usuarios")->restarPuntosTropa($this->_jugadorAtacante->getIdUsuario(), $this->_combat->getPuntosPerdidos("atacante"));
         Mob_Loader::getModel("Usuarios")->restarPuntosTropa($this->_jugadorDefensor->getIdUsuario(), $this->_combat->getPuntosPerdidos("defensor"));
-        
+        */
         // restamos al defensor el robo
-        $robo = $this->getRobo();
+        /*$robo = $this->getRobo();
         Mob_Loader::getModel("Edificio")->restarRecursos($this->getIdEdificioDefensor(), $robo["arm"], $robo["mun"], $robo["dol"], $robo["alc"]);
-
+        */
         $resultado = array(
                           "coord_atacante" => $this->_data["coord_orig_1"].":".$this->_data["coord_orig_2"].":".$this->_data["coord_orig_3"],
                           "coord_defensor" => $this->_data["coord_dest_1"].":".$this->_data["coord_dest_2"].":".$this->_data["coord_dest_3"],
@@ -105,7 +122,7 @@ class Mob_Combat_Manager {
            
         $this->_jugadorDefensor->getEdificioActual()->setData();
         foreach (array("arm", "mun", "dol", "alc") as $rec) {
-          $resultado["recursos_disponibles"][$rec] = $this->_jugadorDefensor->getEdificioActual()->getTotalRecurso($rec);
+          $resultado["recursos_disponibles"][$rec] = $this->_jugadorDefensor->getEdificioActual()->getTotalRecurso($rec) - $pendienteAt["recursos_".$rec];
         }
         
         $idFamiliaAtacante = $this->_jugadorAtacante->getIdFamilia();
@@ -133,7 +150,8 @@ class Mob_Combat_Manager {
                 "id_familia_d" => $idFamiliaDefensor,
                 "nombre_a" => $this->_jugadorAtacante->getNombre(),
                 "nombre_d" => $this->_jugadorDefensor->getNombre(),
-                "id_guerra" => $idGuerra                
+                "id_guerra" => $idGuerra,
+                "id_mision" => $this->_data["id_mision"]                
               )
         );
                

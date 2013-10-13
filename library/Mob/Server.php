@@ -21,7 +21,9 @@ class Mob_Server {
 
   public static function getServers() {
     $servers = array(
-        "vendetta" => array("old" => "Old", "s1" => "s1 mods", "test" => "Test"),
+        "vendetta" => array("old" => "Old", 
+        // "s1" => "s1 mods", 
+        "test" => "Test"),
         "space4k" => array("s1" => "s1")
     );
     

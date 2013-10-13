@@ -89,6 +89,10 @@ abstract class Mob_Entrenamiento_Abstract {
     public function getCosto($type) {
         $attr = "_" . $type;
         return $this->$attr * ($this->getNivel()+1) * ($this->getNivel()+1);
+    }
+    
+    public function getCostoBase($type) {
+        return $this->{"_".$type};
     }                                                                   
     
     public function getNombreBdd() {

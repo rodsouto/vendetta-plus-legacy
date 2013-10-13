@@ -264,11 +264,7 @@ class Mob_Controller_Plugin_Update extends Zend_Controller_Plugin_Abstract {
           $this->_db->beginTransaction();
           foreach ($res as $v) {
               //echo "Mision tipo ".$v["mision"]."\n";
-              //1 "Atacar", 2 "Estacionar", 3 "Transportar recursos", 4 "Ocupar edificio"
-              if (@fopen(PUBLIC_PATH."/cacheFiles/misiones/".$v["id_mision"].".lock", "x") === false) {
-                Mob_Loader::getModel("Misiones")->delete("id_mision = ".$v["id_mision"]);
-                continue;
-              }      
+              //1 "Atacar", 2 "Estacionar", 3 "Transportar recursos", 4 "Ocupar edificio"    
               
               $idUsuarioDefensor = Mob_Loader::getModel("Edificio")->getUsuarioByCoord($v["coord_dest_1"], $v["coord_dest_2"], $v["coord_dest_3"], true);
               $idUsuariosFinalizados[$v["id_usuario"]] = 1;
@@ -380,7 +376,7 @@ class Mob_Controller_Plugin_Update extends Zend_Controller_Plugin_Abstract {
                   break;
               }
               
-              Mob_Loader::getModel("Misiones")->delete("id_mision = ".$v["id_mision"]);
+              Mob_Loader::getModel("Misiones")->delete("fecha_fin < '".date("Y-m-d H:i:s")."' AND id_mision = ".$v["id_mision"]);
           }      
           //Mob_Loader::getModel("Misiones")->deleteFinalizadas($idUsuario);
           $this->_db->commit();

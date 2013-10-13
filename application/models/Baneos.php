@@ -11,8 +11,8 @@ class Mob_Model_Baneos extends Zend_Db_Table_Abstract {
       return $this->_db->fetchOne($query);
     }
     
-    public function getFechaLastBan($idUsuario) {
-      $query = $this->select()->from($this->_name, "fecha_fin")
+    public function getFechaLastBan($idUsuario, $fecha = "fecha_fin") {
+      $query = $this->select()->from($this->_name, $fecha)
               ->where("id_usuario = ?", (int)$idUsuario)->order("id_ban DESC")->limit(1);
       return $this->_db->fetchOne($query);    
     }

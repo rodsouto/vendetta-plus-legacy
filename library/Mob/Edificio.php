@@ -73,6 +73,8 @@ class Mob_Edificio {
   }
   
   public function setEdificio($idEdificio) {
+    if (empty($idEdificio)) return $this;
+  
     $this->_edificioId = $idEdificio;
      
     $this->_data = $this->getModel()->find($idEdificio)->current()->toArray();
