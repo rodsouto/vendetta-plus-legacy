@@ -89,7 +89,13 @@ interface IGameEvents {
     event MissionReturning(uint64 indexed mission, uint40 arrival);
     event MissionEnded(uint64 indexed mission);
     /// Battle report (B-18): inputs and totals. Rounds are recomputed off-chain (deterministic).
-    event Battle(uint64 indexed mission, uint64 indexed building, BattleReport report);
+    event Battle(
+        uint64 indexed mission,
+        uint64 indexed attacker,
+        uint64 indexed defender,
+        uint64 building,
+        BattleReport report
+    );
     event BuildingOccupied(uint64 indexed building, uint64 indexed player, uint64 mission);
     event BuildingAbandoned(uint64 indexed building, uint64 indexed player);
     event VacationStarted(uint64 indexed player, uint40 until);

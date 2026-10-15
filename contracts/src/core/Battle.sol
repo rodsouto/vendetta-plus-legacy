@@ -52,7 +52,13 @@ library Battle {
         Player storage defender = s.players[s.buildings[buildingId].owner];
         if (defender.researchBuilding != buildingId) _settleResearch(defender, t);
         BattleReport memory report = _fight(s, missionId, buildingId);
-        emit IGameEvents.Battle(missionId, buildingId, report);
+        emit IGameEvents.Battle(
+            missionId,
+            s.missions[missionId].owner,
+            s.buildings[buildingId].owner,
+            buildingId,
+            report
+        );
     }
 
     function _fight(CoreState storage s, uint64 missionId, uint64 buildingId)

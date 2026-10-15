@@ -328,7 +328,7 @@ Until the freeze, the "trustless rules" goal (Goals) is only partly met. This is
 
 - Battle reports, notices (delivery, occupation, trade, family) and history are **events** (logs),
   not storage.
-- The `Battle` event carries the **inputs and totals**: both armies, both players' research and
+- The `Battle` event carries the **inputs and totals**: the attacking and defending player, both armies, both players' research and
   honor percentage, survivors and loot. Combat is deterministic, so the indexer recomputes the exact
   rounds (deaths per round and troop type, 06-combat.md#battle-report) with `packages/rules`. This
   costs less gas than logging every round.
