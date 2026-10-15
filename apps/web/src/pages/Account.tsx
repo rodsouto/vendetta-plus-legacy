@@ -1,5 +1,5 @@
-// Account: this device's session (B-15), vacation (D-18), premium (B-25), suspension (B-14) and
-// transfer (B-26).
+// Account: this device's session (B-15), devices and recovery codes, vacation (D-18), premium
+// (B-25), suspension (B-14) and transfer (B-26).
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { isAddress } from "viem";
@@ -8,6 +8,7 @@ import { useGame } from "../state/game.js";
 import { Empty } from "../ui/parts.js";
 import { clock } from "../ui/format.js";
 import { controllerKey } from "../chain/load.js";
+import { ApproveDevice, Devices } from "./Devices.js";
 
 export function Account() {
   const g = useGame();
@@ -23,6 +24,7 @@ export function Account() {
         <h2>{t("account.title")}</h2>
         <span className="folio">{g.address?.slice(0, 10)}…</span>
       </header>
+      {g.signer.mode === "passkey" && <ApproveDevice />}
       <table className="ledger">
         <tbody>
           <tr>
@@ -55,6 +57,7 @@ export function Account() {
       </table>
 
       {g.signer.mode === "passkey" && <Session />}
+      {g.signer.mode === "passkey" && <Devices />}
 
       <h3>{t("account.vacation")}</h3>
       {vacation ? (

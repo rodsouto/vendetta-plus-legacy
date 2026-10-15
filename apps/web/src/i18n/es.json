@@ -64,7 +64,14 @@
     "create": "¿Primera vez? Abrí una cuenta",
     "submit": "Crear cuenta y fundar aquí",
     "passkeyNote": "Al fundar, el dispositivo te pide crear la passkey y después confirmarla. Si tu passkey se sincroniza (iCloud, Google), entrás igual desde tus otros dispositivos.",
-    "welcome": "Bienvenido de vuelta"
+    "welcome": "Bienvenido de vuelta",
+    "otherDevice": "¿Ya tenés cuenta en otro dispositivo?",
+    "otherDeviceNote": "Si tu passkey no se sincroniza a este dispositivo (por ejemplo, otra marca), creá una acá y aprobala desde un dispositivo donde ya tengas la cuenta.",
+    "join": "Sumar este dispositivo a mi cuenta",
+    "recover": "Recuperar con código",
+    "recoverNote": "Si perdiste tus dispositivos: con tu código de recuperación, este dispositivo crea una passkey nueva y entra a tu cuenta.",
+    "code": "Código de recuperación",
+    "recoverSubmit": "Recuperar la cuenta"
   },
   "session": {
     "title": "Este dispositivo",
@@ -305,12 +312,52 @@
     "AlreadyPublished": "Esta passkey ya está registrada.",
     "cancelled": "Cancelaste la confirmación.",
     "noAccount": "Esa passkey no tiene una cuenta en esta ciudad.",
-    "unknown": "La transacción falló."
+    "unknown": "La transacción falló.",
+    "TooManyControllers": "La cuenta ya tiene 5 dispositivos o códigos: quitá uno primero.",
+    "LastController": "No podés quitar el último dispositivo de la cuenta.",
+    "invalidCode": "Ese código no corresponde a ninguna cuenta."
   },
   "theme": {
     "label": "Tema",
     "auto": "Auto",
     "light": "Día",
     "dark": "Noche"
+  },
+  "joining": {
+    "title": "Sumá este dispositivo",
+    "body": "Escaneá este código (o abrí el enlace) en un dispositivo donde ya tengas la cuenta, y aprobalo con su passkey. Esta pantalla sigue sola cuando esté listo.",
+    "copy": "Copiar enlace",
+    "copied": "Enlace copiado",
+    "cancel": "Cancelar",
+    "waiting": "Esperando la aprobación…"
+  },
+  "devices": {
+    "title": "Dispositivos y recuperación",
+    "note": "Cada dispositivo con su passkey, y cada código de recuperación, maneja la cuenta entera; hasta 5. Quitar uno corta el permiso para jugar en todos: los demás lo renuevan con su passkey.",
+    "this": "Este dispositivo",
+    "code": "Código de recuperación",
+    "other": "Otro dispositivo o código",
+    "remove": "Quitar",
+    "confirmRemove": "¿Quitar {{who}}? Ya no va a poder manejar la cuenta.",
+    "removed": "Quitado de la cuenta",
+    "add": "Agregar un dispositivo",
+    "addNote": "En el dispositivo nuevo elegí «Sumar este dispositivo a mi cuenta»: muestra un código QR. Escanealo con este dispositivo, o pegá acá su enlace.",
+    "link": "Enlace o dirección del dispositivo nuevo",
+    "addSubmit": "Agregar",
+    "added": "Dispositivo agregado",
+    "approve": "Un dispositivo pide sumarse a tu cuenta",
+    "approveNote": "Aprobalo solo si lo estás configurando vos: va a poder manejar la cuenta entera.",
+    "approveSubmit": "Aprobar dispositivo",
+    "reject": "No es mío",
+    "recovery": "Código de recuperación",
+    "recoveryNote": "Si perdés tus dispositivos, con este código recuperás la cuenta desde uno nuevo. Guardalo fuera de este dispositivo (en papel o en un gestor de contraseñas): quien lo tenga puede tomar la cuenta.",
+    "generate": "Generar un código",
+    "saved": "Ya lo guardé",
+    "activate": "Activar el código",
+    "activated": "Código activado",
+    "discard": "Descartar"
+  },
+  "recovery": {
+    "done": "Cuenta recuperada"
   }
 }

@@ -13,6 +13,9 @@ export interface DeviceSession {
   address: Address;
 }
 
+export const storeGet = <T>(name: string) => store.get<T>(name);
+export const storeSet = (name: string, value: unknown) => store.set(name, value);
+
 const store = {
   get<T>(name: string): T | null {
     try {

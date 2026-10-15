@@ -871,3 +871,45 @@ details.locked li {
     bottom: calc(4.5rem + env(safe-area-inset-bottom));
   }
 }
+
+/* Devices and recovery (B-26). */
+.code-slip {
+  display: inline-block;
+  margin: 0.5rem 0;
+  padding: 0.6rem 0.9rem;
+  border: 1px dashed var(--ink-2);
+  background: var(--page-2);
+  font: 600 clamp(1rem, 4.5vw, 1.35rem)/1.3 var(--sans);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+.check {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.25rem;
+  font-size: 0.95rem;
+}
+.approve {
+  margin: calc(var(--row) * 0.5) 0;
+  padding: 0 0.9rem 0.75rem;
+  border-left: 3px solid var(--red);
+  background: var(--page-2);
+}
+.qr {
+  width: min(16rem, 70vw);
+  margin: 0.75rem 0;
+  padding: 0.5rem;
+  background: #fff; /* QR codes need a light quiet zone in either theme */
+}
+.qr svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.join-link {
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}

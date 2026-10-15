@@ -19,8 +19,12 @@ export interface Identity {
   credentialId: string;
   /** P-256 public key, x ‖ y (64 bytes). */
   publicKey: Hex;
-  /** The Kernel account the passkey owns: the player's controller. */
+  /** The Kernel account the passkey owns: one of the player's controllers. */
   address: Address;
+  /** Known to be in the PasskeyDirectory (absent: unknown, checked before the next renewal). */
+  published?: boolean;
+  /** Made to join an existing account from another device (B-26), not yet added there. */
+  joining?: boolean;
 }
 
 export const ENTRY_POINT = { address: entryPoint07Address, version: "0.7" } as const;

@@ -339,6 +339,14 @@ vacation or suspended can only end the vacation. In v1 `suspend(player, until)` 
   check above, then authorizing this device's session. Every game action goes out through the
   session with no prompt; when the session has lapsed, the action first renews it (one passkey
   prompt). The session key lives in browser storage: it can only play, expires and is revocable.
+  *Add a device* = the new device makes its passkey and shows a link (and QR) with its account's
+  address; a device already in the account opens it and approves (`addController`, one prompt).
+  *Recovery code* = 120 random bits shown as six groups of four base32 characters; the key is
+  `keccak256("vendetta recovery v1" ‖ bits)` and its simple account becomes a controller (one
+  prompt). *Recover* = new passkey, then the code's account adds it (no prompt), then the new
+  account publishes its passkey and authorizes the session (one prompt). An account that joined
+  without publishing yet publishes with its first session renewal. *Remove a device* re-authorizes
+  this device's session in the same operation, since removal kills every session.
   Kernel v3.1 (the last version with a WebAuthn validator in permissionless.js) and the
   SimpleAccount factory for the session, both already deployed on Arbitrum One. permissionless.js
   0.4 always signs with `usePrecompiled = false`, so the passkey signature is checked by the

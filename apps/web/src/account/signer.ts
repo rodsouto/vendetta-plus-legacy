@@ -10,6 +10,7 @@ import {
   type Address,
   type Chain,
   type Hash,
+  type Hex,
   type PublicClient,
 } from "viem";
 import { entryPoint07Abi } from "viem/account-abstraction";
@@ -46,8 +47,9 @@ export interface Call {
  * actor: the address game actions come from (the session, or the dev account itself).
  * controller: the player's own account, for account management (a passkey prompt).
  * admin: the deployer (local workshop only).
+ * { key }: the simple account of a recovery code's key (B-26), another controller.
  */
-export type From = "actor" | "controller" | "admin";
+export type From = "actor" | "controller" | "admin" | { key: Hex };
 
 export interface Signer {
   readonly mode: Network["accounts"];
@@ -137,6 +139,7 @@ export class DevSigner extends Observable implements Signer {
   }
 
   async send(calls: Call[], from: From) {
+    if (typeof from === "object") throw new Error("no recovery codes with dev accounts");
     const wallet = this.clients.wallet(from === "admin" ? 0 : this.account);
     for (const c of calls) {
       const hash = await wallet.writeContract({
@@ -193,13 +196,25 @@ export class PasskeySigner extends Observable implements Signer {
     this.changed();
   }
 
-  /** A new passkey; the account goes on chain with the first operation (registration). */
-  async create(name: string) {
-    await this.adopt(await createIdentity(this.client, name));
+  /**
+   * A new passkey; the account goes on chain with its first operation (registration, or the first
+   * session once another device or a recovery code has added it: `joining`).
+   */
+  async create(name: string, joining = false) {
+    const id = await createIdentity(this.client, name);
+    await this.adopt(joining ? { ...id, joining } : id);
   }
 
   async signIn() {
-    await this.adopt(await signInIdentity(this.client, this.directory));
+    await this.adopt({ ...(await signInIdentity(this.client, this.directory)), published: true });
+  }
+
+  /** The passkey is in the directory and the account is a controller: nothing pending. */
+  settled() {
+    if (!this.identity || (this.identity.published && !this.identity.joining)) return;
+    this.identity = { ...this.identity, published: true, joining: undefined };
+    storeIdentity(this.chainId, this.identity);
+    this.changed();
   }
 
   /** Forgets the player on this device (the passkey and the account stay). */
@@ -235,7 +250,7 @@ export class PasskeySigner extends Observable implements Signer {
     const account =
       from === "controller"
         ? await kernelAccount(this.client, this.identity)
-        : await sessionAccount(this.client, this.session!.key);
+        : await sessionAccount(this.client, from === "actor" ? this.session!.key : from.key);
     const client = this.smartClient(account);
     // With the abi, viem decodes a revert during gas estimation into the contract's error.
     const gas = await client.estimateUserOperationGas({ calls: calls as never });

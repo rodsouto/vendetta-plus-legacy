@@ -18,7 +18,7 @@ Fully on-chain rewrite of the legacy Vendetta PHP game (EVM, Arbitrum One).
 | `packages/spec-data` | Codegen from the YAML (all output committed): JSON in `generated/` (`.` = rulesets + config, `./vectors` = test vectors, tests only), Foundry fixtures in `generated/fixtures/`, and `contracts/src/generated/<Ruleset>Ruleset.sol` |
 | `packages/rules` | Rules engine in TypeScript: exact formulas on `bigint` (B-03) and `src/sim/`, the reference simulator of the on-chain state (B-20). `scripts/scenarios.ts` writes `generated/scenarios/` for the differential tests |
 | `contracts` | Foundry project. `src/Game.sol`: the single UUPS proxy; logic in linked libraries (`src/core/`), formulas in `src/rules/` and `src/combat/`. Deps come from `node_modules` (pnpm), not submodules |
-| `apps/web` | Vite + React SPA (viem, TanStack Query), i18n es/en. `src/chain/load.ts` rebuilds the simulator World from the contract views; the UI projects it live and validates actions in the simulator before sending (B-20). `src/account/` signs: anvil dev accounts, or a passkey Kernel account plus a per-device session (B-15); network picked by `VITE_NETWORK`. Design context in `apps/web/PRODUCT.md` / `DESIGN.md` |
+| `apps/web` | Vite + React SPA (viem, TanStack Query), i18n es/en. `src/chain/load.ts` rebuilds the simulator World from the contract views; the UI projects it live and validates actions in the simulator before sending (B-20). `src/account/` signs: anvil dev accounts, or a passkey Kernel account plus a per-device session (B-15); a player may have several controllers (devices, recovery codes: B-26); network picked by `VITE_NETWORK`. Design context in `apps/web/PRODUCT.md` / `DESIGN.md` |
 | `application/`, `library/`, … | Legacy PHP. Read-only reference |
 
 ## Commands

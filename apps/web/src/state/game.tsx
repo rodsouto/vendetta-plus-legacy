@@ -22,6 +22,8 @@ import { makeClients, type Clients } from "../chain/config.js";
 import { loadNetwork, type Network } from "../chain/networks.js";
 import { controllerKey, loadWorld, project, cloneWorld, type Snapshot } from "../chain/load.js";
 import { isPublished, NoAccountError, publishCall } from "../account/passkey.js";
+import { sessionAccount } from "../account/session.js";
+import { parseRecoveryCode, recoveryKey, rememberRecovery } from "../account/recovery.js";
 import {
   DevSigner,
   PasskeySigner,
@@ -79,6 +81,18 @@ interface Game {
   renewSession: () => Promise<boolean>;
   /** Revokes this device's session on chain and signs out. */
   revokeSession: () => Promise<boolean>;
+  /** Passkeys: this device has a passkey made to join an account and waits to be added. */
+  joining: boolean;
+  /** A new passkey on this device to join an account another device adds it to (B-26). */
+  prepareDevice: () => Promise<boolean>;
+  /** Another device's account (or a recovery code's) manages this player too. */
+  addController: (a: Address) => Promise<boolean>;
+  /** Removes a controller (sim key); this device keeps playing unless it removed itself. */
+  removeController: (key: string) => Promise<boolean>;
+  /** Activates a recovery code the player has written down. */
+  addRecoveryCode: (code: string) => Promise<boolean>;
+  /** Signed out: a new passkey on this device, added to the player by its recovery code. */
+  recover: (code: string) => Promise<boolean>;
   toasts: Toast[];
 }
 
@@ -198,6 +212,23 @@ export function GameProvider({
   // A fresh authorization ends a little before the cap, so it still fits when it lands on chain.
   const sessionDeadline = (at: bigint) => at + rs.config.maxSessionSeconds - 600n;
 
+  /**
+   * Sends the calls; if due missions piled up, or more came due than the gas allowed for (B-08),
+   * processes them first in the same operation and retries once.
+   */
+  const send = useCallback(
+    async (calls: Call[], from: From) => {
+      try {
+        await signer.send(calls, from);
+      } catch (e) {
+        if (errorName(e) !== "Backlog") throw e;
+        const advance = gameCall(game, "advance", [BigInt(sim.MAX_MISSIONS_PER_TX)]);
+        await signer.send([advance, ...calls], from);
+      }
+    },
+    [signer, game],
+  );
+
   const fail = useCallback(
     (e: unknown) => {
       const name = errorName(e);
@@ -235,15 +266,7 @@ export function GameProvider({
       setBusy(true);
       try {
         if (r.renew) await signer.send(r.renew.calls, "controller");
-        try {
-          await signer.send(r.calls, r.from);
-        } catch (e) {
-          if (errorName(e) !== "Backlog") throw e;
-          // Due missions piled up, or more came due than the gas allowed for (B-08): process
-          // them first, in the same operation, and retry once.
-          const advance = gameCall(game, "advance", [BigInt(sim.MAX_MISSIONS_PER_TX)]);
-          await signer.send([advance, ...r.calls], r.from);
-        }
+        await send(r.calls, r.from);
         toast(r.done);
         await refresh();
         return true;
@@ -254,30 +277,40 @@ export function GameProvider({
         setBusy(false);
       }
     },
-    [snapshot, now, signer, toast, t, refresh, fail, game],
+    [snapshot, now, signer, toast, t, refresh, fail, send],
   );
 
-  const renewal = useCallback(() => {
+  /**
+   * Authorizes this device's session again. A passkey account not yet in the directory (one that
+   * joined from another device or a recovery code) publishes its passkey in the same operation.
+   */
+  const renewal = useCallback(async () => {
     const until = sessionDeadline(now);
     const key = controller;
-    return {
-      check: (w: sim.World) => sim.authorizeSession(w, owner, key, until, now),
-      calls: [gameCall(game, "authorizeSession", [actor, until])],
-    };
-  }, [now, controller, owner, actor, game]);
+    const calls: Call[] = [];
+    if (signer instanceof PasskeySigner && signer.identity && !signer.identity.published) {
+      if (await isPublished(clients.public, signer.directory, signer.identity)) signer.settled();
+      else calls.push(publishCall(signer.directory, signer.identity));
+    }
+    calls.push(gameCall(game, "authorizeSession", [actor, until]));
+    return { check: (w: sim.World) => sim.authorizeSession(w, owner, key, until, now), calls };
+  }, [now, controller, owner, actor, game, signer, clients]);
 
   const act = useCallback(
-    (r: ActRequest) => {
+    async (r: ActRequest) => {
       const from = r.from ?? "actor";
       const caller = from === "controller" ? owner : controller;
       const lapsed = signer.mode === "passkey" && from === "actor" && me && liveSession === 0n;
-      return run({
+      const renew = lapsed ? await renewal() : undefined;
+      const ok = await run({
         done: r.done,
         check: r.check && ((w, n) => r.check!(w, caller, n)),
         calls: [gameCall(game, r.functionName, r.args)],
         from,
-        renew: lapsed ? renewal() : undefined,
+        renew,
       });
+      if (ok && renew && signer instanceof PasskeySigner) signer.settled();
+      return ok;
     },
     [signer, owner, controller, me, liveSession, run, renewal, game],
   );
@@ -305,7 +338,7 @@ export function GameProvider({
         gameCall(game, "register", [at.city, at.neighborhood, at.slot]),
         gameCall(game, "authorizeSession", [session, until]),
       );
-      return run({
+      const ok = await run({
         done: t("register.done"),
         check: (w, n) => {
           sim.register(w, own, at, n);
@@ -314,6 +347,8 @@ export function GameProvider({
         calls,
         from: "controller",
       });
+      if (ok) signer.settled();
+      return ok;
     },
     [signer, now, clients, game, run, fail, t],
   );
@@ -338,10 +373,17 @@ export function GameProvider({
     setSelected(null);
   }, [signer]);
 
-  const renewSession = useCallback(() => {
-    const r = renewal();
-    return run({ done: t("session.renewed"), check: r.check, calls: r.calls, from: "controller" });
-  }, [renewal, run, t]);
+  const renewSession = useCallback(async () => {
+    const r = await renewal();
+    const ok = await run({
+      done: t("session.renewed"),
+      check: r.check,
+      calls: r.calls,
+      from: "controller",
+    });
+    if (ok && signer instanceof PasskeySigner) signer.settled();
+    return ok;
+  }, [renewal, run, t, signer]);
 
   const revokeSession = useCallback(async () => {
     if (!actor) return false;
@@ -355,6 +397,124 @@ export function GameProvider({
     if (ok) signOut();
     return ok;
   }, [actor, controller, owner, game, run, signOut, t]);
+
+  const prepareDevice = useCallback(async () => {
+    if (!(signer instanceof PasskeySigner)) return false;
+    setBusy(true);
+    try {
+      await signer.create("Vendetta", true);
+      return true;
+    } catch (e) {
+      return fail(e);
+    } finally {
+      setBusy(false);
+    }
+  }, [signer, fail]);
+
+  const addController = useCallback(
+    (a: Address, done = t("devices.added")) =>
+      act({
+        done,
+        check: (w, c, n) => sim.addController(w, c, controllerKey(a), n),
+        functionName: "addController",
+        args: [a],
+        from: "controller",
+      }),
+    [act, t],
+  );
+
+  const removeController = useCallback(
+    async (key: string) => {
+      if (key === owner) {
+        // This device leaves the account: its session dies with it.
+        const ok = await act({
+          done: t("devices.removed"),
+          check: (w, c, n) => sim.removeController(w, c, key, n),
+          functionName: "removeController",
+          args: [key],
+          from: "controller",
+        });
+        if (ok) signOut();
+        return ok;
+      }
+      // Removing kills every session (B-26); this device authorizes its own again, same operation.
+      const until = sessionDeadline(now);
+      const calls = [gameCall(game, "removeController", [key])];
+      if (actor) calls.push(gameCall(game, "authorizeSession", [actor, until]));
+      return run({
+        done: t("devices.removed"),
+        check: (w, n) => {
+          sim.removeController(w, owner, key, n);
+          if (actor) sim.authorizeSession(w, owner, controller, until, n);
+        },
+        calls,
+        from: "controller",
+      });
+    },
+    [owner, controller, actor, now, game, act, run, signOut, t],
+  );
+
+  const addRecoveryCode = useCallback(
+    async (code: string) => {
+      const bytes = parseRecoveryCode(code);
+      if (!bytes) {
+        toast(t("errors.invalidCode"), true);
+        return false;
+      }
+      const a = (await sessionAccount(clients.public, recoveryKey(bytes))).address;
+      const ok = await addController(a, t("devices.activated"));
+      if (ok) rememberRecovery(clients.deployment.chainId, a);
+      return ok;
+    },
+    [clients, addController, toast, t],
+  );
+
+  const recover = useCallback(
+    async (code: string) => {
+      if (!(signer instanceof PasskeySigner) || !snapshot) return false;
+      const bytes = parseRecoveryCode(code);
+      const key = bytes && recoveryKey(bytes);
+      const rec = key && controllerKey((await sessionAccount(clients.public, key)).address);
+      const pid = rec ? snapshot.world.playerOf.get(rec) : undefined;
+      if (!key || !rec || pid === undefined) {
+        toast(t("errors.invalidCode"), true);
+        return false;
+      }
+      setBusy(true);
+      try {
+        // A passkey from an earlier attempt that did not land is reused.
+        if (!signer.identity?.joining) await signer.create(`Vendetta #${pid}`, true);
+        const id = signer.identity!;
+        const kernel = controllerKey(id.address);
+        const session = signer.session!.address;
+        const until = sessionDeadline(now);
+        const w = cloneWorld(project(snapshot.world, now));
+        sim.addController(w, rec, kernel, now);
+        sim.authorizeSession(w, kernel, controllerKey(session), until, now);
+        await send([gameCall(game, "addController", [id.address])], { key });
+        // The new account publishes its passkey and opens this device's session (a prompt). If
+        // that is cancelled, the first action does it.
+        const calls: Call[] = [];
+        if (!(await isPublished(clients.public, signer.directory, id)))
+          calls.push(publishCall(signer.directory, id));
+        calls.push(gameCall(game, "authorizeSession", [session, until]));
+        await send(calls, "controller");
+        signer.settled();
+        toast(t("recovery.done"));
+        return true;
+      } catch (e) {
+        if (e instanceof sim.GameError) {
+          toast(t(`errors.${e.code}`), true);
+          return false;
+        }
+        return fail(e);
+      } finally {
+        setBusy(false);
+        await refresh();
+      }
+    },
+    [signer, snapshot, clients, now, game, send, toast, t, fail, refresh],
+  );
 
   const warp = useCallback(
     async (seconds: number) => {
@@ -394,6 +554,12 @@ export function GameProvider({
     signOut,
     renewSession,
     revokeSession,
+    joining: signer instanceof PasskeySigner && !!signer.identity?.joining && !me,
+    prepareDevice,
+    addController,
+    removeController,
+    addRecoveryCode,
+    recover,
     toasts,
   };
   void version; // re-render on signer changes

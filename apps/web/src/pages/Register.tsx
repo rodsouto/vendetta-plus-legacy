@@ -1,10 +1,12 @@
 // Opening an account: pick a free lot for the first building (B-12). With passkeys this is also the
-// entry screen: sign in with an existing passkey, or create one along with the first building.
+// entry screen: sign in with an existing passkey, create one along with the first building, join an
+// account from another device, or recover one with a code (B-26).
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { sim } from "@vendetta/rules";
 import { useGame } from "../state/game.js";
 import { Plat, PlatNav, type Lot } from "../ui/Plat.js";
+import { Joining, OtherWays } from "./Devices.js";
 
 export function Register() {
   const g = useGame();
@@ -13,6 +15,7 @@ export function Register() {
   const taken = at.slot > 0n && g.world.buildingAt.has(sim.coordKey(at));
   const passkey = g.signer.mode === "passkey";
   const signedOut = passkey && !g.address;
+  if (g.joining) return <Joining />;
   return (
     <>
       <header className="account-head">
@@ -54,6 +57,7 @@ export function Register() {
         </button>
       </p>
       {signedOut && <p className="muted">{t("entry.passkeyNote")}</p>}
+      {signedOut && <OtherWays />}
     </>
   );
 }

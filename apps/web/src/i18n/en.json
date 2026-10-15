@@ -64,7 +64,14 @@
     "create": "First time? Open an account",
     "submit": "Create account and found here",
     "passkeyNote": "When you found, your device asks you to create the passkey and then to confirm it. If your passkey syncs (iCloud, Google), you can sign in from your other devices too.",
-    "welcome": "Welcome back"
+    "welcome": "Welcome back",
+    "otherDevice": "Already have an account on another device?",
+    "otherDeviceNote": "If your passkey does not sync to this device (another brand, say), create one here and approve it from a device that already has the account.",
+    "join": "Add this device to my account",
+    "recover": "Recover with a code",
+    "recoverNote": "Lost your devices? With your recovery code, this device creates a new passkey and gets into your account.",
+    "code": "Recovery code",
+    "recoverSubmit": "Recover the account"
   },
   "session": {
     "title": "This device",
@@ -305,12 +312,52 @@
     "AlreadyPublished": "This passkey is already registered.",
     "cancelled": "You cancelled the confirmation.",
     "noAccount": "That passkey has no account in this city.",
-    "unknown": "The transaction failed."
+    "unknown": "The transaction failed.",
+    "TooManyControllers": "The account already has 5 devices or codes: remove one first.",
+    "LastController": "You cannot remove the account's last device.",
+    "invalidCode": "That code does not belong to any account."
   },
   "theme": {
     "label": "Theme",
     "auto": "Auto",
     "light": "Day",
     "dark": "Night"
+  },
+  "joining": {
+    "title": "Add this device",
+    "body": "Scan this code (or open the link) on a device that already has the account, and approve it with its passkey. This screen moves on by itself when it is done.",
+    "copy": "Copy link",
+    "copied": "Link copied",
+    "cancel": "Cancel",
+    "waiting": "Waiting for approval…"
+  },
+  "devices": {
+    "title": "Devices and recovery",
+    "note": "Each device with its passkey, and each recovery code, manages the whole account; up to 5. Removing one ends the permission to play on all of them: the others renew it with their passkey.",
+    "this": "This device",
+    "code": "Recovery code",
+    "other": "Another device or code",
+    "remove": "Remove",
+    "confirmRemove": "Remove {{who}}? It will no longer manage the account.",
+    "removed": "Removed from the account",
+    "add": "Add a device",
+    "addNote": "On the new device choose “Add this device to my account”: it shows a QR code. Scan it with this device, or paste its link here.",
+    "link": "Link or address of the new device",
+    "addSubmit": "Add",
+    "added": "Device added",
+    "approve": "A device asks to join your account",
+    "approveNote": "Approve it only if you are setting it up yourself: it will manage the whole account.",
+    "approveSubmit": "Approve device",
+    "reject": "Not mine",
+    "recovery": "Recovery code",
+    "recoveryNote": "If you lose your devices, this code recovers the account from a new one. Keep it off this device (on paper or in a password manager): whoever has it can take the account.",
+    "generate": "Generate a code",
+    "saved": "I saved it",
+    "activate": "Activate the code",
+    "activated": "Code activated",
+    "discard": "Discard"
+  },
+  "recovery": {
+    "done": "Account recovered"
   }
 }
