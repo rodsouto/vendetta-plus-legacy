@@ -13,6 +13,7 @@ import {
   lootFixtures,
   troopStatsFixtures,
   upgradeFixtures,
+  distanceFixtures,
 } from "./fixtures.js";
 import { rulesetLibrary } from "./solidity.js";
 
@@ -72,6 +73,10 @@ for (const rs of ONCHAIN_RULESETS) {
   );
   write(join(fixtures, "loot.json"), json(lootFixtures(legacy.loot.cases)));
   write(join(fixtures, "honor.json"), json(honorFixtures(legacy.honor.cases)));
+  write(
+    join(fixtures, "distance.json"),
+    json(distanceFixtures(legacy.distance_mission.cases, legacy.distance_mission_random.cases)),
+  );
   write(
     join(fixtures, "upgrades.json"),
     json(

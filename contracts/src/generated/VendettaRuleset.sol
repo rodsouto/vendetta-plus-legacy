@@ -51,6 +51,59 @@ library VendettaRuleset {
     uint256 internal constant RESEARCH_QUEUE_PREMIUM = 6;
     uint256 internal constant TROOP_QUEUE = 1;
     uint256 internal constant TROOP_QUEUE_PREMIUM = 5;
+    uint256 internal constant MAX_OUTGOING_MISSIONS = 20;
+    uint256 internal constant OCCUPATION_TROOP = 4;
+    uint256 internal constant OCCUPATION_RESOURCES = 1000;
+    uint256 internal constant OCCUPATION_BUILD_SPEED_LEVEL = 1;
+    uint256 internal constant OCCUPATION_TROOPS_CONSUMED = 1;
+    /// Resource that pays mission salaries (what converters produce).
+    uint256 internal constant SALARY_RESOURCE = 3;
+    uint256 internal constant DISTANCE_UNIT = 1000;
+    // Mission formulas as exact fractions (B-03): duration = round(3600 × (d × F / v)^E).
+    uint256 internal constant DURATION_FACTOR_NUM = 33479;
+    uint256 internal constant DURATION_FACTOR_DEN = 10000;
+    uint256 internal constant DURATION_EXP_NUM = 1;
+    uint256 internal constant DURATION_EXP_DEN = 5;
+    // salary = ⌊d^E × Σ(quantity × salary) / SALARY_DIVISOR⌋
+    uint256 internal constant SALARY_EXP_NUM = 4;
+    uint256 internal constant SALARY_EXP_DEN = 5;
+    uint256 internal constant SALARY_DIVISOR = 2512;
+
+    /// Loot tie-break order (D-06): resource indices, the converted resource last.
+    function lootOrder() internal pure returns (uint256[RESOURCES] memory) {
+        return [uint256(0), 1, 3, 2];
+    }
+
+    /// Cost per unit, per resource.
+    function troopCost() internal pure returns (uint256[RESOURCES][TROOPS] memory) {
+        return [[uint256(200), 1000, 0, 0], [uint256(500), 800, 0, 0], [uint256(1000), 200, 0, 0], [uint256(2000), 3000, 0, 0], [uint256(20000), 10000, 0, 20000], [uint256(500), 200, 0, 0], [uint256(300), 100, 0, 1000], [uint256(7000), 10000, 0, 2500], [uint256(4000), 6000, 0, 1000], [uint256(1000), 2000, 0, 5000], [uint256(5000), 10000, 0, 4000], [uint256(4000), 500, 0, 2000], [uint256(10000), 15000, 0, 10000], [uint256(2000), 1000, 0, 30000], [uint256(40000), 6000, 0, 20000], [uint256(80000), 120000, 0, 50000], [uint256(500), 500, 0, 0], [uint256(2000), 3000, 0, 100], [uint256(5000), 7500, 0, 500], [uint256(3000), 1000, 0, 4000], [uint256(15000), 40000, 0, 20000]];
+    }
+
+    /// Training time per unit at training-room level 1, in seconds.
+    function troopSeconds() internal pure returns (uint256[TROOPS] memory) {
+        return [uint256(1400), 1600, 2000, 1200, 344000, 14000, 3600, 17000, 15500, 17200, 20000, 25000, 6000, 40000, 60000, 144000, 1000, 2500, 6000, 15600, 20000];
+    }
+
+    /// Points per unit, ×100.
+    function troopCentipoints() internal pure returns (uint256[TROOPS] memory) {
+        return [uint256(600), 600, 400, 2100, 25100, 300, 900, 8700, 4800, 5100, 9300, 2800, 17600, 23600, 28100, 117600, 400, 2100, 5400, 4300, 38800];
+    }
+
+    /// Mission salary per unit.
+    function troopSalary() internal pure returns (uint256[TROOPS] memory) {
+        return [uint256(1), 1, 1, 2, 300, 1, 5, 30, 20, 10, 40, 20, 45, 50, 60, 70, 0, 0, 0, 0, 0];
+    }
+
+    /// Training room (room index) per troop.
+    function trainedAt() internal pure returns (uint256[TROOPS] memory) {
+        return [uint256(11), 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 12, 12, 12, 12, 12];
+    }
+
+    /// Requirements per troop: (kind, index, level) triples, kind 0 = room, 1 = research.
+    function troopRequirements() internal pure returns (bytes[TROOPS] memory) {
+        return [bytes(hex""), bytes(hex"010202"), bytes(hex"010204"), bytes(hex"010a02"), bytes(hex"010005"), bytes(hex"010502"), bytes(hex""), bytes(hex"010c03010103"), bytes(hex"010a02"), bytes(hex"010d04"), bytes(hex"010a05010e03"), bytes(hex"010d05010c05"), bytes(hex"010d07010707"), bytes(hex"010c08"), bytes(hex"010b06010e08"), bytes(hex"010c09010809010709"), bytes(hex""), bytes(hex"010602"), bytes(hex"010804010a04"), bytes(hex"010706010805"), bytes(hex"010c08010d06")];
+    }
+
 
     /// Base cost per room (level 0 → 1), per resource.
     function roomCost() internal pure returns (uint256[RESOURCES][ROOMS] memory) {

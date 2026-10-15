@@ -4,6 +4,12 @@
 
 interface Troop {
   id: string;
+  trained_at: string;
+  cost: Record<string, number>;
+  training_duration_s: number;
+  points_per_unit: number;
+  salary: number | null;
+  requirements: Record<string, number> | null;
   role: "attack" | "defense";
   base_attack: number;
   base_defense: number;
@@ -56,6 +62,7 @@ interface RulesetFile {
 interface GameConfig {
   time: { upgrade_speed_multiplier: number };
   world: {
+    distance_unit: number;
     cities: number;
     neighborhoods: number;
     slots_per_neighborhood: number;
@@ -63,6 +70,18 @@ interface GameConfig {
     grid_rows: number;
   };
   new_player: { starting_resources_each: number; starting_build_speed_room_level: number };
+  occupation: {
+    starting_resources_each: number;
+    starting_build_speed_room_level: number;
+    occupation_troops_consumed: number;
+  };
+  missions: {
+    duration_distance_factor: number;
+    duration_exponent: number;
+    salary_distance_exponent: number;
+    salary_divisor: number;
+  };
+  onchain: { max_outgoing_missions_per_player: number };
   honor: { table: Record<string, number[]> };
   premium: {
     without_premium: Record<string, number>;
@@ -179,6 +198,27 @@ export function rulesetLibrary(
     const g = (a: number, b: number): number => (b === 0 ? a : g(b, a % b));
     return (d * k) / g(d, k);
   }, 1);
+  /** Exact fraction of a decimal as written (3.3479 → 33479/10000). */
+  const fraction = (x: number): [number, number] => {
+    const [int, frac = ""] = String(x).split(".");
+    let num = Number(int! + frac);
+    let den = 10 ** frac.length;
+    const g = (a: number, b: number): number => (b === 0 ? a : g(b, a % b));
+    const d = g(num, den);
+    num /= d;
+    den /= d;
+    return [num, den];
+  };
+  const [durNum, durDen] = fraction(config.missions.duration_distance_factor);
+  const [durExpNum, durExpDen] = fraction(config.missions.duration_exponent);
+  const [salExpNum, salExpDen] = fraction(config.missions.salary_distance_exponent);
+  const salaryResource = rs.resources.indexOf(
+    rs.buildings.find((b) => b.production?.kind === "converter")!.production!.resource,
+  );
+  const lootOrder = [
+    ...rs.resources.filter((r) => r !== converted[0]),
+    ...rs.resources.filter((r) => r === converted[0]),
+  ].map(resource);
   const q = (key: string, premium: boolean) => {
     const v = (premium ? config.premium.with_premium : config.premium.without_premium)[key];
     if (v === undefined) throw new Error(`premium.${key} missing`);
@@ -238,6 +278,61 @@ library ${name} {
     uint256 internal constant RESEARCH_QUEUE_PREMIUM = ${q("max_research_queue", true)};
     uint256 internal constant TROOP_QUEUE = ${q("max_troop_batches_per_queue", false)};
     uint256 internal constant TROOP_QUEUE_PREMIUM = ${q("max_troop_batches_per_queue", true)};
+    uint256 internal constant MAX_OUTGOING_MISSIONS = ${config.onchain.max_outgoing_missions_per_player};
+    uint256 internal constant OCCUPATION_TROOP = ${troopIndex.get(rs.roles.occupation_troop!)!};
+    uint256 internal constant OCCUPATION_RESOURCES = ${config.occupation.starting_resources_each};
+    uint256 internal constant OCCUPATION_BUILD_SPEED_LEVEL = ${config.occupation.starting_build_speed_room_level};
+    uint256 internal constant OCCUPATION_TROOPS_CONSUMED = ${config.occupation.occupation_troops_consumed};
+    /// Resource that pays mission salaries (what converters produce).
+    uint256 internal constant SALARY_RESOURCE = ${salaryResource};
+    uint256 internal constant DISTANCE_UNIT = ${config.world.distance_unit};
+    // Mission formulas as exact fractions (B-03): duration = round(3600 × (d × F / v)^E).
+    uint256 internal constant DURATION_FACTOR_NUM = ${durNum};
+    uint256 internal constant DURATION_FACTOR_DEN = ${durDen};
+    uint256 internal constant DURATION_EXP_NUM = ${durExpNum};
+    uint256 internal constant DURATION_EXP_DEN = ${durExpDen};
+    // salary = ⌊d^E × Σ(quantity × salary) / SALARY_DIVISOR⌋
+    uint256 internal constant SALARY_EXP_NUM = ${salExpNum};
+    uint256 internal constant SALARY_EXP_DEN = ${salExpDen};
+    uint256 internal constant SALARY_DIVISOR = ${config.missions.salary_divisor};
+
+    /// Loot tie-break order (D-06): resource indices, the converted resource last.
+    function lootOrder() internal pure returns (uint256[RESOURCES] memory) {
+        return ${literal(lootOrder)};
+    }
+
+${matrix(
+  "troopCost",
+  rs.troops.map((t) => costRow(t.cost)),
+  "Cost per unit, per resource.",
+  "TROOPS",
+)}
+${uintArray(
+  "troopSeconds",
+  rs.troops.map((t) => t.training_duration_s),
+  "Training time per unit at training-room level 1, in seconds.",
+)}
+${uintArray(
+  "troopCentipoints",
+  rs.troops.map((t) => centi(t.points_per_unit)),
+  "Points per unit, ×100.",
+)}
+${uintArray(
+  "troopSalary",
+  rs.troops.map((t) => t.salary ?? 0),
+  "Mission salary per unit.",
+)}
+${uintArray(
+  "trainedAt",
+  rs.troops.map((t) => room(t.trained_at)),
+  "Training room (room index) per troop.",
+)}
+${bytesArray(
+  "troopRequirements",
+  rs.troops.map((t) => requirements(t.requirements)),
+  "Requirements per troop: (kind, index, level) triples, kind 0 = room, 1 = research.",
+  "TROOPS",
+)}
 
 ${matrix(
   "roomCost",

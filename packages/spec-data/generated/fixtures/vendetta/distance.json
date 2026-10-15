@@ -1,0 +1,3914 @@
+{
+  "cases": [
+    {
+      "distance": 1000,
+      "duration": 3817,
+      "from": [
+        1,
+        1,
+        1
+      ],
+      "salary": 0,
+      "speed": 2500,
+      "to": [
+        1,
+        1,
+        2
+      ],
+      "total_salary": 10
+    },
+    {
+      "distance": 1000,
+      "duration": 3474,
+      "from": [
+        1,
+        1,
+        1
+      ],
+      "salary": 99,
+      "speed": 4000,
+      "to": [
+        1,
+        1,
+        2
+      ],
+      "total_salary": 1000
+    },
+    {
+      "distance": 1000,
+      "duration": 1383,
+      "from": [
+        1,
+        1,
+        1
+      ],
+      "salary": 99,
+      "speed": 400000,
+      "to": [
+        1,
+        1,
+        2
+      ],
+      "total_salary": 1000
+    },
+    {
+      "distance": 1000,
+      "duration": 3817,
+      "from": [
+        1,
+        1,
+        1
+      ],
+      "salary": 0,
+      "speed": 2500,
+      "to": [
+        1,
+        1,
+        18
+      ],
+      "total_salary": 10
+    },
+    {
+      "distance": 1000,
+      "duration": 3474,
+      "from": [
+        1,
+        1,
+        1
+      ],
+      "salary": 99,
+      "speed": 4000,
+      "to": [
+        1,
+        1,
+        18
+      ],
+      "total_salary": 1000
+    },
+    {
+      "distance": 1000,
+      "duration": 1383,
+      "from": [
+        1,
+        1,
+        1
+      ],
+      "salary": 99,
+      "speed": 400000,
+      "to": [
+        1,
+        1,
+        18
+      ],
+      "total_salary": 1000
+    },
+    {
+      "distance": 16000,
+      "duration": 6645,
+      "from": [
+        1,
+        1,
+        17
+      ],
+      "salary": 9,
+      "speed": 2500,
+      "to": [
+        1,
+        1,
+        18
+      ],
+      "total_salary": 10
+    },
+    {
+      "distance": 16000,
+      "duration": 6049,
+      "from": [
+        1,
+        1,
+        17
+      ],
+      "salary": 918,
+      "speed": 4000,
+      "to": [
+        1,
+        1,
+        18
+      ],
+      "total_salary": 1000
+    },
+    {
+      "distance": 16000,
+      "duration": 2408,
+      "from": [
+        1,
+        1,
+        17
+      ],
+      "salary": 918,
+      "speed": 400000,
+      "to": [
+        1,
+        1,
+        18
+      ],
+      "total_salary": 1000
+    },
+    {
+      "distance": 1000,
+      "duration": 3817,
+      "from": [
+        1,
+        1,
+        17
+      ],
+      "salary": 0,
+      "speed": 2500,
+      "to": [
+        1,
+        1,
+        34
+      ],
+      "total_salary": 10
+    },
+    {
+      "distance": 1000,
+      "duration": 3474,
+      "from": [
+        1,
+        1,
+        17
+      ],
+      "salary": 99,
+      "speed": 4000,
+      "to": [
+        1,
+        1,
+        34
+      ],
+      "total_salary": 1000
+    },
+    {
+      "distance": 1000,
+      "duration": 1383,
+      "from": [
+        1,
+        1,
+        17
+      ],
+      "salary": 99,
+      "speed": 400000,
+      "to": [
+        1,
+        1,
+        34
+      ],
+      "total_salary": 1000
+    },
+    {
+      "distance": 1000,
+      "duration": 3817,
+      "from": [
+        1,
+        1,
+        16
+      ],
+      "salary": 0,
+      "speed": 2500,
+      "to": [
+        1,
+        1,
+        17
+      ],
+      "total_salary": 10
+    },
+    {
+      "distance": 1000,
+      "duration": 3474,
+      "from": [
+        1,
+        1,
+        16
+      ],
+      "salary": 99,
+      "speed": 4000,
+      "to": [
+        1,
+        1,
+        17
+      ],
+      "total_salary": 1000
+    },
+    {
+      "distance": 1000,
+      "duration": 1383,
+      "from": [
+        1,
+        1,
+        16
+      ],
+      "salary": 99,
+      "speed": 400000,
+      "to": [
+        1,
+        1,
+        17
+      ],
+      "total_salary": 1000
+    },
+    {
+      "distance": 15000,
+      "duration": 6560,
+      "from": [
+        1,
+        1,
+        1
+      ],
+      "salary": 8,
+      "speed": 2500,
+      "to": [
+        1,
+        2,
+        1
+      ],
+      "total_salary": 10
+    },
+    {
+      "distance": 15000,
+      "duration": 5971,
+      "from": [
+        1,
+        1,
+        1
+      ],
+      "salary": 872,
+      "speed": 4000,
+      "to": [
+        1,
+        2,
+        1
+      ],
+      "total_salary": 1000
+    },
+    {
+      "distance": 15000,
+      "duration": 2377,
+      "from": [
+        1,
+        1,
+        1
+      ],
+      "salary": 872,
+      "speed": 400000,
+      "to": [
+        1,
+        2,
+        1
+      ],
+      "total_salary": 1000
+    },
+    {
+      "distance": 17000,
+      "duration": 6726,
+      "from": [
+        1,
+        1,
+        1
+      ],
+      "salary": 9,
+      "speed": 2500,
+      "to": [
+        2,
+        1,
+        1
+      ],
+      "total_salary": 10
+    },
+    {
+      "distance": 17000,
+      "duration": 6123,
+      "from": [
+        1,
+        1,
+        1
+      ],
+      "salary": 964,
+      "speed": 4000,
+      "to": [
+        2,
+        1,
+        1
+      ],
+      "total_salary": 1000
+    },
+    {
+      "distance": 17000,
+      "duration": 2437,
+      "from": [
+        1,
+        1,
+        1
+      ],
+      "salary": 964,
+      "speed": 400000,
+      "to": [
+        2,
+        1,
+        1
+      ],
+      "total_salary": 1000
+    },
+    {
+      "distance": 15000,
+      "duration": 6560,
+      "from": [
+        25,
+        25,
+        17
+      ],
+      "salary": 8,
+      "speed": 2500,
+      "to": [
+        25,
+        25,
+        251
+      ],
+      "total_salary": 10
+    },
+    {
+      "distance": 15000,
+      "duration": 5971,
+      "from": [
+        25,
+        25,
+        17
+      ],
+      "salary": 872,
+      "speed": 4000,
+      "to": [
+        25,
+        25,
+        251
+      ],
+      "total_salary": 1000
+    },
+    {
+      "distance": 15000,
+      "duration": 2377,
+      "from": [
+        25,
+        25,
+        17
+      ],
+      "salary": 872,
+      "speed": 400000,
+      "to": [
+        25,
+        25,
+        251
+      ],
+      "total_salary": 1000
+    },
+    {
+      "distance": 162000,
+      "duration": 10558,
+      "from": [
+        3,
+        7,
+        100
+      ],
+      "salary": 58,
+      "speed": 2500,
+      "to": [
+        12,
+        4,
+        33
+      ],
+      "total_salary": 10
+    },
+    {
+      "distance": 162000,
+      "duration": 9611,
+      "from": [
+        3,
+        7,
+        100
+      ],
+      "salary": 5855,
+      "speed": 4000,
+      "to": [
+        12,
+        4,
+        33
+      ],
+      "total_salary": 1000
+    },
+    {
+      "distance": 162000,
+      "duration": 3826,
+      "from": [
+        3,
+        7,
+        100
+      ],
+      "salary": 5855,
+      "speed": 400000,
+      "to": [
+        12,
+        4,
+        33
+      ],
+      "total_salary": 1000
+    },
+    {
+      "distance": 1132000,
+      "duration": 15575,
+      "from": [
+        1,
+        1,
+        1
+      ],
+      "salary": 277,
+      "speed": 2500,
+      "to": [
+        50,
+        50,
+        255
+      ],
+      "total_salary": 10
+    },
+    {
+      "distance": 1132000,
+      "duration": 14178,
+      "from": [
+        1,
+        1,
+        1
+      ],
+      "salary": 27736,
+      "speed": 4000,
+      "to": [
+        50,
+        50,
+        255
+      ],
+      "total_salary": 1000
+    },
+    {
+      "distance": 1132000,
+      "duration": 5644,
+      "from": [
+        1,
+        1,
+        1
+      ],
+      "salary": 27736,
+      "speed": 400000,
+      "to": [
+        50,
+        50,
+        255
+      ],
+      "total_salary": 1000
+    },
+    {
+      "distance": 163000,
+      "duration": 12265,
+      "from": [
+        8,
+        41,
+        157
+      ],
+      "salary": 42240,
+      "speed": 1189,
+      "to": [
+        16,
+        35,
+        175
+      ],
+      "total_salary": 7178
+    },
+    {
+      "distance": 453000,
+      "duration": 8679,
+      "from": [
+        50,
+        31,
+        38
+      ],
+      "salary": 56215868,
+      "speed": 18621,
+      "to": [
+        31,
+        10,
+        20
+      ],
+      "total_salary": 4216965
+    },
+    {
+      "distance": 326000,
+      "duration": 12768,
+      "from": [
+        21,
+        30,
+        66
+      ],
+      "salary": 31372879,
+      "speed": 1945,
+      "to": [
+        30,
+        10,
+        156
+      ],
+      "total_salary": 3061963
+    },
+    {
+      "distance": 361000,
+      "duration": 13815,
+      "from": [
+        16,
+        37,
+        104
+      ],
+      "salary": 4908916,
+      "speed": 1452,
+      "to": [
+        36,
+        43,
+        147
+      ],
+      "total_salary": 441570
+    },
+    {
+      "distance": 488000,
+      "duration": 15009,
+      "from": [
+        13,
+        1,
+        143
+      ],
+      "salary": 114208,
+      "speed": 1297,
+      "to": [
+        3,
+        32,
+        6
+      ],
+      "total_salary": 8072
+    },
+    {
+      "distance": 93000,
+      "duration": 7030,
+      "from": [
+        22,
+        24,
+        96
+      ],
+      "salary": 3,
+      "speed": 10965,
+      "to": [
+        28,
+        25,
+        1
+      ],
+      "total_salary": 1
+    },
+    {
+      "distance": 449000,
+      "duration": 8443,
+      "from": [
+        16,
+        34,
+        15
+      ],
+      "salary": 1232475,
+      "speed": 21184,
+      "to": [
+        43,
+        30,
+        241
+      ],
+      "total_salary": 93111
+    },
+    {
+      "distance": 707000,
+      "duration": 9531,
+      "from": [
+        48,
+        41,
+        196
+      ],
+      "salary": 190,
+      "speed": 18197,
+      "to": [
+        20,
+        7,
+        71
+      ],
+      "total_salary": 10
+    },
+    {
+      "distance": 285000,
+      "duration": 8722,
+      "from": [
+        50,
+        16,
+        159
+      ],
+      "salary": 18,
+      "speed": 11429,
+      "to": [
+        36,
+        5,
+        99
+      ],
+      "total_salary": 2
+    },
+    {
+      "distance": 318000,
+      "duration": 4387,
+      "from": [
+        20,
+        27,
+        80
+      ],
+      "salary": 30,
+      "speed": 396278,
+      "to": [
+        39,
+        25,
+        74
+      ],
+      "total_salary": 3
+    },
+    {
+      "distance": 272000,
+      "duration": 6668,
+      "from": [
+        18,
+        35,
+        46
+      ],
+      "salary": 132,
+      "speed": 41783,
+      "to": [
+        10,
+        19,
+        114
+      ],
+      "total_salary": 15
+    },
+    {
+      "distance": 435000,
+      "duration": 11266,
+      "from": [
+        40,
+        36,
+        156
+      ],
+      "salary": 219,
+      "speed": 4853,
+      "to": [
+        42,
+        7,
+        172
+      ],
+      "total_salary": 17
+    },
+    {
+      "distance": 440000,
+      "duration": 13290,
+      "from": [
+        28,
+        6,
+        84
+      ],
+      "salary": 1120,
+      "speed": 2148,
+      "to": [
+        28,
+        35,
+        169
+      ],
+      "total_salary": 86
+    },
+    {
+      "distance": 230000,
+      "duration": 8461,
+      "from": [
+        35,
+        9,
+        241
+      ],
+      "salary": 7,
+      "speed": 10740,
+      "to": [
+        38,
+        24,
+        227
+      ],
+      "total_salary": 1
+    },
+    {
+      "distance": 516000,
+      "duration": 9922,
+      "from": [
+        10,
+        34,
+        250
+      ],
+      "salary": 2204,
+      "speed": 10864,
+      "to": [
+        37,
+        19,
+        63
+      ],
+      "total_salary": 149
+    },
+    {
+      "distance": 252000,
+      "duration": 6873,
+      "from": [
+        45,
+        26,
+        96
+      ],
+      "salary": 4544,
+      "speed": 33266,
+      "to": [
+        32,
+        18,
+        194
+      ],
+      "total_salary": 545
+    },
+    {
+      "distance": 358000,
+      "duration": 16503,
+      "from": [
+        48,
+        35,
+        10
+      ],
+      "salary": 82999,
+      "speed": 592,
+      "to": [
+        46,
+        11,
+        66
+      ],
+      "total_salary": 7516
+    },
+    {
+      "distance": 134000,
+      "duration": 3871,
+      "from": [
+        20,
+        14,
+        151
+      ],
+      "salary": 5491159,
+      "speed": 311889,
+      "to": [
+        28,
+        17,
+        58
+      ],
+      "total_salary": 1091440
+    },
+    {
+      "distance": 468000,
+      "duration": 10625,
+      "from": [
+        43,
+        42,
+        173
+      ],
+      "salary": 30635,
+      "speed": 6998,
+      "to": [
+        30,
+        14,
+        202
+      ],
+      "total_salary": 2239
+    },
+    {
+      "distance": 181000,
+      "duration": 14327,
+      "from": [
+        28,
+        40,
+        117
+      ],
+      "salary": 56250089,
+      "speed": 607,
+      "to": [
+        21,
+        48,
+        154
+      ],
+      "total_salary": 8790225
+    },
+    {
+      "distance": 617000,
+      "duration": 9426,
+      "from": [
+        9,
+        49,
+        90
+      ],
+      "salary": 156744,
+      "speed": 16788,
+      "to": [
+        44,
+        41,
+        14
+      ],
+      "total_salary": 9183
+    },
+    {
+      "distance": 436000,
+      "duration": 8195,
+      "from": [
+        15,
+        36,
+        229
+      ],
+      "salary": 724,
+      "speed": 23878,
+      "to": [
+        7,
+        9,
+        62
+      ],
+      "total_salary": 56
+    },
+    {
+      "distance": 646000,
+      "duration": 9198,
+      "from": [
+        4,
+        36,
+        27
+      ],
+      "salary": 34527606,
+      "speed": 19861,
+      "to": [
+        41,
+        24,
+        226
+      ],
+      "total_salary": 1949845
+    },
+    {
+      "distance": 391000,
+      "duration": 5568,
+      "from": [
+        25,
+        20,
+        120
+      ],
+      "salary": 338628,
+      "speed": 147911,
+      "to": [
+        11,
+        41,
+        35
+      ],
+      "total_salary": 28576
+    },
+    {
+      "distance": 142000,
+      "duration": 13895,
+      "from": [
+        24,
+        12,
+        189
+      ],
+      "salary": 14151776,
+      "speed": 555,
+      "to": [
+        32,
+        10,
+        71
+      ],
+      "total_salary": 2685344
+    },
+    {
+      "distance": 636000,
+      "duration": 7968,
+      "from": [
+        29,
+        50,
+        26
+      ],
+      "salary": 5871466,
+      "speed": 40087,
+      "to": [
+        21,
+        8,
+        165
+      ],
+      "total_salary": 335738
+    },
+    {
+      "distance": 747000,
+      "duration": 16402,
+      "from": [
+        5,
+        40,
+        100
+      ],
+      "salary": 103189,
+      "speed": 1274,
+      "to": [
+        48,
+        29,
+        218
+      ],
+      "total_salary": 5188
+    },
+    {
+      "distance": 322000,
+      "duration": 11482,
+      "from": [
+        12,
+        22,
+        61
+      ],
+      "salary": 177116,
+      "speed": 3266,
+      "to": [
+        22,
+        3,
+        173
+      ],
+      "total_salary": 17458
+    },
+    {
+      "distance": 845000,
+      "duration": 8987,
+      "from": [
+        11,
+        8,
+        64
+      ],
+      "salary": 2261,
+      "speed": 29174,
+      "to": [
+        45,
+        50,
+        18
+      ],
+      "total_salary": 103
+    },
+    {
+      "distance": 417000,
+      "duration": 5911,
+      "from": [
+        3,
+        34,
+        106
+      ],
+      "salary": 237,
+      "speed": 116950,
+      "to": [
+        17,
+        12,
+        32
+      ],
+      "total_salary": 19
+    },
+    {
+      "distance": 364000,
+      "duration": 10387,
+      "from": [
+        22,
+        34,
+        52
+      ],
+      "salary": 1551896,
+      "speed": 6095,
+      "to": [
+        43,
+        32,
+        109
+      ],
+      "total_salary": 138676
+    },
+    {
+      "distance": 701000,
+      "duration": 5813,
+      "from": [
+        28,
+        4,
+        122
+      ],
+      "salary": 12898968,
+      "speed": 213796,
+      "to": [
+        1,
+        39,
+        189
+      ],
+      "total_salary": 682339
+    },
+    {
+      "distance": 605000,
+      "duration": 15552,
+      "from": [
+        20,
+        1,
+        126
+      ],
+      "salary": 12114,
+      "speed": 1346,
+      "to": [
+        31,
+        39,
+        184
+      ],
+      "total_salary": 721
+    },
+    {
+      "distance": 489000,
+      "duration": 14148,
+      "from": [
+        25,
+        10,
+        132
+      ],
+      "salary": 8519765,
+      "speed": 1746,
+      "to": [
+        5,
+        33,
+        179
+      ],
+      "total_salary": 601174
+    },
+    {
+      "distance": 475000,
+      "duration": 18907,
+      "from": [
+        15,
+        6,
+        132
+      ],
+      "salary": 43484581,
+      "speed": 398,
+      "to": [
+        43,
+        2,
+        93
+      ],
+      "total_salary": 3140509
+    },
+    {
+      "distance": 129000,
+      "duration": 8745,
+      "from": [
+        40,
+        16,
+        213
+      ],
+      "salary": 586746,
+      "speed": 5105,
+      "to": [
+        32,
+        16,
+        17
+      ],
+      "total_salary": 120226
+    },
+    {
+      "distance": 377000,
+      "duration": 12604,
+      "from": [
+        6,
+        23,
+        118
+      ],
+      "salary": 5943648,
+      "speed": 2399,
+      "to": [
+        17,
+        45,
+        99
+      ],
+      "total_salary": 516416
+    },
+    {
+      "distance": 490000,
+      "duration": 12340,
+      "from": [
+        47,
+        37,
+        21
+      ],
+      "salary": 198,
+      "speed": 3467,
+      "to": [
+        25,
+        15,
+        178
+      ],
+      "total_salary": 14
+    },
+    {
+      "distance": 515000,
+      "duration": 17596,
+      "from": [
+        1,
+        34,
+        97
+      ],
+      "salary": 14,
+      "speed": 618,
+      "to": [
+        30,
+        24,
+        218
+      ],
+      "total_salary": 1
+    },
+    {
+      "distance": 229000,
+      "duration": 10300,
+      "from": [
+        17,
+        31,
+        80
+      ],
+      "salary": 177,
+      "speed": 3999,
+      "to": [
+        31,
+        31,
+        241
+      ],
+      "total_salary": 23
+    },
+    {
+      "distance": 157000,
+      "duration": 10343,
+      "from": [
+        35,
+        9,
+        172
+      ],
+      "salary": 22997,
+      "speed": 2685,
+      "to": [
+        26,
+        7,
+        121
+      ],
+      "total_salary": 4027
+    },
+    {
+      "distance": 282000,
+      "duration": 6857,
+      "from": [
+        43,
+        31,
+        67
+      ],
+      "salary": 7645,
+      "speed": 37670,
+      "to": [
+        28,
+        37,
+        176
+      ],
+      "total_salary": 838
+    },
+    {
+      "distance": 303000,
+      "duration": 14091,
+      "from": [
+        2,
+        32,
+        114
+      ],
+      "salary": 2232,
+      "speed": 1104,
+      "to": [
+        6,
+        12,
+        202
+      ],
+      "total_salary": 231
+    },
+    {
+      "distance": 533000,
+      "duration": 6501,
+      "from": [
+        6,
+        5,
+        249
+      ],
+      "salary": 485,
+      "speed": 92897,
+      "to": [
+        37,
+        4,
+        50
+      ],
+      "total_salary": 32
+    },
+    {
+      "distance": 273000,
+      "duration": 5737,
+      "from": [
+        39,
+        34,
+        105
+      ],
+      "salary": 16331,
+      "speed": 88920,
+      "to": [
+        47,
+        49,
+        201
+      ],
+      "total_salary": 1837
+    },
+    {
+      "distance": 647000,
+      "duration": 7674,
+      "from": [
+        3,
+        45,
+        213
+      ],
+      "salary": 319,
+      "speed": 49204,
+      "to": [
+        19,
+        6,
+        140
+      ],
+      "total_salary": 18
+    },
+    {
+      "distance": 746000,
+      "duration": 13951,
+      "from": [
+        3,
+        35,
+        15
+      ],
+      "salary": 63262,
+      "speed": 2858,
+      "to": [
+        46,
+        23,
+        249
+      ],
+      "total_salary": 3184
+    },
+    {
+      "distance": 199000,
+      "duration": 7621,
+      "from": [
+        12,
+        25,
+        25
+      ],
+      "salary": 46244790,
+      "speed": 15668,
+      "to": [
+        24,
+        26,
+        121
+      ],
+      "total_salary": 6698846
+    },
+    {
+      "distance": 509000,
+      "duration": 18137,
+      "from": [
+        19,
+        26,
+        59
+      ],
+      "salary": 5077,
+      "speed": 525,
+      "to": [
+        49,
+        24,
+        125
+      ],
+      "total_salary": 347
+    },
+    {
+      "distance": 303000,
+      "duration": 12611,
+      "from": [
+        24,
+        37,
+        105
+      ],
+      "salary": 8774,
+      "speed": 1923,
+      "to": [
+        36,
+        22,
+        176
+      ],
+      "total_salary": 908
+    },
+    {
+      "distance": 64000,
+      "duration": 4181,
+      "from": [
+        34,
+        49,
+        111
+      ],
+      "salary": 9504,
+      "speed": 101391,
+      "to": [
+        37,
+        47,
+        46
+      ],
+      "total_salary": 3412
+    },
+    {
+      "distance": 749000,
+      "duration": 9061,
+      "from": [
+        49,
+        28,
+        74
+      ],
+      "salary": 33925,
+      "speed": 24831,
+      "to": [
+        5,
+        29,
+        243
+      ],
+      "total_salary": 1702
+    },
+    {
+      "distance": 413000,
+      "duration": 15103,
+      "from": [
+        44,
+        34,
+        179
+      ],
+      "salary": 9793,
+      "speed": 1064,
+      "to": [
+        20,
+        32,
+        74
+      ],
+      "total_salary": 791
+    },
+    {
+      "distance": 602000,
+      "duration": 13267,
+      "from": [
+        4,
+        8,
+        80
+      ],
+      "salary": 5883787,
+      "speed": 2965,
+      "to": [
+        36,
+        26,
+        107
+      ],
+      "total_salary": 351560
+    },
+    {
+      "distance": 726000,
+      "duration": 13857,
+      "from": [
+        28,
+        1,
+        186
+      ],
+      "salary": 25925642,
+      "speed": 2877,
+      "to": [
+        24,
+        49,
+        190
+      ],
+      "total_salary": 1333521
+    },
+    {
+      "distance": 110000,
+      "duration": 12010,
+      "from": [
+        27,
+        6,
+        33
+      ],
+      "salary": 76224,
+      "speed": 891,
+      "to": [
+        33,
+        9,
+        65
+      ],
+      "total_salary": 17742
+    },
+    {
+      "distance": 580000,
+      "duration": 9379,
+      "from": [
+        45,
+        17,
+        162
+      ],
+      "salary": 16326,
+      "speed": 16181,
+      "to": [
+        12,
+        9,
+        156
+      ],
+      "total_salary": 1005
+    },
+    {
+      "distance": 322000,
+      "duration": 8028,
+      "from": [
+        21,
+        28,
+        30
+      ],
+      "salary": 2729,
+      "speed": 19543,
+      "to": [
+        26,
+        48,
+        229
+      ],
+      "total_salary": 269
+    },
+    {
+      "distance": 247000,
+      "duration": 9441,
+      "from": [
+        12,
+        6,
+        55
+      ],
+      "salary": 27113,
+      "speed": 6668,
+      "to": [
+        26,
+        3,
+        60
+      ],
+      "total_salary": 3304
+    },
+    {
+      "distance": 344000,
+      "duration": 9962,
+      "from": [
+        33,
+        6,
+        50
+      ],
+      "salary": 50260535,
+      "speed": 7096,
+      "to": [
+        13,
+        4,
+        47
+      ],
+      "total_salary": 4698941
+    },
+    {
+      "distance": 556000,
+      "duration": 5458,
+      "from": [
+        15,
+        48,
+        62
+      ],
+      "salary": 23498508,
+      "speed": 232274,
+      "to": [
+        10,
+        11,
+        160
+      ],
+      "total_salary": 1496236
+    },
+    {
+      "distance": 457000,
+      "duration": 4941,
+      "from": [
+        31,
+        17,
+        219
+      ],
+      "salary": 85686683,
+      "speed": 314051,
+      "to": [
+        12,
+        39,
+        136
+      ],
+      "total_salary": 6382635
+    },
+    {
+      "distance": 907000,
+      "duration": 14275,
+      "from": [
+        47,
+        45,
+        23
+      ],
+      "salary": 158876,
+      "speed": 3097,
+      "to": [
+        1,
+        15,
+        18
+      ],
+      "total_salary": 6839
+    },
+    {
+      "distance": 455000,
+      "duration": 4811,
+      "from": [
+        33,
+        20,
+        90
+      ],
+      "salary": 19558,
+      "speed": 357273,
+      "to": [
+        50,
+        43,
+        192
+      ],
+      "total_salary": 1462
+    },
+    {
+      "distance": 629000,
+      "duration": 6050,
+      "from": [
+        36,
+        41,
+        202
+      ],
+      "salary": 381,
+      "speed": 157036,
+      "to": [
+        19,
+        4,
+        240
+      ],
+      "total_salary": 22
+    },
+    {
+      "distance": 303000,
+      "duration": 5041,
+      "from": [
+        4,
+        36,
+        224
+      ],
+      "salary": 43165271,
+      "speed": 188365,
+      "to": [
+        21,
+        38,
+        152
+      ],
+      "total_salary": 4466836
+    },
+    {
+      "distance": 285000,
+      "duration": 4494,
+      "from": [
+        27,
+        45,
+        239
+      ],
+      "salary": 73,
+      "speed": 314775,
+      "to": [
+        19,
+        28,
+        203
+      ],
+      "total_salary": 8
+    },
+    {
+      "distance": 723000,
+      "duration": 15265,
+      "from": [
+        50,
+        1,
+        84
+      ],
+      "salary": 1480107,
+      "speed": 1766,
+      "to": [
+        17,
+        31,
+        150
+      ],
+      "total_salary": 76384
+    },
+    {
+      "distance": 257000,
+      "duration": 8043,
+      "from": [
+        5,
+        27,
+        226
+      ],
+      "salary": 47419,
+      "speed": 15453,
+      "to": [
+        3,
+        44,
+        252
+      ],
+      "total_salary": 5598
+    },
+    {
+      "distance": 154000,
+      "duration": 10709,
+      "from": [
+        25,
+        23,
+        160
+      ],
+      "salary": 11,
+      "speed": 2213,
+      "to": [
+        27,
+        33,
+        135
+      ],
+      "total_salary": 2
+    },
+    {
+      "distance": 131000,
+      "duration": 10857,
+      "from": [
+        37,
+        39,
+        16
+      ],
+      "salary": 9,
+      "speed": 1758,
+      "to": [
+        31,
+        34,
+        92
+      ],
+      "total_salary": 2
+    },
+    {
+      "distance": 130000,
+      "duration": 7756,
+      "from": [
+        20,
+        20,
+        59
+      ],
+      "salary": 5782758,
+      "speed": 9376,
+      "to": [
+        26,
+        14,
+        141
+      ],
+      "total_salary": 1177606
+    },
+    {
+      "distance": 598000,
+      "duration": 5026,
+      "from": [
+        35,
+        20,
+        59
+      ],
+      "salary": 41432511,
+      "speed": 377572,
+      "to": [
+        6,
+        42,
+        71
+      ],
+      "total_salary": 2488857
+    },
+    {
+      "distance": 644000,
+      "duration": 5463,
+      "from": [
+        30,
+        50,
+        176
+      ],
+      "salary": 330440,
+      "speed": 267917,
+      "to": [
+        39,
+        9,
+        50
+      ],
+      "total_salary": 18707
+    },
+    {
+      "distance": 611000,
+      "duration": 12713,
+      "from": [
+        50,
+        27,
+        24
+      ],
+      "salary": 186991,
+      "speed": 3724,
+      "to": [
+        14,
+        32,
+        30
+      ],
+      "total_salary": 11041
+    },
+    {
+      "distance": 330000,
+      "duration": 11566,
+      "from": [
+        25,
+        21,
+        151
+      ],
+      "salary": 1935490,
+      "speed": 3228,
+      "to": [
+        35,
+        2,
+        92
+      ],
+      "total_salary": 187068
+    },
+    {
+      "distance": 200000,
+      "duration": 6463,
+      "from": [
+        14,
+        26,
+        155
+      ],
+      "salary": 1852699,
+      "speed": 35892,
+      "to": [
+        24,
+        21,
+        170
+      ],
+      "total_salary": 267301
+    },
+    {
+      "distance": 274000,
+      "duration": 13416,
+      "from": [
+        31,
+        23,
+        170
+      ],
+      "salary": 103321,
+      "speed": 1276,
+      "to": [
+        18,
+        12,
+        221
+      ],
+      "total_salary": 11588
+    },
+    {
+      "distance": 460000,
+      "duration": 14146,
+      "from": [
+        6,
+        31,
+        49
+      ],
+      "salary": 26,
+      "speed": 1644,
+      "to": [
+        25,
+        8,
+        139
+      ],
+      "total_salary": 2
+    },
+    {
+      "distance": 625000,
+      "duration": 11557,
+      "from": [
+        24,
+        47,
+        56
+      ],
+      "salary": 264654,
+      "speed": 6138,
+      "to": [
+        26,
+        5,
+        185
+      ],
+      "total_salary": 15346
+    },
+    {
+      "distance": 611000,
+      "duration": 16969,
+      "from": [
+        16,
+        18,
+        153
+      ],
+      "salary": 33,
+      "speed": 879,
+      "to": [
+        39,
+        50,
+        61
+      ],
+      "total_salary": 2
+    },
+    {
+      "distance": 366000,
+      "duration": 8534,
+      "from": [
+        17,
+        18,
+        45
+      ],
+      "salary": 4433685,
+      "speed": 16368,
+      "to": [
+        17,
+        42,
+        142
+      ],
+      "total_salary": 394457
+    },
+    {
+      "distance": 107000,
+      "duration": 4387,
+      "from": [
+        44,
+        30,
+        120
+      ],
+      "salary": 142,
+      "speed": 133352,
+      "to": [
+        48,
+        25,
+        254
+      ],
+      "total_salary": 34
+    },
+    {
+      "distance": 336000,
+      "duration": 7927,
+      "from": [
+        26,
+        24,
+        200
+      ],
+      "salary": 34202022,
+      "speed": 21727,
+      "to": [
+        7,
+        26,
+        86
+      ],
+      "total_salary": 3258367
+    },
+    {
+      "distance": 191000,
+      "duration": 4811,
+      "from": [
+        26,
+        29,
+        218
+      ],
+      "salary": 18317,
+      "speed": 149968,
+      "to": [
+        24,
+        17,
+        85
+      ],
+      "total_salary": 2742
+    },
+    {
+      "distance": 567000,
+      "duration": 9700,
+      "from": [
+        47,
+        20,
+        83
+      ],
+      "salary": 909,
+      "speed": 13366,
+      "to": [
+        14,
+        14,
+        219
+      ],
+      "total_salary": 57
+    },
+    {
+      "distance": 251000,
+      "duration": 16372,
+      "from": [
+        26,
+        13,
+        23
+      ],
+      "salary": 38344,
+      "speed": 432,
+      "to": [
+        11,
+        13,
+        61
+      ],
+      "total_salary": 4613
+    },
+    {
+      "distance": 356000,
+      "duration": 6355,
+      "from": [
+        12,
+        24,
+        99
+      ],
+      "salary": 85929119,
+      "speed": 69502,
+      "to": [
+        27,
+        41,
+        44
+      ],
+      "total_salary": 7816278
+    },
+    {
+      "distance": 521000,
+      "duration": 5813,
+      "from": [
+        36,
+        39,
+        82
+      ],
+      "salary": 29,
+      "speed": 158855,
+      "to": [
+        10,
+        20,
+        186
+      ],
+      "total_salary": 2
+    },
+    {
+      "distance": 196000,
+      "duration": 14209,
+      "from": [
+        21,
+        33,
+        74
+      ],
+      "salary": 39426224,
+      "speed": 685,
+      "to": [
+        32,
+        33,
+        66
+      ],
+      "total_salary": 5780960
+    },
+    {
+      "distance": 462000,
+      "duration": 5694,
+      "from": [
+        14,
+        19,
+        72
+      ],
+      "salary": 25450363,
+      "speed": 156315,
+      "to": [
+        15,
+        50,
+        24
+      ],
+      "total_salary": 1879317
+    },
+    {
+      "distance": 499000,
+      "duration": 6416,
+      "from": [
+        46,
+        42,
+        23
+      ],
+      "salary": 20351,
+      "speed": 92897,
+      "to": [
+        19,
+        28,
+        29
+      ],
+      "total_salary": 1413
+    },
+    {
+      "distance": 465000,
+      "duration": 8336,
+      "from": [
+        40,
+        30,
+        65
+      ],
+      "salary": 651542,
+      "speed": 23388,
+      "to": [
+        14,
+        40,
+        102
+      ],
+      "total_salary": 47863
+    },
+    {
+      "distance": 410000,
+      "duration": 8418,
+      "from": [
+        35,
+        18,
+        211
+      ],
+      "salary": 1267,
+      "speed": 19634,
+      "to": [
+        12,
+        11,
+        239
+      ],
+      "total_salary": 103
+    },
+    {
+      "distance": 379000,
+      "duration": 15921,
+      "from": [
+        19,
+        24,
+        28
+      ],
+      "salary": 2243327,
+      "speed": 750,
+      "to": [
+        7,
+        45,
+        113
+      ],
+      "total_salary": 194089
+    },
+    {
+      "distance": 674000,
+      "duration": 9289,
+      "from": [
+        9,
+        19,
+        84
+      ],
+      "salary": 3004,
+      "speed": 19724,
+      "to": [
+        49,
+        26,
+        137
+      ],
+      "total_salary": 164
+    },
+    {
+      "distance": 157000,
+      "duration": 9046,
+      "from": [
+        44,
+        44,
+        78
+      ],
+      "salary": 2191289,
+      "speed": 5248,
+      "to": [
+        48,
+        34,
+        175
+      ],
+      "total_salary": 383707
+    },
+    {
+      "distance": 330000,
+      "duration": 9414,
+      "from": [
+        18,
+        31,
+        92
+      ],
+      "salary": 37567,
+      "speed": 9036,
+      "to": [
+        20,
+        9,
+        127
+      ],
+      "total_salary": 3631
+    },
+    {
+      "distance": 637000,
+      "duration": 6551,
+      "from": [
+        6,
+        19,
+        95
+      ],
+      "salary": 35,
+      "speed": 106905,
+      "to": [
+        41,
+        33,
+        85
+      ],
+      "total_salary": 2
+    },
+    {
+      "distance": 727000,
+      "duration": 5556,
+      "from": [
+        3,
+        19,
+        236
+      ],
+      "salary": 12008,
+      "speed": 277971,
+      "to": [
+        46,
+        19,
+        232
+      ],
+      "total_salary": 617
+    },
+    {
+      "distance": 482000,
+      "duration": 15924,
+      "from": [
+        26,
+        33,
+        2
+      ],
+      "salary": 14,
+      "speed": 953,
+      "to": [
+        10,
+        5,
+        221
+      ],
+      "total_salary": 1
+    },
+    {
+      "distance": 400000,
+      "duration": 18204,
+      "from": [
+        39,
+        44,
+        136
+      ],
+      "salary": 11235,
+      "speed": 405,
+      "to": [
+        49,
+        20,
+        83
+      ],
+      "total_salary": 931
+    },
+    {
+      "distance": 218000,
+      "duration": 5804,
+      "from": [
+        42,
+        17,
+        3
+      ],
+      "salary": 47399,
+      "speed": 66988,
+      "to": [
+        31,
+        25,
+        97
+      ],
+      "total_salary": 6383
+    },
+    {
+      "distance": 244000,
+      "duration": 5497,
+      "from": [
+        24,
+        22,
+        94
+      ],
+      "salary": 2161,
+      "speed": 98401,
+      "to": [
+        32,
+        36,
+        21
+      ],
+      "total_salary": 266
+    },
+    {
+      "distance": 280000,
+      "duration": 10085,
+      "from": [
+        32,
+        6,
+        233
+      ],
+      "salary": 69292,
+      "speed": 5433,
+      "to": [
+        39,
+        23,
+        200
+      ],
+      "total_salary": 7638
+    },
+    {
+      "distance": 256000,
+      "duration": 7989,
+      "from": [
+        20,
+        3,
+        129
+      ],
+      "salary": 135,
+      "speed": 15922,
+      "to": [
+        35,
+        1,
+        197
+      ],
+      "total_salary": 16
+    },
+    {
+      "distance": 422000,
+      "duration": 5362,
+      "from": [
+        21,
+        38,
+        142
+      ],
+      "salary": 629,
+      "speed": 192752,
+      "to": [
+        22,
+        10,
+        109
+      ],
+      "total_salary": 50
+    },
+    {
+      "distance": 363000,
+      "duration": 8730,
+      "from": [
+        45,
+        27,
+        153
+      ],
+      "salary": 3318228,
+      "speed": 14488,
+      "to": [
+        36,
+        49,
+        97
+      ],
+      "total_salary": 297167
+    },
+    {
+      "distance": 537000,
+      "duration": 14929,
+      "from": [
+        45,
+        3,
+        119
+      ],
+      "salary": 16404372,
+      "speed": 1466,
+      "to": [
+        33,
+        36,
+        135
+      ],
+      "total_salary": 1073989
+    },
+    {
+      "distance": 567000,
+      "duration": 14434,
+      "from": [
+        35,
+        20,
+        197
+      ],
+      "salary": 7175413,
+      "speed": 1832,
+      "to": [
+        13,
+        49,
+        135
+      ],
+      "total_salary": 449780
+    },
+    {
+      "distance": 785000,
+      "duration": 5295,
+      "from": [
+        4,
+        4,
+        196
+      ],
+      "salary": 82,
+      "speed": 381944,
+      "to": [
+        32,
+        46,
+        142
+      ],
+      "total_salary": 4
+    },
+    {
+      "distance": 512000,
+      "duration": 6911,
+      "from": [
+        26,
+        26,
+        109
+      ],
+      "salary": 11492021,
+      "speed": 65766,
+      "to": [
+        2,
+        47,
+        24
+      ],
+      "total_salary": 781628
+    },
+    {
+      "distance": 516000,
+      "duration": 17661,
+      "from": [
+        47,
+        19,
+        29
+      ],
+      "salary": 162,
+      "speed": 608,
+      "to": [
+        17,
+        15,
+        212
+      ],
+      "total_salary": 11
+    },
+    {
+      "distance": 318000,
+      "duration": 7862,
+      "from": [
+        10,
+        9,
+        91
+      ],
+      "salary": 8608394,
+      "speed": 21429,
+      "to": [
+        11,
+        30,
+        137
+      ],
+      "total_salary": 857038
+    },
+    {
+      "distance": 629000,
+      "duration": 10924,
+      "from": [
+        50,
+        17,
+        192
+      ],
+      "salary": 69,
+      "speed": 8185,
+      "to": [
+        22,
+        45,
+        93
+      ],
+      "total_salary": 4
+    },
+    {
+      "distance": 375000,
+      "duration": 5729,
+      "from": [
+        19,
+        42,
+        144
+      ],
+      "salary": 252,
+      "speed": 123027,
+      "to": [
+        38,
+        29,
+        229
+      ],
+      "total_salary": 22
+    },
+    {
+      "distance": 367000,
+      "duration": 8184,
+      "from": [
+        3,
+        37,
+        237
+      ],
+      "salary": 160215,
+      "speed": 20230,
+      "to": [
+        25,
+        35,
+        178
+      ],
+      "total_salary": 14223
+    },
+    {
+      "distance": 41000,
+      "duration": 9945,
+      "from": [
+        15,
+        36,
+        193
+      ],
+      "salary": 8774,
+      "speed": 853,
+      "to": [
+        16,
+        34,
+        35
+      ],
+      "total_salary": 4498
+    },
+    {
+      "distance": 364000,
+      "duration": 6094,
+      "from": [
+        19,
+        27,
+        233
+      ],
+      "salary": 246,
+      "speed": 87700,
+      "to": [
+        38,
+        39,
+        193
+      ],
+      "total_salary": 22
+    },
+    {
+      "distance": 82000,
+      "duration": 11398,
+      "from": [
+        14,
+        41,
+        26
+      ],
+      "salary": 38108,
+      "speed": 863,
+      "to": [
+        11,
+        44,
+        222
+      ],
+      "total_salary": 11220
+    },
+    {
+      "distance": 571000,
+      "duration": 11945,
+      "from": [
+        18,
+        44,
+        31
+      ],
+      "salary": 21443190,
+      "speed": 4753,
+      "to": [
+        29,
+        8,
+        9
+      ],
+      "total_salary": 1336596
+    },
+    {
+      "distance": 254000,
+      "duration": 4206,
+      "from": [
+        34,
+        15,
+        110
+      ],
+      "salary": 234,
+      "speed": 390841,
+      "to": [
+        33,
+        32,
+        74
+      ],
+      "total_salary": 28
+    },
+    {
+      "distance": 849000,
+      "duration": 11446,
+      "from": [
+        44,
+        41,
+        148
+      ],
+      "salary": 264,
+      "speed": 8750,
+      "to": [
+        6,
+        4,
+        168
+      ],
+      "total_salary": 12
+    },
+    {
+      "distance": 116000,
+      "duration": 6507,
+      "from": [
+        40,
+        22,
+        21
+      ],
+      "salary": 1708232,
+      "speed": 20137,
+      "to": [
+        39,
+        29,
+        193
+      ],
+      "total_salary": 381066
+    },
+    {
+      "distance": 707000,
+      "duration": 17955,
+      "from": [
+        45,
+        3,
+        53
+      ],
+      "salary": 20773791,
+      "speed": 767,
+      "to": [
+        28,
+        46,
+        130
+      ],
+      "total_salary": 1091440
+    },
+    {
+      "distance": 133000,
+      "duration": 12203,
+      "from": [
+        29,
+        10,
+        197
+      ],
+      "salary": 30,
+      "speed": 995,
+      "to": [
+        26,
+        18,
+        228
+      ],
+      "total_salary": 6
+    },
+    {
+      "distance": 364000,
+      "duration": 16714,
+      "from": [
+        23,
+        50,
+        161
+      ],
+      "salary": 190,
+      "speed": 565,
+      "to": [
+        3,
+        43,
+        36
+      ],
+      "total_salary": 17
+    },
+    {
+      "distance": 660000,
+      "duration": 8113,
+      "from": [
+        4,
+        39,
+        177
+      ],
+      "salary": 11024,
+      "speed": 38019,
+      "to": [
+        42,
+        29,
+        70
+      ],
+      "total_salary": 612
+    },
+    {
+      "distance": 52000,
+      "duration": 3485,
+      "from": [
+        44,
+        4,
+        75
+      ],
+      "salary": 24534,
+      "speed": 204644,
+      "to": [
+        47,
+        4,
+        144
+      ],
+      "total_salary": 10399
+    },
+    {
+      "distance": 656000,
+      "duration": 15256,
+      "from": [
+        37,
+        16,
+        126
+      ],
+      "salary": 6060432,
+      "speed": 1607,
+      "to": [
+        5,
+        41,
+        185
+      ],
+      "total_salary": 338065
+    },
+    {
+      "distance": 127000,
+      "duration": 4880,
+      "from": [
+        46,
+        44,
+        160
+      ],
+      "salary": 7277,
+      "speed": 92897,
+      "to": [
+        39,
+        47,
+        212
+      ],
+      "total_salary": 1510
+    },
+    {
+      "distance": 239000,
+      "duration": 9975,
+      "from": [
+        8,
+        21,
+        252
+      ],
+      "salary": 221664,
+      "speed": 4898,
+      "to": [
+        7,
+        6,
+        36
+      ],
+      "total_salary": 27733
+    },
+    {
+      "distance": 284000,
+      "duration": 4528,
+      "from": [
+        33,
+        12,
+        57
+      ],
+      "salary": 2670,
+      "speed": 301995,
+      "to": [
+        26,
+        29,
+        71
+      ],
+      "total_salary": 291
+    },
+    {
+      "distance": 373000,
+      "duration": 10238,
+      "from": [
+        22,
+        20,
+        206
+      ],
+      "salary": 11,
+      "speed": 6714,
+      "to": [
+        43,
+        28,
+        35
+      ],
+      "total_salary": 1
+    },
+    {
+      "distance": 372000,
+      "duration": 4918,
+      "from": [
+        32,
+        41,
+        205
+      ],
+      "salary": 1494220,
+      "speed": 261818,
+      "to": [
+        32,
+        17,
+        1
+      ],
+      "total_salary": 131220
+    },
+    {
+      "distance": 345000,
+      "duration": 7420,
+      "from": [
+        28,
+        30,
+        47
+      ],
+      "salary": 340595,
+      "speed": 31046,
+      "to": [
+        20,
+        9,
+        27
+      ],
+      "total_salary": 31769
+    },
+    {
+      "distance": 693000,
+      "duration": 9154,
+      "from": [
+        40,
+        3,
+        106
+      ],
+      "salary": 62598928,
+      "speed": 21827,
+      "to": [
+        20,
+        43,
+        156
+      ],
+      "total_salary": 3341950
+    },
+    {
+      "distance": 329000,
+      "duration": 11395,
+      "from": [
+        49,
+        34,
+        223
+      ],
+      "salary": 72,
+      "speed": 3467,
+      "to": [
+        31,
+        42,
+        223
+      ],
+      "total_salary": 7
+    },
+    {
+      "distance": 55000,
+      "duration": 4612,
+      "from": [
+        43,
+        20,
+        193
+      ],
+      "salary": 143306,
+      "speed": 53333,
+      "to": [
+        46,
+        21,
+        195
+      ],
+      "total_salary": 58076
+    },
+    {
+      "distance": 435000,
+      "duration": 7536,
+      "from": [
+        38,
+        31,
+        131
+      ],
+      "salary": 129,
+      "speed": 36224,
+      "to": [
+        39,
+        2,
+        123
+      ],
+      "total_salary": 10
+    },
+    {
+      "distance": 209000,
+      "duration": 9300,
+      "from": [
+        18,
+        15,
+        247
+      ],
+      "salary": 21,
+      "speed": 6081,
+      "to": [
+        10,
+        5,
+        206
+      ],
+      "total_salary": 3
+    },
+    {
+      "distance": 275000,
+      "duration": 12839,
+      "from": [
+        46,
+        10,
+        38
+      ],
+      "salary": 68619338,
+      "speed": 1596,
+      "to": [
+        44,
+        28,
+        69
+      ],
+      "total_salary": 7673615
+    },
+    {
+      "distance": 150000,
+      "duration": 12667,
+      "from": [
+        36,
+        13,
+        155
+      ],
+      "salary": 61636,
+      "speed": 931,
+      "to": [
+        27,
+        14,
+        56
+      ],
+      "total_salary": 11194
+    },
+    {
+      "distance": 681000,
+      "duration": 8943,
+      "from": [
+        1,
+        5,
+        31
+      ],
+      "salary": 36,
+      "speed": 24099,
+      "to": [
+        37,
+        26,
+        188
+      ],
+      "total_salary": 2
+    },
+    {
+      "distance": 237000,
+      "duration": 16379,
+      "from": [
+        31,
+        22,
+        90
+      ],
+      "salary": 1434756,
+      "speed": 407,
+      "to": [
+        17,
+        19,
+        129
+      ],
+      "total_salary": 180717
+    },
+    {
+      "distance": 579000,
+      "duration": 9061,
+      "from": [
+        32,
+        14,
+        153
+      ],
+      "salary": 811,
+      "speed": 19187,
+      "to": [
+        1,
+        29,
+        147
+      ],
+      "total_salary": 50
+    },
+    {
+      "distance": 285000,
+      "duration": 13850,
+      "from": [
+        26,
+        42,
+        94
+      ],
+      "salary": 11317,
+      "speed": 1132,
+      "to": [
+        12,
+        31,
+        149
+      ],
+      "total_salary": 1230
+    },
+    {
+      "distance": 493000,
+      "duration": 5768,
+      "from": [
+        46,
+        22,
+        208
+      ],
+      "salary": 142,
+      "speed": 156315,
+      "to": [
+        20,
+        38,
+        44
+      ],
+      "total_salary": 10
+    },
+    {
+      "distance": 474000,
+      "duration": 8626,
+      "from": [
+        40,
+        18,
+        47
+      ],
+      "salary": 131705,
+      "speed": 20091,
+      "to": [
+        12,
+        20,
+        135
+      ],
+      "total_salary": 9528
+    },
+    {
+      "distance": 783000,
+      "duration": 18095,
+      "from": [
+        1,
+        6,
+        73
+      ],
+      "salary": 20,
+      "speed": 817,
+      "to": [
+        30,
+        46,
+        115
+      ],
+      "total_salary": 1
+    },
+    {
+      "distance": 373000,
+      "duration": 4742,
+      "from": [
+        1,
+        19,
+        46
+      ],
+      "salary": 1301210,
+      "speed": 314775,
+      "to": [
+        9,
+        42,
+        94
+      ],
+      "total_salary": 114025
+    },
+    {
+      "distance": 311000,
+      "duration": 17026,
+      "from": [
+        42,
+        15,
+        173
+      ],
+      "salary": 9315125,
+      "speed": 440,
+      "to": [
+        26,
+        5,
+        206
+      ],
+      "total_salary": 944061
+    },
+    {
+      "distance": 501000,
+      "duration": 8962,
+      "from": [
+        32,
+        48,
+        54
+      ],
+      "salary": 8452,
+      "speed": 17539,
+      "to": [
+        2,
+        48,
+        46
+      ],
+      "total_salary": 585
+    },
+    {
+      "distance": 176000,
+      "duration": 5467,
+      "from": [
+        30,
+        22,
+        223
+      ],
+      "salary": 200,
+      "speed": 72946,
+      "to": [
+        33,
+        11,
+        233
+      ],
+      "total_salary": 32
+    },
+    {
+      "distance": 766000,
+      "duration": 9947,
+      "from": [
+        48,
+        9,
+        51
+      ],
+      "salary": 236788,
+      "speed": 15922,
+      "to": [
+        15,
+        43,
+        5
+      ],
+      "total_salary": 11668
+    },
+    {
+      "distance": 267000,
+      "duration": 4399,
+      "from": [
+        17,
+        32,
+        180
+      ],
+      "salary": 2952497,
+      "speed": 328095,
+      "to": [
+        5,
+        44,
+        151
+      ],
+      "total_salary": 338065
+    },
+    {
+      "distance": 397000,
+      "duration": 9125,
+      "from": [
+        6,
+        26,
+        146
+      ],
+      "salary": 23,
+      "speed": 12706,
+      "to": [
+        26,
+        40,
+        45
+      ],
+      "total_salary": 2
+    },
+    {
+      "distance": 667000,
+      "duration": 15069,
+      "from": [
+        15,
+        13,
+        127
+      ],
+      "salary": 24561,
+      "speed": 1738,
+      "to": [
+        46,
+        40,
+        65
+      ],
+      "total_salary": 1352
+    },
+    {
+      "distance": 453000,
+      "duration": 5087,
+      "from": [
+        27,
+        27,
+        189
+      ],
+      "salary": 2409117,
+      "speed": 269153,
+      "to": [
+        46,
+        48,
+        175
+      ],
+      "total_salary": 180717
+    },
+    {
+      "distance": 939000,
+      "duration": 6474,
+      "from": [
+        3,
+        43,
+        238
+      ],
+      "salary": 726298,
+      "speed": 167109,
+      "to": [
+        46,
+        4,
+        81
+      ],
+      "total_salary": 30409
+    },
+    {
+      "distance": 152000,
+      "duration": 5639,
+      "from": [
+        3,
+        23,
+        65
+      ],
+      "salary": 157563,
+      "speed": 53951,
+      "to": [
+        7,
+        13,
+        207
+      ],
+      "total_salary": 28314
+    },
+    {
+      "distance": 193000,
+      "duration": 5318,
+      "from": [
+        7,
+        24,
+        117
+      ],
+      "salary": 74,
+      "speed": 91833,
+      "to": [
+        10,
+        37,
+        5
+      ],
+      "total_salary": 11
+    },
+    {
+      "distance": 328000,
+      "duration": 17139,
+      "from": [
+        5,
+        35,
+        151
+      ],
+      "salary": 5478721,
+      "speed": 449,
+      "to": [
+        9,
+        14,
+        48
+      ],
+      "total_salary": 532108
+    },
+    {
+      "distance": 443000,
+      "duration": 8153,
+      "from": [
+        16,
+        36,
+        107
+      ],
+      "salary": 3273,
+      "speed": 24889,
+      "to": [
+        42,
+        31,
+        222
+      ],
+      "total_salary": 250
+    },
+    {
+      "distance": 143000,
+      "duration": 6156,
+      "from": [
+        9,
+        34,
+        228
+      ],
+      "salary": 2623,
+      "speed": 32734,
+      "to": [
+        12,
+        25,
+        244
+      ],
+      "total_salary": 495
+    },
+    {
+      "distance": 119000,
+      "duration": 6807,
+      "from": [
+        14,
+        30,
+        146
+      ],
+      "salary": 439,
+      "speed": 16482,
+      "to": [
+        15,
+        38,
+        99
+      ],
+      "total_salary": 96
+    },
+    {
+      "distance": 714000,
+      "duration": 14757,
+      "from": [
+        44,
+        31,
+        155
+      ],
+      "salary": 748,
+      "speed": 2065,
+      "to": [
+        2,
+        22,
+        185
+      ],
+      "total_salary": 39
+    },
+    {
+      "distance": 519000,
+      "duration": 6196,
+      "from": [
+        4,
+        22,
+        78
+      ],
+      "salary": 44,
+      "speed": 115080,
+      "to": [
+        35,
+        19,
+        171
+      ],
+      "total_salary": 3
+    },
+    {
+      "distance": 343000,
+      "duration": 16186,
+      "from": [
+        39,
+        20,
+        22
+      ],
+      "salary": 17788,
+      "speed": 625,
+      "to": [
+        50,
+        38,
+        219
+      ],
+      "total_salary": 1667
+    },
+    {
+      "distance": 385000,
+      "duration": 8990,
+      "from": [
+        32,
+        16,
+        255
+      ],
+      "salary": 45640349,
+      "speed": 13274,
+      "to": [
+        45,
+        38,
+        63
+      ],
+      "total_salary": 3899420
+    },
+    {
+      "distance": 303000,
+      "duration": 9353,
+      "from": [
+        25,
+        23,
+        250
+      ],
+      "salary": 87928,
+      "speed": 8570,
+      "to": [
+        9,
+        33,
+        136
+      ],
+      "total_salary": 9099
+    },
+    {
+      "distance": 660000,
+      "duration": 6061,
+      "from": [
+        3,
+        33,
+        250
+      ],
+      "salary": 34010,
+      "speed": 163305,
+      "to": [
+        42,
+        26,
+        239
+      ],
+      "total_salary": 1888
+    },
+    {
+      "distance": 310000,
+      "duration": 7750,
+      "from": [
+        33,
+        48,
+        143
+      ],
+      "salary": 1348,
+      "speed": 22439,
+      "to": [
+        50,
+        40,
+        122
+      ],
+      "total_salary": 137
+    },
+    {
+      "distance": 259000,
+      "duration": 6946,
+      "from": [
+        27,
+        19,
+        28
+      ],
+      "salary": 76,
+      "speed": 32434,
+      "to": [
+        37,
+        32,
+        44
+      ],
+      "total_salary": 9
+    },
+    {
+      "distance": 644000,
+      "duration": 18479,
+      "from": [
+        4,
+        16,
+        34
+      ],
+      "salary": 32219,
+      "speed": 605,
+      "to": [
+        42,
+        18,
+        235
+      ],
+      "total_salary": 1824
+    },
+    {
+      "distance": 495000,
+      "duration": 9563,
+      "from": [
+        22,
+        39,
+        20
+      ],
+      "salary": 23526,
+      "speed": 12531,
+      "to": [
+        26,
+        6,
+        130
+      ],
+      "total_salary": 1644
+    },
+    {
+      "distance": 123000,
+      "duration": 7179,
+      "from": [
+        40,
+        13,
+        122
+      ],
+      "salary": 1580902,
+      "speed": 13062,
+      "to": [
+        45,
+        8,
+        46
+      ],
+      "total_salary": 336512
+    },
+    {
+      "distance": 258000,
+      "duration": 7744,
+      "from": [
+        21,
+        27,
+        84
+      ],
+      "salary": 1208583,
+      "speed": 18750,
+      "to": [
+        14,
+        12,
+        91
+      ],
+      "total_salary": 142233
+    },
+    {
+      "distance": 385000,
+      "duration": 5725,
+      "from": [
+        39,
+        25,
+        124
+      ],
+      "salary": 2687504,
+      "speed": 126765,
+      "to": [
+        50,
+        3,
+        116
+      ],
+      "total_salary": 229615
+    },
+    {
+      "distance": 397000,
+      "duration": 5001,
+      "from": [
+        33,
+        20,
+        163
+      ],
+      "salary": 244345,
+      "speed": 257040,
+      "to": [
+        50,
+        39,
+        6
+      ],
+      "total_salary": 20370
+    },
+    {
+      "distance": 308000,
+      "duration": 10670,
+      "from": [
+        14,
+        50,
+        106
+      ],
+      "salary": 202680,
+      "speed": 4508,
+      "to": [
+        19,
+        30,
+        255
+      ],
+      "total_salary": 20701
+    },
+    {
+      "distance": 290000,
+      "duration": 9293,
+      "from": [
+        22,
+        39,
+        63
+      ],
+      "salary": 358836,
+      "speed": 8472,
+      "to": [
+        6,
+        33,
+        43
+      ],
+      "total_salary": 38459
+    },
+    {
+      "distance": 45000,
+      "duration": 4259,
+      "from": [
+        42,
+        27,
+        49
+      ],
+      "salary": 285,
+      "speed": 65013,
+      "to": [
+        40,
+        26,
+        208
+      ],
+      "total_salary": 136
+    },
+    {
+      "distance": 931000,
+      "duration": 10511,
+      "from": [
+        50,
+        48,
+        202
+      ],
+      "salary": 52993,
+      "speed": 14689,
+      "to": [
+        10,
+        6,
+        213
+      ],
+      "total_salary": 2234
+    },
+    {
+      "distance": 124000,
+      "duration": 6801,
+      "from": [
+        33,
+        8,
+        233
+      ],
+      "salary": 13825,
+      "speed": 17258,
+      "to": [
+        40,
+        6,
+        61
+      ],
+      "total_salary": 2924
+    },
+    {
+      "distance": 183000,
+      "duration": 15030,
+      "from": [
+        29,
+        26,
+        231
+      ],
+      "salary": 1018452,
+      "speed": 483,
+      "to": [
+        37,
+        34,
+        169
+      ],
+      "total_salary": 157761
+    },
+    {
+      "distance": 423000,
+      "duration": 9254,
+      "from": [
+        12,
+        8,
+        137
+      ],
+      "salary": 1993,
+      "speed": 12618,
+      "to": [
+        36,
+        7,
+        32
+      ],
+      "total_salary": 158
+    },
+    {
+      "distance": 383000,
+      "duration": 10445,
+      "from": [
+        31,
+        39,
+        64
+      ],
+      "salary": 839,
+      "speed": 6237,
+      "to": [
+        9,
+        38,
+        38
+      ],
+      "total_salary": 72
+    },
+    {
+      "distance": 681000,
+      "duration": 18083,
+      "from": [
+        20,
+        48,
+        247
+      ],
+      "salary": 3576824,
+      "speed": 713,
+      "to": [
+        7,
+        6,
+        36
+      ],
+      "total_salary": 193642
+    },
+    {
+      "distance": 746000,
+      "duration": 18657,
+      "from": [
+        13,
+        36,
+        228
+      ],
+      "salary": 19,
+      "speed": 668,
+      "to": [
+        47,
+        5,
+        91
+      ],
+      "total_salary": 1
+    },
+    {
+      "distance": 461000,
+      "duration": 14131,
+      "from": [
+        12,
+        5,
+        103
+      ],
+      "salary": 567,
+      "speed": 1656,
+      "to": [
+        39,
+        4,
+        224
+      ],
+      "total_salary": 42
+    },
+    {
+      "distance": 657000,
+      "duration": 7164,
+      "from": [
+        41,
+        23,
+        69
+      ],
+      "salary": 50812,
+      "speed": 70469,
+      "to": [
+        4,
+        7,
+        186
+      ],
+      "total_salary": 2831
+    },
+    {
+      "distance": 774000,
+      "duration": 6442,
+      "from": [
+        48,
+        9,
+        231
+      ],
+      "salary": 3999201,
+      "speed": 141254,
+      "to": [
+        5,
+        25,
+        70
+      ],
+      "total_salary": 195434
+    },
+    {
+      "distance": 304000,
+      "duration": 16209,
+      "from": [
+        2,
+        10,
+        99
+      ],
+      "salary": 56273,
+      "speed": 550,
+      "to": [
+        2,
+        30,
+        157
+      ],
+      "total_salary": 5808
+    },
+    {
+      "distance": 431000,
+      "duration": 4744,
+      "from": [
+        20,
+        41,
+        15
+      ],
+      "salary": 166,
+      "speed": 363078,
+      "to": [
+        45,
+        46,
+        65
+      ],
+      "total_salary": 13
+    },
+    {
+      "distance": 344000,
+      "duration": 15302,
+      "from": [
+        27,
+        18,
+        250
+      ],
+      "salary": 42,
+      "speed": 830,
+      "to": [
+        16,
+        38,
+        45
+      ],
+      "total_salary": 4
+    },
+    {
+      "distance": 586000,
+      "duration": 12395,
+      "from": [
+        27,
+        12,
+        79
+      ],
+      "salary": 2105230,
+      "speed": 4055,
+      "to": [
+        4,
+        41,
+        41
+      ],
+      "total_salary": 128529
+    },
+    {
+      "distance": 582000,
+      "duration": 5575,
+      "from": [
+        44,
+        22,
+        182
+      ],
+      "salary": 1218762,
+      "speed": 218776,
+      "to": [
+        14,
+        5,
+        86
+      ],
+      "total_salary": 74817
+    },
+    {
+      "distance": 107000,
+      "duration": 6879,
+      "from": [
+        16,
+        8,
+        165
+      ],
+      "salary": 725250,
+      "speed": 14060,
+      "to": [
+        13,
+        14,
+        233
+      ],
+      "total_salary": 172584
+    },
+    {
+      "distance": 635000,
+      "duration": 12753,
+      "from": [
+        23,
+        38,
+        48
+      ],
+      "salary": 10479,
+      "speed": 3811,
+      "to": [
+        44,
+        2,
+        192
+      ],
+      "total_salary": 600
+    }
+  ]
+}

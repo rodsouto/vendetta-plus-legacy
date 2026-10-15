@@ -103,7 +103,6 @@ onchain:
   # NOT legacy: hard caps for the fully on-chain EVM implementation (blockchain.md, B-09).
   # Every loop in a contract must be bounded. Starting values, to be tuned with gas measurements.
   # Room and research queue limits above (queues:) are kept as-is.
-  max_pending_missions_to_building: 32  # missions travelling to one building; also stops griefing a victim
   max_outgoing_missions_per_player: 20  # missions sent by a player and not yet back
   max_open_market_offers_per_player: 10
 

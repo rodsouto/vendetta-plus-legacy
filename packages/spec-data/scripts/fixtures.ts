@@ -185,3 +185,49 @@ export function upgradeFixtures(
     ],
   };
 }
+
+interface DistanceCase {
+  from: string;
+  to: string;
+  distance: number;
+  duration?: { vmax: number; duration_seconds: number }[];
+  salary?: { total_salary: number; mission_salary: number }[];
+  vmax?: number;
+  duration_seconds?: number;
+  total_salary?: number;
+  mission_salary?: number;
+}
+
+/// distance_mission + distance_mission_random flattened: one row per (pair, speed, salary) check.
+export function distanceFixtures(fixed: DistanceCase[], random: DistanceCase[]) {
+  const coord = (c: string) => c.split(":").map(Number);
+  const rows: object[] = [];
+  for (const c of fixed) {
+    const n = Math.max(c.duration!.length, c.salary!.length);
+    for (let i = 0; i < n; i++) {
+      const d = c.duration![Math.min(i, c.duration!.length - 1)]!;
+      const s = c.salary![Math.min(i, c.salary!.length - 1)]!;
+      rows.push({
+        distance: c.distance,
+        duration: d.duration_seconds,
+        from: coord(c.from),
+        salary: s.mission_salary,
+        speed: d.vmax,
+        to: coord(c.to),
+        total_salary: s.total_salary,
+      });
+    }
+  }
+  for (const c of random) {
+    rows.push({
+      distance: c.distance,
+      duration: c.duration_seconds,
+      from: coord(c.from),
+      salary: c.mission_salary,
+      speed: c.vmax,
+      to: coord(c.to),
+      total_salary: c.total_salary,
+    });
+  }
+  return { cases: rows };
+}
