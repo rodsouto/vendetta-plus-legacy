@@ -1,0 +1,97 @@
+# Game configuration — server-wide constants, shared by every ruleset (data/vendetta.yaml, data/space4k.yaml).
+#
+# Every value below is the LEGACY Vendetta s1 value unless noted. Implementations must load these
+# (or an equivalent) instead of hardcoding them. Decisions referenced as D-xx are in decisions.md.
+
+ruleset: vendetta                      # which data/<ruleset>.yaml this server loads
+
+time:
+  # Building and research upgrade time divisor (NOT applied to troop training).
+  # 1 = slowest; legacy hardcodes 3 (`$segundos / 3` in Habitacion/Entrenamiento Abstract).
+  upgrade_speed_multiplier: 3
+
+world:
+  cities: 50                # coord1: 1..50
+  neighborhoods: 50         # coord2: 1..50
+  slots_per_neighborhood: 255   # coord3: 1..255 (grid of 17 columns x 15 rows)
+  grid_columns: 17
+  grid_rows: 15
+  distance_unit: 1000       # grid distance is multiplied by this
+
+new_player:
+  # First building (Mob IndexController::setupAction, random or chosen free coordinate)
+  starting_resources_each: 10000     # of each of the 4 resources
+  starting_build_speed_room_level: 1 # roles.build_speed_room (boss_office); every other room at 0
+  # all research at level 0
+
+occupation:
+  # Building captured with an occupation mission (models/Edificio.php::ocupar defaults)
+  starting_resources_each: 1000
+  starting_build_speed_room_level: 1
+  occupation_troops_consumed: 1
+
+storage:
+  base_capacity: 10000      # capacity at storage level 0
+  capacity_per_level: 150000
+  safe_divisor: 10          # safe (unlootable) amount = capacity / 10
+
+queues:
+  max_room_queue_per_building: 6        # includes the item in progress
+  max_research_queue: 6                 # all in ONE building at a time
+  # Troop queues (attack and defense training rooms) have no size limit in legacy.
+
+troops:
+  # troop_defense_multiplier is per ruleset (data/<ruleset>.yaml -> rules): 10 for vendetta, 1 for space4k.
+  research_bonus_divisor: 10            # effective = base * (1 + sqrt(levels) / 10)
+
+combat:
+  max_rounds: 5
+  wipe_ratio: 10                        # side with > 10x total power wipes the other
+  loss_ratio_decimals: 3                # PPA/PPD rounded to 3 decimals before use (D-15)
+
+missions:
+  duration_distance_factor: 3.3479      # duration = round(((d * 3.3479) / v)^0.2 * 3600)
+  duration_exponent: 0.2
+  salary_distance_exponent: 0.8         # salary = floor(d^0.8 * sum_salary / 2512)
+  salary_divisor: 2512
+
+honor:
+  min_buildings_for_penalty: 5          # < 5 buildings => 100% power
+  max_honor_level: 8                    # table column cap (D-17: applied before every branch)
+  table_max_buildings: 100              # > 100 => round(100 * table[100][honor] / buildings)
+
+vacation:
+  duration_days: 15
+  cooldown_days: 7                      # D-18: enforced server-side (legacy only hid the link)
+
+market:
+  exchange_rates:                       # value of 1 dollar expressed in each resource
+    rate_3_5_1: {weapons: 3, ammunition: 5, dollar: 1}
+    rate_2_4_1: {weapons: 2, ammunition: 4, dollar: 1}
+  delivery_window_days: 10              # after acceptance
+
+families:
+  tag_length: [2, 8]
+  name_length: [2, 35]
+  board_messages_shown: 50
+  max_members: null                     # no limit in legacy
+
+onchain:
+  # NOT legacy: hard caps for the fully on-chain EVM implementation (blockchain.md, B-09).
+  # Every loop in a contract must be bounded. Starting values, to be tuned with gas measurements.
+  # Room and research queue limits above (queues:) are kept as-is.
+  max_pending_missions_to_building: 32  # missions travelling to one building; also stops griefing a victim
+  max_outgoing_missions_per_player: 20  # missions sent by a player and not yet back
+  max_open_market_offers_per_player: 10
+
+premium:
+  # NOT legacy (blockchain.md, B-25). The legacy `queues` limits above become the premium limits.
+  duration_days: 30                     # per purchase; buying before expiry adds days
+  without_premium:
+    max_room_queue_per_building: 1
+    max_research_queue: 1
+    max_troop_batches_per_queue: 1      # per building, for each of boot_camp and security
+  with_premium:
+    max_room_queue_per_building: 6
+    max_research_queue: 6
+    max_troop_batches_per_queue: 5      # on-chain cap (B-09); unlimited in legacy
