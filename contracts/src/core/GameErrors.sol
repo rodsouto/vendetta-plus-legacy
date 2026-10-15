@@ -45,6 +45,9 @@ error NoOffer();
 error InvalidOffer();
 error TooManyOffers();
 error InvalidTrade();
+error NotController();
+error InvalidSession();
+error SessionTooLong();
 
 struct BattleReport {
     uint64[TROOPS] attacker;
@@ -103,6 +106,8 @@ interface IGameEvents {
     event PlayerSuspended(uint64 indexed player, uint40 until);
     event PremiumGranted(uint64 indexed player, uint40 until);
     event PlayerTransferred(uint64 indexed player, address from, address to);
+    event SessionAuthorized(uint64 indexed player, address indexed session, uint40 until);
+    event SessionRevoked(uint64 indexed player, address indexed session);
     event FamilyCreated(uint64 indexed family, uint64 indexed capo, string tag, string name);
     event FamilyChanged(uint64 indexed family, uint64 indexed player, uint8 rank); // rank 0 = left
     event FamilyDissolved(uint64 indexed family);

@@ -23,8 +23,10 @@ import {
     War,
     Trade,
     CoreState,
+    Session,
     GameStorage
 } from "./core/GameStorage.sol";
+import {Access} from "./core/Access.sol";
 import {IGameEvents} from "./core/GameErrors.sol";
 
 /// The game: one UUPS proxy (B-17) whose logic lives in linked libraries (blockchain.md,
@@ -138,6 +140,15 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
         Account.transfer(msg.sender, to);
     }
 
+    /// B-15: let `session` (a per-device key) play for the caller's player until `until`.
+    function authorizeSession(address session, uint256 until) external drained {
+        Account.authorizeSession(msg.sender, session, until);
+    }
+
+    function revokeSession(address session) external drained {
+        Account.revokeSession(msg.sender, session);
+    }
+
     // ------------------------------------------------------------------ families and wars (D-20, B-31)
 
     function createFamily(string calldata tag, string calldata name)
@@ -243,6 +254,7 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
         uint8 rank;
         uint64[] applications;
         uint64[] offers;
+        uint32 sessionEpoch;
     }
 
     function getBuilding(uint64 id) external view returns (BuildingView memory v) {
@@ -279,7 +291,8 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
             p.family,
             p.rank,
             p.applications,
-            p.offers
+            p.offers,
+            p.sessionEpoch
         );
     }
 
@@ -312,6 +325,17 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
 
     function playerOf(address controller) external view returns (uint64) {
         return GameStorage.core().playerOf[controller];
+    }
+
+    function getSession(address session) external view returns (Session memory) {
+        return GameStorage.core().sessions[session];
+    }
+
+    /// The player `caller` plays for: as controller or through a live session, 0 if none.
+    function playerFor(address caller) external view returns (uint64) {
+        CoreState storage s = GameStorage.core();
+        uint64 pid = s.playerOf[caller];
+        return pid != 0 ? pid : Access.sessionPlayer(s, caller);
     }
 
     function buildingAt(uint256 city, uint256 neighborhood, uint256 slot)

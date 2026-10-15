@@ -15,6 +15,7 @@ export interface Deployment {
   chainId: number;
   rpc: string;
   game: Address;
+  directory?: Address; // PasskeyDirectory (B-15); absent on deployments that predate it
   fromBlock: number;
 }
 

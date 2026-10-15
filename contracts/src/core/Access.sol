@@ -1,21 +1,52 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.28;
 
-import {Building, Player, CoreState} from "./GameStorage.sol";
+import {Building, Player, Session, CoreState} from "./GameStorage.sol";
 import {SettleLib} from "./Settlement.sol";
-import {NotRegistered, NotOwner, OnVacation, Suspended} from "./GameErrors.sol";
+import {NotRegistered, NotOwner, OnVacation, Suspended, NotController} from "./GameErrors.sol";
 
 /// Checks and settlement shared by every player action. Mirrors packages/rules/src/sim/common.ts.
 library Access {
+    /// The player a live session key plays for, or 0 (B-15).
+    function sessionPlayer(CoreState storage s, address caller) internal view returns (uint64) {
+        Session storage k = s.sessions[caller];
+        if (k.until <= block.timestamp) return 0;
+        return s.players[k.player].sessionEpoch == k.epoch ? k.player : 0;
+    }
+
+    /// The player behind the caller: its controller, or a live session key.
+    function resolve(CoreState storage s, address caller)
+        internal
+        view
+        returns (uint64 pid, Player storage p)
+    {
+        pid = s.playerOf[caller];
+        if (pid == 0) pid = sessionPlayer(s, caller);
+        if (pid == 0) revert NotRegistered();
+        p = s.players[pid];
+    }
+
+    /// Account management (sessions, transfer) needs the controller itself, never a session key.
+    function controllerOnly(CoreState storage s, address caller)
+        internal
+        view
+        returns (uint64 pid, Player storage p)
+    {
+        pid = s.playerOf[caller];
+        if (pid == 0) {
+            if (sessionPlayer(s, caller) != 0) revert NotController();
+            revert NotRegistered();
+        }
+        p = s.players[pid];
+    }
+
     /// The acting player; a player on vacation (D-18) or suspended (B-14) cannot act.
     function active(CoreState storage s, address caller)
         internal
         view
         returns (uint64 pid, Player storage p)
     {
-        pid = s.playerOf[caller];
-        if (pid == 0) revert NotRegistered();
-        p = s.players[pid];
+        (pid, p) = resolve(s, caller);
         if (p.vacationUntil > block.timestamp) revert OnVacation();
         if (p.suspendedUntil > block.timestamp) revert Suspended();
     }

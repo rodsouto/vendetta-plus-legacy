@@ -34,10 +34,30 @@ export const isPremium = (w: World, p: Player, now: bigint) =>
 export const onVacation = (p: Player, now: bigint) => p.vacationUntil > now;
 export const suspended = (p: Player, now: bigint) => p.suspendedUntil > now;
 
+/** The player a live session key plays for, or undefined (B-15). */
+export function sessionPlayer(w: World, caller: string, now: bigint): bigint | undefined {
+  const s = w.sessions.get(caller);
+  if (!s || s.until <= now) return undefined;
+  return w.players.get(s.player)!.sessionEpoch === s.epoch ? s.player : undefined;
+}
+
+/** The player behind the caller: its controller, or a live session key. */
+export function resolve(w: World, caller: string, now: bigint): Player {
+  const pid = w.playerOf.get(caller) ?? sessionPlayer(w, caller, now) ?? fail("NotRegistered");
+  return w.players.get(pid)!;
+}
+
+/** Account management (sessions, transfer) needs the controller itself, never a session key. */
+export function controllerOnly(w: World, caller: string, now: bigint): Player {
+  const pid = w.playerOf.get(caller);
+  if (pid === undefined)
+    fail(sessionPlayer(w, caller, now) !== undefined ? "NotController" : "NotRegistered");
+  return w.players.get(pid)!;
+}
+
 /** The acting player; a player on vacation (D-18) or suspended (B-14) cannot act. */
 export function active(w: World, controller: string, now: bigint): Player {
-  const pid = w.playerOf.get(controller) ?? fail("NotRegistered");
-  const p = w.players.get(pid)!;
+  const p = resolve(w, controller, now);
   if (onVacation(p, now)) fail("OnVacation");
   if (suspended(p, now)) fail("Suspended");
   return p;

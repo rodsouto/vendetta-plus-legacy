@@ -75,6 +75,7 @@ export async function loadWorld(client: PublicClient, game: Address): Promise<Sn
       rank: p.rank,
       applications: [...p.applications],
       offers: [...p.offers],
+      sessionEpoch: BigInt(p.sessionEpoch),
     });
     w.playerOf.set(controllerKey(p.controller), id);
   });

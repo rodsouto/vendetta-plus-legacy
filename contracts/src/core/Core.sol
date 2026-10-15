@@ -34,7 +34,9 @@ library Core {
         returns (uint64 pid)
     {
         CoreState storage s = GameStorage.core();
-        if (s.playerOf[caller] != 0) revert AlreadyRegistered();
+        if (s.playerOf[caller] != 0 || Access.sessionPlayer(s, caller) != 0) {
+            revert AlreadyRegistered();
+        }
         if (
             city < 1 || city > Ruleset.CITIES || neighborhood < 1
                 || neighborhood > Ruleset.NEIGHBORHOODS || slot < 1 || slot > Ruleset.SLOTS

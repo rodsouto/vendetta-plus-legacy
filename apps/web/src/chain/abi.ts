@@ -121,6 +121,24 @@ export const gameAbi = [
   },
   {
     "type": "function",
+    "name": "authorizeSession",
+    "inputs": [
+      {
+        "name": "session",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "until",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "buildingAt",
     "inputs": [
       {
@@ -691,6 +709,47 @@ export const gameAbi = [
             "name": "offers",
             "type": "uint64[]",
             "internalType": "uint64[]"
+          },
+          {
+            "name": "sessionEpoch",
+            "type": "uint32",
+            "internalType": "uint32"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getSession",
+    "inputs": [
+      {
+        "name": "session",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct Session",
+        "components": [
+          {
+            "name": "player",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "until",
+            "type": "uint40",
+            "internalType": "uint40"
+          },
+          {
+            "name": "epoch",
+            "type": "uint32",
+            "internalType": "uint32"
           }
         ]
       }
@@ -981,6 +1040,25 @@ export const gameAbi = [
   },
   {
     "type": "function",
+    "name": "playerFor",
+    "inputs": [
+      {
+        "name": "caller",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "playerOf",
     "inputs": [
       {
@@ -1106,6 +1184,19 @@ export const gameAbi = [
     "type": "function",
     "name": "renounceOwnership",
     "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "revokeSession",
+    "inputs": [
+      {
+        "name": "session",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
     "outputs": [],
     "stateMutability": "nonpayable"
   },
@@ -2063,6 +2154,50 @@ export const gameAbi = [
   },
   {
     "type": "event",
+    "name": "SessionAuthorized",
+    "inputs": [
+      {
+        "name": "player",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      },
+      {
+        "name": "session",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "until",
+        "type": "uint40",
+        "indexed": false,
+        "internalType": "uint40"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "SessionRevoked",
+    "inputs": [
+      {
+        "name": "player",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      },
+      {
+        "name": "session",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "TradeAccepted",
     "inputs": [
       {
@@ -2519,12 +2654,32 @@ export const gameAbi = [
   },
   {
     "type": "error",
+    "name": "InvalidSession",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "MissionsInFlight",
     "inputs": []
   },
   {
     "type": "error",
+    "name": "NotAllowed",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NotController",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "NotOnVacation",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "SessionTooLong",
     "inputs": []
   },
   {
@@ -2565,11 +2720,6 @@ export const gameAbi = [
   {
     "type": "error",
     "name": "NoOffer",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "NotAllowed",
     "inputs": []
   },
   {

@@ -20,9 +20,11 @@ cd "$root/contracts"
 forge script script/Deploy.s.sol --rpc-url "$rpc" --private-key "$key0" --broadcast >/dev/null
 game="$(jq -r '[.transactions[] | select(.contractName == "ERC1967Proxy")][0].contractAddress' \
   broadcast/Deploy.s.sol/31337/run-latest.json)"
+directory="$(jq -r '[.transactions[] | select(.contractName == "PasskeyDirectory")][0].contractAddress' \
+  broadcast/Deploy.s.sol/31337/run-latest.json)"
 block="$(cast block-number --rpc-url "$rpc")"
 cat > "$root/apps/web/public/deployment.local.json" <<JSON
-{ "chainId": 31337, "rpc": "$rpc", "game": "$game", "fromBlock": $block }
+{ "chainId": 31337, "rpc": "$rpc", "game": "$game", "directory": "$directory", "fromBlock": $block }
 JSON
 echo "Game deployed at $game (anvil $rpc)"
 

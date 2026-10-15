@@ -106,6 +106,14 @@ export interface Player {
   rank: number; // CAPO, SUBCAPO, MEMBER
   applications: bigint[]; // families applied to (B-31)
   offers: bigint[]; // trades where this player is the seller (B-09 cap)
+  sessionEpoch: bigint; // bumped by transferPlayer: older sessions stop working (B-15)
+}
+
+/** A session key: an address allowed to play for a player until `until` (B-15). */
+export interface Session {
+  player: bigint;
+  until: bigint;
+  epoch: bigint;
 }
 
 export interface World {
@@ -130,6 +138,7 @@ export interface World {
   activeWar: Map<string, bigint>; // "<low>:<high>" family pair → running war
   nextTrade: bigint;
   trades: Map<bigint, Trade>;
+  sessions: Map<string, Session>; // session address → authorization
 }
 
 /** Units per resource: 3600 s × rate denominator (B-27). */
@@ -157,6 +166,7 @@ export function newWorld(rs: Ruleset): World {
     activeWar: new Map(),
     nextTrade: 1n,
     trades: new Map(),
+    sessions: new Map(),
   };
 }
 

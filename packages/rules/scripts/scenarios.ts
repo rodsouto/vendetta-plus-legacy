@@ -51,6 +51,8 @@ const ACTION = {
   offerTrade: 30, // [buyer, sold, quantity, price × 4]
   cancelTrade: 31, // [trade]
   acceptTrade: 32, // [trade]
+  authorizeSession: 33, // [session (actor id), until]
+  revokeSession: 34, // [session (actor id)]
 } as const;
 
 /** Family tags and names by index, shared with Scenarios.t.sol (some invalid on purpose). */
@@ -98,8 +100,20 @@ const queueSnap = (q: sim.QueueItem[]) => ({
 const trainingSnap = (q: sim.TrainingItem[]) =>
   q.flatMap((i) => [i.index, num(i.quantity), num(i.seq), num(i.finishAt)]);
 
+/** Every session address ever authorized, so revoked ones are checked too (as zeros). */
+const SESSIONS = new Set<string>();
+
 function snapshot(w: sim.World) {
   return {
+    sessions: [...SESSIONS].map((k) => {
+      const s = w.sessions.get(k);
+      return {
+        actor: Number(k),
+        epoch: s ? num(s.epoch) : 0,
+        player: s ? num(s.player) : 0,
+        until: s ? num(s.until) : 0,
+      };
+    }),
     buildings: [...w.buildings.values()].map((b) => ({
       centipoints: num(b.centipoints),
       id: num(b.id),
@@ -138,9 +152,14 @@ function snapshot(w: sim.World) {
       ...queueSnap(p.researchQueue),
       research: p.research.map(num),
       research_building: num(p.researchBuilding),
-      social: [p.vacationUntil, p.suspendedUntil, p.premiumUntil, p.family, BigInt(p.rank)].map(
-        num,
-      ),
+      social: [
+        p.vacationUntil,
+        p.suspendedUntil,
+        p.premiumUntil,
+        p.family,
+        BigInt(p.rank),
+        p.sessionEpoch,
+      ].map(num),
       applications: p.applications.map(num),
       offers: p.offers.map(num),
     })),
@@ -267,6 +286,10 @@ function run(w: sim.World, controller: string, a: Action, now: bigint): void {
       return sim.cancelTrade(w, controller, n[0]!, now);
     case ACTION.acceptTrade:
       return sim.acceptTrade(w, controller, n[0]!, now);
+    case ACTION.authorizeSession:
+      return sim.authorizeSession(w, controller, String(n[0]), n[1]!, now);
+    case ACTION.revokeSession:
+      return sim.revokeSession(w, controller, String(n[0]), now);
   }
   throw new Error(`unknown action ${a.action}`);
 }
@@ -296,6 +319,7 @@ const reqsMet = (
 // ------------------------------------------------------------------ random core scenarios
 
 function randomScenario(seed: number) {
+  SESSIONS.clear();
   const r = rng(seed);
   const pick = <T>(xs: T[]) => xs[Math.floor(r() * xs.length)]!;
   const w = sim.newWorld(rs);
@@ -617,6 +641,7 @@ function socialCandidates(
 }
 
 function botScenario(seed: number) {
+  SESSIONS.clear();
   const r = rng(seed);
   const w = sim.newWorld(rs);
   const actors = 2 + Math.floor(r() * 3);
@@ -641,6 +666,9 @@ function botScenario(seed: number) {
   }
   // Players keep their seat when the account is transferred: the seat's controller changes.
   const controllers = Array.from({ length: actors }, (_, i) => i);
+  // Each seat may have a session key (B-15) that plays for it; ids 500+ never control a player.
+  const sessions: (number | undefined)[] = Array.from({ length: actors }, () => undefined);
+  let nextSession = 500;
   while (steps.length < BOTS.steps) {
     // Hours to a couple of days between actions: months of game time in total.
     now += BigInt(Math.floor(r() < 0.6 ? r() * 60_000 : r() * 300_000));
@@ -661,21 +689,45 @@ function botScenario(seed: number) {
       continue;
     }
     const seat = Math.floor(r() * actors);
-    const actor = controllers[seat]!;
-    const controller = String(actor);
-    const candidates = botCandidates(w, controller, r, now);
+    const owner = controllers[seat]!;
+    const controller = String(owner);
+    const session = sessions[seat];
+    // Half the time the seat plays through its session key, as a real client does.
+    const actor = session !== undefined && r() < 0.5 ? session : owner;
+    const candidates: Action[] = [];
+    const k = r();
+    if (k < 0.04) {
+      // A new device, or renewing the current one; sometimes too long, sometimes another seat's.
+      const target =
+        r() < 0.15 && sessions.some((x) => x !== undefined)
+          ? sessions.find((x) => x !== undefined)!
+          : session !== undefined && r() < 0.5
+            ? session
+            : nextSession++;
+      const span = r() < 0.1 ? num(rs.config.maxSessionSeconds) + 1 : Math.floor(r() * 1_500_000);
+      SESSIONS.add(String(target));
+      candidates.push({ action: ACTION.authorizeSession, args: [target, Number(now) + span] });
+    } else if (k < 0.05 && session !== undefined) {
+      candidates.push({ action: ACTION.revokeSession, args: [session] });
+    }
+    candidates.push(...botCandidates(w, controller, r, now));
     if (candidates.length === 0) continue;
     // Usually the first candidate that works; sometimes a failing one, to test reverts too.
     let chosen = candidates[0]!;
     let error = "";
     for (const c of candidates) {
       chosen = c;
-      error = attempt(w, controller, c, now);
+      error = attempt(w, String(actor), c, now);
       if (error === "" || r() < 0.15) break;
     }
     if (chosen.action === ACTION.transferPlayer && error === "")
       controllers[seat] = chosen.args[0]!;
+    if (chosen.action === ACTION.authorizeSession && error === "") sessions[seat] = chosen.args[0]!;
     record(actor, chosen, error);
+    // A session that expired, was revoked or died with a transfer is dropped after one more try.
+    const live = sessions[seat];
+    if (live !== undefined && sim.sessionPlayer(w, String(live), now) === undefined)
+      sessions[seat] = undefined;
   }
   return { actors, seed, steps };
 }
@@ -698,5 +750,6 @@ const count = (a: number) => steps.filter((x) => x.action === a && x.error === "
 console.log(
   `packages/rules/generated/scenarios/vendetta/: ${scenarios.length} scenarios, ${steps.length} steps, ` +
     `${steps.filter((x) => x.error).length} expected reverts; ok: ${count(ACTION.train)} train, ` +
-    `${count(ACTION.sendMission)} missions, ${count(ACTION.recall)} recalls, ${count(ACTION.abandon)} abandons`,
+    `${count(ACTION.sendMission)} missions, ${count(ACTION.recall)} recalls, ${count(ACTION.abandon)} abandons, ` +
+    `${count(ACTION.authorizeSession)} sessions`,
 );

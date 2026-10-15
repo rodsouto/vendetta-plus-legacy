@@ -2,10 +2,13 @@
 pragma solidity 0.8.28;
 
 import {VendettaRuleset as Ruleset} from "../generated/VendettaRuleset.sol";
-import {Player, CoreState, GameStorage} from "./GameStorage.sol";
+import {Player, Session, CoreState, GameStorage} from "./GameStorage.sol";
 import {Access} from "./Access.sol";
 import {
     NotRegistered,
+    NotAllowed,
+    InvalidSession,
+    SessionTooLong,
     MissionsInFlight,
     VacationCooldown,
     NotOnVacation,
@@ -31,10 +34,7 @@ library Account {
 
     /// Ends the vacation now; the cooldown counts from here.
     function endVacation(address caller) external {
-        CoreState storage s = GameStorage.core();
-        uint64 pid = s.playerOf[caller];
-        if (pid == 0) revert NotRegistered();
-        Player storage p = s.players[pid];
+        (uint64 pid, Player storage p) = Access.resolve(GameStorage.core(), caller);
         if (p.vacationUntil <= block.timestamp) revert NotOnVacation();
         p.vacationUntil = uint40(block.timestamp);
         emit IGameEvents.VacationEnded(pid);
@@ -57,12 +57,39 @@ library Account {
     /// Give the whole account to another address that controls no player.
     function transfer(address caller, address to) external {
         CoreState storage s = GameStorage.core();
+        Access.controllerOnly(s, caller);
         (uint64 pid, Player storage p) = Access.active(s, caller);
-        if (to == address(0) || s.playerOf[to] != 0) revert ControllerTaken();
+        if (to == address(0) || s.playerOf[to] != 0 || Access.sessionPlayer(s, to) != 0) {
+            revert ControllerTaken();
+        }
         delete s.playerOf[caller];
         s.playerOf[to] = pid;
         p.controller = to;
+        p.sessionEpoch++; // sessions authorized by the previous owner stop working
         emit IGameEvents.PlayerTransferred(pid, caller, to);
+    }
+
+    /// The controller lets `session` play for it until `until` (B-15): every game action, but
+    /// never account management. Allowed while locked, like ending a vacation.
+    function authorizeSession(address caller, address session, uint256 until) external {
+        CoreState storage s = GameStorage.core();
+        (uint64 pid, Player storage p) = Access.controllerOnly(s, caller);
+        uint64 taken = Access.sessionPlayer(s, session);
+        if (session == address(0) || s.playerOf[session] != 0 || (taken != 0 && taken != pid)) {
+            revert ControllerTaken();
+        }
+        if (until <= block.timestamp) revert InvalidSession();
+        if (until - block.timestamp > Ruleset.MAX_SESSION_SECONDS) revert SessionTooLong();
+        s.sessions[session] = Session(pid, uint40(until), p.sessionEpoch);
+        emit IGameEvents.SessionAuthorized(pid, session, uint40(until));
+    }
+
+    function revokeSession(address caller, address session) external {
+        CoreState storage s = GameStorage.core();
+        (uint64 pid,) = Access.controllerOnly(s, caller);
+        if (s.sessions[session].player != pid) revert NotAllowed();
+        delete s.sessions[session];
+        emit IGameEvents.SessionRevoked(pid, session);
     }
 
     function _player(uint64 id) private view returns (Player storage p) {

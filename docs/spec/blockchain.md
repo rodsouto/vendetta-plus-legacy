@@ -40,7 +40,7 @@ which network it runs on. Messaging, chat and moderation are off-chain (B-10).
 | B-12 | Starting coordinate | Keep | Player chooses any free coordinate; no randomness needed |
 | B-13 | Multi-accounts and bots | Keep | Everything allowed in v1 |
 | B-14 | Sanctions module | New | `suspend(player, until)` by an `arbiter` role |
-| B-15 | Accounts | New | Smart account, one passkey per device, recovery, session keys |
+| B-15 | Accounts | New | Kernel smart account, one passkey per device, passkey directory, recovery, native session keys |
 | B-16 | Gas | New | Low sponsored allowance; above it the player pays via credits |
 | B-17 | Upgradeability | New | Proxy, no timelock, admin in a Safe; later frozen, one immutable deploy per world |
 | B-18 | Events and indexer | New | Reports and notices as events; ranking in the indexer |
@@ -298,18 +298,33 @@ vacation or suspended can only end the vacation. In v1 `suspend(player, until)` 
 
 ## B-15 — Accounts — New
 
-- **Smart account** per player (provider chosen in the prototype: e.g. ZeroDev, Safe, Coinbase
-  Smart Wallet).
+- **Smart account** per player: **Kernel** (ZeroDev's open-source ERC-4337 account, EntryPoint
+  0.7), used directly without ZeroDev's services. It is the controller of the player (B-26).
 - **Passkeys as signers**, one per device. Synced passkeys (iCloud, Google) cover one ecosystem;
   adding a device from another ecosystem adds its own passkey as an extra signer. Verified with the
   P-256 precompile.
+- **Passkey directory** (`PasskeyDirectory`, ownerless, not upgradeable): WebAuthn returns the
+  public key only at creation, so the account publishes `credentialId → (P-256 key, account)` when
+  it is created. Another device with the synced passkey looks the key up, keeps only the entry whose
+  key verifies its sign-in assertion and whose account that key derives, and rebuilds the account
+  without a server. Entries are uncapped and read in pages, so a squatter cannot block a credential.
 - **Recovery** by a backup signer or email-based method.
-- **Session keys:** a short-lived key, limited to the game contracts, signs gameplay actions, so the
-  player does not confirm every action. The passkey signs only to open a session or manage devices.
+- **Session keys, native to the game:** the controller calls `authorizeSession(session, until)` to
+  let a per-device address (a simple 4337 account held by a browser key) play for it, at most
+  `onchain.max_session_seconds` (30 days); renewing is authorizing again, `revokeSession` ends it.
+  A session does every game action, under the same vacation and suspension locks, but never manages
+  the account: it cannot authorize or revoke sessions, transfer the player, or register a player of
+  its own (`NotController`, `AlreadyRegistered`). An address is a controller or a live session,
+  never both. Managing sessions works while the player is locked. Each player has a
+  `sessionEpoch`, bumped by `transferPlayer`, so the previous owner's sessions die without being
+  enumerated. The passkey signs only to create the account, open or renew a session and manage
+  devices.
 
 ## B-16 — Gas — New
 
 - A game **paymaster** (ERC-4337 / EIP-7702) sponsors a **low** allowance per account and day.
+  Bundler and paymaster: **Pimlico** (paid plan), with a sponsorship policy that sets the limits;
+  no relayer of our own.
 - Above it the player pays. The payment path is **credits bought by card** (on-ramp into the smart
   account, or a paymaster that charges credits), never "get ETH on Arbitrum".
 - Credits pay for gas only. **Premium** is separate (B-25).
@@ -566,4 +581,5 @@ Measured with a prototype before the B-03 deviation list and B-09 caps are fixed
 | Precision vs test vectors | **0 deviations** in every formula, including travel time and salary (exact integer math, B-03) |
 | Missions processed per transaction | `MAX_MISSIONS_PER_TX` = 10: up to ~14M gas in the worst case (10 worst battles), within an Arbitrum block |
 | Daily sponsored allowance per account | Set from the measured costs and budget |
-| Smart account provider supports multi-passkey + session keys + paymaster | To be chosen |
+| Smart account provider supports multi-passkey + session keys + paymaster | **Chosen (4b)**: Kernel with a passkey owner (permissionless.js), native game sessions (B-15), Pimlico paymaster. Multi-ecosystem devices and recovery still to verify |
+| Session management | **Measured (4b, inside a test)**: authorize a session ~41k (a new storage slot); an action through a session costs the same as through the controller plus about two storage reads |

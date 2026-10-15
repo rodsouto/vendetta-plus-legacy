@@ -107,6 +107,14 @@ struct Player {
     uint8 rank; // CAPO, SUBCAPO, MEMBER
     uint64[] applications; // families applied to (B-31)
     uint64[] offers; // trades where this player is the seller (B-09 cap)
+    uint32 sessionEpoch; // bumped by transferPlayer: older sessions stop working (B-15)
+}
+
+/// A session key: an address allowed to play for a player until `until` (B-15).
+struct Session {
+    uint64 player;
+    uint40 until;
+    uint32 epoch;
 }
 
 /// Core state (ERC-7201 namespace "vendetta.storage.core").
@@ -132,6 +140,7 @@ struct CoreState {
     mapping(bytes32 => uint64) activeWar; // family pair → running war
     uint64 nextTrade;
     mapping(uint64 => Trade) trades;
+    mapping(address => Session) sessions; // session address → authorization
 }
 
 library GameStorage {

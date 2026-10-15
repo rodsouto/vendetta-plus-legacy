@@ -41,7 +41,10 @@ export type GameErrorName =
   | "NoOffer"
   | "InvalidOffer"
   | "TooManyOffers"
-  | "InvalidTrade";
+  | "InvalidTrade"
+  | "NotController"
+  | "InvalidSession"
+  | "SessionTooLong";
 
 export class GameError extends Error {
   constructor(readonly code: GameErrorName) {

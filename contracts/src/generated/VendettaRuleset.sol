@@ -75,6 +75,7 @@ library VendettaRuleset {
     uint256 internal constant MARKET_WINDOW_SECONDS = 864000;
     uint256 internal constant MAX_OPEN_OFFERS = 10;
     uint256 internal constant MAX_APPLICATIONS = 5;
+    uint256 internal constant MAX_SESSION_SECONDS = 2592000;
     uint256 internal constant TAG_MIN = 2;
     uint256 internal constant TAG_MAX = 8;
     uint256 internal constant NAME_MIN = 2;

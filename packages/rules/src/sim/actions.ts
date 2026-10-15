@@ -14,7 +14,15 @@ import {
 } from "./settle.js";
 import { coordKey, stockScale, type Building, type Player, type World } from "./state.js";
 import { drain } from "./missions.js";
-import { atomic, isPremium, met, owned, settleForAction, type Coord } from "./common.js";
+import {
+  atomic,
+  isPremium,
+  met,
+  owned,
+  sessionPlayer,
+  settleForAction,
+  type Coord,
+} from "./common.js";
 
 export const register = atomic(function register(
   w: World,
@@ -24,7 +32,8 @@ export const register = atomic(function register(
 ): bigint {
   drain(w, now); // an occupation that already arrived may take the slot first
   const c = w.rs.config;
-  if (w.playerOf.has(controller)) fail("AlreadyRegistered");
+  if (w.playerOf.has(controller) || sessionPlayer(w, controller, now) !== undefined)
+    fail("AlreadyRegistered");
   if (
     coord.city < 1n ||
     coord.city > c.cities ||
@@ -54,6 +63,7 @@ export const register = atomic(function register(
     rank: 0,
     applications: [],
     offers: [],
+    sessionEpoch: 0n,
   });
   w.playerOf.set(controller, pid);
   return pid;
