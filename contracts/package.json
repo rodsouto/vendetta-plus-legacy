@@ -1,0 +1,17 @@
+{
+  "name": "@vendetta/contracts",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "forge build",
+    "test": "forge test"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "5.6.1",
+    "@openzeppelin/contracts-upgradeable": "5.6.1"
+  },
+  "devDependencies": {
+    "@vendetta/spec-data": "workspace:*",
+    "forge-std": "github:foundry-rs/forge-std#v1.16.2"
+  }
+}
