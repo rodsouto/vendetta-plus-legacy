@@ -5,3 +5,7 @@ contracts/out/
 contracts/cache/
 contracts/broadcast/
 __pycache__/
+apps/web/public/deployment.local.json
+apps/web/test-results/
+apps/web/playwright-report/
+apps/web/.impeccable/review/
