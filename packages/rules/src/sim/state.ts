@@ -33,6 +33,48 @@ export interface Mission {
   seq: bigint; // order among missions arriving at the same second (D-08)
   troops: bigint[];
   cargo: bigint[]; // whole resources, ruleset order
+  trade: bigint; // market trade this transport delivers for (D-19), 0 = none
+}
+
+export const CAPO = 1;
+export const SUBCAPO = 2;
+export const MEMBER = 3;
+
+export interface Family {
+  id: bigint;
+  alive: boolean; // false once dissolved: memberships, applications and wars pointing to it lapse
+  tag: string;
+  name: string;
+  members: bigint;
+}
+
+export const OFFER_NONE = 0;
+export const OFFER_SURRENDER = 1;
+export const OFFER_DRAW = 2;
+
+export interface War {
+  id: bigint;
+  a: bigint; // declaring family
+  b: bigint;
+  lostA: bigint; // centipoints of troops lost by members of a in battles against b
+  lostB: bigint;
+  ended: boolean;
+  winner: bigint; // 0 = draw (or still running)
+  offer: number; // OFFER_*
+  offerBy: bigint; // family that made the offer
+}
+
+export interface Trade {
+  id: bigint;
+  seller: bigint;
+  buyer: bigint;
+  sold: number; // resource index
+  quantity: bigint;
+  price: bigint[]; // per resource
+  delivered: bigint;
+  paid: bigint[];
+  accepted: boolean;
+  acceptedAt: bigint;
 }
 
 export interface Building {
@@ -57,6 +99,13 @@ export interface Player {
   buildings: bigint;
   centipoints: bigint; // rooms of every building + research + troops at home and in missions (B-19)
   missions: bigint; // missions in flight, outbound or returning (B-09)
+  vacationUntil: bigint; // on vacation while now < vacationUntil (D-18)
+  suspendedUntil: bigint; // suspended while now < suspendedUntil (B-14)
+  premiumUntil: bigint; // B-25
+  family: bigint; // valid only while that family is alive
+  rank: number; // CAPO, SUBCAPO, MEMBER
+  applications: bigint[]; // families applied to (B-31)
+  offers: bigint[]; // trades where this player is the seller (B-09 cap)
 }
 
 export interface World {
@@ -73,6 +122,14 @@ export interface World {
   missions: Map<bigint, Mission>;
   /** The global mission queue (B-07): ids ordered by (arrival, seq). */
   pending: bigint[];
+  nextFamily: bigint;
+  families: Map<bigint, Family>;
+  familyNames: Map<string, bigint>; // "tag:<lowercase>" / "name:<lowercase>" → family
+  nextWar: bigint;
+  wars: Map<bigint, War>;
+  activeWar: Map<string, bigint>; // "<low>:<high>" family pair → running war
+  nextTrade: bigint;
+  trades: Map<bigint, Trade>;
 }
 
 /** Units per resource: 3600 s × rate denominator (B-27). */
@@ -92,6 +149,14 @@ export function newWorld(rs: Ruleset): World {
     nextMission: 1n,
     missions: new Map(),
     pending: [],
+    nextFamily: 1n,
+    families: new Map(),
+    familyNames: new Map(),
+    nextWar: 1n,
+    wars: new Map(),
+    activeWar: new Map(),
+    nextTrade: 1n,
+    trades: new Map(),
   };
 }
 

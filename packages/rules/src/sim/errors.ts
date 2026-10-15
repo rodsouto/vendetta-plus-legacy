@@ -21,7 +21,27 @@ export type GameErrorName =
   | "TooManyMissions"
   | "CargoExceeded"
   | "NotRecallable"
-  | "LastBuilding";
+  | "LastBuilding"
+  | "OnVacation"
+  | "Suspended"
+  | "TargetOnVacation"
+  | "VacationCooldown"
+  | "MissionsInFlight"
+  | "NotOnVacation"
+  | "ControllerTaken"
+  | "InvalidName"
+  | "NameTaken"
+  | "InFamily"
+  | "NotAllowed"
+  | "UnknownFamily"
+  | "TooManyApplications"
+  | "AlreadyApplied"
+  | "NoApplication"
+  | "AlreadyAtWar"
+  | "NoOffer"
+  | "InvalidOffer"
+  | "TooManyOffers"
+  | "InvalidTrade";
 
 export class GameError extends Error {
   constructor(readonly code: GameErrorName) {

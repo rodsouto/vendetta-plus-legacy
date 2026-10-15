@@ -47,6 +47,13 @@ export const register = atomic(function register(
     buildings: 1n,
     centipoints: b.centipoints,
     missions: 0n,
+    vacationUntil: 0n,
+    suspendedUntil: 0n,
+    premiumUntil: 0n,
+    family: 0n,
+    rank: 0,
+    applications: [],
+    offers: [],
   });
   w.playerOf.set(controller, pid);
   return pid;
@@ -60,7 +67,7 @@ export const queueRoom = atomic(function queueRoom(
   now: bigint,
 ): void {
   drain(w, now);
-  const [p, b] = owned(w, controller, buildingId);
+  const [p, b] = owned(w, controller, buildingId, now);
   const def = w.rs.buildings[room] ?? fail("UnknownEntity");
   settleForAction(w, p, b, now);
   if (!met(p, b, def.requirements)) fail("RequirementsNotMet");
@@ -83,7 +90,7 @@ export const queueResearch = atomic(function queueResearch(
   now: bigint,
 ): void {
   drain(w, now);
-  const [p, b] = owned(w, controller, buildingId);
+  const [p, b] = owned(w, controller, buildingId, now);
   const def = w.rs.research[research] ?? fail("UnknownEntity");
   settleForAction(w, p, b, now);
   if (p.researchBuilding !== 0n && p.researchBuilding !== b.id) fail("ResearchElsewhere");
@@ -111,7 +118,7 @@ export const cancelRoom = atomic(function cancelRoom(
   now: bigint,
 ): void {
   drain(w, now);
-  const [p, b] = owned(w, controller, buildingId);
+  const [p, b] = owned(w, controller, buildingId, now);
   settleForAction(w, p, b, now);
   if (position < 0 || position >= b.roomQueue.length) fail("NothingToCancel");
   if (position === 0) {
@@ -131,7 +138,7 @@ export const cancelResearch = atomic(function cancelResearch(
   now: bigint,
 ): void {
   drain(w, now);
-  const [p, b] = owned(w, controller, buildingId);
+  const [p, b] = owned(w, controller, buildingId, now);
   settleForAction(w, p, b, now);
   if (p.researchBuilding !== b.id || position < 0 || position >= p.researchQueue.length)
     fail("NothingToCancel");

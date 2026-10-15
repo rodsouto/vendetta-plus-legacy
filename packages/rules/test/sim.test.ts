@@ -122,6 +122,7 @@ describe("sim: missions (same cases as contracts/test/core/Missions.t.sol)", () 
       { ...at, slot: 2n },
       rowdies(5n),
       none,
+      0n,
       now,
     );
     const m = w.missions.get(id)!;
@@ -141,6 +142,7 @@ describe("sim: missions (same cases as contracts/test/core/Missions.t.sol)", () 
       { ...at, slot: 50n },
       rowdies(3n),
       none,
+      0n,
       now,
     );
     const m = w.missions.get(id)!;
@@ -160,6 +162,7 @@ describe("sim: missions (same cases as contracts/test/core/Missions.t.sol)", () 
         { ...at, slot: 100n + i },
         rowdies(1n),
         none,
+        0n,
         now,
       );
     const later = now + 30n * 86400n;
@@ -172,5 +175,119 @@ describe("sim: missions (same cases as contracts/test/core/Missions.t.sol)", () 
   it("never abandons the last building (B-30)", () => {
     const { w, now } = twoPlayers();
     expect(() => sim.abandon(w, "alice", 1n, now)).toThrow("LastBuilding");
+  });
+});
+
+describe("sim: account (D-18, B-14, B-25, B-26)", () => {
+  const day = 86400n;
+  it("vacation locks the account, blocks new missions to it and has a 7-day cooldown", () => {
+    const w = sim.newWorld(rs);
+    const t = 1_700_000_000n;
+    sim.register(w, "alice", at, t);
+    sim.register(w, "bob", { ...at, slot: 2n }, t);
+    sim.startVacation(w, "bob", t);
+    expect(() => sim.queueRoom(w, "bob", 2n, room("boss_office"), t + 1n)).toThrow("OnVacation");
+    expect(() =>
+      sim.sendMission(
+        w,
+        "alice",
+        1n,
+        sim.ATTACK,
+        { ...at, slot: 2n },
+        rs.troops.map(() => 0n),
+        [0n, 0n, 0n, 0n],
+        0n,
+        t + 1n,
+      ),
+    ).toThrow("TargetOnVacation");
+    sim.endVacation(w, "bob", t + day);
+    expect(() => sim.startVacation(w, "bob", t + day + 6n * day)).toThrow("VacationCooldown");
+    sim.startVacation(w, "bob", t + day + 7n * day);
+  });
+
+  it("a suspended player cannot act; premium raises queue limits; transfer moves the account", () => {
+    const w = sim.newWorld(rs);
+    const t = 1_700_000_000n;
+    sim.register(w, "alice", at, t);
+    sim.suspend(w, 1n, t + 100n);
+    expect(() => sim.queueRoom(w, "alice", 1n, room("boss_office"), t)).toThrow("Suspended");
+    sim.suspend(w, 1n, 0n);
+    sim.grantPremium(w, 1n, t + day);
+    sim.queueRoom(w, "alice", 1n, room("weapons_armoury"), t);
+    sim.queueRoom(w, "alice", 1n, room("weapons_armoury"), t); // second item: premium only
+    sim.transferPlayer(w, "alice", "carol", t);
+    expect(w.playerOf.get("carol")).toBe(1n);
+    expect(() => sim.queueRoom(w, "alice", 1n, room("boss_office"), t)).toThrow("NotRegistered");
+  });
+});
+
+describe("sim: families and wars (D-20, B-31)", () => {
+  it("creates, applies, accepts; names are unique ignoring case; the Capo cannot be kicked", () => {
+    const w = sim.newWorld(rs);
+    const t = 1_700_000_000n;
+    for (const [i, c] of ["alice", "bob", "carol"].entries())
+      sim.register(w, c, { ...at, slot: BigInt(i + 1) }, t);
+    const f = sim.createFamily(w, "alice", "MOB", "The Mob", t);
+    expect(() => sim.createFamily(w, "bob", "mob", "Other", t)).toThrow("NameTaken");
+    sim.applyToFamily(w, "bob", f, t);
+    sim.acceptApplication(w, "alice", 2n, t);
+    expect(sim.familyOf(w, w.players.get(2n)!)).toBe(f);
+    sim.setRank(w, "alice", 2n, sim.SUBCAPO, t);
+    expect(() => sim.kickMember(w, "bob", 1n, t)).toThrow("NotAllowed");
+    sim.dissolveFamily(w, "alice", t);
+    expect(sim.familyOf(w, w.players.get(2n)!)).toBe(0n); // lapsed lazily
+  });
+
+  it("war score adds each side's lost troop points; surrender ends the war", () => {
+    const w = sim.newWorld(rs);
+    const t = 1_700_000_000n;
+    sim.register(w, "alice", at, t);
+    sim.register(w, "bob", { ...at, slot: 2n }, t);
+    const a = sim.createFamily(w, "alice", "AAA", "Alpha", t);
+    const b = sim.createFamily(w, "bob", "BBB", "Beta", t);
+    const war = sim.declareWar(w, "alice", b, t);
+    expect(() => sim.declareWar(w, "bob", a, t)).toThrow("AlreadyAtWar");
+    sim.warScore(w, w.players.get(1n)!, w.players.get(2n)!, 600n, 300n);
+    expect([w.wars.get(war)!.lostA, w.wars.get(war)!.lostB]).toEqual([600n, 300n]);
+    sim.offerPeace(w, "bob", war, sim.OFFER_SURRENDER, t);
+    sim.answerPeace(w, "alice", war, true, t);
+    expect(w.wars.get(war)!.winner).toBe(a);
+  });
+});
+
+describe("sim: market (D-19, B-11)", () => {
+  it("checks the fixed rates exactly and settles deliveries by trade id", () => {
+    const w = sim.newWorld(rs);
+    const t = 1_700_000_000n;
+    sim.register(w, "alice", at, t);
+    sim.register(w, "bob", { ...at, slot: 2n }, t);
+    // 3-5-1: 1 dollar = 3 weapons = 5 ammunition. Sell 300 weapons for 100 dollars.
+    expect(() => sim.offerTrade(w, "alice", 2n, 0, 300n, [0n, 0n, 0n, 99n], t)).toThrow(
+      "InvalidOffer",
+    );
+    const id = sim.offerTrade(w, "alice", 2n, 0, 300n, [0n, 0n, 0n, 100n], t);
+    // 2-4-1 works too: 200 weapons = 400 ammunition.
+    sim.offerTrade(w, "alice", 2n, 0, 200n, [0n, 400n, 0n, 0n], t);
+    sim.acceptTrade(w, "bob", id, t);
+    const tr = w.trades.get(id)!;
+    const m: sim.Mission = {
+      ...({} as sim.Mission),
+      owner: 1n,
+      trade: id,
+      cargo: [120n, 0n, 0n, 0n],
+    };
+    sim.settleTrade(w, m, w.buildings.get(2n)!, t + 10n);
+    expect(tr.delivered).toBe(120n);
+    sim.settleTrade(w, { ...m, cargo: [0n, 5n, 0n, 0n] }, w.buildings.get(2n)!, t + 10n);
+    expect(tr.delivered).toBe(120n); // wrong resource: a plain transport
+    sim.settleTrade(
+      w,
+      { ...m, owner: 2n, cargo: [0n, 0n, 0n, 100n] },
+      w.buildings.get(1n)!,
+      t + 10n,
+    );
+    expect(tr.paid).toEqual([0n, 0n, 0n, 100n]);
+    sim.settleTrade(w, { ...m, cargo: [180n, 0n, 0n, 0n] }, w.buildings.get(2n)!, t + 11n * 86400n);
+    expect(tr.delivered).toBe(120n); // after the 10-day window it no longer settles
   });
 });

@@ -27,14 +27,32 @@ export function atomic<A extends unknown[], R>(fn: (w: World, ...args: A) => R) 
   };
 }
 
-/** B-25. Per-player premium arrives in 3c; for now only the admin's global premium. */
-export const isPremium = (w: World, _p: Player, now: bigint) => w.globalPremiumUntil > now;
+/** B-25: the player's own premium or the admin's global premium. */
+export const isPremium = (w: World, p: Player, now: bigint) =>
+  p.premiumUntil > now || w.globalPremiumUntil > now;
 
-export function owned(w: World, controller: string, buildingId: bigint): [Player, Building] {
+export const onVacation = (p: Player, now: bigint) => p.vacationUntil > now;
+export const suspended = (p: Player, now: bigint) => p.suspendedUntil > now;
+
+/** The acting player; a player on vacation (D-18) or suspended (B-14) cannot act. */
+export function active(w: World, controller: string, now: bigint): Player {
   const pid = w.playerOf.get(controller) ?? fail("NotRegistered");
+  const p = w.players.get(pid)!;
+  if (onVacation(p, now)) fail("OnVacation");
+  if (suspended(p, now)) fail("Suspended");
+  return p;
+}
+
+export function owned(
+  w: World,
+  controller: string,
+  buildingId: bigint,
+  now: bigint,
+): [Player, Building] {
+  const p = active(w, controller, now);
   const b = w.buildings.get(buildingId) ?? fail("NotOwner");
-  if (b.owner !== pid) fail("NotOwner");
-  return [w.players.get(pid)!, b];
+  if (b.owner !== p.id) fail("NotOwner");
+  return [p, b];
 }
 
 /** Settle the building and, if the player researches elsewhere, that building too. */

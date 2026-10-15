@@ -7,8 +7,19 @@ import { apportionLoot } from "../loot.js";
 import { distance, missionSalary, travelSeconds } from "../map.js";
 import { storage } from "../economy.js";
 import { allTroopStats, troopStats } from "../stats.js";
-import { atomic, isPremium, met, owned, settleForAction, type Coord } from "./common.js";
+import {
+  active,
+  atomic,
+  isPremium,
+  met,
+  onVacation,
+  owned,
+  settleForAction,
+  type Coord,
+} from "./common.js";
 import { fail } from "./errors.js";
+import { warScore } from "./families.js";
+import { settleTrade, tradeOpenFor } from "./market.js";
 import {
   affordable,
   credit,
@@ -88,10 +99,17 @@ function battle(w: World, m: Mission, b: Building, t: bigint): void {
       pct: honorOf(w, defender),
     },
   );
-  const lostA = m.troops.map((n, i) => n - r.attackerRemaining[i]!);
-  const lostD = b.troops.map((n, i) => n - r.defenderRemaining[i]!);
-  attacker.centipoints -= troopCentipoints(w, lostA);
-  defender.centipoints -= troopCentipoints(w, lostD);
+  const lostA = troopCentipoints(
+    w,
+    m.troops.map((n, i) => n - r.attackerRemaining[i]!),
+  );
+  const lostD = troopCentipoints(
+    w,
+    b.troops.map((n, i) => n - r.defenderRemaining[i]!),
+  );
+  attacker.centipoints -= lostA;
+  defender.centipoints -= lostD;
+  warScore(w, attacker, defender, lostA, lostD);
   m.troops = r.attackerRemaining;
   b.troops = r.defenderRemaining;
 
@@ -160,6 +178,7 @@ function process(w: World, m: Mission): void {
     if (target) {
       settle(w, target, t);
       credit(w, target, Object.fromEntries(w.rs.resources.map((r, i) => [r, m.cargo[i]!])));
+      if (m.trade !== 0n) settleTrade(w, m, target, t);
     }
     m.cargo = m.cargo.map(() => 0n); // delivered, or lost on an empty slot
     return sendBack(w, m, t);
@@ -219,7 +238,7 @@ export const train = atomic(function train(
   now: bigint,
 ): void {
   drain(w, now);
-  const [p, b] = owned(w, controller, buildingId);
+  const [p, b] = owned(w, controller, buildingId, now);
   const def = w.rs.troops[troop] ?? fail("UnknownEntity");
   if (quantity < 1n) fail("NoUnits");
   settleForAction(w, p, b, now);
@@ -245,7 +264,7 @@ export const cancelTraining = atomic(function cancelTraining(
   now: bigint,
 ): void {
   drain(w, now);
-  const [p, b] = owned(w, controller, buildingId);
+  const [p, b] = owned(w, controller, buildingId, now);
   settleForAction(w, p, b, now);
   const queue = b.training[queueIndex];
   if (!queue || position < 0 || position >= queue.length) fail("NothingToCancel");
@@ -269,10 +288,11 @@ export const sendMission = atomic(function sendMission(
   target: Coord,
   troops: bigint[],
   resources: bigint[],
+  trade: bigint,
   now: bigint,
 ): bigint {
   drain(w, now);
-  const [p, b] = owned(w, controller, buildingId);
+  const [p, b] = owned(w, controller, buildingId, now);
   const c = w.rs.config;
   if (kind < ATTACK || kind > OCCUPY) fail("InvalidMission");
   if (
@@ -288,6 +308,10 @@ export const sendMission = atomic(function sendMission(
   const targetId = w.buildingAt.get(coordKey(target));
   if (kind === ATTACK && targetId !== undefined && w.buildings.get(targetId)!.owner === p.id)
     fail("OwnTarget");
+  if (targetId !== undefined && onVacation(w.players.get(w.buildings.get(targetId)!.owner)!, now))
+    fail("TargetOnVacation"); // D-18
+  if (trade !== 0n && (kind !== TRANSPORT || !tradeOpenFor(w, trade, p.id, now)))
+    fail("InvalidTrade");
   if (p.missions >= BigInt(c.maxOutgoingMissions)) fail("TooManyMissions");
   settleForAction(w, p, b, now);
 
@@ -335,6 +359,7 @@ export const sendMission = atomic(function sendMission(
     seq: w.seq++,
     troops: [...troops],
     cargo,
+    trade,
   };
   w.missions.set(m.id, m);
   p.missions += 1n;
@@ -350,7 +375,7 @@ export const recall = atomic(function recall(
   now: bigint,
 ): void {
   drain(w, now);
-  const pid = w.playerOf.get(controller) ?? fail("NotRegistered");
+  const pid = active(w, controller, now).id;
   const m = w.missions.get(missionId);
   if (!m || m.owner !== pid || m.returning) fail("NotRecallable");
   w.pending.splice(w.pending.indexOf(m.id), 1);
@@ -369,7 +394,7 @@ export const abandon = atomic(function abandon(
   now: bigint,
 ): void {
   drain(w, now);
-  const [p, b] = owned(w, controller, buildingId);
+  const [p, b] = owned(w, controller, buildingId, now);
   if (p.buildings <= 1n) fail("LastBuilding");
   settleForAction(w, p, b, now);
   p.centipoints -= b.centipoints + troopCentipoints(w, b.troops);

@@ -160,6 +160,15 @@ export interface Config {
   occupationTroopsConsumed: bigint;
   /** Missions a player can have in flight (B-09). */
   maxOutgoingMissions: number;
+  vacationSeconds: bigint;
+  vacationCooldownSeconds: bigint;
+  marketWindowSeconds: bigint;
+  maxOpenOffers: number;
+  maxApplications: number;
+  /** Market exchange rates: value of 1 dollar in each resource, per resource index (0 = not tradable). */
+  marketRates: bigint[][];
+  tagLength: [number, number];
+  nameLength: [number, number];
   /** Queue limits without and with premium (B-25). */
   roomQueue: [number, number];
   researchQueue: [number, number];
@@ -307,6 +316,16 @@ export function loadRuleset(raw: RawRuleset, cfg: typeof gameConfig): Ruleset {
       occupationBuildSpeedLevel: BigInt(cfg.occupation.starting_build_speed_room_level),
       occupationTroopsConsumed: BigInt(cfg.occupation.occupation_troops_consumed),
       maxOutgoingMissions: cfg.onchain.max_outgoing_missions_per_player,
+      vacationSeconds: BigInt(cfg.vacation.duration_days) * 86400n,
+      vacationCooldownSeconds: BigInt(cfg.vacation.cooldown_days) * 86400n,
+      marketWindowSeconds: BigInt(cfg.market.delivery_window_days) * 86400n,
+      maxOpenOffers: cfg.onchain.max_open_market_offers_per_player,
+      maxApplications: cfg.onchain.max_family_applications_per_player,
+      marketRates: Object.values(
+        cfg.market.exchange_rates as Record<string, Record<string, number>>,
+      ).map((rate) => raw.resources.map((r) => BigInt(rate[r] ?? 0))),
+      tagLength: cfg.families.tag_length as [number, number],
+      nameLength: cfg.families.name_length as [number, number],
       roomQueue: [
         cfg.premium.without_premium.max_room_queue_per_building,
         cfg.premium.with_premium.max_room_queue_per_building,
