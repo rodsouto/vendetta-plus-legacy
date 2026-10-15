@@ -6,6 +6,8 @@ pragma solidity 0.8.28;
 // File-level so they can size arrays in other files (library constants cannot).
 uint256 constant TROOPS = 21;
 uint256 constant RESEARCH = 16;
+uint256 constant ROOMS = 15;
+uint256 constant RESOURCES = 4;
 
 /// Ruleset constants for "vendetta". Troop and research indices follow the ruleset file order.
 library VendettaRuleset {
@@ -17,6 +19,129 @@ library VendettaRuleset {
     uint256 internal constant ATTACK_TROOPS = 0xffff;
     /// speedResearch() value for troops that never move.
     uint256 internal constant NO_RESEARCH = 255;
+    /// Marker for "no resource" in production and storage tables.
+    uint256 internal constant NO_RESOURCE = 255;
+
+    // Roles (rooms).
+    uint256 internal constant BUILD_SPEED_ROOM = 0;
+    uint256 internal constant RESEARCH_SPEED_ROOM = 1;
+    uint256 internal constant ATTACK_TRAINING_ROOM = 11;
+    uint256 internal constant DEFENSE_TRAINING_ROOM = 12;
+
+    // Resources (indices in ruleset order: weapons, ammunition, alcohol, dollar).
+    /// The resource converters consume (alcohol).
+    uint256 internal constant CONVERTED_RESOURCE = 2;
+    /// Production rates are per hour ×RATE_DEN (lcm of consumption_per_unit), B-03.
+    uint256 internal constant RATE_DEN = 28;
+    /// Stock units per resource: 3600 s × RATE_DEN, so a rate ×RATE_DEN per hour is units per second (B-27).
+    uint256 internal constant STOCK_SCALE = 100800;
+
+    // game_config.yaml
+    uint256 internal constant UPGRADE_SPEED_MULTIPLIER = 3;
+    uint256 internal constant CITIES = 50;
+    uint256 internal constant NEIGHBORHOODS = 50;
+    uint256 internal constant SLOTS = 255;
+    uint256 internal constant GRID_COLUMNS = 17;
+    uint256 internal constant GRID_ROWS = 15;
+    uint256 internal constant START_RESOURCES = 10000;
+    uint256 internal constant START_BUILD_SPEED_LEVEL = 1;
+    uint256 internal constant ROOM_QUEUE = 1;
+    uint256 internal constant ROOM_QUEUE_PREMIUM = 6;
+    uint256 internal constant RESEARCH_QUEUE = 1;
+    uint256 internal constant RESEARCH_QUEUE_PREMIUM = 6;
+    uint256 internal constant TROOP_QUEUE = 1;
+    uint256 internal constant TROOP_QUEUE_PREMIUM = 5;
+
+    /// Base cost per room (level 0 → 1), per resource.
+    function roomCost() internal pure returns (uint256[RESOURCES][ROOMS] memory) {
+        return [[uint256(100), 200, 0, 0], [uint256(1000), 1000, 0, 25], [uint256(12), 60, 0, 0], [uint256(9), 15, 0, 0], [uint256(20), 20, 0, 0], [uint256(10), 50, 0, 0], [uint256(2000), 5000, 0, 500], [uint256(100), 500, 0, 0], [uint256(500), 600, 0, 0], [uint256(200), 200, 0, 0], [uint256(2000), 2000, 0, 1000], [uint256(1000), 2500, 0, 0], [uint256(900), 1600, 0, 100], [uint256(1000), 2000, 0, 200], [uint256(2000), 2000, 0, 150]];
+    }
+
+    /// Base duration per room, in seconds.
+    function roomSeconds() internal pure returns (uint256[ROOMS] memory) {
+        return [uint256(900), 2000, 500, 600, 1000, 1500, 4000, 9000, 12000, 8000, 16000, 5600, 6000, 4500, 3000];
+    }
+
+    /// Points per room level, ×100.
+    function roomCentipoints() internal pure returns (uint256[ROOMS] memory) {
+        return [uint256(600), 3175, 232, 139, 160, 210, 13600, 1200, 1800, 700, 9100, 6100, 4500, 5700, 6550];
+    }
+
+    /// Requirements per room: (kind, index, level) triples, kind 0 = room, 1 = research.
+    function roomRequirements() internal pure returns (bytes[ROOMS] memory) {
+        return [bytes(hex""), bytes(hex""), bytes(hex""), bytes(hex""), bytes(hex""), bytes(hex"000401"), bytes(hex"000005000408"), bytes(hex"000205"), bytes(hex"000305"), bytes(hex"000405"), bytes(hex"000505"), bytes(hex""), bytes(hex"000b02"), bytes(hex"000005"), bytes(hex"000005")];
+    }
+
+    /// Base cost per research (level 0 → 1), per resource.
+    function researchCost() internal pure returns (uint256[RESOURCES][RESEARCH] memory) {
+        return [[uint256(500), 1200, 0, 0], [uint256(1000), 2500, 0, 1000], [uint256(1000), 2000, 0, 0], [uint256(0), 0, 0, 5000], [uint256(0), 0, 0, 1500], [uint256(500), 500, 0, 300], [uint256(1000), 4000, 0, 1000], [uint256(3000), 5000, 0, 2000], [uint256(2000), 2000, 0, 3000], [uint256(1000), 200, 0, 3000], [uint256(5000), 12000, 0, 10000], [uint256(10000), 19500, 0, 15000], [uint256(8000), 10000, 0, 12000], [uint256(2000), 5000, 0, 16000], [uint256(4000), 12000, 0, 10000], [uint256(0), 0, 0, 280000]];
+    }
+
+    /// Base duration per research, in seconds.
+    function researchSeconds() internal pure returns (uint256[RESEARCH] memory) {
+        return [uint256(2000), 5000, 3000, 14400, 9600, 4200, 4000, 5000, 6200, 5100, 19200, 42000, 20000, 26000, 14400, 92000];
+    }
+
+    /// Points per research level, ×100.
+    function researchCentipoints() internal pure returns (uint256[RESEARCH] memory) {
+        return [uint256(1550), 4600, 2600, 7600, 2350, 1300, 6100, 9600, 7600, 5300, 29600, 47100, 32100, 30100, 29100, 420100];
+    }
+
+    /// Requirements per research: (kind, index, level) triples, kind 0 = room, 1 = research.
+    function researchRequirements() internal pure returns (bytes[RESEARCH] memory) {
+        return [bytes(hex""), bytes(hex"010004"), bytes(hex""), bytes(hex"010605"), bytes(hex"010101"), bytes(hex""), bytes(hex""), bytes(hex"010604"), bytes(hex"010203"), bytes(hex"010205"), bytes(hex"010904010704"), bytes(hex"010104010804"), bytes(hex"010606010a06"), bytes(hex"010c04"), bytes(hex"010b04010d04"), bytes(hex"010508010408")];
+    }
+
+    /// Production role per room: 0 none, 1 producer, 2 converter.
+    function productionKind() internal pure returns (uint256[ROOMS] memory) {
+        return [uint256(0), 0, 1, 1, 1, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0];
+    }
+
+    /// Resource produced, or NO_RESOURCE.
+    function productionResource() internal pure returns (uint256[ROOMS] memory) {
+        return [uint256(255), 255, 0, 1, 2, 3, 3, 255, 255, 255, 255, 255, 255, 255, 255];
+    }
+
+    /// Factor f in round(f × ((L+1)/2)²).
+    function productionFactor() internal pure returns (uint256[ROOMS] memory) {
+        return [uint256(0), 0, 10, 10, 50, 2, 21, 0, 0, 0, 0, 0, 0, 0, 0];
+    }
+
+    /// Producer output at level 0 and base added at L > 0.
+    function productionBase() internal pure returns (uint256[ROOMS] memory) {
+        return [uint256(0), 0, 10, 10, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    }
+
+    /// Converter: input consumed per unit of output.
+    function consumptionPerUnit() internal pure returns (uint256[ROOMS] memory) {
+        return [uint256(0), 0, 0, 0, 0, 7, 4, 0, 0, 0, 0, 0, 0, 0, 0];
+    }
+
+    /// Converter: fixed input consumption at L > 0.
+    function consumptionFixed() internal pure returns (uint256[ROOMS] memory) {
+        return [uint256(0), 0, 0, 0, 0, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0];
+    }
+
+    /// Resource stored by the room, or NO_RESOURCE.
+    function storageResource() internal pure returns (uint256[ROOMS] memory) {
+        return [uint256(255), 255, 255, 255, 255, 255, 255, 0, 1, 2, 3, 255, 255, 255, 255];
+    }
+
+    /// Storage capacity at level 0.
+    function storageBase() internal pure returns (uint256[ROOMS] memory) {
+        return [uint256(0), 0, 0, 0, 0, 0, 0, 10000, 10000, 10000, 10000, 0, 0, 0, 0];
+    }
+
+    /// Storage capacity added per level.
+    function storagePerLevel() internal pure returns (uint256[ROOMS] memory) {
+        return [uint256(0), 0, 0, 0, 0, 0, 0, 150000, 150000, 150000, 150000, 0, 0, 0, 0];
+    }
+
+    /// Protected amount = capacity / divisor.
+    function storageSafeDivisor() internal pure returns (uint256[ROOMS] memory) {
+        return [uint256(1), 1, 1, 1, 1, 1, 1, 10, 10, 10, 10, 1, 1, 1, 1];
+    }
+
 
     /// Base attack per troop.
     function baseAttack() internal pure returns (uint256[TROOPS] memory) {

@@ -7,7 +7,13 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse } from "yaml";
-import { combatFixtures, honorFixtures, lootFixtures, troopStatsFixtures } from "./fixtures.js";
+import {
+  combatFixtures,
+  honorFixtures,
+  lootFixtures,
+  troopStatsFixtures,
+  upgradeFixtures,
+} from "./fixtures.js";
 import { rulesetLibrary } from "./solidity.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -66,4 +72,16 @@ for (const rs of ONCHAIN_RULESETS) {
   );
   write(join(fixtures, "loot.json"), json(lootFixtures(legacy.loot.cases)));
   write(join(fixtures, "honor.json"), json(honorFixtures(legacy.honor.cases)));
+  write(
+    join(fixtures, "upgrades.json"),
+    json(
+      upgradeFixtures(
+        ruleset.buildings.map((b: { id: string }) => b.id),
+        ruleset.research.map((r: { id: string }) => r.id),
+        ruleset.resources,
+        legacy.building_upgrade.cases,
+        legacy.research_upgrade.cases,
+      ),
+    ),
+  );
 }

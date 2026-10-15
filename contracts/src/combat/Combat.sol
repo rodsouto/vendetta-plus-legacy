@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.28;
 
-import {TROOPS, RESEARCH, VendettaRuleset as Ruleset} from "../generated/VendettaRuleset.sol";
+import {TROOPS, VendettaRuleset as Ruleset} from "../generated/VendettaRuleset.sol";
 import {LossRatio} from "./LossRatio.sol";
 
 /// Battle resolution under the target rules (06-combat.md, decisions.md D-04, D-15, D-16, D-25).

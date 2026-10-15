@@ -150,3 +150,38 @@ export function honorFixtures(cases: HonorCase[]) {
     })),
   };
 }
+
+interface UpgradeCase {
+  building?: string;
+  research?: string;
+  from_level: number;
+  boss_office_level?: number;
+  mob_school_level?: number;
+  cost: Record<string, number>;
+  time_seconds: number;
+}
+
+/// building_upgrade + research_upgrade: entity index, from level, timing room level, cost per resource
+/// (ruleset order) and seconds. kind 0 = room, 1 = research.
+export function upgradeFixtures(
+  rooms: string[],
+  research: string[],
+  resources: string[],
+  buildingCases: UpgradeCase[],
+  researchCases: UpgradeCase[],
+) {
+  const row = (c: UpgradeCase, kind: number, index: number, timing: number) => ({
+    cost: resources.map((r) => c.cost[r] ?? 0),
+    from: c.from_level,
+    index,
+    kind,
+    seconds: c.time_seconds,
+    timing,
+  });
+  return {
+    cases: [
+      ...buildingCases.map((c) => row(c, 0, rooms.indexOf(c.building!), c.boss_office_level!)),
+      ...researchCases.map((c) => row(c, 1, research.indexOf(c.research!), c.mob_school_level!)),
+    ],
+  };
+}

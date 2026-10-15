@@ -2,7 +2,8 @@
 pragma solidity 0.8.28;
 
 import {Test} from "forge-std/Test.sol";
-import {RESOURCES, Loot} from "../../src/combat/Loot.sol";
+import {Loot} from "../../src/combat/Loot.sol";
+import {RESOURCES} from "../../src/generated/VendettaRuleset.sol";
 import {Fixtures} from "./Fixtures.sol";
 
 contract LootTest is Test {

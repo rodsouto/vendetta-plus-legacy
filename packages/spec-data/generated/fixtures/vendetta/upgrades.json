@@ -1,0 +1,4840 @@
+{
+  "cases": [
+    {
+      "cost": [
+        100,
+        200,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 0,
+      "kind": 0,
+      "seconds": 300,
+      "timing": 1
+    },
+    {
+      "cost": [
+        100,
+        200,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 0,
+      "kind": 0,
+      "seconds": 30,
+      "timing": 10
+    },
+    {
+      "cost": [
+        100,
+        200,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 0,
+      "kind": 0,
+      "seconds": 15,
+      "timing": 20
+    },
+    {
+      "cost": [
+        2500,
+        5000,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 0,
+      "kind": 0,
+      "seconds": 7500,
+      "timing": 1
+    },
+    {
+      "cost": [
+        2500,
+        5000,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 0,
+      "kind": 0,
+      "seconds": 750,
+      "timing": 10
+    },
+    {
+      "cost": [
+        2500,
+        5000,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 0,
+      "kind": 0,
+      "seconds": 375,
+      "timing": 20
+    },
+    {
+      "cost": [
+        10000,
+        20000,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 0,
+      "kind": 0,
+      "seconds": 30000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        10000,
+        20000,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 0,
+      "kind": 0,
+      "seconds": 3000,
+      "timing": 10
+    },
+    {
+      "cost": [
+        10000,
+        20000,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 0,
+      "kind": 0,
+      "seconds": 1500,
+      "timing": 20
+    },
+    {
+      "cost": [
+        40000,
+        80000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 0,
+      "kind": 0,
+      "seconds": 120000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        40000,
+        80000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 0,
+      "kind": 0,
+      "seconds": 12000,
+      "timing": 10
+    },
+    {
+      "cost": [
+        40000,
+        80000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 0,
+      "kind": 0,
+      "seconds": 6000,
+      "timing": 20
+    },
+    {
+      "cost": [
+        1000,
+        1000,
+        0,
+        25
+      ],
+      "from": 0,
+      "index": 1,
+      "kind": 0,
+      "seconds": 667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        1000,
+        1000,
+        0,
+        25
+      ],
+      "from": 0,
+      "index": 1,
+      "kind": 0,
+      "seconds": 67,
+      "timing": 10
+    },
+    {
+      "cost": [
+        1000,
+        1000,
+        0,
+        25
+      ],
+      "from": 0,
+      "index": 1,
+      "kind": 0,
+      "seconds": 33,
+      "timing": 20
+    },
+    {
+      "cost": [
+        25000,
+        25000,
+        0,
+        625
+      ],
+      "from": 4,
+      "index": 1,
+      "kind": 0,
+      "seconds": 16667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        25000,
+        25000,
+        0,
+        625
+      ],
+      "from": 4,
+      "index": 1,
+      "kind": 0,
+      "seconds": 1667,
+      "timing": 10
+    },
+    {
+      "cost": [
+        25000,
+        25000,
+        0,
+        625
+      ],
+      "from": 4,
+      "index": 1,
+      "kind": 0,
+      "seconds": 833,
+      "timing": 20
+    },
+    {
+      "cost": [
+        100000,
+        100000,
+        0,
+        2500
+      ],
+      "from": 9,
+      "index": 1,
+      "kind": 0,
+      "seconds": 66667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        100000,
+        100000,
+        0,
+        2500
+      ],
+      "from": 9,
+      "index": 1,
+      "kind": 0,
+      "seconds": 6667,
+      "timing": 10
+    },
+    {
+      "cost": [
+        100000,
+        100000,
+        0,
+        2500
+      ],
+      "from": 9,
+      "index": 1,
+      "kind": 0,
+      "seconds": 3333,
+      "timing": 20
+    },
+    {
+      "cost": [
+        400000,
+        400000,
+        0,
+        10000
+      ],
+      "from": 19,
+      "index": 1,
+      "kind": 0,
+      "seconds": 266667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        400000,
+        400000,
+        0,
+        10000
+      ],
+      "from": 19,
+      "index": 1,
+      "kind": 0,
+      "seconds": 26667,
+      "timing": 10
+    },
+    {
+      "cost": [
+        400000,
+        400000,
+        0,
+        10000
+      ],
+      "from": 19,
+      "index": 1,
+      "kind": 0,
+      "seconds": 13333,
+      "timing": 20
+    },
+    {
+      "cost": [
+        12,
+        60,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 2,
+      "kind": 0,
+      "seconds": 167,
+      "timing": 1
+    },
+    {
+      "cost": [
+        12,
+        60,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 2,
+      "kind": 0,
+      "seconds": 17,
+      "timing": 10
+    },
+    {
+      "cost": [
+        12,
+        60,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 2,
+      "kind": 0,
+      "seconds": 8,
+      "timing": 20
+    },
+    {
+      "cost": [
+        300,
+        1500,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 2,
+      "kind": 0,
+      "seconds": 4167,
+      "timing": 1
+    },
+    {
+      "cost": [
+        300,
+        1500,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 2,
+      "kind": 0,
+      "seconds": 417,
+      "timing": 10
+    },
+    {
+      "cost": [
+        300,
+        1500,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 2,
+      "kind": 0,
+      "seconds": 208,
+      "timing": 20
+    },
+    {
+      "cost": [
+        1200,
+        6000,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 2,
+      "kind": 0,
+      "seconds": 16667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        1200,
+        6000,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 2,
+      "kind": 0,
+      "seconds": 1667,
+      "timing": 10
+    },
+    {
+      "cost": [
+        1200,
+        6000,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 2,
+      "kind": 0,
+      "seconds": 833,
+      "timing": 20
+    },
+    {
+      "cost": [
+        4800,
+        24000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 2,
+      "kind": 0,
+      "seconds": 66667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        4800,
+        24000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 2,
+      "kind": 0,
+      "seconds": 6667,
+      "timing": 10
+    },
+    {
+      "cost": [
+        4800,
+        24000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 2,
+      "kind": 0,
+      "seconds": 3333,
+      "timing": 20
+    },
+    {
+      "cost": [
+        9,
+        15,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 3,
+      "kind": 0,
+      "seconds": 200,
+      "timing": 1
+    },
+    {
+      "cost": [
+        9,
+        15,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 3,
+      "kind": 0,
+      "seconds": 20,
+      "timing": 10
+    },
+    {
+      "cost": [
+        9,
+        15,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 3,
+      "kind": 0,
+      "seconds": 10,
+      "timing": 20
+    },
+    {
+      "cost": [
+        225,
+        375,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 3,
+      "kind": 0,
+      "seconds": 5000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        225,
+        375,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 3,
+      "kind": 0,
+      "seconds": 500,
+      "timing": 10
+    },
+    {
+      "cost": [
+        225,
+        375,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 3,
+      "kind": 0,
+      "seconds": 250,
+      "timing": 20
+    },
+    {
+      "cost": [
+        900,
+        1500,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 3,
+      "kind": 0,
+      "seconds": 20000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        900,
+        1500,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 3,
+      "kind": 0,
+      "seconds": 2000,
+      "timing": 10
+    },
+    {
+      "cost": [
+        900,
+        1500,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 3,
+      "kind": 0,
+      "seconds": 1000,
+      "timing": 20
+    },
+    {
+      "cost": [
+        3600,
+        6000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 3,
+      "kind": 0,
+      "seconds": 80000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        3600,
+        6000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 3,
+      "kind": 0,
+      "seconds": 8000,
+      "timing": 10
+    },
+    {
+      "cost": [
+        3600,
+        6000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 3,
+      "kind": 0,
+      "seconds": 4000,
+      "timing": 20
+    },
+    {
+      "cost": [
+        20,
+        20,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 4,
+      "kind": 0,
+      "seconds": 333,
+      "timing": 1
+    },
+    {
+      "cost": [
+        20,
+        20,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 4,
+      "kind": 0,
+      "seconds": 33,
+      "timing": 10
+    },
+    {
+      "cost": [
+        20,
+        20,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 4,
+      "kind": 0,
+      "seconds": 17,
+      "timing": 20
+    },
+    {
+      "cost": [
+        500,
+        500,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 4,
+      "kind": 0,
+      "seconds": 8333,
+      "timing": 1
+    },
+    {
+      "cost": [
+        500,
+        500,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 4,
+      "kind": 0,
+      "seconds": 833,
+      "timing": 10
+    },
+    {
+      "cost": [
+        500,
+        500,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 4,
+      "kind": 0,
+      "seconds": 417,
+      "timing": 20
+    },
+    {
+      "cost": [
+        2000,
+        2000,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 4,
+      "kind": 0,
+      "seconds": 33333,
+      "timing": 1
+    },
+    {
+      "cost": [
+        2000,
+        2000,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 4,
+      "kind": 0,
+      "seconds": 3333,
+      "timing": 10
+    },
+    {
+      "cost": [
+        2000,
+        2000,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 4,
+      "kind": 0,
+      "seconds": 1667,
+      "timing": 20
+    },
+    {
+      "cost": [
+        8000,
+        8000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 4,
+      "kind": 0,
+      "seconds": 133333,
+      "timing": 1
+    },
+    {
+      "cost": [
+        8000,
+        8000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 4,
+      "kind": 0,
+      "seconds": 13333,
+      "timing": 10
+    },
+    {
+      "cost": [
+        8000,
+        8000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 4,
+      "kind": 0,
+      "seconds": 6667,
+      "timing": 20
+    },
+    {
+      "cost": [
+        10,
+        50,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 5,
+      "kind": 0,
+      "seconds": 500,
+      "timing": 1
+    },
+    {
+      "cost": [
+        10,
+        50,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 5,
+      "kind": 0,
+      "seconds": 50,
+      "timing": 10
+    },
+    {
+      "cost": [
+        10,
+        50,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 5,
+      "kind": 0,
+      "seconds": 25,
+      "timing": 20
+    },
+    {
+      "cost": [
+        250,
+        1250,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 5,
+      "kind": 0,
+      "seconds": 12500,
+      "timing": 1
+    },
+    {
+      "cost": [
+        250,
+        1250,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 5,
+      "kind": 0,
+      "seconds": 1250,
+      "timing": 10
+    },
+    {
+      "cost": [
+        250,
+        1250,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 5,
+      "kind": 0,
+      "seconds": 625,
+      "timing": 20
+    },
+    {
+      "cost": [
+        1000,
+        5000,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 5,
+      "kind": 0,
+      "seconds": 50000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        1000,
+        5000,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 5,
+      "kind": 0,
+      "seconds": 5000,
+      "timing": 10
+    },
+    {
+      "cost": [
+        1000,
+        5000,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 5,
+      "kind": 0,
+      "seconds": 2500,
+      "timing": 20
+    },
+    {
+      "cost": [
+        4000,
+        20000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 5,
+      "kind": 0,
+      "seconds": 200000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        4000,
+        20000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 5,
+      "kind": 0,
+      "seconds": 20000,
+      "timing": 10
+    },
+    {
+      "cost": [
+        4000,
+        20000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 5,
+      "kind": 0,
+      "seconds": 10000,
+      "timing": 20
+    },
+    {
+      "cost": [
+        2000,
+        5000,
+        0,
+        500
+      ],
+      "from": 0,
+      "index": 6,
+      "kind": 0,
+      "seconds": 1333,
+      "timing": 1
+    },
+    {
+      "cost": [
+        2000,
+        5000,
+        0,
+        500
+      ],
+      "from": 0,
+      "index": 6,
+      "kind": 0,
+      "seconds": 133,
+      "timing": 10
+    },
+    {
+      "cost": [
+        2000,
+        5000,
+        0,
+        500
+      ],
+      "from": 0,
+      "index": 6,
+      "kind": 0,
+      "seconds": 67,
+      "timing": 20
+    },
+    {
+      "cost": [
+        50000,
+        125000,
+        0,
+        12500
+      ],
+      "from": 4,
+      "index": 6,
+      "kind": 0,
+      "seconds": 33333,
+      "timing": 1
+    },
+    {
+      "cost": [
+        50000,
+        125000,
+        0,
+        12500
+      ],
+      "from": 4,
+      "index": 6,
+      "kind": 0,
+      "seconds": 3333,
+      "timing": 10
+    },
+    {
+      "cost": [
+        50000,
+        125000,
+        0,
+        12500
+      ],
+      "from": 4,
+      "index": 6,
+      "kind": 0,
+      "seconds": 1667,
+      "timing": 20
+    },
+    {
+      "cost": [
+        200000,
+        500000,
+        0,
+        50000
+      ],
+      "from": 9,
+      "index": 6,
+      "kind": 0,
+      "seconds": 133333,
+      "timing": 1
+    },
+    {
+      "cost": [
+        200000,
+        500000,
+        0,
+        50000
+      ],
+      "from": 9,
+      "index": 6,
+      "kind": 0,
+      "seconds": 13333,
+      "timing": 10
+    },
+    {
+      "cost": [
+        200000,
+        500000,
+        0,
+        50000
+      ],
+      "from": 9,
+      "index": 6,
+      "kind": 0,
+      "seconds": 6667,
+      "timing": 20
+    },
+    {
+      "cost": [
+        800000,
+        2000000,
+        0,
+        200000
+      ],
+      "from": 19,
+      "index": 6,
+      "kind": 0,
+      "seconds": 533333,
+      "timing": 1
+    },
+    {
+      "cost": [
+        800000,
+        2000000,
+        0,
+        200000
+      ],
+      "from": 19,
+      "index": 6,
+      "kind": 0,
+      "seconds": 53333,
+      "timing": 10
+    },
+    {
+      "cost": [
+        800000,
+        2000000,
+        0,
+        200000
+      ],
+      "from": 19,
+      "index": 6,
+      "kind": 0,
+      "seconds": 26667,
+      "timing": 20
+    },
+    {
+      "cost": [
+        100,
+        500,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 7,
+      "kind": 0,
+      "seconds": 3000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        100,
+        500,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 7,
+      "kind": 0,
+      "seconds": 300,
+      "timing": 10
+    },
+    {
+      "cost": [
+        100,
+        500,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 7,
+      "kind": 0,
+      "seconds": 150,
+      "timing": 20
+    },
+    {
+      "cost": [
+        2500,
+        12500,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 7,
+      "kind": 0,
+      "seconds": 75000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        2500,
+        12500,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 7,
+      "kind": 0,
+      "seconds": 7500,
+      "timing": 10
+    },
+    {
+      "cost": [
+        2500,
+        12500,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 7,
+      "kind": 0,
+      "seconds": 3750,
+      "timing": 20
+    },
+    {
+      "cost": [
+        10000,
+        50000,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 7,
+      "kind": 0,
+      "seconds": 300000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        10000,
+        50000,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 7,
+      "kind": 0,
+      "seconds": 30000,
+      "timing": 10
+    },
+    {
+      "cost": [
+        10000,
+        50000,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 7,
+      "kind": 0,
+      "seconds": 15000,
+      "timing": 20
+    },
+    {
+      "cost": [
+        40000,
+        200000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 7,
+      "kind": 0,
+      "seconds": 1200000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        40000,
+        200000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 7,
+      "kind": 0,
+      "seconds": 120000,
+      "timing": 10
+    },
+    {
+      "cost": [
+        40000,
+        200000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 7,
+      "kind": 0,
+      "seconds": 60000,
+      "timing": 20
+    },
+    {
+      "cost": [
+        500,
+        600,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 8,
+      "kind": 0,
+      "seconds": 4000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        500,
+        600,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 8,
+      "kind": 0,
+      "seconds": 400,
+      "timing": 10
+    },
+    {
+      "cost": [
+        500,
+        600,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 8,
+      "kind": 0,
+      "seconds": 200,
+      "timing": 20
+    },
+    {
+      "cost": [
+        12500,
+        15000,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 8,
+      "kind": 0,
+      "seconds": 100000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        12500,
+        15000,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 8,
+      "kind": 0,
+      "seconds": 10000,
+      "timing": 10
+    },
+    {
+      "cost": [
+        12500,
+        15000,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 8,
+      "kind": 0,
+      "seconds": 5000,
+      "timing": 20
+    },
+    {
+      "cost": [
+        50000,
+        60000,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 8,
+      "kind": 0,
+      "seconds": 400000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        50000,
+        60000,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 8,
+      "kind": 0,
+      "seconds": 40000,
+      "timing": 10
+    },
+    {
+      "cost": [
+        50000,
+        60000,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 8,
+      "kind": 0,
+      "seconds": 20000,
+      "timing": 20
+    },
+    {
+      "cost": [
+        200000,
+        240000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 8,
+      "kind": 0,
+      "seconds": 1600000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        200000,
+        240000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 8,
+      "kind": 0,
+      "seconds": 160000,
+      "timing": 10
+    },
+    {
+      "cost": [
+        200000,
+        240000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 8,
+      "kind": 0,
+      "seconds": 80000,
+      "timing": 20
+    },
+    {
+      "cost": [
+        200,
+        200,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 9,
+      "kind": 0,
+      "seconds": 2667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        200,
+        200,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 9,
+      "kind": 0,
+      "seconds": 267,
+      "timing": 10
+    },
+    {
+      "cost": [
+        200,
+        200,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 9,
+      "kind": 0,
+      "seconds": 133,
+      "timing": 20
+    },
+    {
+      "cost": [
+        5000,
+        5000,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 9,
+      "kind": 0,
+      "seconds": 66667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        5000,
+        5000,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 9,
+      "kind": 0,
+      "seconds": 6667,
+      "timing": 10
+    },
+    {
+      "cost": [
+        5000,
+        5000,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 9,
+      "kind": 0,
+      "seconds": 3333,
+      "timing": 20
+    },
+    {
+      "cost": [
+        20000,
+        20000,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 9,
+      "kind": 0,
+      "seconds": 266667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        20000,
+        20000,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 9,
+      "kind": 0,
+      "seconds": 26667,
+      "timing": 10
+    },
+    {
+      "cost": [
+        20000,
+        20000,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 9,
+      "kind": 0,
+      "seconds": 13333,
+      "timing": 20
+    },
+    {
+      "cost": [
+        80000,
+        80000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 9,
+      "kind": 0,
+      "seconds": 1066667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        80000,
+        80000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 9,
+      "kind": 0,
+      "seconds": 106667,
+      "timing": 10
+    },
+    {
+      "cost": [
+        80000,
+        80000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 9,
+      "kind": 0,
+      "seconds": 53333,
+      "timing": 20
+    },
+    {
+      "cost": [
+        2000,
+        2000,
+        0,
+        1000
+      ],
+      "from": 0,
+      "index": 10,
+      "kind": 0,
+      "seconds": 5333,
+      "timing": 1
+    },
+    {
+      "cost": [
+        2000,
+        2000,
+        0,
+        1000
+      ],
+      "from": 0,
+      "index": 10,
+      "kind": 0,
+      "seconds": 533,
+      "timing": 10
+    },
+    {
+      "cost": [
+        2000,
+        2000,
+        0,
+        1000
+      ],
+      "from": 0,
+      "index": 10,
+      "kind": 0,
+      "seconds": 267,
+      "timing": 20
+    },
+    {
+      "cost": [
+        50000,
+        50000,
+        0,
+        25000
+      ],
+      "from": 4,
+      "index": 10,
+      "kind": 0,
+      "seconds": 133333,
+      "timing": 1
+    },
+    {
+      "cost": [
+        50000,
+        50000,
+        0,
+        25000
+      ],
+      "from": 4,
+      "index": 10,
+      "kind": 0,
+      "seconds": 13333,
+      "timing": 10
+    },
+    {
+      "cost": [
+        50000,
+        50000,
+        0,
+        25000
+      ],
+      "from": 4,
+      "index": 10,
+      "kind": 0,
+      "seconds": 6667,
+      "timing": 20
+    },
+    {
+      "cost": [
+        200000,
+        200000,
+        0,
+        100000
+      ],
+      "from": 9,
+      "index": 10,
+      "kind": 0,
+      "seconds": 533333,
+      "timing": 1
+    },
+    {
+      "cost": [
+        200000,
+        200000,
+        0,
+        100000
+      ],
+      "from": 9,
+      "index": 10,
+      "kind": 0,
+      "seconds": 53333,
+      "timing": 10
+    },
+    {
+      "cost": [
+        200000,
+        200000,
+        0,
+        100000
+      ],
+      "from": 9,
+      "index": 10,
+      "kind": 0,
+      "seconds": 26667,
+      "timing": 20
+    },
+    {
+      "cost": [
+        800000,
+        800000,
+        0,
+        400000
+      ],
+      "from": 19,
+      "index": 10,
+      "kind": 0,
+      "seconds": 2133333,
+      "timing": 1
+    },
+    {
+      "cost": [
+        800000,
+        800000,
+        0,
+        400000
+      ],
+      "from": 19,
+      "index": 10,
+      "kind": 0,
+      "seconds": 213333,
+      "timing": 10
+    },
+    {
+      "cost": [
+        800000,
+        800000,
+        0,
+        400000
+      ],
+      "from": 19,
+      "index": 10,
+      "kind": 0,
+      "seconds": 106667,
+      "timing": 20
+    },
+    {
+      "cost": [
+        1000,
+        2500,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 11,
+      "kind": 0,
+      "seconds": 1867,
+      "timing": 1
+    },
+    {
+      "cost": [
+        1000,
+        2500,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 11,
+      "kind": 0,
+      "seconds": 187,
+      "timing": 10
+    },
+    {
+      "cost": [
+        1000,
+        2500,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 11,
+      "kind": 0,
+      "seconds": 93,
+      "timing": 20
+    },
+    {
+      "cost": [
+        25000,
+        62500,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 11,
+      "kind": 0,
+      "seconds": 46667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        25000,
+        62500,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 11,
+      "kind": 0,
+      "seconds": 4667,
+      "timing": 10
+    },
+    {
+      "cost": [
+        25000,
+        62500,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 11,
+      "kind": 0,
+      "seconds": 2333,
+      "timing": 20
+    },
+    {
+      "cost": [
+        100000,
+        250000,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 11,
+      "kind": 0,
+      "seconds": 186667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        100000,
+        250000,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 11,
+      "kind": 0,
+      "seconds": 18667,
+      "timing": 10
+    },
+    {
+      "cost": [
+        100000,
+        250000,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 11,
+      "kind": 0,
+      "seconds": 9333,
+      "timing": 20
+    },
+    {
+      "cost": [
+        400000,
+        1000000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 11,
+      "kind": 0,
+      "seconds": 746667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        400000,
+        1000000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 11,
+      "kind": 0,
+      "seconds": 74667,
+      "timing": 10
+    },
+    {
+      "cost": [
+        400000,
+        1000000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 11,
+      "kind": 0,
+      "seconds": 37333,
+      "timing": 20
+    },
+    {
+      "cost": [
+        900,
+        1600,
+        0,
+        100
+      ],
+      "from": 0,
+      "index": 12,
+      "kind": 0,
+      "seconds": 2000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        900,
+        1600,
+        0,
+        100
+      ],
+      "from": 0,
+      "index": 12,
+      "kind": 0,
+      "seconds": 200,
+      "timing": 10
+    },
+    {
+      "cost": [
+        900,
+        1600,
+        0,
+        100
+      ],
+      "from": 0,
+      "index": 12,
+      "kind": 0,
+      "seconds": 100,
+      "timing": 20
+    },
+    {
+      "cost": [
+        22500,
+        40000,
+        0,
+        2500
+      ],
+      "from": 4,
+      "index": 12,
+      "kind": 0,
+      "seconds": 50000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        22500,
+        40000,
+        0,
+        2500
+      ],
+      "from": 4,
+      "index": 12,
+      "kind": 0,
+      "seconds": 5000,
+      "timing": 10
+    },
+    {
+      "cost": [
+        22500,
+        40000,
+        0,
+        2500
+      ],
+      "from": 4,
+      "index": 12,
+      "kind": 0,
+      "seconds": 2500,
+      "timing": 20
+    },
+    {
+      "cost": [
+        90000,
+        160000,
+        0,
+        10000
+      ],
+      "from": 9,
+      "index": 12,
+      "kind": 0,
+      "seconds": 200000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        90000,
+        160000,
+        0,
+        10000
+      ],
+      "from": 9,
+      "index": 12,
+      "kind": 0,
+      "seconds": 20000,
+      "timing": 10
+    },
+    {
+      "cost": [
+        90000,
+        160000,
+        0,
+        10000
+      ],
+      "from": 9,
+      "index": 12,
+      "kind": 0,
+      "seconds": 10000,
+      "timing": 20
+    },
+    {
+      "cost": [
+        360000,
+        640000,
+        0,
+        40000
+      ],
+      "from": 19,
+      "index": 12,
+      "kind": 0,
+      "seconds": 800000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        360000,
+        640000,
+        0,
+        40000
+      ],
+      "from": 19,
+      "index": 12,
+      "kind": 0,
+      "seconds": 80000,
+      "timing": 10
+    },
+    {
+      "cost": [
+        360000,
+        640000,
+        0,
+        40000
+      ],
+      "from": 19,
+      "index": 12,
+      "kind": 0,
+      "seconds": 40000,
+      "timing": 20
+    },
+    {
+      "cost": [
+        1000,
+        2000,
+        0,
+        200
+      ],
+      "from": 0,
+      "index": 13,
+      "kind": 0,
+      "seconds": 1500,
+      "timing": 1
+    },
+    {
+      "cost": [
+        1000,
+        2000,
+        0,
+        200
+      ],
+      "from": 0,
+      "index": 13,
+      "kind": 0,
+      "seconds": 150,
+      "timing": 10
+    },
+    {
+      "cost": [
+        1000,
+        2000,
+        0,
+        200
+      ],
+      "from": 0,
+      "index": 13,
+      "kind": 0,
+      "seconds": 75,
+      "timing": 20
+    },
+    {
+      "cost": [
+        25000,
+        50000,
+        0,
+        5000
+      ],
+      "from": 4,
+      "index": 13,
+      "kind": 0,
+      "seconds": 37500,
+      "timing": 1
+    },
+    {
+      "cost": [
+        25000,
+        50000,
+        0,
+        5000
+      ],
+      "from": 4,
+      "index": 13,
+      "kind": 0,
+      "seconds": 3750,
+      "timing": 10
+    },
+    {
+      "cost": [
+        25000,
+        50000,
+        0,
+        5000
+      ],
+      "from": 4,
+      "index": 13,
+      "kind": 0,
+      "seconds": 1875,
+      "timing": 20
+    },
+    {
+      "cost": [
+        100000,
+        200000,
+        0,
+        20000
+      ],
+      "from": 9,
+      "index": 13,
+      "kind": 0,
+      "seconds": 150000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        100000,
+        200000,
+        0,
+        20000
+      ],
+      "from": 9,
+      "index": 13,
+      "kind": 0,
+      "seconds": 15000,
+      "timing": 10
+    },
+    {
+      "cost": [
+        100000,
+        200000,
+        0,
+        20000
+      ],
+      "from": 9,
+      "index": 13,
+      "kind": 0,
+      "seconds": 7500,
+      "timing": 20
+    },
+    {
+      "cost": [
+        400000,
+        800000,
+        0,
+        80000
+      ],
+      "from": 19,
+      "index": 13,
+      "kind": 0,
+      "seconds": 600000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        400000,
+        800000,
+        0,
+        80000
+      ],
+      "from": 19,
+      "index": 13,
+      "kind": 0,
+      "seconds": 60000,
+      "timing": 10
+    },
+    {
+      "cost": [
+        400000,
+        800000,
+        0,
+        80000
+      ],
+      "from": 19,
+      "index": 13,
+      "kind": 0,
+      "seconds": 30000,
+      "timing": 20
+    },
+    {
+      "cost": [
+        2000,
+        2000,
+        0,
+        150
+      ],
+      "from": 0,
+      "index": 14,
+      "kind": 0,
+      "seconds": 1000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        2000,
+        2000,
+        0,
+        150
+      ],
+      "from": 0,
+      "index": 14,
+      "kind": 0,
+      "seconds": 100,
+      "timing": 10
+    },
+    {
+      "cost": [
+        2000,
+        2000,
+        0,
+        150
+      ],
+      "from": 0,
+      "index": 14,
+      "kind": 0,
+      "seconds": 50,
+      "timing": 20
+    },
+    {
+      "cost": [
+        50000,
+        50000,
+        0,
+        3750
+      ],
+      "from": 4,
+      "index": 14,
+      "kind": 0,
+      "seconds": 25000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        50000,
+        50000,
+        0,
+        3750
+      ],
+      "from": 4,
+      "index": 14,
+      "kind": 0,
+      "seconds": 2500,
+      "timing": 10
+    },
+    {
+      "cost": [
+        50000,
+        50000,
+        0,
+        3750
+      ],
+      "from": 4,
+      "index": 14,
+      "kind": 0,
+      "seconds": 1250,
+      "timing": 20
+    },
+    {
+      "cost": [
+        200000,
+        200000,
+        0,
+        15000
+      ],
+      "from": 9,
+      "index": 14,
+      "kind": 0,
+      "seconds": 100000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        200000,
+        200000,
+        0,
+        15000
+      ],
+      "from": 9,
+      "index": 14,
+      "kind": 0,
+      "seconds": 10000,
+      "timing": 10
+    },
+    {
+      "cost": [
+        200000,
+        200000,
+        0,
+        15000
+      ],
+      "from": 9,
+      "index": 14,
+      "kind": 0,
+      "seconds": 5000,
+      "timing": 20
+    },
+    {
+      "cost": [
+        800000,
+        800000,
+        0,
+        60000
+      ],
+      "from": 19,
+      "index": 14,
+      "kind": 0,
+      "seconds": 400000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        800000,
+        800000,
+        0,
+        60000
+      ],
+      "from": 19,
+      "index": 14,
+      "kind": 0,
+      "seconds": 40000,
+      "timing": 10
+    },
+    {
+      "cost": [
+        800000,
+        800000,
+        0,
+        60000
+      ],
+      "from": 19,
+      "index": 14,
+      "kind": 0,
+      "seconds": 20000,
+      "timing": 20
+    },
+    {
+      "cost": [
+        500,
+        1200,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 0,
+      "kind": 1,
+      "seconds": 667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        500,
+        1200,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 0,
+      "kind": 1,
+      "seconds": 133,
+      "timing": 5
+    },
+    {
+      "cost": [
+        500,
+        1200,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 0,
+      "kind": 1,
+      "seconds": 44,
+      "timing": 15
+    },
+    {
+      "cost": [
+        12500,
+        30000,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 0,
+      "kind": 1,
+      "seconds": 16667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        12500,
+        30000,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 0,
+      "kind": 1,
+      "seconds": 3333,
+      "timing": 5
+    },
+    {
+      "cost": [
+        12500,
+        30000,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 0,
+      "kind": 1,
+      "seconds": 1111,
+      "timing": 15
+    },
+    {
+      "cost": [
+        50000,
+        120000,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 0,
+      "kind": 1,
+      "seconds": 66667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        50000,
+        120000,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 0,
+      "kind": 1,
+      "seconds": 13333,
+      "timing": 5
+    },
+    {
+      "cost": [
+        50000,
+        120000,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 0,
+      "kind": 1,
+      "seconds": 4444,
+      "timing": 15
+    },
+    {
+      "cost": [
+        200000,
+        480000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 0,
+      "kind": 1,
+      "seconds": 266667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        200000,
+        480000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 0,
+      "kind": 1,
+      "seconds": 53333,
+      "timing": 5
+    },
+    {
+      "cost": [
+        200000,
+        480000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 0,
+      "kind": 1,
+      "seconds": 17778,
+      "timing": 15
+    },
+    {
+      "cost": [
+        1000,
+        2500,
+        0,
+        1000
+      ],
+      "from": 0,
+      "index": 1,
+      "kind": 1,
+      "seconds": 1667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        1000,
+        2500,
+        0,
+        1000
+      ],
+      "from": 0,
+      "index": 1,
+      "kind": 1,
+      "seconds": 333,
+      "timing": 5
+    },
+    {
+      "cost": [
+        1000,
+        2500,
+        0,
+        1000
+      ],
+      "from": 0,
+      "index": 1,
+      "kind": 1,
+      "seconds": 111,
+      "timing": 15
+    },
+    {
+      "cost": [
+        25000,
+        62500,
+        0,
+        25000
+      ],
+      "from": 4,
+      "index": 1,
+      "kind": 1,
+      "seconds": 41667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        25000,
+        62500,
+        0,
+        25000
+      ],
+      "from": 4,
+      "index": 1,
+      "kind": 1,
+      "seconds": 8333,
+      "timing": 5
+    },
+    {
+      "cost": [
+        25000,
+        62500,
+        0,
+        25000
+      ],
+      "from": 4,
+      "index": 1,
+      "kind": 1,
+      "seconds": 2778,
+      "timing": 15
+    },
+    {
+      "cost": [
+        100000,
+        250000,
+        0,
+        100000
+      ],
+      "from": 9,
+      "index": 1,
+      "kind": 1,
+      "seconds": 166667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        100000,
+        250000,
+        0,
+        100000
+      ],
+      "from": 9,
+      "index": 1,
+      "kind": 1,
+      "seconds": 33333,
+      "timing": 5
+    },
+    {
+      "cost": [
+        100000,
+        250000,
+        0,
+        100000
+      ],
+      "from": 9,
+      "index": 1,
+      "kind": 1,
+      "seconds": 11111,
+      "timing": 15
+    },
+    {
+      "cost": [
+        400000,
+        1000000,
+        0,
+        400000
+      ],
+      "from": 19,
+      "index": 1,
+      "kind": 1,
+      "seconds": 666667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        400000,
+        1000000,
+        0,
+        400000
+      ],
+      "from": 19,
+      "index": 1,
+      "kind": 1,
+      "seconds": 133333,
+      "timing": 5
+    },
+    {
+      "cost": [
+        400000,
+        1000000,
+        0,
+        400000
+      ],
+      "from": 19,
+      "index": 1,
+      "kind": 1,
+      "seconds": 44444,
+      "timing": 15
+    },
+    {
+      "cost": [
+        1000,
+        2000,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 2,
+      "kind": 1,
+      "seconds": 1000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        1000,
+        2000,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 2,
+      "kind": 1,
+      "seconds": 200,
+      "timing": 5
+    },
+    {
+      "cost": [
+        1000,
+        2000,
+        0,
+        0
+      ],
+      "from": 0,
+      "index": 2,
+      "kind": 1,
+      "seconds": 67,
+      "timing": 15
+    },
+    {
+      "cost": [
+        25000,
+        50000,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 2,
+      "kind": 1,
+      "seconds": 25000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        25000,
+        50000,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 2,
+      "kind": 1,
+      "seconds": 5000,
+      "timing": 5
+    },
+    {
+      "cost": [
+        25000,
+        50000,
+        0,
+        0
+      ],
+      "from": 4,
+      "index": 2,
+      "kind": 1,
+      "seconds": 1667,
+      "timing": 15
+    },
+    {
+      "cost": [
+        100000,
+        200000,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 2,
+      "kind": 1,
+      "seconds": 100000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        100000,
+        200000,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 2,
+      "kind": 1,
+      "seconds": 20000,
+      "timing": 5
+    },
+    {
+      "cost": [
+        100000,
+        200000,
+        0,
+        0
+      ],
+      "from": 9,
+      "index": 2,
+      "kind": 1,
+      "seconds": 6667,
+      "timing": 15
+    },
+    {
+      "cost": [
+        400000,
+        800000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 2,
+      "kind": 1,
+      "seconds": 400000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        400000,
+        800000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 2,
+      "kind": 1,
+      "seconds": 80000,
+      "timing": 5
+    },
+    {
+      "cost": [
+        400000,
+        800000,
+        0,
+        0
+      ],
+      "from": 19,
+      "index": 2,
+      "kind": 1,
+      "seconds": 26667,
+      "timing": 15
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        5000
+      ],
+      "from": 0,
+      "index": 3,
+      "kind": 1,
+      "seconds": 4800,
+      "timing": 1
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        5000
+      ],
+      "from": 0,
+      "index": 3,
+      "kind": 1,
+      "seconds": 960,
+      "timing": 5
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        5000
+      ],
+      "from": 0,
+      "index": 3,
+      "kind": 1,
+      "seconds": 320,
+      "timing": 15
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        125000
+      ],
+      "from": 4,
+      "index": 3,
+      "kind": 1,
+      "seconds": 120000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        125000
+      ],
+      "from": 4,
+      "index": 3,
+      "kind": 1,
+      "seconds": 24000,
+      "timing": 5
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        125000
+      ],
+      "from": 4,
+      "index": 3,
+      "kind": 1,
+      "seconds": 8000,
+      "timing": 15
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        500000
+      ],
+      "from": 9,
+      "index": 3,
+      "kind": 1,
+      "seconds": 480000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        500000
+      ],
+      "from": 9,
+      "index": 3,
+      "kind": 1,
+      "seconds": 96000,
+      "timing": 5
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        500000
+      ],
+      "from": 9,
+      "index": 3,
+      "kind": 1,
+      "seconds": 32000,
+      "timing": 15
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        2000000
+      ],
+      "from": 19,
+      "index": 3,
+      "kind": 1,
+      "seconds": 1920000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        2000000
+      ],
+      "from": 19,
+      "index": 3,
+      "kind": 1,
+      "seconds": 384000,
+      "timing": 5
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        2000000
+      ],
+      "from": 19,
+      "index": 3,
+      "kind": 1,
+      "seconds": 128000,
+      "timing": 15
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        1500
+      ],
+      "from": 0,
+      "index": 4,
+      "kind": 1,
+      "seconds": 3200,
+      "timing": 1
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        1500
+      ],
+      "from": 0,
+      "index": 4,
+      "kind": 1,
+      "seconds": 640,
+      "timing": 5
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        1500
+      ],
+      "from": 0,
+      "index": 4,
+      "kind": 1,
+      "seconds": 213,
+      "timing": 15
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        37500
+      ],
+      "from": 4,
+      "index": 4,
+      "kind": 1,
+      "seconds": 80000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        37500
+      ],
+      "from": 4,
+      "index": 4,
+      "kind": 1,
+      "seconds": 16000,
+      "timing": 5
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        37500
+      ],
+      "from": 4,
+      "index": 4,
+      "kind": 1,
+      "seconds": 5333,
+      "timing": 15
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        150000
+      ],
+      "from": 9,
+      "index": 4,
+      "kind": 1,
+      "seconds": 320000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        150000
+      ],
+      "from": 9,
+      "index": 4,
+      "kind": 1,
+      "seconds": 64000,
+      "timing": 5
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        150000
+      ],
+      "from": 9,
+      "index": 4,
+      "kind": 1,
+      "seconds": 21333,
+      "timing": 15
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        600000
+      ],
+      "from": 19,
+      "index": 4,
+      "kind": 1,
+      "seconds": 1280000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        600000
+      ],
+      "from": 19,
+      "index": 4,
+      "kind": 1,
+      "seconds": 256000,
+      "timing": 5
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        600000
+      ],
+      "from": 19,
+      "index": 4,
+      "kind": 1,
+      "seconds": 85333,
+      "timing": 15
+    },
+    {
+      "cost": [
+        500,
+        500,
+        0,
+        300
+      ],
+      "from": 0,
+      "index": 5,
+      "kind": 1,
+      "seconds": 1400,
+      "timing": 1
+    },
+    {
+      "cost": [
+        500,
+        500,
+        0,
+        300
+      ],
+      "from": 0,
+      "index": 5,
+      "kind": 1,
+      "seconds": 280,
+      "timing": 5
+    },
+    {
+      "cost": [
+        500,
+        500,
+        0,
+        300
+      ],
+      "from": 0,
+      "index": 5,
+      "kind": 1,
+      "seconds": 93,
+      "timing": 15
+    },
+    {
+      "cost": [
+        12500,
+        12500,
+        0,
+        7500
+      ],
+      "from": 4,
+      "index": 5,
+      "kind": 1,
+      "seconds": 35000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        12500,
+        12500,
+        0,
+        7500
+      ],
+      "from": 4,
+      "index": 5,
+      "kind": 1,
+      "seconds": 7000,
+      "timing": 5
+    },
+    {
+      "cost": [
+        12500,
+        12500,
+        0,
+        7500
+      ],
+      "from": 4,
+      "index": 5,
+      "kind": 1,
+      "seconds": 2333,
+      "timing": 15
+    },
+    {
+      "cost": [
+        50000,
+        50000,
+        0,
+        30000
+      ],
+      "from": 9,
+      "index": 5,
+      "kind": 1,
+      "seconds": 140000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        50000,
+        50000,
+        0,
+        30000
+      ],
+      "from": 9,
+      "index": 5,
+      "kind": 1,
+      "seconds": 28000,
+      "timing": 5
+    },
+    {
+      "cost": [
+        50000,
+        50000,
+        0,
+        30000
+      ],
+      "from": 9,
+      "index": 5,
+      "kind": 1,
+      "seconds": 9333,
+      "timing": 15
+    },
+    {
+      "cost": [
+        200000,
+        200000,
+        0,
+        120000
+      ],
+      "from": 19,
+      "index": 5,
+      "kind": 1,
+      "seconds": 560000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        200000,
+        200000,
+        0,
+        120000
+      ],
+      "from": 19,
+      "index": 5,
+      "kind": 1,
+      "seconds": 112000,
+      "timing": 5
+    },
+    {
+      "cost": [
+        200000,
+        200000,
+        0,
+        120000
+      ],
+      "from": 19,
+      "index": 5,
+      "kind": 1,
+      "seconds": 37333,
+      "timing": 15
+    },
+    {
+      "cost": [
+        1000,
+        4000,
+        0,
+        1000
+      ],
+      "from": 0,
+      "index": 6,
+      "kind": 1,
+      "seconds": 1333,
+      "timing": 1
+    },
+    {
+      "cost": [
+        1000,
+        4000,
+        0,
+        1000
+      ],
+      "from": 0,
+      "index": 6,
+      "kind": 1,
+      "seconds": 267,
+      "timing": 5
+    },
+    {
+      "cost": [
+        1000,
+        4000,
+        0,
+        1000
+      ],
+      "from": 0,
+      "index": 6,
+      "kind": 1,
+      "seconds": 89,
+      "timing": 15
+    },
+    {
+      "cost": [
+        25000,
+        100000,
+        0,
+        25000
+      ],
+      "from": 4,
+      "index": 6,
+      "kind": 1,
+      "seconds": 33333,
+      "timing": 1
+    },
+    {
+      "cost": [
+        25000,
+        100000,
+        0,
+        25000
+      ],
+      "from": 4,
+      "index": 6,
+      "kind": 1,
+      "seconds": 6667,
+      "timing": 5
+    },
+    {
+      "cost": [
+        25000,
+        100000,
+        0,
+        25000
+      ],
+      "from": 4,
+      "index": 6,
+      "kind": 1,
+      "seconds": 2222,
+      "timing": 15
+    },
+    {
+      "cost": [
+        100000,
+        400000,
+        0,
+        100000
+      ],
+      "from": 9,
+      "index": 6,
+      "kind": 1,
+      "seconds": 133333,
+      "timing": 1
+    },
+    {
+      "cost": [
+        100000,
+        400000,
+        0,
+        100000
+      ],
+      "from": 9,
+      "index": 6,
+      "kind": 1,
+      "seconds": 26667,
+      "timing": 5
+    },
+    {
+      "cost": [
+        100000,
+        400000,
+        0,
+        100000
+      ],
+      "from": 9,
+      "index": 6,
+      "kind": 1,
+      "seconds": 8889,
+      "timing": 15
+    },
+    {
+      "cost": [
+        400000,
+        1600000,
+        0,
+        400000
+      ],
+      "from": 19,
+      "index": 6,
+      "kind": 1,
+      "seconds": 533333,
+      "timing": 1
+    },
+    {
+      "cost": [
+        400000,
+        1600000,
+        0,
+        400000
+      ],
+      "from": 19,
+      "index": 6,
+      "kind": 1,
+      "seconds": 106667,
+      "timing": 5
+    },
+    {
+      "cost": [
+        400000,
+        1600000,
+        0,
+        400000
+      ],
+      "from": 19,
+      "index": 6,
+      "kind": 1,
+      "seconds": 35556,
+      "timing": 15
+    },
+    {
+      "cost": [
+        3000,
+        5000,
+        0,
+        2000
+      ],
+      "from": 0,
+      "index": 7,
+      "kind": 1,
+      "seconds": 1667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        3000,
+        5000,
+        0,
+        2000
+      ],
+      "from": 0,
+      "index": 7,
+      "kind": 1,
+      "seconds": 333,
+      "timing": 5
+    },
+    {
+      "cost": [
+        3000,
+        5000,
+        0,
+        2000
+      ],
+      "from": 0,
+      "index": 7,
+      "kind": 1,
+      "seconds": 111,
+      "timing": 15
+    },
+    {
+      "cost": [
+        75000,
+        125000,
+        0,
+        50000
+      ],
+      "from": 4,
+      "index": 7,
+      "kind": 1,
+      "seconds": 41667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        75000,
+        125000,
+        0,
+        50000
+      ],
+      "from": 4,
+      "index": 7,
+      "kind": 1,
+      "seconds": 8333,
+      "timing": 5
+    },
+    {
+      "cost": [
+        75000,
+        125000,
+        0,
+        50000
+      ],
+      "from": 4,
+      "index": 7,
+      "kind": 1,
+      "seconds": 2778,
+      "timing": 15
+    },
+    {
+      "cost": [
+        300000,
+        500000,
+        0,
+        200000
+      ],
+      "from": 9,
+      "index": 7,
+      "kind": 1,
+      "seconds": 166667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        300000,
+        500000,
+        0,
+        200000
+      ],
+      "from": 9,
+      "index": 7,
+      "kind": 1,
+      "seconds": 33333,
+      "timing": 5
+    },
+    {
+      "cost": [
+        300000,
+        500000,
+        0,
+        200000
+      ],
+      "from": 9,
+      "index": 7,
+      "kind": 1,
+      "seconds": 11111,
+      "timing": 15
+    },
+    {
+      "cost": [
+        1200000,
+        2000000,
+        0,
+        800000
+      ],
+      "from": 19,
+      "index": 7,
+      "kind": 1,
+      "seconds": 666667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        1200000,
+        2000000,
+        0,
+        800000
+      ],
+      "from": 19,
+      "index": 7,
+      "kind": 1,
+      "seconds": 133333,
+      "timing": 5
+    },
+    {
+      "cost": [
+        1200000,
+        2000000,
+        0,
+        800000
+      ],
+      "from": 19,
+      "index": 7,
+      "kind": 1,
+      "seconds": 44444,
+      "timing": 15
+    },
+    {
+      "cost": [
+        2000,
+        2000,
+        0,
+        3000
+      ],
+      "from": 0,
+      "index": 8,
+      "kind": 1,
+      "seconds": 2067,
+      "timing": 1
+    },
+    {
+      "cost": [
+        2000,
+        2000,
+        0,
+        3000
+      ],
+      "from": 0,
+      "index": 8,
+      "kind": 1,
+      "seconds": 413,
+      "timing": 5
+    },
+    {
+      "cost": [
+        2000,
+        2000,
+        0,
+        3000
+      ],
+      "from": 0,
+      "index": 8,
+      "kind": 1,
+      "seconds": 138,
+      "timing": 15
+    },
+    {
+      "cost": [
+        50000,
+        50000,
+        0,
+        75000
+      ],
+      "from": 4,
+      "index": 8,
+      "kind": 1,
+      "seconds": 51667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        50000,
+        50000,
+        0,
+        75000
+      ],
+      "from": 4,
+      "index": 8,
+      "kind": 1,
+      "seconds": 10333,
+      "timing": 5
+    },
+    {
+      "cost": [
+        50000,
+        50000,
+        0,
+        75000
+      ],
+      "from": 4,
+      "index": 8,
+      "kind": 1,
+      "seconds": 3444,
+      "timing": 15
+    },
+    {
+      "cost": [
+        200000,
+        200000,
+        0,
+        300000
+      ],
+      "from": 9,
+      "index": 8,
+      "kind": 1,
+      "seconds": 206667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        200000,
+        200000,
+        0,
+        300000
+      ],
+      "from": 9,
+      "index": 8,
+      "kind": 1,
+      "seconds": 41333,
+      "timing": 5
+    },
+    {
+      "cost": [
+        200000,
+        200000,
+        0,
+        300000
+      ],
+      "from": 9,
+      "index": 8,
+      "kind": 1,
+      "seconds": 13778,
+      "timing": 15
+    },
+    {
+      "cost": [
+        800000,
+        800000,
+        0,
+        1200000
+      ],
+      "from": 19,
+      "index": 8,
+      "kind": 1,
+      "seconds": 826667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        800000,
+        800000,
+        0,
+        1200000
+      ],
+      "from": 19,
+      "index": 8,
+      "kind": 1,
+      "seconds": 165333,
+      "timing": 5
+    },
+    {
+      "cost": [
+        800000,
+        800000,
+        0,
+        1200000
+      ],
+      "from": 19,
+      "index": 8,
+      "kind": 1,
+      "seconds": 55111,
+      "timing": 15
+    },
+    {
+      "cost": [
+        1000,
+        200,
+        0,
+        3000
+      ],
+      "from": 0,
+      "index": 9,
+      "kind": 1,
+      "seconds": 1700,
+      "timing": 1
+    },
+    {
+      "cost": [
+        1000,
+        200,
+        0,
+        3000
+      ],
+      "from": 0,
+      "index": 9,
+      "kind": 1,
+      "seconds": 340,
+      "timing": 5
+    },
+    {
+      "cost": [
+        1000,
+        200,
+        0,
+        3000
+      ],
+      "from": 0,
+      "index": 9,
+      "kind": 1,
+      "seconds": 113,
+      "timing": 15
+    },
+    {
+      "cost": [
+        25000,
+        5000,
+        0,
+        75000
+      ],
+      "from": 4,
+      "index": 9,
+      "kind": 1,
+      "seconds": 42500,
+      "timing": 1
+    },
+    {
+      "cost": [
+        25000,
+        5000,
+        0,
+        75000
+      ],
+      "from": 4,
+      "index": 9,
+      "kind": 1,
+      "seconds": 8500,
+      "timing": 5
+    },
+    {
+      "cost": [
+        25000,
+        5000,
+        0,
+        75000
+      ],
+      "from": 4,
+      "index": 9,
+      "kind": 1,
+      "seconds": 2833,
+      "timing": 15
+    },
+    {
+      "cost": [
+        100000,
+        20000,
+        0,
+        300000
+      ],
+      "from": 9,
+      "index": 9,
+      "kind": 1,
+      "seconds": 170000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        100000,
+        20000,
+        0,
+        300000
+      ],
+      "from": 9,
+      "index": 9,
+      "kind": 1,
+      "seconds": 34000,
+      "timing": 5
+    },
+    {
+      "cost": [
+        100000,
+        20000,
+        0,
+        300000
+      ],
+      "from": 9,
+      "index": 9,
+      "kind": 1,
+      "seconds": 11333,
+      "timing": 15
+    },
+    {
+      "cost": [
+        400000,
+        80000,
+        0,
+        1200000
+      ],
+      "from": 19,
+      "index": 9,
+      "kind": 1,
+      "seconds": 680000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        400000,
+        80000,
+        0,
+        1200000
+      ],
+      "from": 19,
+      "index": 9,
+      "kind": 1,
+      "seconds": 136000,
+      "timing": 5
+    },
+    {
+      "cost": [
+        400000,
+        80000,
+        0,
+        1200000
+      ],
+      "from": 19,
+      "index": 9,
+      "kind": 1,
+      "seconds": 45333,
+      "timing": 15
+    },
+    {
+      "cost": [
+        5000,
+        12000,
+        0,
+        10000
+      ],
+      "from": 0,
+      "index": 10,
+      "kind": 1,
+      "seconds": 6400,
+      "timing": 1
+    },
+    {
+      "cost": [
+        5000,
+        12000,
+        0,
+        10000
+      ],
+      "from": 0,
+      "index": 10,
+      "kind": 1,
+      "seconds": 1280,
+      "timing": 5
+    },
+    {
+      "cost": [
+        5000,
+        12000,
+        0,
+        10000
+      ],
+      "from": 0,
+      "index": 10,
+      "kind": 1,
+      "seconds": 427,
+      "timing": 15
+    },
+    {
+      "cost": [
+        125000,
+        300000,
+        0,
+        250000
+      ],
+      "from": 4,
+      "index": 10,
+      "kind": 1,
+      "seconds": 160000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        125000,
+        300000,
+        0,
+        250000
+      ],
+      "from": 4,
+      "index": 10,
+      "kind": 1,
+      "seconds": 32000,
+      "timing": 5
+    },
+    {
+      "cost": [
+        125000,
+        300000,
+        0,
+        250000
+      ],
+      "from": 4,
+      "index": 10,
+      "kind": 1,
+      "seconds": 10667,
+      "timing": 15
+    },
+    {
+      "cost": [
+        500000,
+        1200000,
+        0,
+        1000000
+      ],
+      "from": 9,
+      "index": 10,
+      "kind": 1,
+      "seconds": 640000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        500000,
+        1200000,
+        0,
+        1000000
+      ],
+      "from": 9,
+      "index": 10,
+      "kind": 1,
+      "seconds": 128000,
+      "timing": 5
+    },
+    {
+      "cost": [
+        500000,
+        1200000,
+        0,
+        1000000
+      ],
+      "from": 9,
+      "index": 10,
+      "kind": 1,
+      "seconds": 42667,
+      "timing": 15
+    },
+    {
+      "cost": [
+        2000000,
+        4800000,
+        0,
+        4000000
+      ],
+      "from": 19,
+      "index": 10,
+      "kind": 1,
+      "seconds": 2560000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        2000000,
+        4800000,
+        0,
+        4000000
+      ],
+      "from": 19,
+      "index": 10,
+      "kind": 1,
+      "seconds": 512000,
+      "timing": 5
+    },
+    {
+      "cost": [
+        2000000,
+        4800000,
+        0,
+        4000000
+      ],
+      "from": 19,
+      "index": 10,
+      "kind": 1,
+      "seconds": 170667,
+      "timing": 15
+    },
+    {
+      "cost": [
+        10000,
+        19500,
+        0,
+        15000
+      ],
+      "from": 0,
+      "index": 11,
+      "kind": 1,
+      "seconds": 14000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        10000,
+        19500,
+        0,
+        15000
+      ],
+      "from": 0,
+      "index": 11,
+      "kind": 1,
+      "seconds": 2800,
+      "timing": 5
+    },
+    {
+      "cost": [
+        10000,
+        19500,
+        0,
+        15000
+      ],
+      "from": 0,
+      "index": 11,
+      "kind": 1,
+      "seconds": 933,
+      "timing": 15
+    },
+    {
+      "cost": [
+        250000,
+        487500,
+        0,
+        375000
+      ],
+      "from": 4,
+      "index": 11,
+      "kind": 1,
+      "seconds": 350000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        250000,
+        487500,
+        0,
+        375000
+      ],
+      "from": 4,
+      "index": 11,
+      "kind": 1,
+      "seconds": 70000,
+      "timing": 5
+    },
+    {
+      "cost": [
+        250000,
+        487500,
+        0,
+        375000
+      ],
+      "from": 4,
+      "index": 11,
+      "kind": 1,
+      "seconds": 23333,
+      "timing": 15
+    },
+    {
+      "cost": [
+        1000000,
+        1950000,
+        0,
+        1500000
+      ],
+      "from": 9,
+      "index": 11,
+      "kind": 1,
+      "seconds": 1400000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        1000000,
+        1950000,
+        0,
+        1500000
+      ],
+      "from": 9,
+      "index": 11,
+      "kind": 1,
+      "seconds": 280000,
+      "timing": 5
+    },
+    {
+      "cost": [
+        1000000,
+        1950000,
+        0,
+        1500000
+      ],
+      "from": 9,
+      "index": 11,
+      "kind": 1,
+      "seconds": 93333,
+      "timing": 15
+    },
+    {
+      "cost": [
+        4000000,
+        7800000,
+        0,
+        6000000
+      ],
+      "from": 19,
+      "index": 11,
+      "kind": 1,
+      "seconds": 5600000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        4000000,
+        7800000,
+        0,
+        6000000
+      ],
+      "from": 19,
+      "index": 11,
+      "kind": 1,
+      "seconds": 1120000,
+      "timing": 5
+    },
+    {
+      "cost": [
+        4000000,
+        7800000,
+        0,
+        6000000
+      ],
+      "from": 19,
+      "index": 11,
+      "kind": 1,
+      "seconds": 373333,
+      "timing": 15
+    },
+    {
+      "cost": [
+        8000,
+        10000,
+        0,
+        12000
+      ],
+      "from": 0,
+      "index": 12,
+      "kind": 1,
+      "seconds": 6667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        8000,
+        10000,
+        0,
+        12000
+      ],
+      "from": 0,
+      "index": 12,
+      "kind": 1,
+      "seconds": 1333,
+      "timing": 5
+    },
+    {
+      "cost": [
+        8000,
+        10000,
+        0,
+        12000
+      ],
+      "from": 0,
+      "index": 12,
+      "kind": 1,
+      "seconds": 444,
+      "timing": 15
+    },
+    {
+      "cost": [
+        200000,
+        250000,
+        0,
+        300000
+      ],
+      "from": 4,
+      "index": 12,
+      "kind": 1,
+      "seconds": 166667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        200000,
+        250000,
+        0,
+        300000
+      ],
+      "from": 4,
+      "index": 12,
+      "kind": 1,
+      "seconds": 33333,
+      "timing": 5
+    },
+    {
+      "cost": [
+        200000,
+        250000,
+        0,
+        300000
+      ],
+      "from": 4,
+      "index": 12,
+      "kind": 1,
+      "seconds": 11111,
+      "timing": 15
+    },
+    {
+      "cost": [
+        800000,
+        1000000,
+        0,
+        1200000
+      ],
+      "from": 9,
+      "index": 12,
+      "kind": 1,
+      "seconds": 666667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        800000,
+        1000000,
+        0,
+        1200000
+      ],
+      "from": 9,
+      "index": 12,
+      "kind": 1,
+      "seconds": 133333,
+      "timing": 5
+    },
+    {
+      "cost": [
+        800000,
+        1000000,
+        0,
+        1200000
+      ],
+      "from": 9,
+      "index": 12,
+      "kind": 1,
+      "seconds": 44444,
+      "timing": 15
+    },
+    {
+      "cost": [
+        3200000,
+        4000000,
+        0,
+        4800000
+      ],
+      "from": 19,
+      "index": 12,
+      "kind": 1,
+      "seconds": 2666667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        3200000,
+        4000000,
+        0,
+        4800000
+      ],
+      "from": 19,
+      "index": 12,
+      "kind": 1,
+      "seconds": 533333,
+      "timing": 5
+    },
+    {
+      "cost": [
+        3200000,
+        4000000,
+        0,
+        4800000
+      ],
+      "from": 19,
+      "index": 12,
+      "kind": 1,
+      "seconds": 177778,
+      "timing": 15
+    },
+    {
+      "cost": [
+        2000,
+        5000,
+        0,
+        16000
+      ],
+      "from": 0,
+      "index": 13,
+      "kind": 1,
+      "seconds": 8667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        2000,
+        5000,
+        0,
+        16000
+      ],
+      "from": 0,
+      "index": 13,
+      "kind": 1,
+      "seconds": 1733,
+      "timing": 5
+    },
+    {
+      "cost": [
+        2000,
+        5000,
+        0,
+        16000
+      ],
+      "from": 0,
+      "index": 13,
+      "kind": 1,
+      "seconds": 578,
+      "timing": 15
+    },
+    {
+      "cost": [
+        50000,
+        125000,
+        0,
+        400000
+      ],
+      "from": 4,
+      "index": 13,
+      "kind": 1,
+      "seconds": 216667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        50000,
+        125000,
+        0,
+        400000
+      ],
+      "from": 4,
+      "index": 13,
+      "kind": 1,
+      "seconds": 43333,
+      "timing": 5
+    },
+    {
+      "cost": [
+        50000,
+        125000,
+        0,
+        400000
+      ],
+      "from": 4,
+      "index": 13,
+      "kind": 1,
+      "seconds": 14444,
+      "timing": 15
+    },
+    {
+      "cost": [
+        200000,
+        500000,
+        0,
+        1600000
+      ],
+      "from": 9,
+      "index": 13,
+      "kind": 1,
+      "seconds": 866667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        200000,
+        500000,
+        0,
+        1600000
+      ],
+      "from": 9,
+      "index": 13,
+      "kind": 1,
+      "seconds": 173333,
+      "timing": 5
+    },
+    {
+      "cost": [
+        200000,
+        500000,
+        0,
+        1600000
+      ],
+      "from": 9,
+      "index": 13,
+      "kind": 1,
+      "seconds": 57778,
+      "timing": 15
+    },
+    {
+      "cost": [
+        800000,
+        2000000,
+        0,
+        6400000
+      ],
+      "from": 19,
+      "index": 13,
+      "kind": 1,
+      "seconds": 3466667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        800000,
+        2000000,
+        0,
+        6400000
+      ],
+      "from": 19,
+      "index": 13,
+      "kind": 1,
+      "seconds": 693333,
+      "timing": 5
+    },
+    {
+      "cost": [
+        800000,
+        2000000,
+        0,
+        6400000
+      ],
+      "from": 19,
+      "index": 13,
+      "kind": 1,
+      "seconds": 231111,
+      "timing": 15
+    },
+    {
+      "cost": [
+        4000,
+        12000,
+        0,
+        10000
+      ],
+      "from": 0,
+      "index": 14,
+      "kind": 1,
+      "seconds": 4800,
+      "timing": 1
+    },
+    {
+      "cost": [
+        4000,
+        12000,
+        0,
+        10000
+      ],
+      "from": 0,
+      "index": 14,
+      "kind": 1,
+      "seconds": 960,
+      "timing": 5
+    },
+    {
+      "cost": [
+        4000,
+        12000,
+        0,
+        10000
+      ],
+      "from": 0,
+      "index": 14,
+      "kind": 1,
+      "seconds": 320,
+      "timing": 15
+    },
+    {
+      "cost": [
+        100000,
+        300000,
+        0,
+        250000
+      ],
+      "from": 4,
+      "index": 14,
+      "kind": 1,
+      "seconds": 120000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        100000,
+        300000,
+        0,
+        250000
+      ],
+      "from": 4,
+      "index": 14,
+      "kind": 1,
+      "seconds": 24000,
+      "timing": 5
+    },
+    {
+      "cost": [
+        100000,
+        300000,
+        0,
+        250000
+      ],
+      "from": 4,
+      "index": 14,
+      "kind": 1,
+      "seconds": 8000,
+      "timing": 15
+    },
+    {
+      "cost": [
+        400000,
+        1200000,
+        0,
+        1000000
+      ],
+      "from": 9,
+      "index": 14,
+      "kind": 1,
+      "seconds": 480000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        400000,
+        1200000,
+        0,
+        1000000
+      ],
+      "from": 9,
+      "index": 14,
+      "kind": 1,
+      "seconds": 96000,
+      "timing": 5
+    },
+    {
+      "cost": [
+        400000,
+        1200000,
+        0,
+        1000000
+      ],
+      "from": 9,
+      "index": 14,
+      "kind": 1,
+      "seconds": 32000,
+      "timing": 15
+    },
+    {
+      "cost": [
+        1600000,
+        4800000,
+        0,
+        4000000
+      ],
+      "from": 19,
+      "index": 14,
+      "kind": 1,
+      "seconds": 1920000,
+      "timing": 1
+    },
+    {
+      "cost": [
+        1600000,
+        4800000,
+        0,
+        4000000
+      ],
+      "from": 19,
+      "index": 14,
+      "kind": 1,
+      "seconds": 384000,
+      "timing": 5
+    },
+    {
+      "cost": [
+        1600000,
+        4800000,
+        0,
+        4000000
+      ],
+      "from": 19,
+      "index": 14,
+      "kind": 1,
+      "seconds": 128000,
+      "timing": 15
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        280000
+      ],
+      "from": 0,
+      "index": 15,
+      "kind": 1,
+      "seconds": 30667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        280000
+      ],
+      "from": 0,
+      "index": 15,
+      "kind": 1,
+      "seconds": 6133,
+      "timing": 5
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        280000
+      ],
+      "from": 0,
+      "index": 15,
+      "kind": 1,
+      "seconds": 2044,
+      "timing": 15
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        7000000
+      ],
+      "from": 4,
+      "index": 15,
+      "kind": 1,
+      "seconds": 766667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        7000000
+      ],
+      "from": 4,
+      "index": 15,
+      "kind": 1,
+      "seconds": 153333,
+      "timing": 5
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        7000000
+      ],
+      "from": 4,
+      "index": 15,
+      "kind": 1,
+      "seconds": 51111,
+      "timing": 15
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        28000000
+      ],
+      "from": 9,
+      "index": 15,
+      "kind": 1,
+      "seconds": 3066667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        28000000
+      ],
+      "from": 9,
+      "index": 15,
+      "kind": 1,
+      "seconds": 613333,
+      "timing": 5
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        28000000
+      ],
+      "from": 9,
+      "index": 15,
+      "kind": 1,
+      "seconds": 204444,
+      "timing": 15
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        112000000
+      ],
+      "from": 19,
+      "index": 15,
+      "kind": 1,
+      "seconds": 12266667,
+      "timing": 1
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        112000000
+      ],
+      "from": 19,
+      "index": 15,
+      "kind": 1,
+      "seconds": 2453333,
+      "timing": 5
+    },
+    {
+      "cost": [
+        0,
+        0,
+        0,
+        112000000
+      ],
+      "from": 19,
+      "index": 15,
+      "kind": 1,
+      "seconds": 817778,
+      "timing": 15
+    }
+  ]
+}

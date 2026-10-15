@@ -2,11 +2,7 @@
 pragma solidity 0.8.28;
 
 import {Test} from "forge-std/Test.sol";
-import {
-    TROOPS,
-    RESEARCH,
-    VendettaRuleset as Ruleset
-} from "../../src/generated/VendettaRuleset.sol";
+import {RESEARCH} from "../../src/generated/VendettaRuleset.sol";
 import {TroopStats} from "../../src/combat/TroopStats.sol";
 import {Fixtures} from "./Fixtures.sol";
 

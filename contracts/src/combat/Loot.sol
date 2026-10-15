@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.28;
 
-// Number of resources: weapons, ammunition, dollar, alcohol.
-uint256 constant RESOURCES = 4;
+import {RESOURCES} from "../generated/VendettaRuleset.sol";
 
 /// Loot apportionment (D-06): split `capacity` across the defender's unprotected resources in
 /// proportion to what remains, largest remainder first, never exceeding capacity or stock. Capacity
 /// freed by resources that run out is redistributed until capacity or stock is exhausted.
-/// Resource order (also the tie-break order): weapons, ammunition, dollar, alcohol.
+/// Arrays are in loot order (also the tie-break order): weapons, ammunition, dollar, alcohol.
 library Loot {
     function apportion(uint256 capacity, uint256[RESOURCES] memory unprotected)
         internal

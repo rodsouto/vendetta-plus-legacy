@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.28;
 
-import {
-    TROOPS,
-    RESEARCH,
-    VendettaRuleset as Ruleset
-} from "../../src/generated/VendettaRuleset.sol";
+import {TROOPS, RESEARCH} from "../../src/generated/VendettaRuleset.sol";
 import {Combat} from "../../src/combat/Combat.sol";
 import {TroopStats} from "../../src/combat/TroopStats.sol";
 
