@@ -6,12 +6,13 @@
     "node": ">=22"
   },
   "scripts": {
-    "codegen": "pnpm --filter @vendetta/spec-data codegen && pnpm --filter @vendetta/rules scenarios",
+    "codegen": "pnpm --filter @vendetta/spec-data codegen && pnpm --filter @vendetta/rules scenarios && (cd contracts && forge build) && pnpm --filter @vendetta/web abi",
     "test": "pnpm -r test",
     "build": "pnpm -r build",
     "test:contracts": "cd contracts && forge test",
     "format": "prettier --write \"packages/**/*.{ts,tsx,json}\" \"apps/**/*.{ts,tsx,json}\" --ignore-path .prettierignore",
-    "format:check": "prettier --check \"packages/**/*.{ts,tsx,json}\" \"apps/**/*.{ts,tsx,json}\" --ignore-path .prettierignore"
+    "format:check": "prettier --check \"packages/**/*.{ts,tsx,json}\" \"apps/**/*.{ts,tsx,json}\" --ignore-path .prettierignore",
+    "dev:local": "bash scripts/dev-local.sh"
   },
   "devDependencies": {
     "prettier": "^3.6.0",

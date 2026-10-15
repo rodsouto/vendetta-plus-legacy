@@ -16,6 +16,7 @@ import {
   distanceFixtures,
 } from "./fixtures.js";
 import { rulesetLibrary } from "./solidity.js";
+import { entityStrings } from "./i18n.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const specData = join(here, "../../../docs/spec/data");
@@ -88,5 +89,14 @@ for (const rs of ONCHAIN_RULESETS) {
         legacy.research_upgrade.cases,
       ),
     ),
+  );
+}
+
+// UI names of rooms, research and troops, from the legacy language files.
+const languages = join(here, "../../../application/languages/vendetta");
+for (const lang of ["es", "en"]) {
+  write(
+    join(outDir, "i18n", `${lang}.json`),
+    json(entityStrings(join(languages, `${lang}.php`), data.vendetta)),
   );
 }

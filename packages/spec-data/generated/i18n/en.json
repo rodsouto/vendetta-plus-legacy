@@ -1,0 +1,216 @@
+{
+  "rooms": {
+    "boss_office": {
+      "name": "Boss Office",
+      "description": "The Boss can be found in this office and here is where all the decisions are taken. Coordinate the development and speed of other areas\\' construction. The more level is got; the faster the rest will be developed. "
+    },
+    "mob_school": {
+      "name": "Mob School",
+      "description": "As its name suggests, this room makes the training of \\\"the guys\\\" on new techniques possible. Allow them to have more experience at combat. In the same way as for the Boss Office, the faster the training is, the faster the abilities will be developed. "
+    },
+    "weapons_armoury": {
+      "name": "Weapons Armoury",
+      "description": "Here, in the Weapons Armoury, as its name suggests, is where the weapons are kept. They will be needed in order to occupy new places and for trainings at combat. The more develop this room is, the more weapons you can make at the same time.\r\r\n"
+    },
+    "ammunition_depot": {
+      "name": "Ammunition Depot",
+      "description": "The ammunition depot is similar to the Weapons Armoury. Here the most important ammunition is manufactured. It is necessary, in bulk, to occupy areas as well as for its use in trainings.  "
+    },
+    "brewery": {
+      "name": "Brewery",
+      "description": "This room manufactures alcohol. Unfortunately (or is it fortunately?) it is forbidden and because of that it is quite required by population, so it is a prosperous business. However, you will need some strategies in order to take it to the citizens. "
+    },
+    "bar": {
+      "name": "Bar",
+      "description": "In the Bar people drink alcohol. Here is where you traffic it. Be careful not to be detected by The Police or you\\'re going to pay dearly for this. Since the Bar is badly supervised, the alcohol conversion is moderate. "
+    },
+    "smuggle": {
+      "name": "Smuggle",
+      "description": "Smuggle works better than the Bar. You can sell alcohol with a greater impact, which naturally will benefit the gangster\\'s profit. Unfortunately, this tactic is risky and much more expensive."
+    },
+    "weapon_storage": {
+      "name": "Weapon Storage",
+      "description": "In the Weapon Storage all the armament that is not immediately needed is kept. The process is automatic and the armament is kept there till it is needed. Besides, your enemies can not take your weapons away from this storage. "
+    },
+    "ammunition_storage": {
+      "name": "Ammunition Storage",
+      "description": "The Ammunition Storage functions similarly to the Weapon Storage. Here you keep ammunition boxes and grenades that are not immediately needed. Besides, they are out of danger."
+    },
+    "alcohol_storage": {
+      "name": "Alcohol Storage",
+      "description": "Since alcohol distillation is quite simple, the production is high. In order to store it without loosing the excess production, you will need to build an Alcohol Storage. There, it will be out of danger.  "
+    },
+    "safe_room": {
+      "name": "Safe Room",
+      "description": "After having a successful smuggling, you will get quite a sum of dollars. But, be careful! If you do not want to throw it away, you should use this safe in order to prevent it from disappearing and to prevent liquidity problems.   "
+    },
+    "boot_camp": {
+      "name": "Boot Camp",
+      "description": "As its name suggests, on the Boot Camp \\\"your guys\\\" will train. It will depend on the type of units that you can produce, for example, common criminals, assassins, professionals to whom your enemies will have an extreme respect for. Depending on the level, the units will be created in less time. "
+    },
+    "security": {
+      "name": "Security",
+      "description": "In the same way as the fighters\\' training in the Boot Camp, here you can train the youngest ones to defend themselves. At first, they will stay permanently, always at home and protecting their rooms against enemies. If your gangsters come back they will automatically fight together. "
+    },
+    "spring_gun": {
+      "name": "Spring Gun",
+      "description": "In order to make the defenders\\' work lighter, you have some constructions such as this Spring Gun. Technically, they are really advanced and when they detect an enemy they will open fire.  "
+    },
+    "hidden_mines": {
+      "name": "Hidden Mines",
+      "description": "These Mines are even a more \\\"pleasant\\\" help. Your guys will distribute them along the house. When an enemy accidentally steps on it... Good Night! "
+    }
+  },
+  "research": {
+    "routing": {
+      "name": "Routing",
+      "description": "To be more effective in order to achieve the aim as quickly as possible, your guys will have to do this training. Here you will learn to plan routes, travel quietly, and to get closer to the target without being detected, in order to achieve your work as effectively as it could possibly be."
+    },
+    "strategies": {
+      "name": "Strategies",
+      "description": "Some units (for example the killers) need another form of planning, the job order planning. Here it concerns rather the purpose of employment, and with improved training these fighters can therefore travel faster to the goal."
+    },
+    "extortion": {
+      "name": "Protection Money Encashment",
+      "description": "This training helps to increase protection funds from enemies. This becomes clear in their combat capability, which continues to rise with more frequent training."
+    },
+    "base_administration": {
+      "name": "Base Administration",
+      "description": "In this branch of training your Occupation Troops are trained, enabling them to occupy distant buildings."
+    },
+    "smuggling": {
+      "name": "Smuggling",
+      "description": "By learning to smuggle, this will teach how to transport the most inconspicuously stolen property under the clothes, so that the attention of the police is not attracted. The better they are trained, the more they can carry."
+    },
+    "espionage": {
+      "name": "Espionage",
+      "description": "In this training it is possible to learn the virtues of espionage. Using this your Spies will be able to achieve valuable information from your enemies."
+    },
+    "security_patrol": {
+      "name": "Security Patrol",
+      "description": "As the name already betrays, the security training improves the ability of both the gang and building to defend. A greater level reached will enhance your defense and your boys will know to defend themselves with greater effectiveness from attacks."
+    },
+    "gang_protection": {
+      "name": "Gang Protection",
+      "description": "As with Security Patrol, this will specialise them in the diverse tactics of defense. The initial defence however will be taken from the first level of the group, and not the one level of building defence."
+    },
+    "close_combat": {
+      "name": "Close Combat",
+      "description": "Every fighter should have done this education at least once. It concerns close combat and could be useful. Most of your guys will even do this in delight because they become stronger."
+    },
+    "short_range_weapons": {
+      "name": "Short-Ranged Weapon Training",
+      "description": "After close combat mostly the fight with shortrange weapons follow, like knives and such. here the guys also become more skillfull in fighting which helps a lot at brawls or muggings"
+    },
+    "firearms_training": {
+      "name": "Firearms Training",
+      "description": "For all who do not want to be too close to the enemy there is only one option: shooting! Here your guys learn how to use rifles right, so that the enemy won\\'t have any time to react before he becomes history."
+    },
+    "explosives_training": {
+      "name": "Explosives Training",
+      "description": "If it becomes harder, you should go through the following education. With the knowledge of building bombs, the fighters learn how to build from some boring components, an effective and fast dangerous weapon. But only the best among them will learn it."
+    },
+    "guerilla_training": {
+      "name": "Guerilla Training",
+      "description": "In this education the guys will become real men. Here they learn true pain, which will help a lot in later brawls, because they won\\'t flee, but rather will go on until no man is left standing."
+    },
+    "psychological_training": {
+      "name": "Psychological Training",
+      "description": "This modern education turns your fighters into fighting machines. The brain washing makes them psychically harder and act calm and strongwilled in conflicts instead of getting in panic."
+    },
+    "chemical_training": {
+      "name": "Chemical Trainig",
+      "description": "Who has knowledge in chemistry might not kill anyone but eliminate enemies beforehand. This education is something for professionals and needs a rather long time. The result is worth seeing!"
+    },
+    "honor": {
+      "name": "Honor",
+      "description": "As the guys like to make nonsense, the overview who is occupying which building might get lost in time. This education the guys will be reminded who the boss is and you will hold the control over your empire. This one is very long and costly."
+    }
+  },
+  "troops": {
+    "rowdy": {
+      "name": "Rowdy",
+      "description": "Rowdies are rather simple and naive fighters. But nonetheless they would never let a chance pass to lam enemies. In droves they are very dangerous and will scare away the enemy for sure."
+    },
+    "bouncer": {
+      "name": "Bouncer",
+      "description": "The bouncer is more calm than the rowdie, because he is used to crowds and conflicts. But he is the same calibre and easily rages what the enemies will feel."
+    },
+    "knifer": {
+      "name": "Knifer",
+      "description": "When a rowdy gets a knife he will become a knifer. Like this the formula might look alike because also that guy is not very professional. But he is still dangerous, as the knife is not made of wood..."
+    },
+    "gunman": {
+      "name": "Gunman",
+      "description": "Combined with a gun this guy is even a challenge for the enemies. After a little shooting training those guys are not that bad for the first battles."
+    },
+    "occupation_troop": {
+      "name": "Occupation Troop",
+      "description": "The occupation group is a time of building workers so that they can occupy new rooms. They reconstruct the whole entry hall and arrange their quarters. The occupation of new buildings only works with this troop."
+    },
+    "spy": {
+      "name": "Spy",
+      "description": "The spy is sneaky, fast and precise. But not in a fight, but more to receive information. He spies for you on enemies and give you the information directly. But he will mostly be killed if the enemy is at home."
+    },
+    "mover": {
+      "name": "Mover",
+      "description": "The mover is a civil unit because he carries things. Therefore you better should better pick him up as a transport unit rather than a fighter."
+    },
+    "cia_agent": {
+      "name": "CIA Agent",
+      "description": "This man here is from the CIA and as such very well trained already. But he is not loyal at all and has to be trained a while, which will be very costly. In the end though he is an effective weapon against enemies because he should already have taken up most educations."
+    },
+    "fbi_agent": {
+      "name": "FBI Agent",
+      "description": "If you can poach an agent from the FBI, you should be happy. Those guys sometimes may run away when it becomes stiff, but they do everything way more intelligent than the rowdies in your gang, because they are better educated."
+    },
+    "carrier": {
+      "name": "Carrier",
+      "description": "Very much like the mover is this man here. More a civilist, he can carry a lot and his education is not very costly, so you shouldn\\'t make him suffer with bloody massacres."
+    },
+    "tactical_expert": {
+      "name": "Tactical Expert",
+      "description": "The problem solver is more of a professional. he knows about anatomy, knows how to speak decently and knows how to behave in public. But he is a badass in fighting, so here he got his name as it seems."
+    },
+    "sniper": {
+      "name": "Sniper",
+      "description": "Are the enemies represented too strong and do they need purposeful attention? Then they select the sniper, who is by the nature of their training very precise and loyal. However, it is not suited very well defensively."
+    },
+    "assassin": {
+      "name": "Assassin",
+      "description": "The professional killer is the improved sharpshooter. He might be only loyal to the dollar, but is very well to kill the enemies or to defend the base. He is simply a master of his subject."
+    },
+    "ninja": {
+      "name": "Ninja",
+      "description": "There is only little known about ninjas. They are known to be extremely loyal and a deadly weapon alive; professional as can be."
+    },
+    "demolition_expert": {
+      "name": "Demolition Expert",
+      "description": "To kill several enemies at once, you should use this guy. he might be not good physically in fighting, but the advantages are clear. He might work wonders with a good education."
+    },
+    "mercenary": {
+      "name": "Mercenary",
+      "description": "This is the ultimate rambo. He is fast, precise, loyal and armed up to the teeth, so that enemies are not really happy when they hear about it. The only disadvantage might be the price."
+    },
+    "clandestine_workers": {
+      "name": "Clandestine Workers",
+      "description": "This worker is not much of a fighter, but for fodder that is more than enough. Since he is so cheap he is set to defend your building and once he sets eyes on an enemy he goes in for a brawl."
+    },
+    "safeguard": {
+      "name": "Safeguard",
+      "description": "This one is better than his buddy, he allready knows the basic tactics and can move arround a lot easier which is a bonus to his fighting abilities. For early game protection this actually is not bad."
+    },
+    "policeman": {
+      "name": "Policeman",
+      "description": "The police is not paid that well arround here, which leaves you to make them an offer they cannot reject. After their shifts they just come by and hang out in your buildings. They have been trained well so they are actually worth something in a fight."
+    },
+    "bodyguard": {
+      "name": "Bodyguard",
+      "description": "If you do not want to depend on foreign aid, such as policemen, what do you do? train thugs yourself. In this case the bodyguard is your man. A loyal and diligent butcher who does not let a few bullets slow him down."
+    },
+    "guards": {
+      "name": "Guards",
+      "description": "The cream of the crop of security patrol. Just as in royal castles this is a master of his trait. He knows all routes in and out of a building, every hiding spot and tactical advantagepoint, getting past him is a huge feat for your enemies."
+    }
+  }
+}
