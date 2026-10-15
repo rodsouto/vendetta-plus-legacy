@@ -33,7 +33,7 @@ which network it runs on. Messaging, chat and moderation are off-chain (B-10).
 | B-05 | Public state | Adapt | All state is visible to everyone; `spy` / `espionage` unchanged |
 | B-06 | Lazy settlement | Adapt | D-08 in two levels: local per building on touch, global mission queue; no keepers |
 | B-07 | Global mission order | New | All missions resolve in global arrival order (heap); local events stay per building |
-| B-08 | Chunked settlement | New | `advance(building, maxEvents)`; one event always fits in a block |
+| B-08 | Chunked settlement | New | Actions process ≤ 10 due missions, else revert `Backlog`; `advance(n)`; one event always fits in a block |
 | B-09 | Hard caps | Adapt | Queue, mission and offer limits, configurable |
 | B-10 | Off-chain social | Adapt | Messaging, chat, moderation off-chain |
 | B-11 | Market | Keep | D-19 as is: no escrow, trust; non-delivery can be taken to Kleros |
@@ -55,6 +55,7 @@ which network it runs on. Messaging, chat and moderation are off-chain (B-10).
 | B-27 | Exact stocks | New | Resources stored in 1/100800 units: per-hour rate ×28 = per-second increment (D-12) |
 | B-28 | Alcohol depletion | New | Regime change (D-07) at the whole second `t0 + ⌈stock / net consumption⌉` |
 | B-29 | Duration at start | New | Queue items compute their duration when they start (implements D-23) |
+| B-30 | Last building | New | A player can abandon any building except the last one |
 
 ---
 
@@ -190,16 +191,17 @@ Every mission in the world resolves in **global arrival order**, ties broken by 
 
 ## B-08 — Chunked settlement — New
 
-Settling a building may involve many events (up to the B-09 caps), which could exceed the block gas
-limit and lock the building forever. So:
+Local settlement is bounded by the queue sizes, so it always fits in a transaction. The global
+mission queue (B-07) is not: after a burst of arrivals there may be more due missions than one
+transaction can process. So:
 
-- `advance(building, maxEvents)` processes up to `maxEvents` pending events in order and stores the
-  progress.
-- A player action on a building that is not fully settled **reverts**. The client calls `advance`
-  until it is settled, then retries.
-- **Invariant:** one single event (the worst case is one combat) always fits in a block with room to
-  spare. Target: **< 3M gas per combat**. Measured: **~1.24M** for the worst case found (B-03
-  spike), so the invariant holds with a 2.4× margin before storage reads and writes.
+- Every player action first processes due missions, at most **`MAX_MISSIONS_PER_TX` = 10**. If due
+  missions remain, the action **reverts** with `Backlog`.
+- `advance(n)` is public (anyone, no ownership): it processes up to `n` due missions and never
+  reverts on a remaining backlog. The client (or our keeper) calls it, then retries the action.
+- **Invariant:** one single event (the worst case is one battle) always fits in a block with room
+  to spare. Target: **< 3M gas per battle**. Measured: **~1.37M** for the worst case found,
+  including every storage read and write (`forge test --match-contract BattleGas -vv`).
 
 ## B-09 — Hard caps — Adapt
 
@@ -211,11 +213,13 @@ are to be tuned with gas measurements and live in the `onchain` section of
 | Limit | Start value | Why |
 |-------|-------------|-----|
 | Troop batches queued per building (`boot_camp` / `security`) | 1, or 5 with premium (B-25) | Bounded settle |
-| Pending missions **to** one building | 32 | Bounded settle; stops griefing a victim with cheap missions |
-| Outgoing missions per player | 20 | Bounded state |
+| Missions in flight per player (outbound and returning) | 20 | Bounded state; no cheap spam of the global queue |
 | Open market offers per player | 10 | Bounded state |
 
-Room and research queue limits from legacy are kept. The number of buildings per player stays
+There is no limit on missions **to** one building: with the global mission queue (B-07) each mission
+is processed on its own, so many attacks on one victim do not make any single transaction heavier
+(as in legacy, a building can receive many attacks). Room and research queue limits from legacy are
+kept. The number of buildings per player stays
 unlimited: each building is settled separately, so it does not affect gas per transaction.
 
 ## B-10 — Off-chain social — Adapt
@@ -307,6 +311,10 @@ Until the freeze, the "trustless rules" goal (Goals) is only partly met. This is
 
 - Battle reports, notices (delivery, occupation, trade, family) and history are **events** (logs),
   not storage.
+- The `Battle` event carries the **inputs and totals**: both armies, both players' research and
+  honor percentage, survivors and loot. Combat is deterministic, so the indexer recomputes the exact
+  rounds (deaths per round and troop type, 06-combat.md#battle-report) with `packages/rules`. This
+  costs less gas than logging every round.
 - An **indexer** serves reports, notices and the **ranking**. Sorting players on-chain is too
   expensive. The indexer is a **Goldsky Subgraph** (The Graph format), queried by the client over
   GraphQL. Because the format is The Graph's and the events are on-chain, anyone can deploy the same
@@ -448,6 +456,14 @@ started are therefore always timed with the latest level, and the item in progre
 time: exactly D-23, without a separate re-timing step. Ties between events at the same second follow
 creation order (D-08), using a global sequence number assigned when the item is queued.
 
+## B-30 — Never the last building — New
+
+Legacy lets a player delete any building, including the last one. On-chain that would leave an
+account (B-26) with no buildings and no way to start again, because a controller has one player and
+cannot register twice. So a player can abandon any building **except the last one**
+(`LastBuilding`). Everything in the abandoned building is lost: rooms, troops, queues (including the
+research queue if it runs there), and the cargo of missions returning to it.
+
 ---
 
 ## Architecture
@@ -511,9 +527,10 @@ Measured with a prototype before the B-03 deviation list and B-09 caps are fixed
 | Assumption | Current estimate |
 |------------|------------------|
 | Typical action (build, train, send) | **Measured (core, 3a)**: register ~251k, queue a room ~140k (real transactions on anvil, base cost included). Inside a test: queue that waits ~55k, settling 6 queue items ~326k, settling production only ~33k. `forge test --match-contract CoreGas -vv` |
-| Worst-case combat (21 × 21 types, 5 rounds) | **Measured: ~1.24M gas** (16 attack vs 21 defender types, 5 rounds, research 20; stats of both sides + resolution, in memory). Typical raid (3 vs 2 types, 5 rounds): ~0.51M. Storage not included. `forge test --match-contract CombatGas -vv` |
+| Worst-case combat (21 × 21 types, 5 rounds) | **Measured: ~1.24M gas** in memory (`CombatGas`), **~1.37M with storage** (`BattleGas`: survivors, loot, points). Typical raid in memory: ~0.51M |
+| Missions | **Measured (3b)**: send an attack ~354k; process one attack (battle, loot, return queued) ~555k; process one return ~82k (`MissionsGasTest`, inside a test) |
 | Storage, not combat, dominates cost | Unmeasured. Decides whether B-02 ever needs Stylus. |
 | Precision vs test vectors | **0 deviations** in every formula, including travel time and salary (exact integer math, B-03) |
-| Cost of settling one building with 32 pending missions | Sets the 32 cap and `maxEvents` |
+| Missions processed per transaction | `MAX_MISSIONS_PER_TX` = 10: up to ~14M gas in the worst case (10 worst battles), within an Arbitrum block |
 | Daily sponsored allowance per account | Set from the measured costs and budget |
 | Smart account provider supports multi-passkey + session keys + paymaster | To be chosen |
