@@ -16,6 +16,7 @@ import {
     InvalidTroops
 } from "../../src/core/GameErrors.sol";
 import {GameTestBase} from "./GameTestBase.sol";
+import {Missions} from "../../src/core/Missions.sol";
 import {console} from "forge-std/Test.sol";
 
 contract MissionsTest is GameTestBase {
@@ -159,6 +160,29 @@ contract MissionsTest is GameTestBase {
         game.poke(2); // the remaining 10 fit in one transaction
         assertEq(game.pendingMissions().length, 0);
         assertEq(game.getBuilding(1).troops[ROWDY], 7);
+    }
+
+    /// Short of gas for the next due mission, actions and advance() revert with Backlog, never run
+    /// out of gas midway; with enough gas everything is processed.
+    function test_drainStopsShortOfGas() public {
+        vm.startPrank(alice);
+        for (uint256 i; i < 3; ++i) {
+            game.sendMission(1, ATTACK, [uint256(1), 1, 100 + i], _rowdies(1), _none(), 0);
+        }
+        vm.stopPrank();
+        vm.warp(block.timestamp + 30 days); // 3 arrivals due (their returns too, later)
+        uint256 tight = Missions.MISSION_GAS_RESERVE + 150_000; // about one mission after the 63/64 rule
+
+        vm.prank(bob);
+        (bool ok, bytes memory ret) = address(game).call{gas: tight}(abi.encodeCall(game.poke, (2)));
+        assertFalse(ok);
+        assertEq(bytes4(ret), Backlog.selector);
+
+        (ok, ret) = address(game).call{gas: tight}(abi.encodeCall(game.advance, (10)));
+        assertFalse(ok);
+        assertEq(bytes4(ret), Backlog.selector);
+        game.poke(2); // with enough gas everything is processed
+        assertEq(game.pendingMissions().length, 0);
     }
 
     function test_cannotAbandonLastBuilding() public {

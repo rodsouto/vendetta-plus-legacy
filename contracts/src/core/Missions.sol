@@ -48,6 +48,13 @@ library Missions {
     /// Missions processed by one action at most before it reverts with Backlog (B-08).
     uint256 internal constant MAX_MISSIONS_PER_TX = 10;
 
+    /// Gas a single mission may need at most (B-08 invariant; BattleGas checks the worst battle
+    /// against it). With less gas left and a mission due, processing reverts with Backlog instead
+    /// of running out of gas midway; since it never succeeds short, a gas estimate always covers
+    /// every mission it has to process. The simulator does not model gas: with enough gas both
+    /// behave the same.
+    uint256 internal constant MISSION_GAS_RESERVE = 3_000_000;
+
     // ------------------------------------------------------------------ queue
 
     /// Every action first catches up the global queue; a remaining backlog reverts.
@@ -58,7 +65,8 @@ library Missions {
         if (head != 0 && s.missions[head].arrival <= block.timestamp) revert Backlog();
     }
 
-    /// Anyone can process up to `max` due missions; never reverts on a remaining backlog.
+    /// Anyone can process up to `max` due missions; never reverts on a remaining backlog (only when
+    /// short of gas for the next one).
     function advance(uint256 max) external returns (uint256) {
         return _processDue(GameStorage.core(), max);
     }
@@ -67,6 +75,7 @@ library Missions {
         while (n < max) {
             uint64 id = Heap.head(s);
             if (id == 0 || s.missions[id].arrival > block.timestamp) break;
+            if (gasleft() < MISSION_GAS_RESERVE) revert Backlog();
             Heap.remove(s, id);
             _process(s, id);
             ++n;

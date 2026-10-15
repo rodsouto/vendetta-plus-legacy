@@ -17,6 +17,7 @@ import {
     ATTACK
 } from "../../src/core/GameStorage.sol";
 import {Battle} from "../../src/core/Battle.sol";
+import {Missions} from "../../src/core/Missions.sol";
 
 /// Writes a battle directly into the core storage and resolves it with the real Battle library
 /// (storage reads and writes included), to measure the worst case against B-08.
@@ -49,7 +50,7 @@ contract BattleHarness {
 }
 
 contract BattleGasTest is Test {
-    uint256 internal constant GAS_TARGET = 3_000_000;
+    uint256 internal constant GAS_TARGET = Missions.MISSION_GAS_RESERVE;
 
     /// Same search as CombatGas.t.sol (16 attack types vs 21 types), now through storage.
     function test_gasWorstCaseBattleWithStorage() public {

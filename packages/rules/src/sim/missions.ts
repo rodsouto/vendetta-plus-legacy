@@ -216,6 +216,10 @@ export function processDue(w: World, now: bigint, max: number): number {
 }
 
 /** Every action first catches up the global queue (B-07); a remaining backlog reverts (B-08). */
+/**
+ * The contract also reverts with Backlog when a mission is due and less than MISSION_GAS_RESERVE gas
+ * is left (instead of running out of gas); the simulator has unlimited gas, so it never does.
+ */
 export function drain(w: World, now: bigint): void {
   processDue(w, now, MAX_MISSIONS_PER_TX);
   const head = w.pending[0];

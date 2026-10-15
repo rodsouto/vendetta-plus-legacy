@@ -200,6 +200,14 @@ transaction can process. So:
   missions remain, the action **reverts** with `Backlog`.
 - `advance(n)` is public (anyone, no ownership): it processes up to `n` due missions and never
   reverts on a remaining backlog. The client (or our keeper) calls it, then retries the action.
+- **Gas cap:** a due mission is processed only while at least `MISSION_GAS_RESERVE` (3M, the
+  invariant below) gas is left; otherwise the action (or `advance`) reverts with `Backlog` instead
+  of running out of gas midway. It never succeeds having skipped a due mission for lack of gas, so a
+  gas estimate covers every mission it must process. This matters because an action's cost depends
+  on when it lands: missions may come due between the gas estimate and inclusion. On `Backlog` the client retries once with `advance(10)` first, in the same
+  operation. The simulator has no gas, so it never stops early; with enough gas both agree.
+  Side effect: while a mission is due, an action's estimated gas limit includes the 3M reserve
+  (only the limit; ERC-4337 charges 10% of the unused part).
 - **Invariant:** one single event (the worst case is one battle) always fits in a block with room
   to spare. Target: **< 3M gas per battle**. Measured: **~1.37M** for the worst case found,
   including every storage read and write (`forge test --match-contract BattleGas -vv`).

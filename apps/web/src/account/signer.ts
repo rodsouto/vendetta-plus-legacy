@@ -2,7 +2,17 @@
 // - DevSigner: anvil's development accounts, plain transactions (local only).
 // - PasskeySigner: the passkey's Kernel account for account management and this device's session
 //   account for every game action, both as sponsored ERC-4337 operations (B-15, B-16).
-import { http, type Abi, type Address, type Chain, type Hash, type PublicClient } from "viem";
+import {
+  decodeErrorResult,
+  decodeEventLog,
+  http,
+  type Abi,
+  type Address,
+  type Chain,
+  type Hash,
+  type PublicClient,
+} from "viem";
+import { entryPoint07Abi } from "viem/account-abstraction";
 import { createSmartAccountClient } from "permissionless";
 import { createPimlicoClient } from "permissionless/clients/pimlico";
 import type { Clients } from "../chain/config.js";
@@ -67,10 +77,31 @@ abstract class Observable {
 
 const CALL_GAS_HEADROOM = 100_000n;
 
-class RevertedError extends Error {
-  constructor() {
-    super("reverted");
+/** A call that reverted on chain; `errorName` is the contract's custom error when it is known. */
+export class RevertedError extends Error {
+  constructor(readonly errorName?: string) {
+    super(errorName ?? "reverted");
   }
+}
+
+/** The custom error behind a reverted operation, from the EntryPoint's UserOperationRevertReason. */
+function revertName(logs: readonly { data: Hash; topics: readonly Hash[] }[], abis: Abi[]) {
+  for (const log of logs) {
+    try {
+      const ev = decodeEventLog({ abi: entryPoint07Abi, ...log, topics: log.topics as never });
+      if (ev.eventName !== "UserOperationRevertReason") continue;
+      for (const abi of abis) {
+        try {
+          return decodeErrorResult({ abi, data: ev.args.revertReason }).errorName;
+        } catch {
+          /* not this contract's error */
+        }
+      }
+    } catch {
+      /* another event */
+    }
+  }
+  return undefined;
 }
 
 export class DevSigner extends Observable implements Signer {
@@ -217,7 +248,13 @@ export class PasskeySigner extends Observable implements Signer {
       callGasLimit: (gas.callGasLimit * 3n) / 2n + CALL_GAS_HEADROOM,
     });
     const receipt = await client.waitForUserOperationReceipt({ hash });
-    if (!receipt.success) throw new RevertedError();
+    if (!receipt.success)
+      throw new RevertedError(
+        revertName(
+          receipt.logs,
+          calls.map((c) => c.abi),
+        ),
+      );
   }
 }
 

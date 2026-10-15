@@ -22,7 +22,14 @@ import { makeClients, type Clients } from "../chain/config.js";
 import { loadNetwork, type Network } from "../chain/networks.js";
 import { controllerKey, loadWorld, project, cloneWorld, type Snapshot } from "../chain/load.js";
 import { isPublished, NoAccountError, publishCall } from "../account/passkey.js";
-import { DevSigner, PasskeySigner, makeSigner, type Call, type From } from "../account/signer.js";
+import {
+  DevSigner,
+  PasskeySigner,
+  RevertedError,
+  makeSigner,
+  type Call,
+  type From,
+} from "../account/signer.js";
 
 export interface Toast {
   id: number;
@@ -91,6 +98,18 @@ const cancelled = (e: unknown): boolean => {
   for (let x = e as { name?: string; cause?: unknown } | undefined; x; x = x.cause as never)
     if (x.name === "NotAllowedError") return true;
   return false;
+};
+
+/** The contract's custom error behind a failed send, "unknown" when there is none. */
+const errorName = (e: unknown): string => {
+  if (cancelled(e)) return "cancelled";
+  if (e instanceof NoAccountError) return "noAccount";
+  if (e instanceof RevertedError) return e.errorName ?? "unknown";
+  if (e instanceof BaseError) {
+    const revert = e.walk((x) => x instanceof ContractFunctionRevertedError);
+    if (revert instanceof ContractFunctionRevertedError) return revert.data?.errorName ?? "unknown";
+  }
+  return "unknown";
 };
 
 const gameCall = (game: Address, functionName: string, args: readonly unknown[]): Call => ({
@@ -181,13 +200,7 @@ export function GameProvider({
 
   const fail = useCallback(
     (e: unknown) => {
-      let name = "unknown";
-      if (cancelled(e)) name = "cancelled";
-      else if (e instanceof NoAccountError) name = "noAccount";
-      else if (e instanceof BaseError) {
-        const revert = e.walk((x) => x instanceof ContractFunctionRevertedError);
-        if (revert instanceof ContractFunctionRevertedError) name = revert.data?.errorName ?? name;
-      }
+      const name = errorName(e);
       if (name === "unknown") console.error(e);
       toast(t(`errors.${name}`, { defaultValue: t("errors.unknown") }), true);
       return false;
@@ -222,7 +235,15 @@ export function GameProvider({
       setBusy(true);
       try {
         if (r.renew) await signer.send(r.renew.calls, "controller");
-        await signer.send(r.calls, r.from);
+        try {
+          await signer.send(r.calls, r.from);
+        } catch (e) {
+          if (errorName(e) !== "Backlog") throw e;
+          // Due missions piled up, or more came due than the gas allowed for (B-08): process
+          // them first, in the same operation, and retry once.
+          const advance = gameCall(game, "advance", [BigInt(sim.MAX_MISSIONS_PER_TX)]);
+          await signer.send([advance, ...r.calls], r.from);
+        }
         toast(r.done);
         await refresh();
         return true;
@@ -233,7 +254,7 @@ export function GameProvider({
         setBusy(false);
       }
     },
-    [snapshot, now, signer, toast, t, refresh, fail],
+    [snapshot, now, signer, toast, t, refresh, fail, game],
   );
 
   const renewal = useCallback(() => {
