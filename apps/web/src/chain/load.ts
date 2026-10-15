@@ -15,7 +15,12 @@ export interface Snapshot {
   block: bigint;
 }
 
-export async function loadWorld(client: PublicClient, game: Address): Promise<Snapshot> {
+/** `sessions`: session addresses to load too (Game cannot list them); this device's, in practice. */
+export async function loadWorld(
+  client: PublicClient,
+  game: Address,
+  sessions: readonly Address[] = [],
+): Promise<Snapshot> {
   const block = await client.getBlock();
   const read = <T>(functionName: string, args: unknown[] = []) =>
     client.readContract({
@@ -48,13 +53,14 @@ export async function loadWorld(client: PublicClient, game: Address): Promise<Sn
   const training = (q: readonly T[]) =>
     q.map((i) => ({ index: i.troop, seq: i.seq, finishAt: big(i.finishAt), quantity: i.quantity }));
 
-  const [pv, bv, mv, fv, wv, tv] = await Promise.all([
+  const [pv, bv, mv, fv, wv, tv, sv] = await Promise.all([
     Promise.all(ids(players).map((id) => read<any>("getPlayer", [id]))),
     Promise.all(ids(buildings).map((id) => read<any>("getBuilding", [id]))),
     Promise.all(ids(missions).map((id) => read<any>("getMission", [id]))),
     Promise.all(ids(families).map((id) => read<any>("getFamily", [id]))),
     Promise.all(ids(wars).map((id) => read<any>("getWar", [id]))),
     Promise.all(ids(trades).map((id) => read<any>("getTrade", [id]))),
+    Promise.all(sessions.map((a) => read<any>("getSession", [a]))),
   ]);
 
   pv.forEach((p, i) => {
@@ -163,6 +169,15 @@ export async function loadWorld(client: PublicClient, game: Address): Promise<Sn
       paid: [...t.paid],
       accepted: t.accepted,
       acceptedAt: big(t.acceptedAt),
+    });
+  });
+
+  sv.forEach((s, i) => {
+    if (s.player === 0n) return;
+    w.sessions.set(controllerKey(sessions[i]!), {
+      player: s.player,
+      until: big(s.until),
+      epoch: big(s.epoch),
     });
   });
 

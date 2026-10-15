@@ -29,6 +29,12 @@ importers:
       i18next:
         specifier: ^26.0.0
         version: 26.4.5(typescript@5.9.3)
+      ox:
+        specifier: 0.14.56
+        version: 0.14.56(typescript@5.9.3)
+      permissionless:
+        specifier: 0.4.1
+        version: 0.4.1(ox@0.14.56(typescript@5.9.3))(viem@2.57.7(typescript@5.9.3))
       react:
         specifier: ^19.2.0
         version: 19.3.1
@@ -659,6 +665,15 @@ packages:
   pathe@2.0.3:
     resolution: {integrity: sha512-WUjGcAqP1gQacoQe+OBJsFA7Ld4DyXuUIjZ5cc75cLHvJ7dtNsTugphxIADwspS+AraAUePCKrSVtPLFj/F88w==}
 
+  permissionless@0.4.1:
+    resolution: {integrity: sha512-RhSLhA3Aw3gc1il6unWYfo1K+GBQNGBMSEVwv2gJQN6Ryxv6VoYtutRyIIQ279bPHu6WlRutbw/IxRC8giNamQ==}
+    peerDependencies:
+      ox: ^0.11.3
+      viem: ^2.44.4
+    peerDependenciesMeta:
+      ox:
+        optional: true
+
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
 
@@ -1265,6 +1280,12 @@ snapshots:
       - zod
 
   pathe@2.0.3: {}
+
+  permissionless@0.4.1(ox@0.14.56(typescript@5.9.3))(viem@2.57.7(typescript@5.9.3)):
+    dependencies:
+      viem: 2.57.7(typescript@5.9.3)
+    optionalDependencies:
+      ox: 0.14.56(typescript@5.9.3)
 
   picocolors@1.1.1: {}
 

@@ -1,4 +1,5 @@
-// Account: vacation (D-18), premium (B-25), suspension (B-14) and transfer (B-26).
+// Account: this device's session (B-15), vacation (D-18), premium (B-25), suspension (B-14) and
+// transfer (B-26).
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { isAddress } from "viem";
@@ -20,7 +21,7 @@ export function Account() {
     <>
       <header className="account-head">
         <h2>{t("account.title")}</h2>
-        <span className="folio">{g.address.slice(0, 10)}…</span>
+        <span className="folio">{g.address?.slice(0, 10)}…</span>
       </header>
       <table className="ledger">
         <tbody>
@@ -52,6 +53,8 @@ export function Account() {
           </tr>
         </tbody>
       </table>
+
+      {g.signer.mode === "passkey" && <Session />}
 
       <h3>{t("account.vacation")}</h3>
       {vacation ? (
@@ -107,10 +110,55 @@ export function Account() {
               check: (w, c, n) => sim.transferPlayer(w, c, controllerKey(to as `0x${string}`), n),
               functionName: "transferPlayer",
               args: [to],
+              from: "controller",
             })
           }
         >
           {t("account.transfer")}
+        </button>
+      </div>
+    </>
+  );
+}
+
+/** This device: how long it may still play without a passkey prompt, renew, revoke, sign out. */
+function Session() {
+  const g = useGame();
+  const { t } = useTranslation();
+  const live = g.sessionUntil > 0n;
+  return (
+    <>
+      <h3>{t("session.title")}</h3>
+      <p className="note">{t("session.note")}</p>
+      <table className="ledger">
+        <tbody>
+          <tr>
+            <td>{t("session.device")}</td>
+            <td className="num">
+              {live ? (
+                <span className="stamp ink">
+                  {t("session.until")} {clock(g.sessionUntil)}
+                </span>
+              ) : (
+                <span className="muted">{t("session.lapsed")}</span>
+              )}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div className="form-row">
+        <button className="btn" disabled={g.busy} onClick={() => void g.renewSession()}>
+          {t("session.renew")}
+        </button>
+        <button
+          className="btn quiet"
+          disabled={g.busy || !live}
+          onClick={() => void g.revokeSession()}
+        >
+          {t("session.revoke")}
+        </button>
+        <button className="btn quiet" disabled={g.busy} onClick={() => g.signOut()}>
+          {t("session.signOut")}
         </button>
       </div>
     </>

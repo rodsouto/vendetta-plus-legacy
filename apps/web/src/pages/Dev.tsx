@@ -1,17 +1,19 @@
-// Local workshop: switch dev accounts, move the chain clock, process missions, admin actions.
+// Local workshop (development accounts only): switch dev accounts, move the chain clock, process missions, admin actions.
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useGame } from "../state/game.js";
 import { DEV_KEYS, devAccount } from "../chain/config.js";
+import { DevSigner } from "../account/signer.js";
 import { playerLabel } from "../ui/format.js";
 
 export function Dev() {
   const g = useGame();
   const { t } = useTranslation();
+  const dev = g.signer instanceof DevSigner ? g.signer : null;
   const [target, setTarget] = useState("1");
   const day = 86400n;
   const admin = (functionName: string, args: unknown[]) =>
-    void g.act({ done: t("family.done"), functionName, args, asAdmin: true });
+    void g.act({ done: t("family.done"), functionName, args, from: "admin" });
   return (
     <>
       <header className="account-head">
@@ -22,8 +24,8 @@ export function Dev() {
         {DEV_KEYS.map((_, i) => (
           <button
             key={i}
-            className={`btn${g.account === i ? " primary" : ""}`}
-            onClick={() => g.setAccount(i)}
+            className={`btn${dev?.account === i ? " primary" : ""}`}
+            onClick={() => dev?.use(i)}
           >
             {i === 0 ? t("dev.admin") : `#${i}`} · {devAccount(i).address.slice(0, 6)}
           </button>

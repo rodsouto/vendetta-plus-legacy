@@ -43,7 +43,9 @@
   },
   "connect": {
     "title": "Sin conexión con la ciudad",
-    "body": "No encuentro el despliegue local. Corré «pnpm dev:local» en la raíz del repositorio y recargá."
+    "noLocal": "No encuentro el despliegue local. Corré «pnpm dev:local» en la raíz del repositorio y recargá.",
+    "notDeployed": "El juego todavía no está publicado en esta red.",
+    "noPimlicoKey": "Falta la clave del servicio que paga las operaciones (VITE_PIMLICO_API_KEY)."
   },
   "register": {
     "title": "Abrir una cuenta",
@@ -54,6 +56,27 @@
     "submit": "Fundar aquí",
     "pick": "Tocá un lote vacío en el plano.",
     "done": "Cuenta abierta"
+  },
+  "entry": {
+    "title": "Entrar a la ciudad",
+    "body": "Tu cuenta se guarda con una passkey: la huella, la cara o el PIN de tu dispositivo. Sin contraseñas y sin pagar nada.",
+    "signIn": "Entrar con passkey",
+    "create": "¿Primera vez? Abrí una cuenta",
+    "submit": "Crear cuenta y fundar aquí",
+    "passkeyNote": "Al fundar, el dispositivo te pide crear la passkey y después confirmarla. Si tu passkey se sincroniza (iCloud, Google), entrás igual desde tus otros dispositivos.",
+    "welcome": "Bienvenido de vuelta"
+  },
+  "session": {
+    "title": "Este dispositivo",
+    "note": "Este dispositivo juega por vos sin pedirte la passkey en cada orden. El permiso vence solo; renovarlo pide la passkey una vez.",
+    "device": "Permiso para jugar",
+    "until": "Hasta",
+    "lapsed": "Vencido: la próxima orden te pide la passkey",
+    "renew": "Renovar permiso",
+    "renewed": "Permiso renovado",
+    "revoke": "Quitarle el permiso y salir",
+    "revoked": "Permiso quitado",
+    "signOut": "Salir"
   },
   "book": {
     "balance": "Saldo",
@@ -276,6 +299,12 @@
     "InvalidOffer": "La orden no es válida.",
     "TooManyOffers": "Ya tenés 10 órdenes abiertas.",
     "InvalidTrade": "Esa orden no está vigente.",
+    "NotController": "Eso solo se puede hacer confirmando con tu passkey.",
+    "InvalidSession": "Ese permiso ya venció.",
+    "SessionTooLong": "El permiso no puede durar tanto.",
+    "AlreadyPublished": "Esta passkey ya está registrada.",
+    "cancelled": "Cancelaste la confirmación.",
+    "noAccount": "Esa passkey no tiene una cuenta en esta ciudad.",
     "unknown": "La transacción falló."
   },
   "theme": {

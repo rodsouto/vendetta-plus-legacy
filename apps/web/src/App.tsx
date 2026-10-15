@@ -1,7 +1,7 @@
 // The binding: spine (title, language, account), the open page, the thumb index.
 import { useTranslation } from "react-i18next";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { GameProvider, useDeployment, useGame } from "./state/game.js";
+import { GameProvider, useNetwork, useGame } from "./state/game.js";
 import { makeClients } from "./chain/config.js";
 import { useRoute } from "./router.js";
 import { Toasts } from "./ui/parts.js";
@@ -41,23 +41,26 @@ export function App() {
 
 function Connected() {
   const { t } = useTranslation();
-  const deployment = useDeployment();
+  const query = useNetwork();
+  const network = typeof query.data === "object" ? query.data : null;
   const clients = useMemo(
-    () => (deployment.data ? makeClients(deployment.data) : null),
-    [deployment.data],
+    () => (network ? makeClients(network.deployment, network.chain) : null),
+    [network],
   );
-  if (deployment.isLoading) return <Shell>{<p className="empty">{t("common.loading")}</p>}</Shell>;
-  if (!clients)
+  if (query.isLoading) return <Shell>{<p className="empty">{t("common.loading")}</p>}</Shell>;
+  if (!network || !clients)
     return (
       <Shell>
         <header className="account-head">
           <h2>{t("connect.title")}</h2>
         </header>
-        <p className="note">{t("connect.body")}</p>
+        <p className="note">
+          {t(`connect.${typeof query.data === "string" ? query.data : "noLocal"}`)}
+        </p>
       </Shell>
     );
   return (
-    <GameProvider clients={clients}>
+    <GameProvider clients={clients} network={network}>
       {(ready) =>
         ready ? (
           <Game />
@@ -118,18 +121,27 @@ function Game() {
   const { t } = useTranslation();
   const g = useGame();
   const { path } = useRoute();
-  const page = PAGES.find(([id]) => id === path) ?? PAGES[0];
+  // The workshop drives anvil with the development accounts: local only.
+  const pages = PAGES.filter(([id]) => id !== "dev" || g.signer.mode === "dev");
+  const page = pages.find(([id]) => id === path) ?? pages[0]!;
   const Page = page[2];
+  const signedOut = g.signer.mode === "passkey" && !g.address;
   return (
     <div className="binding">
       <Spine>
-        <span>{g.me ? `#${g.me.id}` : "—"}</span>
+        {signedOut ? (
+          <button className="btn quiet" disabled={g.busy} onClick={() => void g.signIn()}>
+            {t("entry.signIn")}
+          </button>
+        ) : (
+          <span>{g.me ? `#${g.me.id}` : "—"}</span>
+        )}
       </Spine>
       <main className="page" id="page">
-        <Page key={`${path}-${g.account}`} />
+        <Page key={`${path}-${g.address ?? ""}`} />
       </main>
       <nav className="thumb-index" aria-label="Índice">
-        {PAGES.map(([id, letter]) => (
+        {pages.map(([id, letter]) => (
           <a key={id} href={`#/${id}`} aria-current={page[0] === id ? "page" : undefined}>
             <span className="letter" aria-hidden="true">
               {letter}

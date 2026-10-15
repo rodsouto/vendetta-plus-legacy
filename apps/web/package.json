@@ -16,6 +16,8 @@
     "@vendetta/rules": "workspace:*",
     "@vendetta/spec-data": "workspace:*",
     "i18next": "^26.0.0",
+    "ox": "0.14.56",
+    "permissionless": "0.4.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-i18next": "^17.0.0",

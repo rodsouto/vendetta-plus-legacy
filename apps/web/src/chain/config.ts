@@ -1,35 +1,17 @@
-// Chain connection. Local development reads public/deployment.local.json, written by
-// `pnpm dev:local` (scripts/dev-local.sh) after deploying to anvil.
+// Chain clients for a deployment (see networks.ts for where deployments come from).
 import {
   createPublicClient,
   createWalletClient,
   defineChain,
   http,
-  type Address,
+  type Chain,
   type PublicClient,
   type WalletClient,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
+import type { Deployment } from "./networks.js";
 
-export interface Deployment {
-  chainId: number;
-  rpc: string;
-  game: Address;
-  directory?: Address; // PasskeyDirectory (B-15); absent on deployments that predate it
-  fromBlock: number;
-}
-
-export async function loadDeployment(): Promise<Deployment | null> {
-  // Isolated runs (e2e) pass the deployment at build time instead of through public/.
-  const injected = import.meta.env.VITE_DEPLOYMENT as string | undefined;
-  if (injected) return JSON.parse(injected) as Deployment;
-  try {
-    const res = await fetch("/deployment.local.json", { cache: "no-store" });
-    return res.ok ? ((await res.json()) as Deployment) : null;
-  } catch {
-    return null;
-  }
-}
+export type { Deployment } from "./networks.js";
 
 /**
  * Anvil's well-known development keys (never use them anywhere else). Account 0 is the admin that
@@ -47,20 +29,28 @@ export const devAccount = (i: number) => privateKeyToAccount(DEV_KEYS[i]!);
 
 export interface Clients {
   deployment: Deployment;
+  chain: Chain;
   public: PublicClient;
+  /** Development accounts only (local anvil). */
   wallet: (account: number) => WalletClient;
 }
 
-export function makeClients(deployment: Deployment): Clients {
-  const chain = defineChain({
+export const anvilChain = (deployment: Deployment) =>
+  defineChain({
     id: deployment.chainId,
     name: "Anvil",
     nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
     rpcUrls: { default: { http: [deployment.rpc] } },
   });
+
+export function makeClients(
+  deployment: Deployment,
+  chain: Chain = anvilChain(deployment),
+): Clients {
   const transport = http(deployment.rpc, { batch: true });
   return {
     deployment,
+    chain,
     public: createPublicClient({ chain, transport }),
     wallet: (account) => createWalletClient({ chain, transport, account: devAccount(account) }),
   };

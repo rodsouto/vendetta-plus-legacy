@@ -43,7 +43,9 @@
   },
   "connect": {
     "title": "No line to the city",
-    "body": "The local deployment was not found. Run “pnpm dev:local” at the repository root and reload."
+    "noLocal": "Can't find the local deployment. Run “pnpm dev:local” at the repository root and reload.",
+    "notDeployed": "The game is not published on this network yet.",
+    "noPimlicoKey": "The key for the service that pays for operations is missing (VITE_PIMLICO_API_KEY)."
   },
   "register": {
     "title": "Open an account",
@@ -54,6 +56,27 @@
     "submit": "Found here",
     "pick": "Tap an empty lot on the plat.",
     "done": "Account opened"
+  },
+  "entry": {
+    "title": "Enter the city",
+    "body": "Your account is kept with a passkey: your device's fingerprint, face or PIN. No passwords and nothing to pay.",
+    "signIn": "Sign in with passkey",
+    "create": "First time? Open an account",
+    "submit": "Create account and found here",
+    "passkeyNote": "When you found, your device asks you to create the passkey and then to confirm it. If your passkey syncs (iCloud, Google), you can sign in from your other devices too.",
+    "welcome": "Welcome back"
+  },
+  "session": {
+    "title": "This device",
+    "note": "This device plays for you without asking for your passkey on every order. The permission expires by itself; renewing it asks for the passkey once.",
+    "device": "Permission to play",
+    "until": "Until",
+    "lapsed": "Expired: your next order asks for the passkey",
+    "renew": "Renew permission",
+    "renewed": "Permission renewed",
+    "revoke": "Remove the permission and sign out",
+    "revoked": "Permission removed",
+    "signOut": "Sign out"
   },
   "book": {
     "balance": "Balance",
@@ -276,6 +299,12 @@
     "InvalidOffer": "The trade is not valid.",
     "TooManyOffers": "You already have 10 open trades.",
     "InvalidTrade": "That trade is not open.",
+    "NotController": "That can only be done by confirming with your passkey.",
+    "InvalidSession": "That permission has expired.",
+    "SessionTooLong": "The permission can't last that long.",
+    "AlreadyPublished": "This passkey is already registered.",
+    "cancelled": "You cancelled the confirmation.",
+    "noAccount": "That passkey has no account in this city.",
     "unknown": "The transaction failed."
   },
   "theme": {
