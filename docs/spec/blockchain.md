@@ -28,7 +28,7 @@ which network it runs on. Messaging, chat and moderation are off-chain (B-10).
 |----|-------|--------|---------|
 | B-01 | Network | New | Arbitrum One public L2, no own chain; code network-agnostic |
 | B-02 | Language | New | Solidity; combat as an isolated library; no Stylus |
-| B-03 | Fixed-point math | Adapt | `sqrt`, `^0.2`, `^0.8` and PHP rounding in fixed point; deviations listed with tolerance |
+| B-03 | Integer math | Adapt | Combat and troop stats in exact integer arithmetic (0 deviations); `^0.2`, `^0.8` pending |
 | B-04 | No tokens in v1 | New | Resources, troops and buildings live inside the contracts |
 | B-05 | Public state | Adapt | All state is visible to everyone; `spy` / `espionage` unchanged |
 | B-06 | Lazy settlement | Adapt | D-08 implemented as "settle on touch", no keepers |
@@ -79,29 +79,46 @@ in isolation and replaceable (e.g. by a Stylus port) if gas measurements ever sh
 cost. Today's estimate is that storage writes, not combat, dominate, and Stylus does not make
 storage cheaper.
 
-## B-03 — Fixed-point math — Adapt
+## B-03 — Integer math — Adapt
 
-The EVM has no floating point. Every formula that uses `sqrt`, fractional powers or PHP `round()`
-([05-formulas.md](05-formulas.md)) is implemented in fixed point:
+The EVM has no floating point. Formulas that use `sqrt`, fractional powers or PHP `round()`
+([05-formulas.md](05-formulas.md)):
 
-| Formula | Non-integer operation |
-|---------|-----------------------|
-| Troop effective stats | `sqrt(levels)` |
-| Distance | `sqrt(dx² + dy²)`, `round` |
-| Travel time | `(…)^0.2`, `round` |
-| Salary | `distance^0.8`, `floor` |
-| Loss ratio | rounded to 3 decimals (D-15) |
+| Formula | Non-integer operation | On-chain |
+|---------|-----------------------|----------|
+| Troop effective stats | `sqrt(levels)`, `floor`, `round` | **Exact** integer formula (below) |
+| Loss ratio | division, rounded to 3 decimals (D-15) | **Exact** integer formula (below) |
+| Combat power | modifiers with one decimal, honor % | **Exact**: modifiers ×10, integer % |
+| Honor % | interpolation, `round` | **Exact** (the interpolated value is a multiple of 1/5, never a tie) |
+| Loot (D-06) | proportional split | **Exact** (integer by design) |
+| Distance | `sqrt(dx² + dy²)`, `round` | Pending (mission module) |
+| Travel time | `(…)^0.2`, `round` | Pending: fixed point or lookup table |
+| Salary | `distance^0.8`, `floor` | Pending: fixed point or lookup table |
 
-Rules:
+**Exact formulas** (implemented in `contracts/src/combat/`, measured in the combat spike):
 
-- Use one fixed-point library across all contracts (precision chosen in the prototype).
-- Where an input domain is small and bounded (e.g. research levels, map distances), a **lookup
-  table** is preferred over computing the function on-chain.
+- Stats: `floor((1 + √L/10) × base) = base + ⌊isqrt(base² × L) / 10⌋` and
+  `round((1 + √L/10) × base) = base + ⌊(isqrt(base² × L) + 5) / 10⌋`. Both identities are exact for
+  integers, so no precision is lost.
+- Power: `units × (attack + defense) × modifier×10 × pct`, an integer. Loss ratios only depend on
+  the ratio of the two sides' power, so the common scale (×1000 vs legacy) does not matter.
+- Loss ratios, with `A`, `D` the two sides' power: wipe branches as legacy; otherwise, if `A > D`,
+  `PPA = (21D − A) / (20(D + 2A))` and `PPD = A / (A + 2D)`; else `PPA = D / (D + 2A)` and
+  `PPD = (21A − D) / (20(A + 2D))`. This is the legacy formula simplified to one fraction. Rounded
+  half up to thousandths: `(2000 × num + den) / (2 × den)`.
+
+Rules for the pending formulas:
+
+- Where an input domain is small and bounded (e.g. map distances), a **lookup table** is preferred
+  over computing the function on-chain.
 - Rounding is half away from zero, as PHP.
 - Every vector that does not match exactly is listed here with its tolerance (`exact` or `±1`), and
   the on-chain implementation becomes the reference for that value (B-21).
 
-*Deviation list: empty until the prototype is measured.*
+**Deviation list:** none so far. All 309 target combat vectors (9 hand-written + 300 random, every
+round and troop type), all `troop_stats` (21 troops × 3 research levels), `loot` and `honor` vectors
+match exactly. Legacy PHP uses doubles, so a value exactly on a rounding tie could still differ;
+none appears in the vectors.
 
 ## B-04 — No tokens in v1 — New
 
@@ -153,7 +170,8 @@ limit and lock the building forever. So:
 - A player action on a building that is not fully settled **reverts**. The client calls `advance`
   until it is settled, then retries.
 - **Invariant:** one single event (the worst case is one combat) always fits in a block with room to
-  spare. Target: **< 3M gas per combat**, to be measured.
+  spare. Target: **< 3M gas per combat**. Measured: **~1.24M** for the worst case found (B-03
+  spike), so the invariant holds with a 2.4× margin before storage reads and writes.
 
 ## B-09 — Hard caps — Adapt
 
@@ -426,7 +444,7 @@ flowchart LR
 | Repository | This repo: `contracts/`, `packages/`, `apps/` at the root, next to `docs/spec` and the legacy PHP |
 | Monorepo | pnpm workspaces; Foundry as its own project in `contracts/`; no Turborepo/Nx for now |
 | Contracts | Solidity + Foundry. One OpenZeppelin **UUPS** proxy per module (not a Diamond), wired through a registry in `World` (B-17) |
-| Rules engine | TypeScript, `packages/rules`: pure, deterministic, `bigint` and the same fixed point as Solidity (B-03, B-20). `scripts/combat_reference.py` stays as a validation reference |
+| Rules engine | TypeScript, `packages/rules`: pure, deterministic, `bigint` and the same integer formulas as Solidity (B-03, B-20). `scripts/combat_reference.py` stays as a validation reference |
 | Ruleset | Code generation: one script turns `vendetta.yaml` + `game_config.yaml` into a Solidity constants library and an equivalent TS module. Only caps the Safe may tune (`onchain`, `premium`) live in storage |
 | First world | Vendetta only. The engine reads `roles`, never entity names (D-21), so Space4k can follow |
 | Frontend | SPA: Vite + React + TypeScript, viem + wagmi. Static, so it can be served from anywhere (including IPFS) |
@@ -441,9 +459,9 @@ Measured with a prototype before the B-03 deviation list and B-09 caps are fixed
 | Assumption | Current estimate |
 |------------|------------------|
 | Typical action (build, train, send) | ~200k gas, sub-cent on Arbitrum One |
-| Worst-case combat (21 × 21 types, 5 rounds) | < 3M gas (B-08 target). Unmeasured. |
+| Worst-case combat (21 × 21 types, 5 rounds) | **Measured: ~1.24M gas** (16 attack vs 21 defender types, 5 rounds, research 20; stats of both sides + resolution, in memory). Typical raid (3 vs 2 types, 5 rounds): ~0.51M. Storage not included. `forge test --match-contract CombatGas -vv` |
 | Storage, not combat, dominates cost | Unmeasured. Decides whether B-02 ever needs Stylus. |
-| Fixed-point precision vs test vectors | Unknown number of ±1 deviations |
+| Precision vs test vectors | **Combat: 0 deviations** (exact integer math, B-03). Travel time and salary still pending |
 | Cost of settling one building with 32 pending missions | Sets the 32 cap and `maxEvents` |
 | Daily sponsored allowance per account | Set from the measured costs and budget |
 | Smart account provider supports multi-passkey + session keys + paymaster | To be chosen |
