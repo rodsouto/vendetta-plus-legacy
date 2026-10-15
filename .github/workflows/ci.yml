@@ -26,7 +26,7 @@ jobs:
       - name: Generated spec data is up to date
         run: |
           pnpm codegen
-          git diff --exit-code -- packages/spec-data/generated packages/rules/generated contracts/src/generated
+          git diff --exit-code -- packages/spec-data/generated packages/rules/generated contracts/src/generated apps/web/src/chain/abi.ts
 
       - name: Format
         run: |
@@ -38,3 +38,8 @@ jobs:
 
       - name: Web build
         run: pnpm --filter @vendetta/web build
+
+      - name: End-to-end (local chain + app)
+        run: |
+          pnpm --filter @vendetta/web exec playwright install --with-deps chromium
+          pnpm --filter @vendetta/web e2e

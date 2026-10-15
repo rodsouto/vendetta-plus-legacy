@@ -18,7 +18,7 @@ Fully on-chain rewrite of the legacy Vendetta PHP game (EVM, Arbitrum One).
 | `packages/spec-data` | Codegen from the YAML (all output committed): JSON in `generated/` (`.` = rulesets + config, `./vectors` = test vectors, tests only), Foundry fixtures in `generated/fixtures/`, and `contracts/src/generated/<Ruleset>Ruleset.sol` |
 | `packages/rules` | Rules engine in TypeScript: exact formulas on `bigint` (B-03) and `src/sim/`, the reference simulator of the on-chain state (B-20). `scripts/scenarios.ts` writes `generated/scenarios/` for the differential tests |
 | `contracts` | Foundry project. `src/Game.sol`: the single UUPS proxy; logic in linked libraries (`src/core/`), formulas in `src/rules/` and `src/combat/`. Deps come from `node_modules` (pnpm), not submodules |
-| `apps/web` | Vite + React SPA, i18n es/en |
+| `apps/web` | Vite + React SPA (viem, TanStack Query), i18n es/en. `src/chain/load.ts` rebuilds the simulator World from the contract views; the UI projects it live and validates actions in the simulator before sending (B-20). Design context in `apps/web/PRODUCT.md` / `DESIGN.md` |
 | `application/`, `library/`, … | Legacy PHP. Read-only reference |
 
 ## Commands
@@ -32,6 +32,8 @@ pnpm test:contracts     # forge test only
 pnpm --filter @vendetta/web dev
 pnpm format             # prettier; forge fmt inside contracts/
 scripts/ci-local.sh     # the CI steps on a fresh clone of HEAD (no GitHub needed)
+pnpm dev:local          # anvil + deploy + web app on :5173 (dev accounts, time travel in the Workshop page)
+pnpm --filter @vendetta/web e2e   # Playwright flow on its own fresh chain (e2e/serve.sh, :5199)
 ```
 
 ## Rules

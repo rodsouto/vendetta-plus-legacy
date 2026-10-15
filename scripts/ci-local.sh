@@ -19,7 +19,7 @@ pnpm install --frozen-lockfile
 
 step "generated files are up to date"
 pnpm codegen
-git diff --exit-code -- packages/spec-data/generated packages/rules/generated contracts/src/generated
+git diff --exit-code -- packages/spec-data/generated packages/rules/generated contracts/src/generated apps/web/src/chain/abi.ts
 
 step "format"
 pnpm format:check
@@ -30,5 +30,8 @@ pnpm -r test
 
 step "web build"
 pnpm --filter @vendetta/web build
+
+step "end-to-end (local chain + app)"
+pnpm --filter @vendetta/web e2e
 
 printf '\nCI passed for %s\n' "$(git rev-parse --short HEAD)"
