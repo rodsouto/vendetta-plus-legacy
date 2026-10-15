@@ -1,0 +1,25 @@
+// Errors shared with the contracts: the Solidity custom errors have the same names, so differential
+// tests can compare which action failed and why.
+export type GameErrorName =
+  | "AlreadyRegistered"
+  | "InvalidCoordinate"
+  | "SlotTaken"
+  | "NotRegistered"
+  | "NotOwner"
+  | "UnknownEntity"
+  | "RequirementsNotMet"
+  | "QueueFull"
+  | "CannotAfford"
+  | "TimingRoomRequired"
+  | "ResearchElsewhere"
+  | "NothingToCancel";
+
+export class GameError extends Error {
+  constructor(readonly code: GameErrorName) {
+    super(code);
+  }
+}
+
+export function fail(code: GameErrorName): never {
+  throw new GameError(code);
+}

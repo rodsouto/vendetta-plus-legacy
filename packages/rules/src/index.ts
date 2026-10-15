@@ -11,3 +11,4 @@ export * from "./economy.js";
 export * from "./map.js";
 export * from "./points.js";
 export { rulesets, gameConfig } from "@vendetta/spec-data";
+export * as sim from "./sim/index.js";

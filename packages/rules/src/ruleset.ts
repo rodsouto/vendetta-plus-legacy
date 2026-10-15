@@ -37,6 +37,7 @@ interface RawProduction {
 
 interface RawBuilding {
   id: string;
+  requirements: Record<string, number> | null;
   cost: Record<string, number>;
   base_duration_s: number;
   points_per_level: number;
@@ -46,6 +47,7 @@ interface RawBuilding {
 
 interface RawResearch {
   id: string;
+  requirements: Record<string, number> | null;
   cost: Record<string, number>;
   base_duration_s: number;
   points_per_level: number;
@@ -79,8 +81,16 @@ export interface Troop {
   defenseResearch: number[];
 }
 
+/** A requirement on a completed level: a room of the same building, or a research of the player. */
+export interface Requirement {
+  kind: "room" | "research";
+  index: number;
+  level: bigint;
+}
+
 export interface Building {
   id: string;
+  requirements: Requirement[];
   index: number;
   cost: ResourceCosts;
   baseSeconds: bigint;
@@ -91,6 +101,7 @@ export interface Building {
 
 export interface Research {
   id: string;
+  requirements: Requirement[];
   index: number;
   cost: ResourceCosts;
   baseSeconds: bigint;
@@ -134,6 +145,15 @@ export interface Config {
   honorMaxLevel: number;
   honorMinBuildings: bigint;
   honorTableMaxBuildings: bigint;
+  cities: bigint;
+  neighborhoods: bigint;
+  slots: bigint;
+  startResources: bigint;
+  startBuildSpeedLevel: bigint;
+  /** Queue limits without and with premium (B-25). */
+  roomQueue: [number, number];
+  researchQueue: [number, number];
+  troopQueue: [number, number];
 }
 
 /** Decimal with at most two places → integer hundredths (points). */
@@ -161,6 +181,13 @@ export function loadRuleset(raw: RawRuleset, cfg: typeof gameConfig): Ruleset {
   const researchIndex = indexOf(raw.research, "research");
   const research = (ids: string[]) => [...new Set(ids.map(researchIndex))].sort((a, b) => a - b);
   const mult = BigInt(raw.rules.troop_defense_multiplier);
+  const roomIds = new Set(raw.buildings.map((b) => b.id));
+  const requirements = (req: Record<string, number> | null): Requirement[] =>
+    Object.entries(req ?? {}).map(([id, level]) =>
+      roomIds.has(id)
+        ? { kind: "room", index: buildingIndex(id), level: BigInt(level) }
+        : { kind: "research", index: researchIndex(id), level: BigInt(level) },
+    );
 
   const consumed = new Set(
     raw.buildings.flatMap((b) => (b.production?.consumes ? [b.production.consumes] : [])),
@@ -215,6 +242,7 @@ export function loadRuleset(raw: RawRuleset, cfg: typeof gameConfig): Ruleset {
       cost: costs(b.cost, raw.resources),
       baseSeconds: BigInt(b.base_duration_s),
       centipoints: centi(b.points_per_level),
+      requirements: requirements(b.requirements),
       production: b.production,
       storage: b.storage && {
         resource: b.storage.resource,
@@ -229,6 +257,7 @@ export function loadRuleset(raw: RawRuleset, cfg: typeof gameConfig): Ruleset {
       cost: costs(r.cost, raw.resources),
       baseSeconds: BigInt(r.base_duration_s),
       centipoints: centi(r.points_per_level),
+      requirements: requirements(r.requirements),
     })),
     modifiers,
     roles: {
@@ -254,6 +283,23 @@ export function loadRuleset(raw: RawRuleset, cfg: typeof gameConfig): Ruleset {
       honorMaxLevel: cfg.honor.max_honor_level,
       honorMinBuildings: BigInt(cfg.honor.min_buildings_for_penalty),
       honorTableMaxBuildings: BigInt(cfg.honor.table_max_buildings),
+      cities: BigInt(cfg.world.cities),
+      neighborhoods: BigInt(cfg.world.neighborhoods),
+      slots: BigInt(cfg.world.slots_per_neighborhood),
+      startResources: BigInt(cfg.new_player.starting_resources_each),
+      startBuildSpeedLevel: BigInt(cfg.new_player.starting_build_speed_room_level),
+      roomQueue: [
+        cfg.premium.without_premium.max_room_queue_per_building,
+        cfg.premium.with_premium.max_room_queue_per_building,
+      ],
+      researchQueue: [
+        cfg.premium.without_premium.max_research_queue,
+        cfg.premium.with_premium.max_research_queue,
+      ],
+      troopQueue: [
+        cfg.premium.without_premium.max_troop_batches_per_queue,
+        cfg.premium.with_premium.max_troop_batches_per_queue,
+      ],
     },
   };
 }
