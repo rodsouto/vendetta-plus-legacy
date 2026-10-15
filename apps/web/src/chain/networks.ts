@@ -2,14 +2,15 @@
 //
 // - local: anvil started by `pnpm dev:local`, which writes public/deployment.local.json. Players are
 //   anvil's development accounts, unless the deployment names a bundler (a local 4337 stack): then
-//   it plays with passkeys like the testnet.
-// - arbitrum-sepolia: the testnet deployment committed in deployments/arbitrum-sepolia.json; players
-//   sign in with passkeys and Pimlico bundles and sponsors their operations (B-15, B-16).
+//   it plays with passkeys like Arbitrum One.
+// - arbitrum: Arbitrum One, the deployment committed in deployments/arbitrum.json; players sign in
+//   with passkeys and Pimlico bundles and sponsors their operations (B-15, B-16). There is no
+//   testnet stage: Arbitrum One is cheap enough, and the local 4337 stack covers testing.
 import type { Address, Chain } from "viem";
-import { arbitrumSepolia } from "viem/chains";
+import { arbitrum } from "viem/chains";
 import { anvilChain } from "./config.js";
 
-export type NetworkId = "local" | "arbitrum-sepolia";
+export type NetworkId = "local" | "arbitrum";
 
 export interface Deployment {
   chainId: number;
@@ -41,7 +42,7 @@ export type ConnectProblem = "noLocal" | "notDeployed" | "noPimlicoKey";
 export const networkId = (): NetworkId =>
   (import.meta.env.VITE_NETWORK as NetworkId | undefined) ?? "local";
 
-// Committed testnet deployments (4b.4); the glob is empty until the file exists.
+// Committed deployments (4b.4); the glob is empty until the file exists.
 const committed = import.meta.glob<Deployment>("../../../../deployments/*.json", {
   eager: true,
   import: "default",
@@ -51,13 +52,13 @@ export async function loadNetwork(): Promise<Network | ConnectProblem> {
   const id = networkId();
   // Isolated runs (e2e) pass the deployment at build time instead of through public/.
   const injected = import.meta.env.VITE_DEPLOYMENT as string | undefined;
-  if (id === "arbitrum-sepolia") {
-    const file = committed["../../../../deployments/arbitrum-sepolia.json"];
+  if (id === "arbitrum") {
+    const file = committed["../../../../deployments/arbitrum.json"];
     const base = injected ? (JSON.parse(injected) as Deployment) : file;
     if (!base) return "notDeployed";
     const key = import.meta.env.VITE_PIMLICO_API_KEY as string | undefined;
     if (!key) return "noPimlicoKey";
-    const pimlico = `https://api.pimlico.io/v2/${arbitrumSepolia.id}/rpc?apikey=${key}`;
+    const pimlico = `https://api.pimlico.io/v2/${arbitrum.id}/rpc?apikey=${key}`;
     const deployment: Deployment = {
       ...base,
       rpc: (import.meta.env.VITE_RPC_URL as string | undefined) ?? base.rpc,
@@ -65,7 +66,7 @@ export async function loadNetwork(): Promise<Network | ConnectProblem> {
       paymaster: pimlico,
       sponsorshipPolicy: import.meta.env.VITE_PIMLICO_POLICY_ID as string | undefined,
     };
-    return { id, chain: arbitrumSepolia, deployment, accounts: "passkey" };
+    return { id, chain: arbitrum, deployment, accounts: "passkey" };
   }
   let deployment: Deployment | null = null;
   if (injected) deployment = JSON.parse(injected) as Deployment;

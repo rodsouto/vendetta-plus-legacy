@@ -326,7 +326,7 @@ vacation or suspended can only end the vacation. In v1 `suspend(player, until)` 
   session with no prompt; when the session has lapsed, the action first renews it (one passkey
   prompt). The session key lives in browser storage: it can only play, expires and is revocable.
   Kernel v3.1 (the last version with a WebAuthn validator in permissionless.js) and the
-  SimpleAccount factory for the session, both already deployed on Arbitrum Sepolia.
+  SimpleAccount factory for the session, both already deployed on Arbitrum One.
 
 ## B-16 — Gas — New
 
@@ -337,7 +337,7 @@ vacation or suspended can only end the vacation. In v1 `suspend(player, until)` 
   account, or a paymaster that charges credits), never "get ETH on Arbitrum".
 - Credits pay for gas only. **Premium** is separate (B-25).
 - Network selection in the client: `VITE_NETWORK` (`local` with anvil's development accounts, or
-  `arbitrum-sepolia`), Pimlico's key in `VITE_PIMLICO_API_KEY` and its sponsorship policy in
+  `arbitrum` for Arbitrum One), Pimlico's key in `VITE_PIMLICO_API_KEY` and its sponsorship policy in
   `VITE_PIMLICO_POLICY_ID`. The key ships in the static bundle, so the sponsorship policy (and
   Pimlico's allowed origins) is what bounds spending, not the key.
 
