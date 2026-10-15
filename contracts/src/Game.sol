@@ -6,9 +6,19 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 import {
     Ownable2StepUpgradeable
 } from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
-import {ROOMS, RESEARCH, RESOURCES} from "./generated/VendettaRuleset.sol";
+import {ROOMS, RESEARCH, RESOURCES, TROOPS} from "./generated/VendettaRuleset.sol";
 import {Core} from "./core/Core.sol";
-import {Building, Player, QueueItem, CoreState, GameStorage} from "./core/GameStorage.sol";
+import {Training} from "./core/Training.sol";
+import {Missions} from "./core/Missions.sol";
+import {
+    Building,
+    Player,
+    Mission,
+    QueueItem,
+    TrainingItem,
+    CoreState,
+    GameStorage
+} from "./core/GameStorage.sol";
 import {IGameEvents} from "./core/GameErrors.sol";
 
 /// The game: one UUPS proxy (B-17) whose logic lives in linked libraries (blockchain.md,
@@ -26,32 +36,74 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
     function _authorizeUpgrade(address) internal override onlyOwner {}
 
     // ------------------------------------------------------------------ actions
+    // Every player action first catches up the global mission queue (B-07); with a backlog larger
+    // than one transaction can process it reverts with Backlog and the client calls advance().
 
-    function register(uint256 city, uint256 neighborhood, uint256 slot) external returns (uint64) {
+    modifier drained() {
+        Missions.drain();
+        _;
+    }
+
+    function register(uint256 city, uint256 neighborhood, uint256 slot)
+        external
+        drained
+        returns (uint64)
+    {
         return Core.register(msg.sender, city, neighborhood, slot);
     }
 
-    function queueRoom(uint64 building, uint256 room) external {
+    function queueRoom(uint64 building, uint256 room) external drained {
         Core.queueRoom(msg.sender, building, room);
     }
 
-    function queueResearch(uint64 building, uint256 research) external {
+    function queueResearch(uint64 building, uint256 research) external drained {
         Core.queueResearch(msg.sender, building, research);
     }
 
-    function cancelRoom(uint64 building, uint256 position) external {
+    function cancelRoom(uint64 building, uint256 position) external drained {
         Core.cancelRoom(msg.sender, building, position);
     }
 
-    function cancelResearch(uint64 building, uint256 position) external {
+    function cancelResearch(uint64 building, uint256 position) external drained {
         Core.cancelResearch(msg.sender, building, position);
+    }
+
+    function train(uint64 building, uint256 troop, uint256 quantity) external drained {
+        Training.train(msg.sender, building, troop, quantity);
+    }
+
+    function cancelTraining(uint64 building, uint256 queue, uint256 position) external drained {
+        Training.cancel(msg.sender, building, queue, position);
+    }
+
+    function sendMission(
+        uint64 building,
+        uint8 kind,
+        uint256[3] calldata target,
+        uint256[TROOPS] calldata troops,
+        uint256[RESOURCES] calldata resources
+    ) external drained returns (uint64) {
+        return Missions.send(msg.sender, building, kind, target, troops, resources);
+    }
+
+    function recall(uint64 mission) external drained {
+        Missions.recall(msg.sender, mission);
+    }
+
+    function abandon(uint64 building) external drained {
+        Missions.abandon(msg.sender, building);
+    }
+
+    /// Anyone: process up to `max` missions that already arrived (B-08).
+    function advance(uint256 max) external returns (uint256) {
+        return Missions.advance(max);
     }
 
     function setGlobalPremium(uint256 until) external onlyOwner {
         Core.setGlobalPremium(until);
     }
 
-    function poke(uint64 building) external {
+    function poke(uint64 building) external drained {
         Core.poke(building);
     }
 
@@ -67,6 +119,9 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
         uint16[ROOMS] levels;
         uint128[RESOURCES] stock;
         QueueItem[] roomQueue;
+        uint64[TROOPS] troops;
+        TrainingItem[] attackTraining;
+        TrainingItem[] defenseTraining;
     }
 
     struct PlayerView {
@@ -74,6 +129,7 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
         uint64 researchBuilding;
         uint32 buildings;
         uint128 centipoints;
+        uint32 missions;
         uint16[RESEARCH] research;
         QueueItem[] researchQueue;
     }
@@ -89,7 +145,10 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
             b.centipoints,
             b.levels,
             b.stock,
-            b.roomQueue
+            b.roomQueue,
+            b.troops,
+            b.training[0],
+            b.training[1]
         );
     }
 
@@ -100,9 +159,19 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
             p.researchBuilding,
             p.buildings,
             p.centipoints,
+            p.missions,
             p.research,
             p.researchQueue
         );
+    }
+
+    function getMission(uint64 id) external view returns (Mission memory) {
+        return GameStorage.core().missions[id];
+    }
+
+    /// Mission ids in heap order (not sorted); the head is the next to resolve.
+    function pendingMissions() external view returns (uint64[] memory) {
+        return GameStorage.core().heap;
     }
 
     function playerOf(address controller) external view returns (uint64) {
@@ -120,9 +189,23 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
     function counters()
         external
         view
-        returns (uint64 seq, uint64 players, uint64 buildings, uint40 globalPremiumUntil)
+        returns (
+            uint64 seq,
+            uint64 players,
+            uint64 buildings,
+            uint64 missions,
+            uint64 activeMissions,
+            uint40 globalPremiumUntil
+        )
     {
         CoreState storage s = GameStorage.core();
-        return (s.seq, s.nextPlayer, s.nextBuilding, s.globalPremiumUntil);
+        return (
+            s.seq,
+            s.nextPlayer,
+            s.nextBuilding,
+            s.nextMission,
+            s.activeMissions,
+            s.globalPremiumUntil
+        );
     }
 }
