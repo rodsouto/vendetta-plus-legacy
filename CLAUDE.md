@@ -31,6 +31,7 @@ pnpm test               # all workspaces (needs Foundry: also runs forge test)
 pnpm test:contracts     # forge test only
 pnpm --filter @vendetta/web dev
 pnpm format             # prettier; forge fmt inside contracts/
+scripts/ci-local.sh     # the CI steps on a fresh clone of HEAD (no GitHub needed)
 ```
 
 ## Rules
