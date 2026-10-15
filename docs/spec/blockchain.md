@@ -47,10 +47,11 @@ which network it runs on. Messaging, chat and moderation are off-chain (B-10).
 | B-19 | Points on-chain | Adapt | D-24 points kept incrementally on-chain |
 | B-20 | Optimistic client | New | Client runs the same rules engine and projects results |
 | B-21 | Parity tests | New | Foundry against the test vectors with explicit tolerances |
-| B-22 | Hidden information | v2 | Commit-reveal for missions; FHE evaluated for defender state |
+| B-22 | Hidden information | v2 | Hidden mission **target**, revealed by timelock encryption; FHE only as research |
 | B-23 | Arbitration | v2 | Kleros v2 as `arbiter`, under a written rulebook |
-| B-24 | Tokenization | v2 | Out of v1 |
+| B-24 | Tokenization | v2 | One ERC-721 per **account** wrapping B-26; no per-building or per-troop tokens |
 | B-25 | Premium | New | Longer queues for 30 days, paid with credits; admin can grant it to everyone |
+| B-26 | Player identity | New | State keyed by `playerId`; controller address can change; accounts can be given away |
 
 ---
 
@@ -287,27 +288,46 @@ has no randomness (B-12).
 
 ## B-22 — Hidden information — v2
 
-Constraint: **the defender is usually offline.** If the defender's state is hidden, only something
-that knows it can compute the battle when an attack arrives. Options:
+Constraints:
+
+- **The defender is usually offline.** If the defender's state is hidden, only something that knows
+  it can compute the battle when an attack arrives.
+- **Building troops are public** (B-05). When a mission leaves, the drop in the origin building's
+  troops shows exactly what it carries. So hiding a mission's **composition** hides nothing unless
+  building state is hidden too.
+
+Options considered:
 
 | Option | Hides | Notes |
 |--------|-------|-------|
-| **Commit-reveal** | Mission troops while travelling | Proposed for v2. Details below. |
+| **Hidden target + timelock encryption** | Where a mission goes | **Chosen for v2.** Details below. |
+| **Private keeper** (operator holds the secrets) | Where a mission goes | Rejected: the operator sees every target first, and a leaked key leaks them all. |
 | **Client-side ZK** (Noir, Circom) | Own actions (e.g. "I can afford this") | Verifier ~250–400k gas. Does not solve battles against an offline defender. |
-| **FHE** (Zama fhEVM, Fhenix CoFHE) | Full state | Computes on encrypted values; only the report is decrypted. The only fit for an offline defender. Costly, limited operations, depends on a third-party coprocessor or decryption network. |
+| **FHE** (Zama fhEVM, Fhenix CoFHE) | Full state | Fully homomorphic encryption: the contract computes on encrypted troops and resources and only the report is decrypted. The only fit for hiding an offline defender's state. Costly, combat (divisions, comparisons) is heavy on encrypted values, and depends on a third-party coprocessor and decryption network. **Research only.** |
 | **TEE / confidential EVM** (Oasis Sapphire) | Full state | Another network; trust in enclave hardware. |
 | **ZK for scaling** (RISC Zero, SP1) | Nothing | Off-chain simulation with an on-chain proof. Fallback if full on-chain proves too expensive. |
 
-**Commit-reveal for missions (v2 proposal):**
+**Hidden target (v2):**
 
-- At send time the mission stores only a hash of its troops and a salt. The cost and salary
-  check must still be provable (open: how to charge salary without revealing quantities).
-- The attacker's client reveals at any time before arrival, normally right after sending.
-- If not revealed by `arrival + grace` (e.g. 5 minutes), anyone can call `forfeit(id)`: the mission
-  is dropped and **its troops are lost**.
-- Because of B-07, an unrevealed mission blocks later missions to the same target, and blocks the
-  defender's own actions (B-08), for at most the grace period, at a high cost to the attacker.
-- The salt is derived from a wallet signature, so the player can recover it on any device.
+- Everyone sees that a mission left, its troops and its arrival time. Nobody sees **its target**
+  until it arrives.
+- At send time the mission stores `hash(target, salt)` and the pair `(target, salt)` encrypted with
+  **drand timelock encryption** (tlock) for the drand round at the arrival time. Before that round
+  nobody can decrypt it, including the game operator.
+- **Reveal:** after arrival, anyone (the attacker, our keeper, any player) decrypts and submits
+  `(target, salt)`. The contract checks it against the hash. The attacker may also reveal earlier.
+- **Forfeit:** if not revealed by `arrival + grace` (e.g. 5 minutes), for example because the
+  attacker encrypted garbage, anyone can call `forfeit(id)`. The mission is dropped and **its troops
+  are lost**.
+- **Salary** is charged at send time, as today. It reveals the distance (a ring of possible
+  targets), not the target. Accepted.
+- **Ordering (changes B-07):** the contract cannot know which missions go to a building until they
+  are revealed. So a mission that arrived at `t` can only be resolved once **every mission that
+  arrived before `t`, to any target, is revealed or forfeited**. With tlock anyone can reveal, so
+  this global barrier lasts at most the grace period.
+- Station, transport and occupy missions are hidden the same way, so an attack does not stand out.
+
+To validate in v2: a tlock library usable from the browser, and the gas cost of the reveal.
 
 ## B-23 — Arbitration — v2
 
@@ -318,9 +338,9 @@ Open: the exact rules and the list of sanctions.
 
 ## B-24 — Tokenization — v2
 
-Out of v1 (B-04). The first candidate is one transferable NFT per **building** (coordinate). It is
-designed together with the multi-account policy (B-13, B-23), because tradeable value creates an
-incentive to farm accounts.
+The only token with value is the **account**: one ERC-721 per player, wrapping B-26. Transferring
+the NFT transfers the account (`transferPlayer`), with the same rules. Buildings, troops and
+resources are **not** tokenized individually (B-04 stays).
 
 ## B-25 — Premium — New
 
@@ -343,6 +363,20 @@ Values live in the `premium` section of [data/game_config.yaml](data/game_config
   every player for a while (events, launch, compensation).
 - **Expiry** (own or global): items already queued finish normally; new items can only be queued
   while the queue is below the limit without premium.
+
+## B-26 — Player identity — New
+
+All game state (buildings, research, points, family, missions, queues, market trades, premium,
+sanctions) is keyed by a **`playerId`**, never by an address. Each player has one **controller**
+address (the smart account, B-15), which can change.
+
+- `transferPlayer(id, newController)` gives the whole account to someone else. It is in v1. The v2
+  NFT (B-24) only wraps it.
+- **Not allowed while suspended** (B-14), so a sanction cannot be escaped by moving the account.
+- Everything moves with the account: buildings, troops, missions in flight, queues, premium, family
+  membership and role, market trades.
+- Sanctions and open Kleros cases (B-23) follow the account, not the person.
+- A controller address controls at most one player at a time.
 
 ---
 
@@ -372,7 +406,7 @@ flowchart LR
 | Module | Responsibility |
 |--------|----------------|
 | `World` | Ruleset parameters, map, player registry, first building (B-12), entry point |
-| `Player` | Research levels and queue, points (B-19), family membership, vacation, suspension, `premiumUntil` |
+| `Player` | `playerId` and controller (B-26), research levels and queue, points (B-19), family membership, vacation, suspension, `premiumUntil` |
 | `Building` | Rooms, resources, troops, `lastUpdate`, settlement (B-06, B-08) |
 | `Queue` | Room, research and troop queues, deferred payment (D-11), re-timing (D-23) |
 | `Mission` | Send, recall, per-target ordering (B-07), arrival rules, salary |
