@@ -1,0 +1,486 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-15T17:01:07.379365+00:00",
+  "title": "Design System: Vendetta",
+  "extensions": {
+    "colorMeta": {
+      "leather": {
+        "role": "neutral",
+        "displayName": "Leather",
+        "canonical": "#24201f",
+        "tonalRamp": [
+          "oklch(15% 0.008 40)",
+          "oklch(27% 0.008 40)",
+          "oklch(39% 0.008 40)",
+          "oklch(51% 0.008 40)",
+          "oklch(63% 0.008 40)",
+          "oklch(75% 0.008 40)",
+          "oklch(85% 0.008 40)",
+          "oklch(95% 0.008 40)"
+        ],
+        "note": "Night value: unchanged."
+      },
+      "leather-raised": {
+        "role": "neutral",
+        "displayName": "Raised Leather",
+        "canonical": "#2f2927",
+        "tonalRamp": [
+          "oklch(15% 0.01 40)",
+          "oklch(27% 0.01 40)",
+          "oklch(39% 0.01 40)",
+          "oklch(51% 0.01 40)",
+          "oklch(63% 0.01 40)",
+          "oklch(75% 0.01 40)",
+          "oklch(85% 0.01 40)",
+          "oklch(95% 0.01 40)"
+        ],
+        "note": "Night value: unchanged."
+      },
+      "leather-edge": {
+        "role": "neutral",
+        "displayName": "Leather Edge",
+        "canonical": "#3d3532",
+        "tonalRamp": [
+          "oklch(15% 0.012 40)",
+          "oklch(27% 0.012 40)",
+          "oklch(39% 0.012 40)",
+          "oklch(51% 0.012 40)",
+          "oklch(63% 0.012 40)",
+          "oklch(75% 0.012 40)",
+          "oklch(85% 0.012 40)",
+          "oklch(95% 0.012 40)"
+        ],
+        "note": "Night value: unchanged."
+      },
+      "gilt": {
+        "role": "neutral",
+        "displayName": "Gilt",
+        "canonical": "#c9b98a",
+        "tonalRamp": [
+          "oklch(15% 0.06 90)",
+          "oklch(27% 0.06 90)",
+          "oklch(39% 0.06 90)",
+          "oklch(51% 0.06 90)",
+          "oklch(63% 0.06 90)",
+          "oklch(75% 0.06 90)",
+          "oklch(85% 0.06 90)",
+          "oklch(95% 0.06 90)"
+        ],
+        "note": "Night value: unchanged."
+      },
+      "parchment": {
+        "role": "neutral",
+        "displayName": "Parchment",
+        "canonical": "#fffcdb",
+        "tonalRamp": [
+          "oklch(15% 0.06 105)",
+          "oklch(27% 0.06 105)",
+          "oklch(39% 0.06 105)",
+          "oklch(51% 0.06 105)",
+          "oklch(63% 0.06 105)",
+          "oklch(75% 0.06 105)",
+          "oklch(85% 0.06 105)",
+          "oklch(95% 0.06 105)"
+        ],
+        "note": "Night value: #2b2522."
+      },
+      "parchment-shade": {
+        "role": "neutral",
+        "displayName": "Parchment Shade",
+        "canonical": "#e7e4c3",
+        "tonalRamp": [
+          "oklch(15% 0.05 105)",
+          "oklch(27% 0.05 105)",
+          "oklch(39% 0.05 105)",
+          "oklch(51% 0.05 105)",
+          "oklch(63% 0.05 105)",
+          "oklch(75% 0.05 105)",
+          "oklch(85% 0.05 105)",
+          "oklch(95% 0.05 105)"
+        ],
+        "note": "Night value: #3a322d."
+      },
+      "page-edge": {
+        "role": "neutral",
+        "displayName": "Page Edge",
+        "canonical": "#e0ddca",
+        "tonalRamp": [
+          "oklch(15% 0.03 100)",
+          "oklch(27% 0.03 100)",
+          "oklch(39% 0.03 100)",
+          "oklch(51% 0.03 100)",
+          "oklch(63% 0.03 100)",
+          "oklch(75% 0.03 100)",
+          "oklch(85% 0.03 100)",
+          "oklch(95% 0.03 100)"
+        ],
+        "note": "Night value: #1b1715."
+      },
+      "rule-faint": {
+        "role": "neutral",
+        "displayName": "Faint Rule",
+        "canonical": "#c6c1a4",
+        "tonalRamp": [
+          "oklch(15% 0.04 100)",
+          "oklch(27% 0.04 100)",
+          "oklch(39% 0.04 100)",
+          "oklch(51% 0.04 100)",
+          "oklch(63% 0.04 100)",
+          "oklch(75% 0.04 100)",
+          "oklch(85% 0.04 100)",
+          "oklch(95% 0.04 100)"
+        ],
+        "note": "Night value: #4d443d."
+      },
+      "rule-khaki": {
+        "role": "neutral",
+        "displayName": "Khaki Rule",
+        "canonical": "#a6a18b",
+        "tonalRamp": [
+          "oklch(15% 0.035 100)",
+          "oklch(27% 0.035 100)",
+          "oklch(39% 0.035 100)",
+          "oklch(51% 0.035 100)",
+          "oklch(63% 0.035 100)",
+          "oklch(75% 0.035 100)",
+          "oklch(85% 0.035 100)",
+          "oklch(95% 0.035 100)"
+        ],
+        "note": "Night value: #6b625a."
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#24201f",
+        "tonalRamp": [
+          "oklch(15% 0.008 40)",
+          "oklch(27% 0.008 40)",
+          "oklch(39% 0.008 40)",
+          "oklch(51% 0.008 40)",
+          "oklch(63% 0.008 40)",
+          "oklch(75% 0.008 40)",
+          "oklch(85% 0.008 40)",
+          "oklch(95% 0.008 40)"
+        ],
+        "note": "Night value: #ece6c8."
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Soft Ink",
+        "canonical": "#4a423e",
+        "tonalRamp": [
+          "oklch(15% 0.015 45)",
+          "oklch(27% 0.015 45)",
+          "oklch(39% 0.015 45)",
+          "oklch(51% 0.015 45)",
+          "oklch(63% 0.015 45)",
+          "oklch(75% 0.015 45)",
+          "oklch(85% 0.015 45)",
+          "oklch(95% 0.015 45)"
+        ],
+        "note": "Night value: #d6cfb0."
+      },
+      "ink-faded": {
+        "role": "neutral",
+        "displayName": "Faded Ink",
+        "canonical": "#6b625a",
+        "tonalRamp": [
+          "oklch(15% 0.02 60)",
+          "oklch(27% 0.02 60)",
+          "oklch(39% 0.02 60)",
+          "oklch(51% 0.02 60)",
+          "oklch(63% 0.02 60)",
+          "oklch(75% 0.02 60)",
+          "oklch(85% 0.02 60)",
+          "oklch(95% 0.02 60)"
+        ],
+        "note": "Night value: #ada58d."
+      },
+      "red-ink": {
+        "role": "primary",
+        "displayName": "Red Ink",
+        "canonical": "#af0000",
+        "tonalRamp": [
+          "oklch(15% 0.2 29)",
+          "oklch(27% 0.2 29)",
+          "oklch(39% 0.2 29)",
+          "oklch(51% 0.2 29)",
+          "oklch(63% 0.2 29)",
+          "oklch(75% 0.2 29)",
+          "oklch(85% 0.2 29)",
+          "oklch(95% 0.2 29)"
+        ],
+        "note": "Night value: #ff6b5e."
+      },
+      "red-ink-deep": {
+        "role": "primary",
+        "displayName": "Deep Red Ink",
+        "canonical": "#6e0000",
+        "tonalRamp": [
+          "oklch(15% 0.16 29)",
+          "oklch(27% 0.16 29)",
+          "oklch(39% 0.16 29)",
+          "oklch(51% 0.16 29)",
+          "oklch(63% 0.16 29)",
+          "oklch(75% 0.16 29)",
+          "oklch(85% 0.16 29)",
+          "oklch(95% 0.16 29)"
+        ],
+        "note": "Night value: #e0473b."
+      },
+      "ledger-blue": {
+        "role": "secondary",
+        "displayName": "Ledger Blue",
+        "canonical": "#084b8a",
+        "tonalRamp": [
+          "oklch(15% 0.12 252)",
+          "oklch(27% 0.12 252)",
+          "oklch(39% 0.12 252)",
+          "oklch(51% 0.12 252)",
+          "oklch(63% 0.12 252)",
+          "oklch(75% 0.12 252)",
+          "oklch(85% 0.12 252)",
+          "oklch(95% 0.12 252)"
+        ],
+        "note": "Night value: #8fb8e8."
+      },
+      "stamp-red": {
+        "role": "primary",
+        "displayName": "Stamp Red",
+        "canonical": "rgba(175, 0, 0, 0.82)",
+        "tonalRamp": [
+          "oklch(15% 0.2 29)",
+          "oklch(27% 0.2 29)",
+          "oklch(39% 0.2 29)",
+          "oklch(51% 0.2 29)",
+          "oklch(63% 0.2 29)",
+          "oklch(75% 0.2 29)",
+          "oklch(85% 0.2 29)",
+          "oklch(95% 0.2 29)"
+        ],
+        "note": "Night value: rgba(255, 107, 94, 0.85)."
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Account heading at the top of each page, over a 3px double ink rule."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section heads with a 1px ink underline and optional right aside."
+      },
+      "wordmark": {
+        "displayName": "Wordmark",
+        "purpose": "VENDETTA on the spine only, uppercase, gilt."
+      },
+      "note": {
+        "displayName": "Note",
+        "purpose": "Bodoni italic notes, folios and empty states in faded ink, max 62ch."
+      },
+      "figure": {
+        "displayName": "Figure",
+        "purpose": "Live balance amounts, condensed to 88% width."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Entries and table cells, tabular lining figures."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Column heads, field labels and balance resource labels, uppercase."
+      },
+      "button": {
+        "displayName": "Button",
+        "purpose": "Bordered actions, uppercase."
+      },
+      "stamp": {
+        "displayName": "Stamp",
+        "purpose": "Rubber stamps, uppercase, widened to 112%, rotated -3deg."
+      }
+    },
+    "shadows": [
+      {
+        "name": "page-lift",
+        "value": "0 1px 0 var(--page-edge), 0 6px 18px -8px rgba(20, 14, 10, 0.55)",
+        "purpose": "The open page on the leather binding. The only shadow in the system."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "All transitions and the stamp-in animation."
+      },
+      {
+        "name": "button-invert",
+        "value": "background 0.15s, color 0.15s (ease-out)",
+        "purpose": "Bordered button filling with ink on hover."
+      },
+      {
+        "name": "stamp-in",
+        "value": "0.42s ease-out; from opacity 0, scale(1.35) rotate(-6deg), blur(2px) to scale(1) rotate(-2deg)",
+        "purpose": "The one authored motion: a confirmed entry stamped onto the page. Removed under prefers-reduced-motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "balance-four-across",
+        "value": "40rem"
+      },
+      {
+        "name": "ledger-restack-below",
+        "value": "48rem"
+      },
+      {
+        "name": "fore-edge-index",
+        "value": "60rem"
+      }
+    ],
+    "themes": {
+      "night": "prefers-color-scheme: dark (unless data-theme=light) or data-theme=dark; page tokens re-inked, binding and gilt unchanged. See colorMeta notes."
+    }
+  },
+  "components": [
+    {
+      "name": "Button",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "Default bordered action; inverts to ink on hover.",
+      "html": "<button class=\"ds-btn\">Asentar</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:.35rem;min-height:2.25rem;padding:.35rem .85rem;border:1px solid var(--ink,#24201f);border-radius:2px;background:transparent;color:var(--ink,#24201f);font:600 .82rem/1 Archivo,system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:background .15s cubic-bezier(.16,1,.3,1),color .15s cubic-bezier(.16,1,.3,1)}.ds-btn:hover{background:var(--ink,#24201f);color:var(--page,#fffcdb)}.ds-btn:focus-visible{outline:2px solid var(--blue,#084b8a);outline-offset:2px}.ds-btn:disabled{opacity:.45;cursor:not-allowed}"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one committing action of a form, in deep red ink.",
+      "html": "<button class=\"ds-btn-primary\">Enviar ataque</button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;justify-content:center;min-height:2.25rem;padding:.35rem .85rem;border:1px solid var(--red-deep,#6e0000);border-radius:2px;background:var(--red-deep,#6e0000);color:#fffcdb;font:600 .82rem/1 Archivo,system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:background .15s cubic-bezier(.16,1,.3,1)}.ds-btn-primary:hover{background:var(--red,#af0000);border-color:var(--red,#af0000)}.ds-btn-primary:focus-visible{outline:2px solid var(--blue,#084b8a);outline-offset:2px}.ds-btn-primary:disabled{background:transparent;border-color:var(--ink-3,#6b625a);color:var(--ink-3,#6b625a);opacity:.45;cursor:not-allowed}"
+    },
+    {
+      "name": "Quiet Button",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "Borderless ledger-blue reference action; underlines on hover.",
+      "html": "<button class=\"ds-btn-quiet\">Cancelar</button>",
+      "css": ".ds-btn-quiet{min-height:2.25rem;padding:.35rem .4rem;border:1px solid transparent;border-radius:2px;background:transparent;color:var(--blue,#084b8a);font:600 .82rem/1 Archivo,system-ui,sans-serif;cursor:pointer}.ds-btn-quiet:hover{text-decoration:underline}.ds-btn-quiet:focus-visible{outline:2px solid var(--blue,#084b8a);outline-offset:2px}"
+    },
+    {
+      "name": "Field",
+      "kind": "input",
+      "refersTo": "field-input",
+      "description": "Label over a tinted blank with an ink underline; focus turns the underline blue.",
+      "html": "<label class=\"ds-field\">Cantidad<input value=\"1\" inputmode=\"numeric\"></label>",
+      "css": ".ds-field{display:grid;gap:.2rem;font:600 .7rem/1.2 Archivo,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3,#6b625a)}.ds-field input{min-height:2.25rem;padding:.3rem .45rem;background:color-mix(in srgb,var(--page,#fffcdb) 70%,var(--page-3,#e7e4c3));border:0;border-bottom:1px solid var(--ink-2,#4a423e);border-radius:0;font:500 1rem Archivo,system-ui,sans-serif;letter-spacing:0;text-transform:none;color:var(--ink,#24201f);font-variant-numeric:tabular-nums}.ds-field input:focus{outline:none;border-bottom:2px solid var(--blue,#084b8a)}"
+    },
+    {
+      "name": "Stamp",
+      "kind": "chip",
+      "refersTo": "stamp",
+      "description": "Rubber-stamp state marker in red, ink or blue.",
+      "html": "<span class=\"ds-stamp\">Completo</span> <span class=\"ds-stamp ds-stamp-ink\">En espera</span> <span class=\"ds-stamp ds-stamp-blue\">Pendiente</span>",
+      "css": ".ds-stamp{display:inline-block;padding:.12rem .45rem .1rem;border:2px solid currentColor;border-radius:3px;color:var(--stamp,rgba(175,0,0,.82));font:800 .66rem/1.1 Archivo,system-ui,sans-serif;font-stretch:112%;letter-spacing:.14em;text-transform:uppercase;transform:rotate(-3deg);white-space:nowrap;margin:.25rem}.ds-stamp-ink{color:var(--ink-2,#4a423e)}.ds-stamp-blue{color:var(--blue,#084b8a)}"
+    },
+    {
+      "name": "Thumb Index",
+      "kind": "nav",
+      "refersTo": "thumb-tab",
+      "description": "Fore-edge tabs with gilt Bodoni initials; the current tab joins the page.",
+      "html": "<nav class=\"ds-thumbs\"><a href=\"#\" aria-current=\"page\"><span>L</span>Libro</a><a href=\"#\"><span>P</span>Plano</a><a href=\"#\"><span>M</span>Misiones</a></nav>",
+      "css": ".ds-thumbs{display:flex;flex-direction:column;gap:2px;padding:1rem;background:#24201f}.ds-thumbs a{width:7.5rem;padding:.55rem .75rem;text-decoration:none;color:#e7e4c3;font:600 .72rem/1.1 Archivo,system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;background:#2f2927;border-radius:0 3px 3px 0}.ds-thumbs a span{display:block;font:700 1.05rem/1 'Bodoni Moda',Didot,serif;text-transform:none;letter-spacing:0;margin-bottom:.15rem;color:#c9b98a}.ds-thumbs a[aria-current=page]{background:var(--page,#fffcdb);color:var(--ink,#24201f)}.ds-thumbs a[aria-current=page] span{color:var(--red,#af0000)}.ds-thumbs a:focus-visible{outline:2px solid var(--blue,#084b8a);outline-offset:2px}"
+    },
+    {
+      "name": "Balance Block",
+      "kind": "custom",
+      "refersTo": "balance",
+      "description": "Live resource figures between an ink rule and a double rule; a full store is ruled and stamped red.",
+      "html": "<div class=\"ds-balance\"><div><span class=\"ds-bl\">Armas</span><span class=\"ds-amt\">8970</span><span class=\"ds-meta\">+10/h · 10.000 capacidad</span><div class=\"ds-rule\"></div></div><div><span class=\"ds-bl\">Alcohol</span><span class=\"ds-amt ds-full\">10.000</span><span class=\"ds-meta\">+10/h · 10.000 capacidad</span><div class=\"ds-rule ds-rule-full\"></div></div></div>",
+      "css": ".ds-balance{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-top:1px solid var(--ink,#24201f);border-bottom:3px double var(--ink,#24201f);background:var(--page,#fffcdb);color:var(--ink,#24201f);font-variant-numeric:tabular-nums lining-nums}.ds-balance>div{padding:.6rem;border-right:1px solid var(--rule,#c6c1a4)}.ds-bl{display:block;font:600 .72rem/1 Archivo,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2,#4a423e)}.ds-amt{display:block;font:600 2rem/1.15 Archivo,system-ui,sans-serif;font-stretch:88%;margin-top:.25rem}.ds-full{color:var(--red-deep,#6e0000)}.ds-meta{font:400 .75rem Archivo,system-ui,sans-serif;color:var(--ink-3,#6b625a)}.ds-rule{margin-top:.4rem;border-bottom:1px solid var(--ink-2,#4a423e)}.ds-rule-full{border-bottom:3px double var(--red,#af0000)}"
+    },
+    {
+      "name": "Ledger Table",
+      "kind": "card",
+      "refersTo": "ledger",
+      "description": "Ruled table with label-type column heads, right-aligned tabular figures and red shortfalls.",
+      "html": "<table class=\"ds-ledger\"><thead><tr><th>Habitaciones</th><th class=\"n\">Nivel</th><th class=\"n\">Armas</th><th class=\"n\">Munición</th></tr></thead><tbody><tr><td><b>Armería</b></td><td class=\"n\">0</td><td class=\"n\">12</td><td class=\"n\">60</td></tr><tr><td><b>Campo de entrenamiento</b></td><td class=\"n\">1</td><td class=\"n\">4000</td><td class=\"n ds-red\">10.000</td></tr></tbody></table>",
+      "css": ".ds-ledger{width:100%;border-collapse:collapse;background:var(--page,#fffcdb);color:var(--ink,#24201f);font:400 1rem/1.45 Archivo,system-ui,sans-serif;font-variant-numeric:tabular-nums lining-nums}.ds-ledger th{font:600 .7rem/1 Archivo,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3,#6b625a);text-align:left;padding:.5rem .4rem .35rem;border-bottom:1px solid var(--rule-strong,#a6a18b)}.ds-ledger td{padding:.45rem .4rem;border-bottom:1px solid var(--rule,#c6c1a4)}.ds-ledger .n{text-align:right;white-space:nowrap}.ds-ledger b{font-weight:600}.ds-red{color:var(--red,#af0000)}.ds-ledger tbody tr:hover td{background:color-mix(in srgb,var(--page,#fffcdb) 70%,var(--page-3,#e7e4c3))}"
+    },
+    {
+      "name": "Plat Lots",
+      "kind": "custom",
+      "refersTo": "plat-lot",
+      "description": "Square map lots: empty, taken with family tag, the player's own in deep red, selected outlined blue.",
+      "html": "<div class=\"ds-plat\"><button>·</button><button class=\"t\">VND</button><button class=\"m\">VND</button><button aria-pressed=\"true\"></button><button class=\"t\"></button></div>",
+      "css": ".ds-plat{display:grid;grid-template-columns:repeat(5,2rem);gap:1px;background:var(--rule-strong,#a6a18b);border:2px solid var(--ink,#24201f);width:max-content}.ds-plat button{aspect-ratio:1;border:0;padding:0;background:var(--page,#fffcdb);font:700 .62rem/1 Archivo,system-ui,sans-serif;color:var(--ink-2,#4a423e);cursor:pointer}.ds-plat button:hover{background:var(--page-3,#e7e4c3)}.ds-plat .t{background:var(--page-3,#e7e4c3);color:var(--ink,#24201f)}.ds-plat .m{background:var(--red-deep,#6e0000);color:#fffcdb}.ds-plat button[aria-pressed=true],.ds-plat button:focus-visible{outline:2px solid var(--blue,#084b8a);outline-offset:-2px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Family Ledger",
+    "overview": "Vendetta is kept as the family's account book. A dark leather binding holds one open parchment page at a time. Every building is an account, every room, research, troop batch and mission is a dated entry, and the balance at the top of the page is always live. The interface is ruled paper, not a dashboard: structure comes from ink rules, double rules under totals and a red margin line down the page, never from panels, cards or tinted boxes.\n\nThe density is that of a working ledger: figures in tabular columns, right-aligned, one ruled line per entry (2.25rem), labels set small in spaced capitals like printed column heads. Display type is a high-contrast Bodoni, the voice of the book's headings and the clerk's italic notes. Every figure, button and label is Archivo with tabular lining numerals. Two inks do the semantic work: black for entries, red for losses, shortfalls, full stores and hostile marks. Ledger blue is kept for references, links, focus and pending states. The only state marker is the rubber stamp, slightly rotated, and the only authored motion is a confirmed entry being stamped onto the page.\n\nNavigation is a thumb index cut into the book: tabs down the fore edge on desktop, a strip along the bottom on phones, each tab carrying a Bodoni initial. At night the pages dim to lamp-lit vellum and the inks lighten. The binding does not change.",
+    "keyCharacteristics": [
+      "Leather binding (#24201f) around a single parchment page with a soft page shadow; no other surfaces.",
+      "Ruled structure: hairline khaki rules between entries, ink rules under headings, 3px double rules under totals and the balance.",
+      "A double red margin rule down the left edge of every page.",
+      "Bodoni Moda for headings, notes and tab initials; Archivo with tabular lining figures for everything else.",
+      "Red ink means a problem (short, full, hostile, lost); blue ink means a reference or pending; black ink is the default.",
+      "Rubber stamps are the state marker; a stamp-in animation is the only motion.",
+      "Phone first: tables restack into entries under 48rem, the thumb index docks at the bottom under 60rem."
+    ],
+    "rules": [
+      {
+        "name": "The Two Inks Rule",
+        "body": "Black ink is the default; red ink is reserved for something wrong or hostile (short of a resource, a full store, an incoming attack, a lost battle). Never use red to decorate or to mean \"important\".",
+        "section": "colors"
+      },
+      {
+        "name": "The Blue Reference Rule",
+        "body": "Ledger blue marks what points elsewhere or is not yet settled: links, quiet actions, focus, selection, pending, vacation. It is never a fill.",
+        "section": "colors"
+      },
+      {
+        "name": "The Binding Stays Rule",
+        "body": "Theme changes only re-ink the page. Leather and gilt are constant in both themes.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Figures Rule",
+        "body": "Every number is tabular and lining, right-aligned in its column, and never wraps. Costs get one fixed column per resource on desktop so figures align like an account book.",
+        "section": "typography"
+      },
+      {
+        "name": "The Bodoni Is For Words Rule",
+        "body": "Bodoni sets headings, initials, notes and folios. Figures, controls and labels are always Archivo.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Page Rule",
+        "body": "Only the page casts a shadow. Nothing on the page is raised: no cards, no floating panels, no shadowed buttons.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Rule Weight Rule",
+        "body": "Hierarchy of separation is faint rule between entries, khaki rule under column heads, 1px ink rule under section heads, 3px double ink rule under totals, the balance and the account heading.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** keep every new screen on the one parchment page inside the leather binding, headed by a Bodoni account heading over a 3px double ink rule.",
+      "**Do** separate content with rules in the established weights (faint, khaki, ink, double) at the 2.25rem ruled line.",
+      "**Do** set all figures in Archivo with tabular lining numerals, right-aligned, one column per resource on desktop.",
+      "**Do** write shortfalls, full stores, losses and hostile entries in red ink, and references, focus and pending in ledger blue.",
+      "**Do** mark state with a stamp (red, ink or blue) and confirm actions with the stamp toast; honor reduced motion.",
+      "**Do** restack ledger tables into entries under 48rem and keep wide grids in their own scroller.",
+      "**Do** give each form at most one deep red primary action; everything else is the bordered default or quiet blue."
+    ],
+    "donts": [
+      "**Don't** add cards, tinted panels, icon tiles or shadows on the page; only the page lifts off the binding.",
+      "**Don't** use red for emphasis, branding or decoration; it always means something is wrong or hostile.",
+      "**Don't** set figures, labels or buttons in Bodoni, or headings in Archivo.",
+      "**Don't** introduce progress bars beyond the 2px ruled progress line, or round corners beyond 3px.",
+      "**Don't** box inputs; a field is a tinted blank with an underline.",
+      "**Don't** recolor the binding or the gilt for night reading; only the page re-inks.",
+      "**Don't** use emoji or glyph characters as icons; draw them in the ledger's stroke style."
+    ]
+  }
+}

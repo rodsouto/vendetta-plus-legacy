@@ -6,19 +6,29 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -p tsconfig.json && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "abi": "tsx scripts/abi.ts",
+    "test": "vitest run",
+    "e2e": "playwright test"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.104.0",
     "@vendetta/rules": "workspace:*",
+    "@vendetta/spec-data": "workspace:*",
     "i18next": "^26.0.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-i18next": "^17.0.0"
+    "react-i18next": "^17.0.0",
+    "viem": "2.57.7"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "@types/node": "^22.20.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^6.0.0",
-    "vite": "^8.0.0"
+    "tsx": "^4.20.0",
+    "vite": "^8.0.0",
+    "vitest": "^4.0.0"
   }
 }
