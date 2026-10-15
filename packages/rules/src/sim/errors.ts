@@ -12,7 +12,16 @@ export type GameErrorName =
   | "CannotAfford"
   | "TimingRoomRequired"
   | "ResearchElsewhere"
-  | "NothingToCancel";
+  | "NothingToCancel"
+  | "Backlog"
+  | "InvalidMission"
+  | "OwnTarget"
+  | "InvalidTroops"
+  | "NoUnits"
+  | "TooManyMissions"
+  | "CargoExceeded"
+  | "NotRecallable"
+  | "LastBuilding";
 
 export class GameError extends Error {
   constructor(readonly code: GameErrorName) {

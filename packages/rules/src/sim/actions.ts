@@ -3,6 +3,7 @@
 import { fail } from "./errors.js";
 import {
   credit,
+  newBuilding,
   pay,
   researchJob,
   roomJob,
@@ -12,54 +13,8 @@ import {
   affordable,
 } from "./settle.js";
 import { coordKey, stockScale, type Building, type Player, type World } from "./state.js";
-import type { Requirement } from "../ruleset.js";
-
-export interface Coord {
-  city: bigint;
-  neighborhood: bigint;
-  slot: bigint;
-}
-
-/**
- * Run an action like a transaction: if it fails, every change it made (including settlement done
- * before the failing check) is rolled back, as the EVM does on revert.
- */
-function atomic<A extends unknown[], R>(fn: (w: World, ...args: A) => R) {
-  return (w: World, ...args: A): R => {
-    const { rs, ...rest } = w;
-    const saved = structuredClone(rest);
-    try {
-      return fn(w, ...args);
-    } catch (e) {
-      Object.assign(w, saved, { rs });
-      throw e;
-    }
-  };
-}
-
-/** B-25. Per-player premium arrives in 3c; for now only the admin's global premium. */
-const isPremium = (w: World, _p: Player, now: bigint) => w.globalPremiumUntil > now;
-
-function owned(w: World, controller: string, buildingId: bigint): [Player, Building] {
-  const pid = w.playerOf.get(controller) ?? fail("NotRegistered");
-  const b = w.buildings.get(buildingId) ?? fail("NotOwner");
-  if (b.owner !== pid) fail("NotOwner");
-  return [w.players.get(pid)!, b];
-}
-
-/** Settle the building and, if the player researches elsewhere, that building too. */
-function settleForAction(w: World, p: Player, b: Building, now: bigint): void {
-  settle(w, b, now);
-  if (p.researchBuilding !== 0n && p.researchBuilding !== b.id) {
-    settle(w, w.buildings.get(p.researchBuilding)!, now);
-  }
-}
-
-function met(p: Player, b: Building, reqs: Requirement[]): boolean {
-  return reqs.every(
-    (r) => (r.kind === "room" ? b.levels[r.index]! : p.research[r.index]!) >= r.level,
-  );
-}
+import { drain } from "./missions.js";
+import { atomic, isPremium, met, owned, settleForAction, type Coord } from "./common.js";
 
 export const register = atomic(function register(
   w: World,
@@ -67,6 +22,7 @@ export const register = atomic(function register(
   coord: Coord,
   now: bigint,
 ): bigint {
+  drain(w, now); // an occupation that already arrived may take the slot first
   const c = w.rs.config;
   if (w.playerOf.has(controller)) fail("AlreadyRegistered");
   if (
@@ -78,27 +34,10 @@ export const register = atomic(function register(
     coord.slot > c.slots
   )
     fail("InvalidCoordinate");
-  const key = coordKey(coord);
-  if (w.buildingAt.has(key)) fail("SlotTaken");
+  if (w.buildingAt.has(coordKey(coord))) fail("SlotTaken");
 
   const pid = w.nextPlayer++;
-  const bid = w.nextBuilding++;
-  const levels = w.rs.buildings.map(() => 0n);
-  levels[w.rs.roles.buildSpeedRoom] = c.startBuildSpeedLevel;
-  const centipoints = levels.reduce((s, l, i) => s + l * w.rs.buildings[i]!.centipoints, 0n);
-  const b: Building = {
-    id: bid,
-    owner: pid,
-    coord: { ...coord },
-    levels,
-    stock: w.rs.resources.map(() => 0n),
-    lastUpdate: now,
-    roomQueue: [],
-    centipoints,
-  };
-  credit(w, b, Object.fromEntries(w.rs.resources.map((r) => [r, c.startResources])));
-  w.buildings.set(bid, b);
-  w.buildingAt.set(key, bid);
+  const b = newBuilding(w, pid, coord, c.startBuildSpeedLevel, c.startResources, now);
   w.players.set(pid, {
     id: pid,
     controller,
@@ -106,7 +45,8 @@ export const register = atomic(function register(
     researchQueue: [],
     researchBuilding: 0n,
     buildings: 1n,
-    centipoints,
+    centipoints: b.centipoints,
+    missions: 0n,
   });
   w.playerOf.set(controller, pid);
   return pid;
@@ -119,6 +59,7 @@ export const queueRoom = atomic(function queueRoom(
   room: number,
   now: bigint,
 ): void {
+  drain(w, now);
   const [p, b] = owned(w, controller, buildingId);
   const def = w.rs.buildings[room] ?? fail("UnknownEntity");
   settleForAction(w, p, b, now);
@@ -141,6 +82,7 @@ export const queueResearch = atomic(function queueResearch(
   research: number,
   now: bigint,
 ): void {
+  drain(w, now);
   const [p, b] = owned(w, controller, buildingId);
   const def = w.rs.research[research] ?? fail("UnknownEntity");
   settleForAction(w, p, b, now);
@@ -168,6 +110,7 @@ export const cancelRoom = atomic(function cancelRoom(
   position: number,
   now: bigint,
 ): void {
+  drain(w, now);
   const [p, b] = owned(w, controller, buildingId);
   settleForAction(w, p, b, now);
   if (position < 0 || position >= b.roomQueue.length) fail("NothingToCancel");
@@ -187,6 +130,7 @@ export const cancelResearch = atomic(function cancelResearch(
   position: number,
   now: bigint,
 ): void {
+  drain(w, now);
   const [p, b] = owned(w, controller, buildingId);
   settleForAction(w, p, b, now);
   if (p.researchBuilding !== b.id || position < 0 || position >= p.researchQueue.length)
@@ -207,6 +151,7 @@ export const setGlobalPremium = atomic(function setGlobalPremium(w: World, until
 
 /** Anyone can bring a building up to date. */
 export const poke = atomic(function poke(w: World, buildingId: bigint, now: bigint): void {
+  drain(w, now);
   const b = w.buildings.get(buildingId) ?? fail("UnknownEntity");
   settle(w, b, now);
 });

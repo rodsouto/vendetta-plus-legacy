@@ -10,6 +10,31 @@ export interface QueueItem {
   finishAt: bigint;
 }
 
+/** A troop batch: paid when queued, delivered whole when it finishes. */
+export interface TrainingItem extends QueueItem {
+  quantity: bigint;
+}
+
+export const ATTACK = 1;
+export const STATION = 2;
+export const TRANSPORT = 3;
+export const OCCUPY = 4;
+
+export interface Mission {
+  id: bigint;
+  owner: bigint;
+  origin: bigint; // building the troops left from and return to
+  kind: number; // ATTACK, STATION, TRANSPORT, OCCUPY
+  returning: boolean;
+  target: { city: bigint; neighborhood: bigint; slot: bigint };
+  start: bigint;
+  arrival: bigint;
+  duration: bigint; // one-way travel time; the return takes the same
+  seq: bigint; // order among missions arriving at the same second (D-08)
+  troops: bigint[];
+  cargo: bigint[]; // whole resources, ruleset order
+}
+
 export interface Building {
   id: bigint;
   owner: bigint;
@@ -18,7 +43,9 @@ export interface Building {
   stock: bigint[]; // per resource, in units of 1/STOCK_SCALE
   lastUpdate: bigint;
   roomQueue: QueueItem[];
-  centipoints: bigint;
+  centipoints: bigint; // rooms only (per-building ranking)
+  troops: bigint[]; // units at home
+  training: [TrainingItem[], TrainingItem[]]; // attack and defense training rooms
 }
 
 export interface Player {
@@ -28,7 +55,8 @@ export interface Player {
   researchQueue: QueueItem[];
   researchBuilding: bigint; // building of the research queue, 0 when the queue is empty
   buildings: bigint;
-  centipoints: bigint; // rooms of every building + research (B-19)
+  centipoints: bigint; // rooms of every building + research + troops at home and in missions (B-19)
+  missions: bigint; // missions in flight, outbound or returning (B-09)
 }
 
 export interface World {
@@ -41,6 +69,10 @@ export interface World {
   buildings: Map<bigint, Building>;
   playerOf: Map<string, bigint>; // controller → player
   buildingAt: Map<string, bigint>; // "city:neighborhood:slot" → building
+  nextMission: bigint;
+  missions: Map<bigint, Mission>;
+  /** The global mission queue (B-07): ids ordered by (arrival, seq). */
+  pending: bigint[];
 }
 
 /** Units per resource: 3600 s × rate denominator (B-27). */
@@ -57,6 +89,9 @@ export function newWorld(rs: Ruleset): World {
     buildings: new Map(),
     playerOf: new Map(),
     buildingAt: new Map(),
+    nextMission: 1n,
+    missions: new Map(),
+    pending: [],
   };
 }
 

@@ -9,6 +9,7 @@ export type ResourceCosts = Record<string, bigint>;
 
 interface RawTroop {
   id: string;
+  requirements: Record<string, number> | null;
   role: "attack" | "defense";
   trained_at: string;
   cost: Record<string, number>;
@@ -65,6 +66,7 @@ interface RawRuleset {
 
 export interface Troop {
   id: string;
+  requirements: Requirement[];
   index: number;
   isAttack: boolean;
   trainedAt: number; // building index
@@ -125,6 +127,9 @@ export interface Ruleset {
     defenseTrainingRoom: number;
     cargoResearch: number;
     honorResearch: number;
+    occupationTroop: number;
+    /** Resource index that pays mission salaries: the one converters produce (dollar). */
+    salaryResource: number;
   };
   config: Config;
 }
@@ -150,6 +155,11 @@ export interface Config {
   slots: bigint;
   startResources: bigint;
   startBuildSpeedLevel: bigint;
+  occupationResources: bigint;
+  occupationBuildSpeedLevel: bigint;
+  occupationTroopsConsumed: bigint;
+  /** Missions a player can have in flight (B-09). */
+  maxOutgoingMissions: number;
   /** Queue limits without and with premium (B-25). */
   roomQueue: [number, number];
   researchQueue: [number, number];
@@ -227,6 +237,7 @@ export function loadRuleset(raw: RawRuleset, cfg: typeof gameConfig): Ruleset {
       cost: costs(t.cost, raw.resources),
       trainingSeconds: BigInt(t.training_duration_s),
       centipoints: centi(t.points_per_unit),
+      requirements: requirements(t.requirements),
       baseAttack: BigInt(t.base_attack),
       baseDefense: BigInt(t.base_defense) * mult,
       baseCapacity: BigInt(t.base_capacity ?? 0),
@@ -267,6 +278,10 @@ export function loadRuleset(raw: RawRuleset, cfg: typeof gameConfig): Ruleset {
       defenseTrainingRoom: buildingIndex(raw.roles.defense_training_room!),
       cargoResearch: researchIndex(raw.roles.cargo_research!),
       honorResearch: researchIndex(raw.roles.honor_research!),
+      occupationTroop: troopIndex(raw.roles.occupation_troop!),
+      salaryResource: raw.resources.indexOf(
+        raw.buildings.find((b) => b.production?.kind === "converter")!.production!.resource,
+      ),
     },
     config: {
       upgradeSpeedMultiplier: BigInt(cfg.time.upgrade_speed_multiplier),
@@ -288,6 +303,10 @@ export function loadRuleset(raw: RawRuleset, cfg: typeof gameConfig): Ruleset {
       slots: BigInt(cfg.world.slots_per_neighborhood),
       startResources: BigInt(cfg.new_player.starting_resources_each),
       startBuildSpeedLevel: BigInt(cfg.new_player.starting_build_speed_room_level),
+      occupationResources: BigInt(cfg.occupation.starting_resources_each),
+      occupationBuildSpeedLevel: BigInt(cfg.occupation.starting_build_speed_room_level),
+      occupationTroopsConsumed: BigInt(cfg.occupation.occupation_troops_consumed),
+      maxOutgoingMissions: cfg.onchain.max_outgoing_missions_per_player,
       roomQueue: [
         cfg.premium.without_premium.max_room_queue_per_building,
         cfg.premium.with_premium.max_room_queue_per_building,

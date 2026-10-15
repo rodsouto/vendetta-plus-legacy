@@ -92,3 +92,85 @@ describe("sim: alcohol depletion at a whole second (B-28)", () => {
     expect(b.stock[3]).toBe(23n * 28n * 1800n + 28n * 1800n);
   });
 });
+
+describe("sim: missions (same cases as contracts/test/core/Missions.t.sol)", () => {
+  const ROWDY = rs.troops.findIndex((t) => t.id === "rowdy");
+  const rowdies = (n: bigint) => rs.troops.map((_, i) => (i === ROWDY ? n : 0n));
+  const none = [0n, 0n, 0n, 0n];
+
+  function twoPlayers() {
+    const w = sim.newWorld(rs);
+    let now = 1_700_000_000n;
+    sim.setGlobalPremium(w, now + 3650n * 86400n);
+    sim.register(w, "alice", at, now);
+    sim.register(w, "bob", { ...at, slot: 2n }, now);
+    sim.queueRoom(w, "alice", 1n, room("boot_camp"), now);
+    now += 86400n;
+    sim.train(w, "alice", 1n, ROWDY, 7n, now);
+    now += 86400n;
+    sim.poke(w, 1n, now);
+    return { w, now };
+  }
+
+  it("loots an undefended building: 5 × 200 capacity split evenly over the unprotected stock (D-06)", () => {
+    const { w, now } = twoPlayers();
+    const id = sim.sendMission(
+      w,
+      "alice",
+      1n,
+      sim.ATTACK,
+      { ...at, slot: 2n },
+      rowdies(5n),
+      none,
+      now,
+    );
+    const m = w.missions.get(id)!;
+    sim.advance(w, 1, m.arrival);
+    expect(m.returning).toBe(true);
+    expect(m.cargo).toEqual([250n, 250n, 250n, 250n]);
+    expect(sim.visibleStock(w, w.buildings.get(2n)!)).toEqual([9750n, 9750n, 9750n, 9750n]);
+  });
+
+  it("an attack on an empty slot comes back with every unit", () => {
+    const { w, now } = twoPlayers();
+    const id = sim.sendMission(
+      w,
+      "alice",
+      1n,
+      sim.ATTACK,
+      { ...at, slot: 50n },
+      rowdies(3n),
+      none,
+      now,
+    );
+    const m = w.missions.get(id)!;
+    sim.advance(w, 1, m.arrival);
+    sim.poke(w, 1n, m.arrival);
+    expect(w.buildings.get(1n)!.troops[ROWDY]).toBe(7n);
+  });
+
+  it("reverts with Backlog when more missions are due than one action processes (B-08)", () => {
+    const { w, now } = twoPlayers();
+    for (let i = 0n; i < 7n; i++)
+      sim.sendMission(
+        w,
+        "alice",
+        1n,
+        sim.ATTACK,
+        { ...at, slot: 100n + i },
+        rowdies(1n),
+        none,
+        now,
+      );
+    const later = now + 30n * 86400n;
+    expect(() => sim.poke(w, 2n, later)).toThrow("Backlog");
+    expect(sim.advance(w, 4, later)).toBe(4);
+    sim.poke(w, 2n, later);
+    expect(w.pending).toHaveLength(0);
+  });
+
+  it("never abandons the last building (B-30)", () => {
+    const { w, now } = twoPlayers();
+    expect(() => sim.abandon(w, "alice", 1n, now)).toThrow("LastBuilding");
+  });
+});

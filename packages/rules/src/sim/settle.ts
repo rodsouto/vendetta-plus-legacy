@@ -3,7 +3,14 @@
 import { researchUpgrade, roomUpgrade } from "../costs.js";
 import { productionRates, storage } from "../economy.js";
 import type { ResourceCosts } from "../ruleset.js";
-import { stockScale, type Building, type Player, type World } from "./state.js";
+import {
+  coordKey,
+  stockScale,
+  type Building,
+  type Player,
+  type TrainingItem,
+  type World,
+} from "./state.js";
 
 /** Storage capacity per resource, in stock units (D-10). Unlimited without a storage room. */
 export function capacities(w: World, b: Building): bigint[] {
@@ -100,39 +107,89 @@ export function startNextResearch(w: World, p: Player, b: Building, t: bigint): 
   p.researchBuilding = 0n;
 }
 
-/** Process the building's own events up to `t` (B-06). */
+/** ⌊duration × quantity / training-room level⌋ for a troop batch (05-formulas.md, B-29). */
+export function trainingSeconds(w: World, b: Building, item: TrainingItem): bigint {
+  const troop = w.rs.troops[item.index]!;
+  return (troop.trainingSeconds * item.quantity) / b.levels[troop.trainedAt]!;
+}
+
+export const troopCentipoints = (w: World, units: readonly bigint[]) =>
+  units.reduce((s, n, i) => s + n * w.rs.troops[i]!.centipoints, 0n);
+
+type Event =
+  | { kind: "room"; at: bigint; seq: bigint }
+  | { kind: "research"; at: bigint; seq: bigint }
+  | { kind: "training"; queue: number; at: bigint; seq: bigint };
+
+/** Process the building's own events up to `t` (B-06), in (time, seq) order. */
 export function settle(w: World, b: Building, t: bigint): void {
   const p = w.players.get(b.owner)!;
   for (;;) {
+    let next: Event | null = null;
+    const consider = (e: Event) => {
+      if (next === null || e.at < next.at || (e.at === next.at && e.seq < next.seq)) next = e;
+    };
     const room = b.roomQueue[0];
+    if (room) consider({ kind: "room", at: room.finishAt, seq: room.seq });
     const research = p.researchBuilding === b.id ? p.researchQueue[0] : undefined;
-    let next: "room" | "research" | null = null;
-    let at = 0n;
-    if (room) [next, at] = ["room", room.finishAt];
-    if (
-      research &&
-      (next === null ||
-        research.finishAt < at ||
-        (research.finishAt === at && research.seq < room!.seq))
-    )
-      [next, at] = ["research", research.finishAt];
-    if (next === null || at > t) break;
+    if (research) consider({ kind: "research", at: research.finishAt, seq: research.seq });
+    b.training.forEach((q, queue) => {
+      if (q[0]) consider({ kind: "training", queue, at: q[0].finishAt, seq: q[0].seq });
+    });
+    const e = next as Event | null;
+    if (e === null || e.at > t) break;
 
-    integrate(w, b, at);
-    if (next === "room") {
+    integrate(w, b, e.at);
+    if (e.kind === "room") {
       const r = w.rs.buildings[room!.index]!;
       b.levels[room!.index]! += 1n;
       b.centipoints += r.centipoints;
       p.centipoints += r.centipoints;
       b.roomQueue.shift();
-      startNextRoom(w, b, at);
-    } else {
+      startNextRoom(w, b, e.at);
+    } else if (e.kind === "research") {
       const r = w.rs.research[research!.index]!;
       p.research[research!.index]! += 1n;
       p.centipoints += r.centipoints;
       p.researchQueue.shift();
-      startNextResearch(w, p, b, at);
+      startNextResearch(w, p, b, e.at);
+    } else {
+      const q = b.training[e.queue]!;
+      const item = q.shift()!;
+      b.troops[item.index]! += item.quantity;
+      p.centipoints += item.quantity * w.rs.troops[item.index]!.centipoints;
+      // Batches are paid when queued, so the next one always starts.
+      if (q[0]) q[0].finishAt = e.at + trainingSeconds(w, b, q[0]);
     }
   }
   integrate(w, b, t);
+}
+
+/** A new map building with `levels[buildSpeedRoom]` = level and `resources` of each resource. */
+export function newBuilding(
+  w: World,
+  owner: bigint,
+  coord: Building["coord"],
+  buildSpeedLevel: bigint,
+  resources: bigint,
+  now: bigint,
+): Building {
+  const levels = w.rs.buildings.map(() => 0n);
+  levels[w.rs.roles.buildSpeedRoom] = buildSpeedLevel;
+  const b: Building = {
+    id: w.nextBuilding++,
+    owner,
+    coord: { ...coord },
+    levels,
+    stock: w.rs.resources.map(() => 0n),
+    lastUpdate: now,
+    roomQueue: [],
+    centipoints: levels.reduce((s, l, i) => s + l * w.rs.buildings[i]!.centipoints, 0n),
+    troops: w.rs.troops.map(() => 0n),
+    training: [[], []],
+  };
+  credit(w, b, Object.fromEntries(w.rs.resources.map((r) => [r, resources])));
+  w.buildings.set(b.id, b);
+  w.buildingAt.set(coordKey(coord), b.id);
+  return b;
 }
