@@ -32,7 +32,7 @@ Conventions: player-facing text in English; IDs in English `snake_case`; legacy 
 | [09-social.md](09-social.md) | Vacation, market, families, wars, messaging, moderation |
 | [10-space4k-variant.md](10-space4k-variant.md) | Space4k as a second ruleset |
 | [decisions.md](decisions.md) | Legacy → target decisions (D-01 … D-25) |
-| [blockchain.md](blockchain.md) | Fully on-chain EVM implementation decisions (B-01 … B-26) |
+| [blockchain.md](blockchain.md) | Fully on-chain EVM implementation decisions (B-01 … B-29) |
 
 ### Appendix
 

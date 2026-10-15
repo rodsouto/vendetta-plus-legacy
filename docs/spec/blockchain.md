@@ -31,8 +31,8 @@ which network it runs on. Messaging, chat and moderation are off-chain (B-10).
 | B-03 | Integer math | Adapt | Every formula in exact integer arithmetic, no fixed point; 0 deviations from the vectors |
 | B-04 | No tokens in v1 | New | Resources, troops and buildings live inside the contracts |
 | B-05 | Public state | Adapt | All state is visible to everyone; `spy` / `espionage` unchanged |
-| B-06 | Lazy settlement | Adapt | D-08 implemented as "settle on touch", no keepers |
-| B-07 | Per-target ordering | New | Missions to a building resolve strictly in arrival order |
+| B-06 | Lazy settlement | Adapt | D-08 in two levels: local per building on touch, global mission queue; no keepers |
+| B-07 | Global mission order | New | All missions resolve in global arrival order (heap); local events stay per building |
 | B-08 | Chunked settlement | New | `advance(building, maxEvents)`; one event always fits in a block |
 | B-09 | Hard caps | Adapt | Queue, mission and offer limits, configurable |
 | B-10 | Off-chain social | Adapt | Messaging, chat, moderation off-chain |
@@ -52,6 +52,9 @@ which network it runs on. Messaging, chat and moderation are off-chain (B-10).
 | B-24 | Tokenization | v2 | One ERC-721 per **account** wrapping B-26; no per-building or per-troop tokens |
 | B-25 | Premium | New | Longer queues for 30 days, paid with credits; admin can grant it to everyone |
 | B-26 | Player identity | New | State keyed by `playerId`; controller address can change; accounts can be given away |
+| B-27 | Exact stocks | New | Resources stored in 1/100800 units: per-hour rate ×28 = per-second increment (D-12) |
+| B-28 | Alcohol depletion | New | Regime change (D-07) at the whole second `t0 + ⌈stock / net consumption⌉` |
+| B-29 | Duration at start | New | Queue items compute their duration when they start (implements D-23) |
 
 ---
 
@@ -152,24 +155,38 @@ Hidden information is B-22 (v2).
 ## B-06 — Lazy settlement — Adapt
 
 D-08 says the state at time `t` does not depend on when or how often it is computed. On-chain this
-is implemented as **settle on touch**:
+is implemented in two levels:
 
-- Each building stores `lastUpdate`. Any transaction that reads or writes a building first brings it
-  up to `block.timestamp`: integrates production, applies finished queue items, starts deferred items
-  (D-11), and resolves arrived missions (B-07), all in timestamp order.
+- **Local, per building, on touch.** Each building stores `lastUpdate`. Any transaction that reads or
+  writes a building first brings it up to the needed time, processing its **own** events in order:
+  room queue items finishing and starting (D-11), research items if it is the building where its
+  owner researches, troop batches, and the alcohol regime change (B-28). Between events, stocks are
+  integrated exactly (B-27). This is bounded by the queue sizes, so it always fits in one transaction.
+- **Global, for missions (B-07).** Missions are the only events that connect buildings (attacks,
+  returns with loot, transports, occupations that change the building count used by honor).
 - **No keepers are required for correctness.** If nobody touches a building, its events wait. The
   result is the same whenever they are processed. Keepers (or the client) may advance state for
   convenience only.
-- `resolveMission(id)` is public: anyone can call it once the mission has arrived.
 
-## B-07 — Per-target ordering — New
+## B-07 — Global mission order — New
 
-A mission to building `B` can only resolve once every mission to `B` that arrived earlier is
-resolved. Ties are broken by creation order (D-08). Resolving a mission first settles `B` up to the
-arrival time, so the defender's state includes everything that happened before.
+Every mission in the world resolves in **global arrival order**, ties broken by creation order
+(D-08), from an on-chain priority queue (heap) keyed by `(arrival, sequence)`.
 
-Because a player's action on `B` requires `B` to be settled to "now", arrived but unresolved missions
-to `B` must be resolved first (B-08).
+- Before any action, missions with arrival ≤ now are processed, up to `maxEvents` per transaction
+  (B-08). Each one first settles its target building **locally** up to the arrival time, then
+  resolves (combat, delivery, occupation, return). If a backlog remains, the action reverts and the
+  client calls `advance` until the queue is caught up.
+- Why global and not per target: a mission's return depends on a battle in another building, and
+  honor depends on occupations still in flight. With per-target order, settling one building would
+  need a recursive resolution across buildings and players, with a work stack stored on-chain and
+  unpredictable gas. The global order makes every step local and bounded. Construction, research and
+  training are **not** in the global queue.
+- Cost: the queue adds ~50–150k gas per mission (insert + pop) against ~1.2M for a combat. The total
+  work is the same in any design; what changes is who pays: whoever acts first after a burst of
+  arrivals processes them. The paymaster (B-16) and our keeper cover it.
+- Possible later optimization: let a player act without draining the queue when no pending mission
+  involves them.
 
 ## B-08 — Chunked settlement — New
 
@@ -352,10 +369,9 @@ Options considered:
   are lost**.
 - **Salary** is charged at send time, as today. It reveals the distance (a ring of possible
   targets), not the target. Accepted.
-- **Ordering (changes B-07):** the contract cannot know which missions go to a building until they
-  are revealed. So a mission that arrived at `t` can only be resolved once **every mission that
-  arrived before `t`, to any target, is revealed or forfeited**. With tlock anyone can reveal, so
-  this global barrier lasts at most the grace period.
+- **Ordering:** the global mission order (B-07) already resolves missions one after another by
+  arrival, so a hidden target only adds one condition: a mission is resolved after it is revealed or
+  forfeited. With tlock anyone can reveal, so the queue waits at most the grace period.
 - Station, transport and occupy missions are hidden the same way, so an attack does not stand out.
 
 To validate in v2: a tlock library usable from the browser, and the gas cost of the reveal.
@@ -409,6 +425,29 @@ address (the smart account, B-15), which can change.
 - Sanctions and open Kleros cases (B-23) follow the account, not the person.
 - A controller address controls at most one player at a time.
 
+## B-27 — Exact stocks — New
+
+Implements D-12. Each stock is an integer in units of **1/100800** of a resource (3600 seconds × 28).
+Production rates per hour are kept ×28 so the D-07 partial flows (`/7`, `/4`) are integers (B-03), and
+a rate of `r` (×28, per hour) adds exactly `r` units per second. The visible stock and every
+affordability check use `⌊stock / 100800⌋`; spending subtracts `cost × 100800`. Storage capacity
+(D-10) clamps the same units.
+
+## B-28 — Alcohol depletion at a whole second — New
+
+D-07 changes regime when the alcohol stock reaches 0. With a stock `s` (units) and a net consumption
+`c` per second, the change happens at `t0 + ⌈s / c⌉`: until then converters run at full rate, after it
+at the starved rate. Compared with the exact continuous moment this over-produces less than one
+second of dollars, but it keeps every event on a whole second, identical in TypeScript and Solidity.
+
+## B-29 — Duration computed at start — New
+
+A queue item (room, research, troop batch) computes its duration **when it starts**, with the current
+level of its timing room (`boss_office`, `mob_school`, `boot_camp`, `security`). Items that have not
+started are therefore always timed with the latest level, and the item in progress keeps its finish
+time: exactly D-23, without a separate re-timing step. Ties between events at the same second follow
+creation order (D-08), using a global sequence number assigned when the item is queued.
+
 ---
 
 ## Architecture
@@ -418,7 +457,7 @@ flowchart LR
     Client[Client + rules engine] -->|session key| AA[Smart account]
     AA --> PM[Paymaster]
     AA --> World
-    subgraph Contracts
+    subgraph Contracts["Game (one UUPS proxy, linked libraries)"]
         World --> Building
         Building --> Queue
         Building --> Mission
@@ -434,13 +473,15 @@ flowchart LR
     Safe[Admin Safe] -->|upgrade, arbiter v1| Contracts
 ```
 
+Modules are storage namespaces and libraries inside the single `Game` proxy, not separate contracts.
+
 | Module | Responsibility |
 |--------|----------------|
 | `World` | Ruleset parameters, map, player registry, first building (B-12), entry point |
 | `Player` | `playerId` and controller (B-26), research levels and queue, points (B-19), family membership, vacation, suspension, `premiumUntil` |
-| `Building` | Rooms, resources, troops, `lastUpdate`, settlement (B-06, B-08) |
-| `Queue` | Room, research and troop queues, deferred payment (D-11), re-timing (D-23) |
-| `Mission` | Send, recall, per-target ordering (B-07), arrival rules, salary |
+| `Building` | Rooms, resources, troops, `lastUpdate`, local settlement (B-06, B-27, B-28) |
+| `Queue` | Room, research and troop queues, deferred payment (D-11), duration at start (B-29) |
+| `Mission` | Send, recall, global mission queue (B-07, B-08), arrival rules, salary |
 | `Combat` | Pure library: battle, loot, honor (B-02) |
 | `Market` | Offers, acceptance, settlement by transport (B-11) |
 | `Treasury` | Receives premium payments (B-25); controlled by the admin Safe |
@@ -454,7 +495,7 @@ flowchart LR
 |-------|--------|
 | Repository | This repo: `contracts/`, `packages/`, `apps/` at the root, next to `docs/spec` and the legacy PHP |
 | Monorepo | pnpm workspaces; Foundry as its own project in `contracts/`; no Turborepo/Nx for now |
-| Contracts | Solidity + Foundry. One OpenZeppelin **UUPS** proxy per module (not a Diamond), wired through a registry in `World` (B-17) |
+| Contracts | Solidity + Foundry. **One** OpenZeppelin UUPS proxy (`Game`, B-17) with storage namespaced per module (ERC-7201) and logic split into linked external libraries to stay under 24 KB. Replaces one proxy per module: settlement touches buildings, players and missions in one flow |
 | Rules engine | TypeScript, `packages/rules`: pure, deterministic, `bigint` and the same integer formulas as Solidity (B-03, B-20). `scripts/combat_reference.py` stays as a validation reference |
 | Ruleset | Code generation: one script turns `vendetta.yaml` + `game_config.yaml` into a Solidity constants library and an equivalent TS module. Only caps the Safe may tune (`onchain`, `premium`) live in storage |
 | First world | Vendetta only. The engine reads `roles`, never entity names (D-21), so Space4k can follow |
