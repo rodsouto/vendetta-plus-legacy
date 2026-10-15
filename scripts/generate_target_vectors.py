@@ -32,6 +32,7 @@ OUT = DATA / "test_vectors_target.yaml"
 RULESETS = {"vendetta": DATA / "test_vectors.yaml", "space4k": DATA / "test_vectors_space4k.yaml"}
 FUZZ_BATTLES = 3000
 SEED = 20261015
+RANDOM_TARGET_BATTLES = 300          # combat_target_<ruleset>_random: wide coverage for the contracts
 
 
 class Ruleset:
@@ -282,6 +283,40 @@ def build_case(rs: Ruleset, sc: dict) -> dict:
     return case
 
 
+def random_target_cases(rs: Ruleset) -> list[dict]:
+    """Random battles under the target rules, wider than the fuzz set (up to every troop type, research 0-20).
+
+    Compact on purpose: per round only troop counts and deaths (no strikes, no power sums).
+    """
+    rng = random.Random(f"{SEED}-{rs.name}-target")
+    attackers = [t for t in rs.order if rs.troops[t]["role"] == "attack"]
+    pcts = [100, 100, 99, 86, 40, 19, 5, 1]
+    cases = []
+    for i in range(RANDOM_TARGET_BATTLES):
+        att = {t: int(10 ** rng.uniform(0, 6)) for t in rng.sample(attackers, rng.randint(1, len(attackers)))}
+        dfn = {t: int(10 ** rng.uniform(0, 6)) for t in rng.sample(rs.order, rng.randint(0, len(rs.order)))}
+        ra, rd = rng.randint(0, 20), rng.randint(0, 20)
+        pa, pd = rng.choice(pcts), rng.choice(pcts)
+        canon = [t for t in rs.order if t in att or t in dfn]
+        res = simulate(rs.battle(canon, att, dfn, ra, rd, pa, pd, legacy=False), legacy=False)
+        cases.append({
+            "label": f"random #{i}",
+            "attacker": {t: att[t] for t in canon if t in att},
+            "defender": {t: dfn[t] for t in canon if t in dfn},
+            "attacker_research_all": ra,
+            "defender_research_all": rd,
+            "pct_power_attacker": pa,
+            "pct_power_defender": pd,
+            "expected": {
+                "rounds_count": res["rounds_count"],
+                "attacker_remaining": res["attacker_remaining"],
+                "defender_remaining": res["defender_remaining"],
+                "rounds": [{"round": r["round"], "troops": r["troops"]} for r in res["rounds"]],
+            },
+        })
+    return cases
+
+
 def ints(o):
     """Emit integral floats as ints (PHP-style), recursively."""
     if isinstance(o, float) and o.is_integer():
@@ -311,6 +346,12 @@ def main() -> None:
         }
         print(f"[{name}] target cases: {len(cases)} "
               f"({sum(c['legacy']['first_divergence'] is not None for c in cases)} differ from legacy)")
+        doc[f"combat_target_{name}_random"] = {
+            "_ruleset": f"data/{name}.yaml",
+            "_note": f"{RANDOM_TARGET_BATTLES} random battles (seed {SEED}-{name}-target), canonical order, "
+                     "target rules; per round only troop counts and deaths.",
+            "cases": ints(random_target_cases(rs)),
+        }
     if failed:
         sys.exit("Reference implementation does not match legacy PHP; nothing written.")
 
