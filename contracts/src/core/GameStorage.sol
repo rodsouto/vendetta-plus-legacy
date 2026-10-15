@@ -37,6 +37,45 @@ struct Mission {
     uint64 seq; // order among missions arriving at the same second (D-08)
     uint64[TROOPS] troops;
     uint64[RESOURCES] cargo; // whole resources
+    uint64 trade; // market trade this transport delivers for (D-19), 0 = none
+}
+
+uint8 constant CAPO = 1;
+uint8 constant SUBCAPO = 2;
+uint8 constant MEMBER = 3;
+
+struct Family {
+    bool alive; // false once dissolved: memberships, applications and wars pointing to it lapse
+    uint64 members;
+    string tag;
+    string name;
+}
+
+uint8 constant OFFER_NONE = 0;
+uint8 constant OFFER_SURRENDER = 1;
+uint8 constant OFFER_DRAW = 2;
+
+struct War {
+    uint64 a; // declaring family
+    uint64 b;
+    uint128 lostA; // centipoints of troops lost by members of a in battles against b
+    uint128 lostB;
+    bool ended;
+    uint64 winner; // 0 = draw (or still running)
+    uint8 offer; // OFFER_*
+    uint64 offerBy; // family that made the offer
+}
+
+struct Trade {
+    uint64 seller;
+    uint64 buyer;
+    uint8 sold; // resource index
+    bool accepted;
+    uint40 acceptedAt;
+    uint64 quantity;
+    uint64 delivered;
+    uint64[RESOURCES] price;
+    uint64[RESOURCES] paid;
 }
 
 struct Building {
@@ -61,6 +100,13 @@ struct Player {
     uint32 missions; // missions in flight, outbound or returning (B-09)
     uint16[RESEARCH] research;
     QueueItem[] researchQueue;
+    uint40 vacationUntil; // on vacation while now < vacationUntil (D-18)
+    uint40 suspendedUntil; // suspended while now < suspendedUntil (B-14)
+    uint40 premiumUntil; // B-25
+    uint64 family; // valid only while that family is alive
+    uint8 rank; // CAPO, SUBCAPO, MEMBER
+    uint64[] applications; // families applied to (B-31)
+    uint64[] offers; // trades where this player is the seller (B-09 cap)
 }
 
 /// Core state (ERC-7201 namespace "vendetta.storage.core").
@@ -78,6 +124,14 @@ struct CoreState {
     mapping(uint64 => Mission) missions;
     uint64[] heap; // the global mission queue (B-07), see Heap.sol
     mapping(uint64 => uint256) heapPos; // 1-based position in `heap`, 0 = not queued
+    uint64 nextFamily;
+    mapping(uint64 => Family) families;
+    mapping(bytes32 => uint64) familyNames; // normalized tag / name → family (B-31)
+    uint64 nextWar;
+    mapping(uint64 => War) wars;
+    mapping(bytes32 => uint64) activeWar; // family pair → running war
+    uint64 nextTrade;
+    mapping(uint64 => Trade) trades;
 }
 
 library GameStorage {

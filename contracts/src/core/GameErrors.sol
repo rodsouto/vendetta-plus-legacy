@@ -25,6 +25,26 @@ error TooManyMissions();
 error CargoExceeded();
 error NotRecallable();
 error LastBuilding();
+error OnVacation();
+error Suspended();
+error TargetOnVacation();
+error VacationCooldown();
+error MissionsInFlight();
+error NotOnVacation();
+error ControllerTaken();
+error InvalidName();
+error NameTaken();
+error InFamily();
+error NotAllowed();
+error UnknownFamily();
+error TooManyApplications();
+error AlreadyApplied();
+error NoApplication();
+error AlreadyAtWar();
+error NoOffer();
+error InvalidOffer();
+error TooManyOffers();
+error InvalidTrade();
 
 struct BattleReport {
     uint64[TROOPS] attacker;
@@ -72,4 +92,20 @@ interface IGameEvents {
     event Battle(uint64 indexed mission, uint64 indexed building, BattleReport report);
     event BuildingOccupied(uint64 indexed building, uint64 indexed player, uint64 mission);
     event BuildingAbandoned(uint64 indexed building, uint64 indexed player);
+    event VacationStarted(uint64 indexed player, uint40 until);
+    event VacationEnded(uint64 indexed player);
+    event PlayerSuspended(uint64 indexed player, uint40 until);
+    event PremiumGranted(uint64 indexed player, uint40 until);
+    event PlayerTransferred(uint64 indexed player, address from, address to);
+    event FamilyCreated(uint64 indexed family, uint64 indexed capo, string tag, string name);
+    event FamilyChanged(uint64 indexed family, uint64 indexed player, uint8 rank); // rank 0 = left
+    event FamilyDissolved(uint64 indexed family);
+    event ApplicationChanged(uint64 indexed family, uint64 indexed player, bool open);
+    event WarDeclared(uint64 indexed war, uint64 indexed a, uint64 indexed b);
+    event PeaceOffered(uint64 indexed war, uint64 family, uint8 offer);
+    event WarEnded(uint64 indexed war, uint64 winner);
+    event TradeOffered(uint64 indexed trade, uint64 indexed seller, uint64 indexed buyer);
+    event TradeAccepted(uint64 indexed trade);
+    event TradeCancelled(uint64 indexed trade);
+    event TradeSettled(uint64 indexed trade, uint64 delivered, uint64[RESOURCES] paid);
 }

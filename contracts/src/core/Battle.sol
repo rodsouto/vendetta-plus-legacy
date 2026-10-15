@@ -15,6 +15,7 @@ import {TroopStats} from "../combat/TroopStats.sol";
 import {Building, Player, Mission, CoreState, GameStorage} from "./GameStorage.sol";
 import {Settlement, SettleLib} from "./Settlement.sol";
 import {IGameEvents, BattleReport} from "./GameErrors.sol";
+import {FamilyRules} from "./Families.sol";
 
 /// An attack mission against another player's building, at its arrival time (06-combat.md). Linked
 /// external library, called by Missions. Mirrors `battle` in packages/rules/src/sim/missions.ts.
@@ -94,8 +95,11 @@ library Battle {
             b.troops[i] = uint64(report.defenderSurvivors[i]);
             if (report.defenderSurvivors[i] > 0) wiped = false;
         }
-        attacker.centipoints -= uint128(Settlement.troopCentipoints(lostA));
-        defender.centipoints -= uint128(Settlement.troopCentipoints(lostD));
+        uint256 cpA = Settlement.troopCentipoints(lostA);
+        uint256 cpD = Settlement.troopCentipoints(lostD);
+        attacker.centipoints -= uint128(cpA);
+        defender.centipoints -= uint128(cpD);
+        FamilyRules.warScore(GameStorage.core(), attacker, defender, cpA, cpD);
     }
 
     /// D-06: capacity of the survivors over the unprotected stock, in loot order.

@@ -2,21 +2,32 @@
 pragma solidity 0.8.28;
 
 import {Building, Player, CoreState} from "./GameStorage.sol";
-import {Settlement, SettleLib} from "./Settlement.sol";
-import {NotRegistered, NotOwner} from "./GameErrors.sol";
+import {SettleLib} from "./Settlement.sol";
+import {NotRegistered, NotOwner, OnVacation, Suspended} from "./GameErrors.sol";
 
 /// Checks and settlement shared by every player action. Mirrors packages/rules/src/sim/common.ts.
 library Access {
+    /// The acting player; a player on vacation (D-18) or suspended (B-14) cannot act.
+    function active(CoreState storage s, address caller)
+        internal
+        view
+        returns (uint64 pid, Player storage p)
+    {
+        pid = s.playerOf[caller];
+        if (pid == 0) revert NotRegistered();
+        p = s.players[pid];
+        if (p.vacationUntil > block.timestamp) revert OnVacation();
+        if (p.suspendedUntil > block.timestamp) revert Suspended();
+    }
+
     function owned(CoreState storage s, address caller, uint64 id)
         internal
         view
         returns (uint64 pid, Player storage p, Building storage b)
     {
-        pid = s.playerOf[caller];
-        if (pid == 0) revert NotRegistered();
+        (pid, p) = active(s, caller);
         b = s.buildings[id];
         if (b.owner != pid) revert NotOwner();
-        p = s.players[pid];
     }
 
     /// Settle the building and, if the player researches elsewhere, that building too.
@@ -26,8 +37,8 @@ library Access {
         if (rb != 0 && rb != id) SettleLib.settle(rb, block.timestamp);
     }
 
-    /// B-25. Per-player premium arrives in 3c; for now only the admin's global premium.
-    function isPremium(CoreState storage s, Player storage) internal view returns (bool) {
-        return s.globalPremiumUntil > block.timestamp;
+    /// B-25: the player's own premium or the admin's global premium.
+    function isPremium(CoreState storage s, Player storage p) internal view returns (bool) {
+        return p.premiumUntil > block.timestamp || s.globalPremiumUntil > block.timestamp;
     }
 }

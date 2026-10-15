@@ -24,6 +24,7 @@ import {Settlement, SettleLib} from "./Settlement.sol";
 import {Access} from "./Access.sol";
 import {Heap} from "./Heap.sol";
 import {Battle} from "./Battle.sol";
+import {MarketRules} from "./Market.sol";
 import {
     Backlog,
     InvalidMission,
@@ -35,8 +36,9 @@ import {
     CargoExceeded,
     CannotAfford,
     NotRecallable,
-    NotRegistered,
     LastBuilding,
+    TargetOnVacation,
+    InvalidTrade,
     IGameEvents
 } from "./GameErrors.sol";
 
@@ -124,6 +126,7 @@ library Missions {
             if (target != 0) {
                 SettleLib.settle(target, t);
                 Settlement.credit(s.buildings[target], _cargo(m));
+                if (m.trade != 0) MarketRules.settle(s, m, targetOwner, t);
             }
             delete m.cargo; // delivered, or lost on an empty slot
             return _sendBack(s, id, t);
@@ -191,11 +194,15 @@ library Missions {
         uint8 kind,
         uint256[3] memory target,
         uint256[TROOPS] memory troops,
-        uint256[RESOURCES] memory resources
+        uint256[RESOURCES] memory resources,
+        uint64 trade
     ) external returns (uint64 mid) {
         CoreState storage s = GameStorage.core();
         (uint64 pid, Player storage p, Building storage b) = Access.owned(s, caller, id);
         _validateTarget(s, pid, b, kind, target);
+        if (trade != 0 && (kind != TRANSPORT || !MarketRules.openFor(s, trade, pid))) {
+            revert InvalidTrade();
+        }
         if (p.missions >= Ruleset.MAX_OUTGOING_MISSIONS) revert TooManyMissions();
         Access.settleForAction(s, p, id);
 
@@ -204,6 +211,7 @@ library Missions {
         _charge(b, plan, target, resources);
         mid = _create(s, pid, id, kind, target, plan.duration);
         Mission storage m = s.missions[mid];
+        m.trade = trade;
         for (uint256 i; i < TROOPS; ++i) {
             b.troops[i] -= uint64(troops[i]);
             m.troops[i] = uint64(troops[i]);
@@ -234,6 +242,8 @@ library Missions {
         if (kind == ATTACK && targetId != 0 && s.buildings[targetId].owner == pid) {
             revert OwnTarget();
         }
+        if (targetId != 0 && s.players[s.buildings[targetId].owner].vacationUntil > block.timestamp)
+        revert TargetOnVacation(); // D-18
     }
 
     /// Travel time, salary, cargo limit; pays resources + salary from the building.
@@ -306,8 +316,7 @@ library Missions {
     /// A mission not yet returning turns back, arriving after the time already travelled.
     function recall(address caller, uint64 missionId) external {
         CoreState storage s = GameStorage.core();
-        uint64 pid = s.playerOf[caller];
-        if (pid == 0) revert NotRegistered();
+        (uint64 pid,) = Access.active(s, caller);
         Mission storage m = s.missions[missionId];
         if (m.owner != pid || m.returning) revert NotRecallable();
         Heap.remove(s, missionId);
