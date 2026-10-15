@@ -50,12 +50,13 @@ which network it runs on. Messaging, chat and moderation are off-chain (B-10).
 | B-22 | Hidden information | v2 | Hidden mission **target**, revealed by timelock encryption; FHE only as research |
 | B-23 | Arbitration | v2 | Kleros v2 as `arbiter`, under a written rulebook |
 | B-24 | Tokenization | v2 | One ERC-721 per **account** wrapping B-26; no per-building or per-troop tokens |
-| B-25 | Premium | New | Longer queues for 30 days, paid with credits; admin can grant it to everyone |
+| B-25 | Premium | New | Longer queues; granted by the admin per player (paid off-chain) or to everyone |
 | B-26 | Player identity | New | State keyed by `playerId`; controller address can change; accounts can be given away |
 | B-27 | Exact stocks | New | Resources stored in 1/100800 units: per-hour rate ×28 = per-second increment (D-12) |
 | B-28 | Alcohol depletion | New | Regime change (D-07) at the whole second `t0 + ⌈stock / net consumption⌉` |
 | B-29 | Duration at start | New | Queue items compute their duration when they start (implements D-23) |
 | B-30 | Last building | New | A player can abandon any building except the last one |
+| B-31 | Families on-chain | New | Three fixed ranks; board and circulars off-chain; ASCII names unique ignoring case; lazy dissolution |
 
 ---
 
@@ -248,6 +249,17 @@ Counterparty risk is part of the game, and has two answers:
 - **Arbitration:** not delivering an accepted trade is a rule violation that anyone can take to
   Kleros (B-23). The sanction is a suspension (B-14).
 
+On-chain details:
+
+- `offerTrade(buyer, sold, quantity, price)`: the price must equal one of the fixed rates exactly,
+  compared with integers over the common denominator (`quantity / rate[sold] = Σ price[r] / rate[r]`).
+  The converted resource (alcohol) is neither sold nor paid, and a resource is never traded for itself.
+- A seller has at most 10 open trades (pending, or accepted inside the window and not complete, B-09).
+- `sendMission(…, trade)`: a transport names the trade it delivers for (D-19). At arrival the
+  resources are credited first; then, if the trade is accepted and inside its window, a seller →
+  buyer shipment of exactly the sold resource adds to `delivered`, and a buyer → seller shipment
+  within what remains of the price adds to `paid`. Anything else is a plain transport.
+
 ## B-12 — Starting coordinate — Keep
 
 The player picks any free coordinate, as in legacy ([08-progression.md](08-progression.md#account-lifecycle)).
@@ -269,7 +281,7 @@ A written rulebook (pushing and similar abuse) and arbitration come later (B-23)
 
 ## B-14 — Sanctions module — New
 
-A `Sanctions` module exposes `suspend(player, until)` and `lift(player)`, callable only by the
+A `Sanctions` module exposes `suspend(player, until)` (`until` = 0 lifts it), callable only by the
 `arbiter` role. In v1 the arbiter is the admin Safe (B-17); later it is a Kleros arbitrable contract
 (B-23).
 
@@ -278,6 +290,11 @@ A suspended player:
 - **cannot act:** build, research, train, send missions, trade, change family;
 - **keeps producing**, and queues and missions already running complete;
 - **can be attacked.** Otherwise suspension would work as free vacation, which is a reward.
+- cannot transfer the account (B-26).
+
+The lock is one check shared by every player action, also used for vacation (D-18): a player on
+vacation or suspended can only end the vacation. In v1 `suspend(player, until)` is `onlyOwner`
+(`until` = 0 lifts it).
 
 ## B-15 — Accounts — New
 
@@ -411,8 +428,8 @@ longer queues. Target:
 Values live in the `premium` section of [data/game_config.yaml](data/game_config.yaml). The legacy
 `queues` values become the premium limits.
 
-- **Purchase:** 30 days, paid with the same credits as gas (B-16), into the `Treasury`. Buying
-  before expiry adds days.
+- **Purchase:** off-chain (card, credits). The contract holds no funds: the admin (Safe) records it
+  with `grantPremium(player, until)`.
 - **State:** `premiumUntil` per player. `isPremium(p) = premiumUntil[p] > now || globalPremiumUntil > now`.
 - **Global premium:** the admin (Safe, B-17) can call `setGlobalPremium(until)` to give premium to
   every player for a while (events, launch, compensation).
@@ -464,6 +481,23 @@ cannot register twice. So a player can abandon any building **except the last on
 (`LastBuilding`). Everything in the abandoned building is lost: rooms, troops, queues (including the
 research queue if it runs there), and the cargo of missions returning to it.
 
+## B-31 — Families on-chain — New
+
+What D-20 needs on-chain is membership, permissions that change rules, and war bookkeeping:
+
+- **Ranks:** only Capo, SubCapo and Member. Capo and SubCapo accept or reject applications, kick
+  (never the Capo), set ranks (never to Capo) and declare war; only the Capo hands over leadership,
+  offers peace and dissolves. Custom ranks and the message permissions (board, circulars) live in
+  the off-chain messaging service (B-10).
+- **Names:** tag 2–8 and name 2–35 characters of printable ASCII, unique ignoring ASCII case. A
+  dissolved family frees its tag and name.
+- **Applications:** at most 5 open per player (B-09); accepting one deletes the others.
+- **Lazy dissolution:** families have no member limit, so dissolving never iterates members. The
+  family is marked dead; memberships, applications and wars that point to it lapse when read (a war
+  with a dissolved family is over and lost by it).
+- **War score:** every battle between members of two families at war adds each side's lost troop
+  centipoints to that side's losses (D-20).
+
 ---
 
 ## Architecture
@@ -482,7 +516,6 @@ flowchart LR
         World --> Family
         World --> Player
         World --> Sanctions
-        World --> Treasury
     end
     Contracts -->|events| Indexer
     Indexer --> Client
@@ -500,7 +533,6 @@ Modules are storage namespaces and libraries inside the single `Game` proxy, not
 | `Mission` | Send, recall, global mission queue (B-07, B-08), arrival rules, salary |
 | `Combat` | Pure library: battle, loot, honor (B-02) |
 | `Market` | Offers, acceptance, settlement by transport (B-11) |
-| `Treasury` | Receives premium payments (B-25); controlled by the admin Safe |
 | `Family` | Families, roles, wars (D-20) |
 | `Sanctions` | Suspension by `arbiter` (B-14) |
 
@@ -528,6 +560,7 @@ Measured with a prototype before the B-03 deviation list and B-09 caps are fixed
 |------------|------------------|
 | Typical action (build, train, send) | **Measured (core, 3a)**: register ~251k, queue a room ~140k (real transactions on anvil, base cost included). Inside a test: queue that waits ~55k, settling 6 queue items ~326k, settling production only ~33k. `forge test --match-contract CoreGas -vv` |
 | Worst-case combat (21 × 21 types, 5 rounds) | **Measured: ~1.24M gas** in memory (`CombatGas`), **~1.37M with storage** (`BattleGas`: survivors, loot, points). Typical raid in memory: ~0.51M |
+| Social actions | **Measured (3c, inside a test)**: createFamily ~177k, applyToFamily ~53k, accept an application ~30k, offerTrade ~128k, acceptTrade ~6k, startVacation ~8k |
 | Missions | **Measured (3b)**: send an attack ~354k; process one attack (battle, loot, return queued) ~555k; process one return ~82k (`MissionsGasTest`, inside a test) |
 | Storage, not combat, dominates cost | Unmeasured. Decides whether B-02 ever needs Stylus. |
 | Precision vs test vectors | **0 deviations** in every formula, including travel time and salary (exact integer math, B-03) |
