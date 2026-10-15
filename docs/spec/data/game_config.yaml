@@ -105,6 +105,7 @@ onchain:
   # Room and research queue limits above (queues:) are kept as-is.
   max_outgoing_missions_per_player: 20  # missions sent by a player and not yet back
   max_open_market_offers_per_player: 10
+  max_family_applications_per_player: 5 # open applications to families (B-31)
 
 premium:
   # NOT legacy (blockchain.md, B-25). The legacy `queues` limits above become the premium limits.

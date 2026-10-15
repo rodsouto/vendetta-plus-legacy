@@ -303,7 +303,8 @@
   },
   "onchain": {
     "max_outgoing_missions_per_player": 20,
-    "max_open_market_offers_per_player": 10
+    "max_open_market_offers_per_player": 10,
+    "max_family_applications_per_player": 5
   },
   "premium": {
     "duration_days": 30,

@@ -8,6 +8,7 @@ uint256 constant TROOPS = 21;
 uint256 constant RESEARCH = 16;
 uint256 constant ROOMS = 15;
 uint256 constant RESOURCES = 4;
+uint256 constant MARKET_RATES = 2;
 
 /// Ruleset constants for "vendetta". Troop and research indices follow the ruleset file order.
 library VendettaRuleset {
@@ -68,6 +69,21 @@ library VendettaRuleset {
     uint256 internal constant SALARY_EXP_NUM = 4;
     uint256 internal constant SALARY_EXP_DEN = 5;
     uint256 internal constant SALARY_DIVISOR = 2512;
+
+    uint256 internal constant VACATION_SECONDS = 1296000;
+    uint256 internal constant VACATION_COOLDOWN_SECONDS = 604800;
+    uint256 internal constant MARKET_WINDOW_SECONDS = 864000;
+    uint256 internal constant MAX_OPEN_OFFERS = 10;
+    uint256 internal constant MAX_APPLICATIONS = 5;
+    uint256 internal constant TAG_MIN = 2;
+    uint256 internal constant TAG_MAX = 8;
+    uint256 internal constant NAME_MIN = 2;
+    uint256 internal constant NAME_MAX = 35;
+
+    /// Market exchange rates (D-19): value of 1 dollar in each resource (0 = not tradable).
+    function marketRates() internal pure returns (uint256[RESOURCES][MARKET_RATES] memory) {
+        return [[uint256(3), 5, 0, 1], [uint256(2), 4, 0, 1]];
+    }
 
     /// Loot tie-break order (D-06): resource indices, the converted resource last.
     function lootOrder() internal pure returns (uint256[RESOURCES] memory) {

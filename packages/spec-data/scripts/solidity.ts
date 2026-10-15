@@ -81,7 +81,14 @@ interface GameConfig {
     salary_distance_exponent: number;
     salary_divisor: number;
   };
-  onchain: { max_outgoing_missions_per_player: number };
+  onchain: {
+    max_outgoing_missions_per_player: number;
+    max_open_market_offers_per_player: number;
+    max_family_applications_per_player: number;
+  };
+  vacation: { duration_days: number; cooldown_days: number };
+  market: { exchange_rates: Record<string, Record<string, number>>; delivery_window_days: number };
+  families: { tag_length: [number, number]; name_length: [number, number] };
   honor: { table: Record<string, number[]> };
   premium: {
     without_premium: Record<string, number>;
@@ -235,6 +242,7 @@ uint256 constant TROOPS = ${rs.troops.length};
 uint256 constant RESEARCH = ${rs.research.length};
 uint256 constant ROOMS = ${rs.buildings.length};
 uint256 constant RESOURCES = ${rs.resources.length};
+uint256 constant MARKET_RATES = ${Object.keys(config.market.exchange_rates).length};
 
 /// Ruleset constants for "${rs.ruleset}". Troop and research indices follow the ruleset file order.
 library ${name} {
@@ -295,6 +303,23 @@ library ${name} {
     uint256 internal constant SALARY_EXP_NUM = ${salExpNum};
     uint256 internal constant SALARY_EXP_DEN = ${salExpDen};
     uint256 internal constant SALARY_DIVISOR = ${config.missions.salary_divisor};
+
+    uint256 internal constant VACATION_SECONDS = ${config.vacation.duration_days * 86400};
+    uint256 internal constant VACATION_COOLDOWN_SECONDS = ${config.vacation.cooldown_days * 86400};
+    uint256 internal constant MARKET_WINDOW_SECONDS = ${config.market.delivery_window_days * 86400};
+    uint256 internal constant MAX_OPEN_OFFERS = ${config.onchain.max_open_market_offers_per_player};
+    uint256 internal constant MAX_APPLICATIONS = ${config.onchain.max_family_applications_per_player};
+    uint256 internal constant TAG_MIN = ${config.families.tag_length[0]};
+    uint256 internal constant TAG_MAX = ${config.families.tag_length[1]};
+    uint256 internal constant NAME_MIN = ${config.families.name_length[0]};
+    uint256 internal constant NAME_MAX = ${config.families.name_length[1]};
+
+    /// Market exchange rates (D-19): value of 1 dollar in each resource (0 = not tradable).
+    function marketRates() internal pure returns (uint256[RESOURCES][MARKET_RATES] memory) {
+        return [${Object.values(config.market.exchange_rates)
+          .map((rate) => literal(rs.resources.map((r) => rate[r] ?? 0)))
+          .join(", ")}];
+    }
 
     /// Loot tie-break order (D-06): resource indices, the converted resource last.
     function lootOrder() internal pure returns (uint256[RESOURCES] memory) {
