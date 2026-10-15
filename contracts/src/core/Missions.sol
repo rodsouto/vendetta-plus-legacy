@@ -243,7 +243,9 @@ library Missions {
             revert OwnTarget();
         }
         if (targetId != 0 && s.players[s.buildings[targetId].owner].vacationUntil > block.timestamp)
-        revert TargetOnVacation(); // D-18
+        {
+            revert TargetOnVacation(); // D-18
+        }
     }
 
     /// Travel time, salary, cargo limit; pays resources + salary from the building.
