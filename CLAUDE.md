@@ -34,6 +34,8 @@ pnpm format             # prettier; forge fmt inside contracts/
 scripts/ci-local.sh     # the CI steps on a fresh clone of HEAD (no GitHub needed)
 pnpm dev:local          # anvil + deploy + web app on :5173 (dev accounts, time travel in the Workshop page)
 pnpm --filter @vendetta/web e2e   # Playwright flow on its own fresh chain (e2e/serve.sh, :5199)
+pnpm dev:aa             # anvil + Arbitrum One's 4337 contracts + Alto + mock paymaster + web app: passkey accounts locally
+pnpm --filter @vendetta/web e2e:aa   # Playwright passkey flow (virtual WebAuthn authenticator) on its own 4337 stack (:5198)
 ```
 
 ## Rules

@@ -326,7 +326,17 @@ vacation or suspended can only end the vacation. In v1 `suspend(player, until)` 
   session with no prompt; when the session has lapsed, the action first renews it (one passkey
   prompt). The session key lives in browser storage: it can only play, expires and is revocable.
   Kernel v3.1 (the last version with a WebAuthn validator in permissionless.js) and the
-  SimpleAccount factory for the session, both already deployed on Arbitrum One.
+  SimpleAccount factory for the session, both already deployed on Arbitrum One. permissionless.js
+  0.4 always signs with `usePrecompiled = false`, so the passkey signature is checked by the
+  Solidity P-256 verifier instead of RIP-7212: passkey operations cost ~0.3M gas more, but they are
+  rare (create, renew, manage).
+- Game actions vary in cost with the time they run (lazy settlement, due missions processed on the
+  way: B-06, B-07), so the client gives the bundler's `callGasLimit` estimate 50% + 100k of
+  headroom before the paymaster signs.
+- **Local testing** (`pnpm dev:aa`, `e2e:aa`): a plain anvil with the account contracts copied
+  from Arbitrum One at their addresses (`apps/web/scripts/aa-contracts.json`), Alto and Pimlico's
+  mock paymaster; Playwright drives a virtual WebAuthn authenticator. No fork: public RPCs drop old
+  state within minutes.
 
 ## B-16 — Gas — New
 
@@ -595,3 +605,4 @@ Measured with a prototype before the B-03 deviation list and B-09 caps are fixed
 | Daily sponsored allowance per account | Set from the measured costs and budget |
 | Smart account provider supports multi-passkey + session keys + paymaster | **Chosen (4b)**: Kernel with a passkey owner (permissionless.js), native game sessions (B-15), Pimlico paymaster. Multi-ecosystem devices and recovery still to verify |
 | Session management | **Measured (4b, inside a test)**: authorize a session ~41k (a new storage slot); an action through a session costs the same as through the controller plus about two storage reads |
+| Cost through ERC-4337 | **Measured (4b.3, local stack, `actualGasUsed` of each operation)**: create the account (deploy Kernel, publish the passkey, register, authorize the session) ~1.16M; renew a session from the passkey ~0.61M; first action of a device session (deploys it) ~0.35–0.46M; later actions ~0.17M for an ~8k call (account, paymaster and the unused-gas penalty of the headroom) |

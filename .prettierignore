@@ -2,3 +2,5 @@
 **/dist/**
 **/node_modules/**
 apps/web/src/chain/abi.ts
+apps/web/scripts/aa-contracts.json
+apps/web/test-results/**

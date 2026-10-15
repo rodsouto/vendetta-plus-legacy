@@ -34,4 +34,7 @@ pnpm --filter @vendetta/web build
 step "end-to-end (local chain + app)"
 pnpm --filter @vendetta/web e2e
 
+step "end-to-end with passkeys (local 4337 stack)"
+pnpm --filter @vendetta/web e2e:aa
+
 printf '\nCI passed for %s\n' "$(git rev-parse --short HEAD)"

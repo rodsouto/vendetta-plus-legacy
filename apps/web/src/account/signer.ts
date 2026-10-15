@@ -65,6 +65,8 @@ abstract class Observable {
   }
 }
 
+const CALL_GAS_HEADROOM = 100_000n;
+
 class RevertedError extends Error {
   constructor() {
     super("reverted");
@@ -204,9 +206,15 @@ export class PasskeySigner extends Observable implements Signer {
         ? await kernelAccount(this.client, this.identity)
         : await sessionAccount(this.client, this.session!.key);
     const client = this.smartClient(account);
+    // With the abi, viem decodes a revert during gas estimation into the contract's error.
+    const gas = await client.estimateUserOperationGas({ calls: calls as never });
+    // A game action costs more the later it runs (lazy settlement, due missions processed on the
+    // way, B-06/B-07), so the execution limit gets headroom. It is fixed before the paymaster
+    // signs, since its signature covers the limits; unused gas is barely charged.
     const hash: Hash = await client.sendUserOperation({
-      // With the abi, viem decodes a revert during gas estimation into the contract's error.
       calls: calls as never,
+      ...gas,
+      callGasLimit: (gas.callGasLimit * 3n) / 2n + CALL_GAS_HEADROOM,
     });
     const receipt = await client.waitForUserOperationReceipt({ hash });
     if (!receipt.success) throw new RevertedError();
