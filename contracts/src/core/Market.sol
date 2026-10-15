@@ -104,7 +104,7 @@ library Market {
         CoreState storage s = GameStorage.core();
         (uint64 pid, Player storage p) = Access.active(s, caller);
         uint256 alc = Ruleset.CONVERTED_RESOURCE;
-        if (s.players[buyer].controller == address(0) || buyer == pid) revert InvalidOffer();
+        if (s.players[buyer].controllers.length == 0 || buyer == pid) revert InvalidOffer();
         if (sold >= RESOURCES || sold == alc) revert InvalidOffer();
         if (quantity < 1) revert InvalidOffer();
         if (price[alc] != 0 || price[sold] != 0) revert InvalidOffer();

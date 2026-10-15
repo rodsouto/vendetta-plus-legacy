@@ -24,7 +24,7 @@ contract ScenariosTest is GameTestBase {
         "BuildingSnap(uint256 centipoints,uint256 id,uint256 last_update,uint256[] levels,uint256 owner,uint256[] queue_finish,uint256[] queue_index,uint256[] queue_seq,uint256[] stock,uint256[] training_attack,uint256[] training_defense,uint256[] troops)"
         "MissionSnap(uint256[] cargo,uint256[] fields,uint256 id,uint256[] troops)"
         "FamilySnap(bool alive,uint256 id,uint256 members,string name,string tag)"
-        "PlayerSnap(uint256[] applications,uint256 buildings,uint256 centipoints,uint256 id,uint256 missions,uint256[] offers,uint256[] queue_finish,uint256[] queue_index,uint256[] queue_seq,uint256[] research,uint256 research_building,uint256[] social)"
+        "PlayerSnap(uint256[] applications,uint256 buildings,uint256 centipoints,uint256[] controllers,uint256 id,uint256 missions,uint256[] offers,uint256[] queue_finish,uint256[] queue_index,uint256[] queue_seq,uint256[] research,uint256 research_building,uint256[] social)"
         "SessionSnap(uint256 actor,uint256 epoch,uint256 player,uint256 until)"
         "State(BuildingSnap[] buildings,FamilySnap[] families,MissionSnap[] missions,PlayerSnap[] players,SessionSnap[] sessions,TradeSnap[] trades,WarSnap[] wars)"
         "TradeSnap(uint256[] fields,uint256 id,uint256[] paid,uint256[] price)"
@@ -78,6 +78,7 @@ contract ScenariosTest is GameTestBase {
         uint256[] applications;
         uint256 buildings;
         uint256 centipoints;
+        uint256[] controllers; // actor ids, in the contract's order
         uint256 id;
         uint256 missions;
         uint256[] offers;
@@ -267,6 +268,12 @@ contract ScenariosTest is GameTestBase {
         if (act == 34) {
             return abi.encodeCall(Game.revokeSession, (address(uint160(0x1000 + a[0]))));
         }
+        if (act == 35) {
+            return abi.encodeCall(Game.addController, (address(uint160(0x1000 + a[0]))));
+        }
+        if (act == 36) {
+            return abi.encodeCall(Game.removeController, (address(uint160(0x1000 + a[0]))));
+        }
         if (act == 18) return abi.encodeCall(Game.createFamily, (_name(a[0]), _name(a[1])));
         if (act == 19) return abi.encodeCall(Game.applyToFamily, (uint64(a[0])));
         if (act == 20) return abi.encodeCall(Game.withdrawApplication, (uint64(a[0])));
@@ -305,7 +312,7 @@ contract ScenariosTest is GameTestBase {
     }
 
     function _errorName(bytes4 sel) internal pure returns (string memory) {
-        string[44] memory names = [
+        string[46] memory names = [
             "AlreadyRegistered",
             "InvalidCoordinate",
             "SlotTaken",
@@ -349,7 +356,9 @@ contract ScenariosTest is GameTestBase {
             "InvalidTrade",
             "NotController",
             "InvalidSession",
-            "SessionTooLong"
+            "SessionTooLong",
+            "TooManyControllers",
+            "LastController"
         ];
         for (uint256 i; i < names.length; ++i) {
             if (bytes4(keccak256(bytes(string.concat(names[i], "()")))) == sel) return names[i];
@@ -395,10 +404,24 @@ contract ScenariosTest is GameTestBase {
             if (!_sameQueue(p.researchQueue, e.queueIndex, e.queueSeq, e.queueFinish)) {
                 return false;
             }
-            if (!_sameSocial(p, e)) return false;
+            if (!_sameSocial(p, e) || !_sameControllers(p.controllers, e.controllers)) {
+                return false;
+            }
         }
         return _sameFamilies(game, exp.families) && _sameWars(game, exp.wars)
             && _sameTrades(game, exp.trades) && _sameSessions(game, exp.sessions);
+    }
+
+    function _sameControllers(address[] memory got, uint256[] memory exp)
+        internal
+        pure
+        returns (bool)
+    {
+        if (got.length != exp.length) return false;
+        for (uint256 i; i < got.length; ++i) {
+            if (got[i] != address(uint160(0x1000 + exp[i]))) return false;
+        }
+        return true;
     }
 
     function _sameSessions(Game game, SessionSnap[] memory exp) internal view returns (bool) {
@@ -597,6 +620,14 @@ contract ScenariosTest is GameTestBase {
             assertEq(p.buildings, e.buildings, string.concat(w, " buildings"));
             assertEq(p.centipoints, e.centipoints, string.concat(w, " centipoints"));
             assertEq(p.researchBuilding, e.researchBuilding, string.concat(w, " researchBuilding"));
+            assertEq(p.controllers.length, e.controllers.length, string.concat(w, " controllers"));
+            for (uint256 c; c < e.controllers.length; ++c) {
+                assertEq(
+                    p.controllers[c],
+                    address(uint160(0x1000 + e.controllers[c])),
+                    string.concat(w, " controller")
+                );
+            }
             for (uint256 r; r < RESEARCH; ++r) {
                 assertEq(p.research[r], e.research[r], string.concat(w, " research"));
             }

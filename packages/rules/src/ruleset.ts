@@ -167,6 +167,8 @@ export interface Config {
   maxApplications: number;
   /** Longest session key authorization, in seconds (B-15). */
   maxSessionSeconds: bigint;
+  /** Addresses that manage one account: devices and recovery codes (B-26). */
+  maxControllers: number;
   /** Market exchange rates: value of 1 dollar in each resource, per resource index (0 = not tradable). */
   marketRates: bigint[][];
   tagLength: [number, number];
@@ -324,6 +326,7 @@ export function loadRuleset(raw: RawRuleset, cfg: typeof gameConfig): Ruleset {
       maxOpenOffers: cfg.onchain.max_open_market_offers_per_player,
       maxApplications: cfg.onchain.max_family_applications_per_player,
       maxSessionSeconds: BigInt(cfg.onchain.max_session_seconds),
+      maxControllers: cfg.onchain.max_controllers_per_player,
       marketRates: Object.values(
         cfg.market.exchange_rates as Record<string, Record<string, number>>,
       ).map((rate) => raw.resources.map((r) => BigInt(rate[r] ?? 0))),

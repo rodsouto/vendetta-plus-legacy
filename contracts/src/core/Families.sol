@@ -101,7 +101,7 @@ library Families {
         returns (Player storage p)
     {
         p = s.players[id];
-        if (p.controller == address(0) || FamilyRules.familyOf(s, p) != family) {
+        if (p.controllers.length == 0 || FamilyRules.familyOf(s, p) != family) {
             revert NotAllowed();
         }
     }

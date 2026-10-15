@@ -86,6 +86,7 @@ interface GameConfig {
     max_open_market_offers_per_player: number;
     max_family_applications_per_player: number;
     max_session_seconds: number;
+    max_controllers_per_player: number;
   };
   vacation: { duration_days: number; cooldown_days: number };
   market: { exchange_rates: Record<string, Record<string, number>>; delivery_window_days: number };
@@ -311,6 +312,7 @@ library ${name} {
     uint256 internal constant MAX_OPEN_OFFERS = ${config.onchain.max_open_market_offers_per_player};
     uint256 internal constant MAX_APPLICATIONS = ${config.onchain.max_family_applications_per_player};
     uint256 internal constant MAX_SESSION_SECONDS = ${config.onchain.max_session_seconds};
+    uint256 internal constant MAX_CONTROLLERS = ${config.onchain.max_controllers_per_player};
     uint256 internal constant TAG_MIN = ${config.families.tag_length[0]};
     uint256 internal constant TAG_MAX = ${config.families.tag_length[1]};
     uint256 internal constant NAME_MIN = ${config.families.name_length[0]};

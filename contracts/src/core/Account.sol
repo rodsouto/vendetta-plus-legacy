@@ -13,11 +13,13 @@ import {
     VacationCooldown,
     NotOnVacation,
     ControllerTaken,
+    TooManyControllers,
+    LastController,
     IGameEvents
 } from "./GameErrors.sol";
 
-/// Vacation (D-18), sanctions (B-14), premium (B-25) and account transfer (B-26). Linked external
-/// library. Mirrors packages/rules/src/sim/account.ts.
+/// Vacation (D-18), sanctions (B-14), premium (B-25), account transfer and controllers (B-26).
+/// Linked external library. Mirrors packages/rules/src/sim/account.ts.
 library Account {
     /// 15 days; needs no own missions in flight and 7 days since the last vacation ended.
     function startVacation(address caller) external {
@@ -54,19 +56,58 @@ library Account {
         emit IGameEvents.PremiumGranted(player, uint40(until));
     }
 
-    /// Give the whole account to another address that controls no player.
+    /// Give the whole account to another address that controls no player: it becomes the only
+    /// controller.
     function transfer(address caller, address to) external {
         CoreState storage s = GameStorage.core();
         Access.controllerOnly(s, caller);
         (uint64 pid, Player storage p) = Access.active(s, caller);
-        if (to == address(0) || s.playerOf[to] != 0 || Access.sessionPlayer(s, to) != 0) {
+        _free(s, to);
+        address[] storage cs = p.controllers;
+        for (uint256 i; i < cs.length; ++i) {
+            delete s.playerOf[cs[i]];
+        }
+        delete p.controllers;
+        cs.push(to);
+        s.playerOf[to] = pid;
+        p.sessionEpoch++; // sessions authorized by the previous owners stop working
+        emit IGameEvents.PlayerTransferred(pid, caller, to);
+    }
+
+    /// A controller adds another one (B-26): a new device's passkey account or a recovery code.
+    /// All controllers are equal. Allowed while locked, like sessions.
+    function addController(address caller, address added) external {
+        CoreState storage s = GameStorage.core();
+        (uint64 pid, Player storage p) = Access.controllerOnly(s, caller);
+        _free(s, added);
+        if (p.controllers.length >= Ruleset.MAX_CONTROLLERS) revert TooManyControllers();
+        p.controllers.push(added);
+        s.playerOf[added] = pid;
+        emit IGameEvents.ControllerAdded(pid, added);
+    }
+
+    /// A controller removes one (itself included), never the last. Every session dies (a lost
+    /// device's too); the remaining devices authorize theirs again.
+    function removeController(address caller, address removed) external {
+        CoreState storage s = GameStorage.core();
+        (uint64 pid, Player storage p) = Access.controllerOnly(s, caller);
+        if (s.playerOf[removed] != pid) revert NotAllowed();
+        address[] storage cs = p.controllers;
+        if (cs.length == 1) revert LastController();
+        uint256 i;
+        while (cs[i] != removed) ++i;
+        cs[i] = cs[cs.length - 1];
+        cs.pop();
+        delete s.playerOf[removed];
+        p.sessionEpoch++;
+        emit IGameEvents.ControllerRemoved(pid, removed);
+    }
+
+    /// An address that can manage an account: not zero, no player's controller, no live session.
+    function _free(CoreState storage s, address a) private view {
+        if (a == address(0) || s.playerOf[a] != 0 || Access.sessionPlayer(s, a) != 0) {
             revert ControllerTaken();
         }
-        delete s.playerOf[caller];
-        s.playerOf[to] = pid;
-        p.controller = to;
-        p.sessionEpoch++; // sessions authorized by the previous owner stop working
-        emit IGameEvents.PlayerTransferred(pid, caller, to);
     }
 
     /// The controller lets `session` play for it until `until` (B-15): every game action, but
@@ -94,6 +135,6 @@ library Account {
 
     function _player(uint64 id) private view returns (Player storage p) {
         p = GameStorage.core().players[id];
-        if (p.controller == address(0)) revert NotRegistered();
+        if (p.controllers.length == 0) revert NotRegistered();
     }
 }

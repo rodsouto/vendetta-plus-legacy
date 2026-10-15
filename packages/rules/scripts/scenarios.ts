@@ -53,6 +53,8 @@ const ACTION = {
   acceptTrade: 32, // [trade]
   authorizeSession: 33, // [session (actor id), until]
   revokeSession: 34, // [session (actor id)]
+  addController: 35, // [controller (actor id)]
+  removeController: 36, // [controller (actor id)]
 } as const;
 
 /** Family tags and names by index, shared with Scenarios.t.sol (some invalid on purpose). */
@@ -147,6 +149,7 @@ function snapshot(w: sim.World) {
     players: [...w.players.values()].map((p) => ({
       buildings: num(p.buildings),
       centipoints: num(p.centipoints),
+      controllers: p.controllers.map(Number),
       id: num(p.id),
       missions: num(p.missions),
       ...queueSnap(p.researchQueue),
@@ -290,6 +293,10 @@ function run(w: sim.World, controller: string, a: Action, now: bigint): void {
       return sim.authorizeSession(w, controller, String(n[0]), n[1]!, now);
     case ACTION.revokeSession:
       return sim.revokeSession(w, controller, String(n[0]), now);
+    case ACTION.addController:
+      return sim.addController(w, controller, String(n[0]), now);
+    case ACTION.removeController:
+      return sim.removeController(w, controller, String(n[0]), now);
   }
   throw new Error(`unknown action ${a.action}`);
 }
@@ -664,8 +671,10 @@ function botScenario(seed: number) {
     const reg = { action: ACTION.register, args: [1, 1, 1 + i * 7] };
     record(i, reg, attempt(w, String(i), reg, now));
   }
-  // Players keep their seat when the account is transferred: the seat's controller changes.
-  const controllers = Array.from({ length: actors }, (_, i) => i);
+  // Players keep their seat when the account is transferred or gets more devices (B-26): the
+  // seat's controllers change. Ids 2000+ are extra devices.
+  const owners = Array.from({ length: actors }, (_, i) => [i]);
+  let nextDevice = 2000;
   // Each seat may have a session key (B-15) that plays for it; ids 500+ never control a player.
   const sessions: (number | undefined)[] = Array.from({ length: actors }, () => undefined);
   let nextSession = 500;
@@ -689,7 +698,8 @@ function botScenario(seed: number) {
       continue;
     }
     const seat = Math.floor(r() * actors);
-    const owner = controllers[seat]!;
+    const seatOwners = owners[seat]!;
+    const owner = seatOwners[Math.floor(r() * seatOwners.length)]!;
     const controller = String(owner);
     const session = sessions[seat];
     // Half the time the seat plays through its session key, as a real client does.
@@ -709,6 +719,19 @@ function botScenario(seed: number) {
       candidates.push({ action: ACTION.authorizeSession, args: [target, Number(now) + span] });
     } else if (k < 0.05 && session !== undefined) {
       candidates.push({ action: ACTION.revokeSession, args: [session] });
+    } else if (k < 0.075) {
+      // Another device or a recovery code; sometimes an address already in use.
+      const other = owners[Math.floor(r() * actors)]![0]!;
+      const target =
+        r() < 0.15 ? other : r() < 0.05 && session !== undefined ? session : nextDevice++;
+      candidates.push({ action: ACTION.addController, args: [target] });
+    } else if (k < 0.09) {
+      // Drop a device (maybe itself, maybe the last one); sometimes another seat's.
+      const pool = r() < 0.15 ? owners[Math.floor(r() * actors)]! : seatOwners;
+      candidates.push({
+        action: ACTION.removeController,
+        args: [pool[Math.floor(r() * pool.length)]!],
+      });
     }
     candidates.push(...botCandidates(w, controller, r, now));
     if (candidates.length === 0) continue;
@@ -720,8 +743,10 @@ function botScenario(seed: number) {
       error = attempt(w, String(actor), c, now);
       if (error === "" || r() < 0.15) break;
     }
-    if (chosen.action === ACTION.transferPlayer && error === "")
-      controllers[seat] = chosen.args[0]!;
+    if (chosen.action === ACTION.transferPlayer && error === "") owners[seat] = [chosen.args[0]!];
+    if (chosen.action === ACTION.addController && error === "") seatOwners.push(chosen.args[0]!);
+    if (chosen.action === ACTION.removeController && error === "")
+      seatOwners.splice(seatOwners.indexOf(chosen.args[0]!), 1);
     if (chosen.action === ACTION.authorizeSession && error === "") sessions[seat] = chosen.args[0]!;
     record(actor, chosen, error);
     // A session that expired, was revoked or died with a transfer is dropped after one more try.
@@ -751,5 +776,6 @@ console.log(
   `packages/rules/generated/scenarios/vendetta/: ${scenarios.length} scenarios, ${steps.length} steps, ` +
     `${steps.filter((x) => x.error).length} expected reverts; ok: ${count(ACTION.train)} train, ` +
     `${count(ACTION.sendMission)} missions, ${count(ACTION.recall)} recalls, ${count(ACTION.abandon)} abandons, ` +
-    `${count(ACTION.authorizeSession)} sessions`,
+    `${count(ACTION.authorizeSession)} sessions, ${count(ACTION.addController)} + ` +
+    `${count(ACTION.removeController)} - controllers`,
 );

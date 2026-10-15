@@ -92,7 +92,8 @@ export interface Building {
 
 export interface Player {
   id: bigint;
-  controller: string;
+  /** Addresses that manage the account: devices and recovery codes, 1..maxControllers (B-26). */
+  controllers: string[];
   research: bigint[];
   researchQueue: QueueItem[];
   researchBuilding: bigint; // building of the research queue, 0 when the queue is empty
@@ -106,7 +107,7 @@ export interface Player {
   rank: number; // CAPO, SUBCAPO, MEMBER
   applications: bigint[]; // families applied to (B-31)
   offers: bigint[]; // trades where this player is the seller (B-09 cap)
-  sessionEpoch: bigint; // bumped by transferPlayer: older sessions stop working (B-15)
+  sessionEpoch: bigint; // bumped by transferPlayer and removeController: older sessions stop working (B-15)
 }
 
 /** A session key: an address allowed to play for a player until `until` (B-15). */
@@ -124,7 +125,7 @@ export interface World {
   nextBuilding: bigint;
   players: Map<bigint, Player>;
   buildings: Map<bigint, Building>;
-  playerOf: Map<string, bigint>; // controller → player
+  playerOf: Map<string, bigint>; // controller (any of them) → player
   buildingAt: Map<string, bigint>; // "city:neighborhood:slot" → building
   nextMission: bigint;
   missions: Map<bigint, Mission>;

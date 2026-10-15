@@ -51,7 +51,7 @@ which network it runs on. Messaging, chat and moderation are off-chain (B-10).
 | B-23 | Arbitration | v2 | Kleros v2 as `arbiter`, under a written rulebook |
 | B-24 | Tokenization | v2 | One ERC-721 per **account** wrapping B-26; no per-building or per-troop tokens |
 | B-25 | Premium | New | Longer queues; granted by the admin per player (paid off-chain) or to everyone |
-| B-26 | Player identity | New | State keyed by `playerId`; controller address can change; accounts can be given away |
+| B-26 | Player identity | New | State keyed by `playerId`; up to 5 controllers (devices, recovery code) that can change; accounts can be given away |
 | B-27 | Exact stocks | New | Resources stored in 1/100800 units: per-hour rate ×28 = per-second increment (D-12) |
 | B-28 | Alcohol depletion | New | Regime change (D-07) at the whole second `t0 + ⌈stock / net consumption⌉` |
 | B-29 | Duration at start | New | Queue items compute their duration when they start (implements D-23) |
@@ -307,16 +307,22 @@ vacation or suspended can only end the vacation. In v1 `suspend(player, until)` 
 ## B-15 — Accounts — New
 
 - **Smart account** per player: **Kernel** (ZeroDev's open-source ERC-4337 account, EntryPoint
-  0.7), used directly without ZeroDev's services. It is the controller of the player (B-26).
-- **Passkeys as signers**, one per device. Synced passkeys (iCloud, Google) cover one ecosystem;
-  adding a device from another ecosystem adds its own passkey as an extra signer. Verified with the
-  P-256 precompile.
+  0.7), used directly without ZeroDev's services. It is a controller of the player (B-26).
+- **Passkeys as signers**, one per device. Synced passkeys (iCloud, Google) cover one ecosystem.
+  Each passkey owns **its own** Kernel account (Kernel's WebAuthn validator holds one key per
+  account), so a device from another ecosystem gets a new passkey and a new account, which an
+  existing device adds as **another controller** of the player (B-26). The game, not the wallet,
+  knows which accounts manage a player, so the account type can change later (e.g. a Safe) by
+  adding the new account and removing the old one.
 - **Passkey directory** (`PasskeyDirectory`, ownerless, not upgradeable): WebAuthn returns the
   public key only at creation, so the account publishes `credentialId → (P-256 key, account)` when
   it is created. Another device with the synced passkey looks the key up, keeps only the entry whose
   key verifies its sign-in assertion and whose account that key derives, and rebuilds the account
   without a server. Entries are uncapped and read in pages, so a squatter cannot block a credential.
-- **Recovery** by a backup signer or email-based method.
+- **Recovery code:** the client draws a random key, shows it once for the player to keep, and adds
+  the simple 4337 account it controls (as for sessions) as another controller. On a new device:
+  new passkey, then the code adds its account as a controller and may remove the lost one. An
+  email-based method may come later (it needs a service).
 - **Session keys, native to the game:** the controller calls `authorizeSession(session, until)` to
   let a per-device address (a simple 4337 account held by a browser key) play for it, at most
   `onchain.max_session_seconds` (30 days); renewing is authorizing again, `revokeSession` ends it.
@@ -486,11 +492,21 @@ Values live in the `premium` section of [data/game_config.yaml](data/game_config
 ## B-26 — Player identity — New
 
 All game state (buildings, research, points, family, missions, queues, market trades, premium,
-sanctions) is keyed by a **`playerId`**, never by an address. Each player has one **controller**
-address (the smart account, B-15), which can change.
+sanctions) is keyed by a **`playerId`**, never by an address. Each player has **1 to
+`onchain.max_controllers_per_player` (5) controllers**: its devices' accounts and recovery codes
+(B-15). They are all equal: any of them manages the account and plays.
 
-- `transferPlayer(id, newController)` gives the whole account to someone else. It is in v1. The v2
-  NFT (B-24) only wraps it.
+- `addController(address)`: by a controller (never a session key), for an address that controls
+  no player and is no live session (`ControllerTaken`), within the cap (`TooManyControllers`).
+- `removeController(address)`: by a controller, itself included, never the last one
+  (`LastController`). It bumps `sessionEpoch`, so every session dies, a lost device's included;
+  the remaining devices authorize theirs again.
+- Both work while locked (vacation, suspension): the player stays the same, so no sanction is
+  escaped.
+- There is no hierarchy: a stolen device can remove the others. A delay on removals can be added
+  if this becomes a problem.
+- `transferPlayer(newController)` gives the whole account to someone else: the new address becomes
+  the only controller and every session dies. It is in v1. The v2 NFT (B-24) only wraps it.
 - **Not allowed while suspended** (B-14), so a sanction cannot be escaped by moving the account.
 - Everything moves with the account: buildings, troops, missions in flight, queues, premium, family
   membership and role, market trades.

@@ -140,6 +140,15 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
         Account.transfer(msg.sender, to);
     }
 
+    /// B-26: another device or recovery code manages the caller's player too.
+    function addController(address controller) external drained {
+        Account.addController(msg.sender, controller);
+    }
+
+    function removeController(address controller) external drained {
+        Account.removeController(msg.sender, controller);
+    }
+
     /// B-15: let `session` (a per-device key) play for the caller's player until `until`.
     function authorizeSession(address session, uint256 until) external drained {
         Account.authorizeSession(msg.sender, session, until);
@@ -240,7 +249,7 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
     }
 
     struct PlayerView {
-        address controller;
+        address[] controllers;
         uint64 researchBuilding;
         uint32 buildings;
         uint128 centipoints;
@@ -278,7 +287,7 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
     function getPlayer(uint64 id) external view returns (PlayerView memory v) {
         Player storage p = GameStorage.core().players[id];
         v = PlayerView(
-            p.controller,
+            p.controllers,
             p.researchBuilding,
             p.buildings,
             p.centipoints,

@@ -53,6 +53,19 @@ export const gameAbi = [
   },
   {
     "type": "function",
+    "name": "addController",
+    "inputs": [
+      {
+        "name": "controller",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "advance",
     "inputs": [
       {
@@ -624,9 +637,9 @@ export const gameAbi = [
         "internalType": "struct Game.PlayerView",
         "components": [
           {
-            "name": "controller",
-            "type": "address",
-            "internalType": "address"
+            "name": "controllers",
+            "type": "address[]",
+            "internalType": "address[]"
           },
           {
             "name": "researchBuilding",
@@ -1182,6 +1195,19 @@ export const gameAbi = [
   },
   {
     "type": "function",
+    "name": "removeController",
+    "inputs": [
+      {
+        "name": "controller",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "renounceOwnership",
     "inputs": [],
     "outputs": [],
@@ -1552,6 +1578,44 @@ export const gameAbi = [
         "type": "uint64",
         "indexed": false,
         "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ControllerAdded",
+    "inputs": [
+      {
+        "name": "player",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      },
+      {
+        "name": "controller",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ControllerRemoved",
+    "inputs": [
+      {
+        "name": "player",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      },
+      {
+        "name": "controller",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
       }
     ],
     "anonymous": false
@@ -2659,6 +2723,11 @@ export const gameAbi = [
   },
   {
     "type": "error",
+    "name": "LastController",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "MissionsInFlight",
     "inputs": []
   },
@@ -2680,6 +2749,11 @@ export const gameAbi = [
   {
     "type": "error",
     "name": "SessionTooLong",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TooManyControllers",
     "inputs": []
   },
   {

@@ -29,9 +29,9 @@ export function Market() {
     try {
       const probe = sim.newWorld(rs);
       probe.players.set(1n, { ...p, id: 1n, offers: [] });
-      probe.players.set(2n, { ...p, id: 2n, offers: [], controller: "probe" });
+      probe.players.set(2n, { ...p, id: 2n, offers: [], controllers: ["probe"] });
       probe.playerOf.set("me", 1n);
-      probe.players.get(1n)!.controller = "me";
+      probe.players.get(1n)!.controllers = ["me"];
       sim.offerTrade(probe, "me", 2n, sold, quantity, priceVec, 0n);
       return true;
     } catch {

@@ -58,7 +58,7 @@ library Core {
         uint128 cp = s.buildings[bid].centipoints;
 
         Player storage p = s.players[pid];
-        p.controller = caller;
+        p.controllers.push(caller);
         p.buildings = 1;
         p.centipoints = cp;
         s.playerOf[caller] = pid;

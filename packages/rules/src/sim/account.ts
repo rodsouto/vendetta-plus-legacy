@@ -1,5 +1,5 @@
-// Account: vacation (D-18), sanctions (B-14), premium (B-25) and transfer (B-26). Mirrors
-// contracts/src/core/Account.sol.
+// Account: vacation (D-18), sanctions (B-14), premium (B-25), transfer and controllers (B-26).
+// Mirrors contracts/src/core/Account.sol.
 import { active, atomic, controllerOnly, onVacation, resolve, sessionPlayer } from "./common.js";
 import { drain } from "./missions.js";
 import { fail } from "./errors.js";
@@ -47,7 +47,16 @@ export const grantPremium = atomic(function grantPremium(
   p.premiumUntil = until;
 });
 
-/** Give the whole account to another address that controls no player. */
+/** An address that can manage an account: not empty, no player's controller, no live session. */
+function free(w: World, a: string, now: bigint): void {
+  if (a === "" || w.playerOf.has(a) || sessionPlayer(w, a, now) !== undefined)
+    fail("ControllerTaken");
+}
+
+/**
+ * Give the whole account to another address that controls no player: it becomes the only
+ * controller.
+ */
 export const transferPlayer = atomic(function transferPlayer(
   w: World,
   controller: string,
@@ -57,12 +66,51 @@ export const transferPlayer = atomic(function transferPlayer(
   drain(w, now);
   controllerOnly(w, controller, now);
   const p = active(w, controller, now);
-  if (to === "" || w.playerOf.has(to) || sessionPlayer(w, to, now) !== undefined)
-    fail("ControllerTaken");
-  w.playerOf.delete(controller);
+  free(w, to, now);
+  for (const c of p.controllers) w.playerOf.delete(c);
   w.playerOf.set(to, p.id);
-  p.controller = to;
-  p.sessionEpoch += 1n; // sessions authorized by the previous owner stop working
+  p.controllers = [to];
+  p.sessionEpoch += 1n; // sessions authorized by the previous owners stop working
+});
+
+/**
+ * A controller adds another one (B-26): a new device's passkey account or a recovery code. All
+ * controllers are equal. Allowed while locked, like sessions.
+ */
+export const addController = atomic(function addController(
+  w: World,
+  controller: string,
+  added: string,
+  now: bigint,
+): void {
+  drain(w, now);
+  const p = controllerOnly(w, controller, now);
+  free(w, added, now);
+  if (p.controllers.length >= w.rs.config.maxControllers) fail("TooManyControllers");
+  p.controllers.push(added);
+  w.playerOf.set(added, p.id);
+});
+
+/**
+ * A controller removes one (itself included), never the last. Every session dies (a lost
+ * device's too); the remaining devices authorize theirs again.
+ */
+export const removeController = atomic(function removeController(
+  w: World,
+  controller: string,
+  removed: string,
+  now: bigint,
+): void {
+  drain(w, now);
+  const p = controllerOnly(w, controller, now);
+  const i = p.controllers.indexOf(removed);
+  if (i < 0) fail("NotAllowed");
+  if (p.controllers.length === 1) fail("LastController");
+  // Swap with the last and pop, as the contract does.
+  p.controllers[i] = p.controllers[p.controllers.length - 1]!;
+  p.controllers.pop();
+  w.playerOf.delete(removed);
+  p.sessionEpoch += 1n;
 });
 
 /**

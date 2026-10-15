@@ -48,6 +48,8 @@ error InvalidTrade();
 error NotController();
 error InvalidSession();
 error SessionTooLong();
+error TooManyControllers();
+error LastController();
 
 struct BattleReport {
     uint64[TROOPS] attacker;
@@ -106,6 +108,8 @@ interface IGameEvents {
     event PlayerSuspended(uint64 indexed player, uint40 until);
     event PremiumGranted(uint64 indexed player, uint40 until);
     event PlayerTransferred(uint64 indexed player, address from, address to);
+    event ControllerAdded(uint64 indexed player, address indexed controller);
+    event ControllerRemoved(uint64 indexed player, address indexed controller);
     event SessionAuthorized(uint64 indexed player, address indexed session, uint40 until);
     event SessionRevoked(uint64 indexed player, address indexed session);
     event FamilyCreated(uint64 indexed family, uint64 indexed capo, string tag, string name);

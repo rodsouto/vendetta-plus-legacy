@@ -67,7 +67,7 @@ export async function loadWorld(
     const id = BigInt(i + 1);
     w.players.set(id, {
       id,
-      controller: controllerKey(p.controller),
+      controllers: (p.controllers as Address[]).map(controllerKey),
       research: p.research.map(big),
       researchQueue: queue(p.researchQueue),
       researchBuilding: p.researchBuilding,
@@ -83,7 +83,7 @@ export async function loadWorld(
       offers: [...p.offers],
       sessionEpoch: BigInt(p.sessionEpoch),
     });
-    w.playerOf.set(controllerKey(p.controller), id);
+    for (const c of p.controllers as Address[]) w.playerOf.set(controllerKey(c), id);
   });
 
   bv.forEach((b, i) => {

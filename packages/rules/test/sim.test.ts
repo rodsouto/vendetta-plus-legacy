@@ -219,6 +219,30 @@ describe("sim: account (D-18, B-14, B-25, B-26)", () => {
     expect(w.playerOf.get("carol")).toBe(1n);
     expect(() => sim.queueRoom(w, "alice", 1n, room("boss_office"), t)).toThrow("NotRegistered");
   });
+
+  it("several controllers manage one account; removing one kills the sessions (B-26)", () => {
+    const w = sim.newWorld(rs);
+    const t = 1_700_000_000n;
+    sim.register(w, "phone", at, t);
+    sim.addController(w, "phone", "laptop", t);
+    sim.addController(w, "laptop", "code", t);
+    expect(w.players.get(1n)!.controllers).toEqual(["phone", "laptop", "code"]);
+    expect(() => sim.addController(w, "phone", "laptop", t)).toThrow("ControllerTaken");
+    sim.authorizeSession(w, "phone", "key", t + day, t);
+    expect(() => sim.addController(w, "key", "other", t)).toThrow("NotController");
+    sim.removeController(w, "code", "phone", t); // the lost phone, from the recovery code
+    expect(w.players.get(1n)!.controllers).toEqual(["code", "laptop"]);
+    expect(sim.sessionPlayer(w, "key", t)).toBeUndefined();
+    expect(() => sim.queueRoom(w, "phone", 1n, room("boss_office"), t)).toThrow("NotRegistered");
+    sim.removeController(w, "code", "code", t);
+    expect(() => sim.removeController(w, "laptop", "laptop", t)).toThrow("LastController");
+    for (let i = 1; i < rs.config.maxControllers; i++)
+      sim.addController(w, "laptop", `device${i}`, t);
+    expect(() => sim.addController(w, "laptop", "one-more", t)).toThrow("TooManyControllers");
+    sim.transferPlayer(w, "laptop", "carol", t);
+    expect(w.players.get(1n)!.controllers).toEqual(["carol"]);
+    expect(w.playerOf.has("device1")).toBe(false);
+  });
 });
 
 describe("sim: families and wars (D-20, B-31)", () => {

@@ -44,7 +44,9 @@ export type GameErrorName =
   | "InvalidTrade"
   | "NotController"
   | "InvalidSession"
-  | "SessionTooLong";
+  | "SessionTooLong"
+  | "TooManyControllers"
+  | "LastController";
 
 export class GameError extends Error {
   constructor(readonly code: GameErrorName) {

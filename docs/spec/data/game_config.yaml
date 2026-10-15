@@ -107,6 +107,7 @@ onchain:
   max_open_market_offers_per_player: 10
   max_family_applications_per_player: 5 # open applications to families (B-31)
   max_session_seconds: 2592000          # longest session key authorization: 30 days (B-15)
+  max_controllers_per_player: 5         # devices (passkeys) and recovery codes that manage an account (B-26)
 
 premium:
   # NOT legacy (blockchain.md, B-25). The legacy `queues` limits above become the premium limits.

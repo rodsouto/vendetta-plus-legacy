@@ -50,5 +50,6 @@ export function playerLabel(w: sim.World, id: bigint): string {
   if (!p) return `#${id}`;
   const f = sim.familyOf(w, p);
   const tag = f ? `[${w.families.get(f)!.tag}] ` : "";
-  return `${tag}${p.controller.slice(0, 6)}…${p.controller.slice(-4)}`;
+  const a = p.controllers[0]!;
+  return `${tag}${a.slice(0, 6)}…${a.slice(-4)}`;
 }

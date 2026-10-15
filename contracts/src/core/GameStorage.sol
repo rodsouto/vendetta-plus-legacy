@@ -93,7 +93,7 @@ struct Building {
 }
 
 struct Player {
-    address controller;
+    address[] controllers; // devices and recovery codes, 1..MAX_CONTROLLERS (B-26)
     uint64 researchBuilding; // building of the research queue, 0 when the queue is empty
     uint32 buildings;
     uint128 centipoints; // rooms of every building + research + troops at home and in missions (B-19)
@@ -107,7 +107,7 @@ struct Player {
     uint8 rank; // CAPO, SUBCAPO, MEMBER
     uint64[] applications; // families applied to (B-31)
     uint64[] offers; // trades where this player is the seller (B-09 cap)
-    uint32 sessionEpoch; // bumped by transferPlayer: older sessions stop working (B-15)
+    uint32 sessionEpoch; // bumped by transferPlayer and removeController: older sessions die (B-15)
 }
 
 /// A session key: an address allowed to play for a player until `until` (B-15).

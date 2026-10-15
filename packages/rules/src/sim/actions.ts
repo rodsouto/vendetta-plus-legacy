@@ -49,7 +49,7 @@ export const register = atomic(function register(
   const b = newBuilding(w, pid, coord, c.startBuildSpeedLevel, c.startResources, now);
   w.players.set(pid, {
     id: pid,
-    controller,
+    controllers: [controller],
     research: w.rs.research.map(() => 0n),
     researchQueue: [],
     researchBuilding: 0n,
