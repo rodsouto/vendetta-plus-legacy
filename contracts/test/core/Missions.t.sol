@@ -57,7 +57,7 @@ contract MissionsTest is GameTestBase {
         returns (uint64)
     {
         vm.prank(alice);
-        return game.sendMission(1, kind, [uint256(1), 1, slot], _rowdies(n), res);
+        return game.sendMission(1, kind, [uint256(1), 1, slot], _rowdies(n), res, 0);
     }
 
     function _none() internal pure returns (uint256[RESOURCES] memory r) {}
@@ -65,11 +65,11 @@ contract MissionsTest is GameTestBase {
     function test_sendChecks() public {
         vm.startPrank(alice);
         vm.expectRevert(InvalidMission.selector);
-        game.sendMission(1, ATTACK, [uint256(1), 1, 1], _rowdies(1), _none()); // target = origin
+        game.sendMission(1, ATTACK, [uint256(1), 1, 1], _rowdies(1), _none(), 0); // target = origin
         vm.expectRevert(NoUnits.selector);
-        game.sendMission(1, ATTACK, [uint256(1), 1, 2], _rowdies(0), _none());
+        game.sendMission(1, ATTACK, [uint256(1), 1, 2], _rowdies(0), _none(), 0);
         vm.expectRevert(InvalidTroops.selector);
-        game.sendMission(1, ATTACK, [uint256(1), 1, 2], _rowdies(8), _none());
+        game.sendMission(1, ATTACK, [uint256(1), 1, 2], _rowdies(8), _none(), 0);
         vm.stopPrank();
     }
 
@@ -148,7 +148,7 @@ contract MissionsTest is GameTestBase {
     function test_backlogThenAdvance() public {
         vm.startPrank(alice);
         for (uint256 i; i < 7; ++i) {
-            game.sendMission(1, ATTACK, [uint256(1), 1, 100 + i], _rowdies(1), _none());
+            game.sendMission(1, ATTACK, [uint256(1), 1, 100 + i], _rowdies(1), _none(), 0);
         }
         vm.stopPrank();
         vm.warp(block.timestamp + 30 days); // 7 arrivals + 7 returns due
