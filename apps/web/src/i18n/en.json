@@ -277,5 +277,11 @@
     "TooManyOffers": "You already have 10 open trades.",
     "InvalidTrade": "That trade is not open.",
     "unknown": "The transaction failed."
+  },
+  "theme": {
+    "label": "Theme",
+    "auto": "Auto",
+    "light": "Day",
+    "dark": "Night"
   }
 }

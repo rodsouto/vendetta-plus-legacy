@@ -277,5 +277,11 @@
     "TooManyOffers": "Ya tenés 10 órdenes abiertas.",
     "InvalidTrade": "Esa orden no está vigente.",
     "unknown": "La transacción falló."
+  },
+  "theme": {
+    "label": "Tema",
+    "auto": "Auto",
+    "light": "Día",
+    "dark": "Noche"
   }
 }

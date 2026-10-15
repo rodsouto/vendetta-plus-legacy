@@ -14,7 +14,8 @@ import { Market } from "./pages/Market.js";
 import { Account } from "./pages/Account.js";
 import { Ranking } from "./pages/Ranking.js";
 import { Dev } from "./pages/Dev.js";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { applyTheme, storedTheme, type Theme } from "./theme.js";
 
 const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 1 } } });
 
@@ -72,11 +73,25 @@ function Connected() {
 
 function Spine({ children }: { children?: React.ReactNode }) {
   const { t, i18n } = useTranslation();
+  const [theme, setTheme] = useState<Theme>(storedTheme);
   return (
     <header className="spine">
       <h1>{t("title")}</h1>
       <div className="who">
         {children}
+        <select
+          aria-label={t("theme.label")}
+          value={theme}
+          onChange={(e) => {
+            const next = e.target.value as Theme;
+            setTheme(next);
+            applyTheme(next);
+          }}
+        >
+          <option value="auto">{t("theme.auto")}</option>
+          <option value="light">{t("theme.light")}</option>
+          <option value="dark">{t("theme.dark")}</option>
+        </select>
         <select
           aria-label="Idioma / Language"
           value={i18n.language.slice(0, 2)}

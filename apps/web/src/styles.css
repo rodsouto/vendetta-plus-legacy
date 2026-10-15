@@ -4,6 +4,7 @@
   --leather-2: #2f2927;
   --leather-edge: #3d3532;
   --gilt: #c9b98a;
+  --binding-text: #e7e4c3; /* text on the leather: fixed, the binding stays the same at night */
   --page: #fffcdb;
   --page-2: #f4f0cc;
   --page-3: #e7e4c3;
@@ -141,14 +142,14 @@ select {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.85rem;
-  color: var(--page-3);
+  color: var(--binding-text);
 }
 .spine select {
   background: var(--leather-2);
   border: 1px solid var(--leather-edge);
   border-radius: var(--radius);
   padding: 0.3rem 0.45rem;
-  color: var(--page-3);
+  color: var(--binding-text);
 }
 
 /* The page: parchment, ruled. */
@@ -194,7 +195,7 @@ select {
   padding: 0.5rem 0.55rem 0.45rem;
   text-align: center;
   text-decoration: none;
-  color: var(--page-3);
+  color: var(--binding-text);
   font: 600 0.72rem/1.1 var(--sans);
   letter-spacing: 0.06em;
   text-transform: uppercase;
