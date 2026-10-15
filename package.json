@@ -6,7 +6,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "codegen": "pnpm --filter @vendetta/spec-data codegen",
+    "codegen": "pnpm --filter @vendetta/spec-data codegen && pnpm --filter @vendetta/rules scenarios",
     "test": "pnpm -r test",
     "build": "pnpm -r build",
     "test:contracts": "cd contracts && forge test",

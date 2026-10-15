@@ -8,12 +8,15 @@
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
-    "test": "tsc -p tsconfig.json && vitest run"
+    "test": "tsc -p tsconfig.json && vitest run",
+    "scenarios": "tsx scripts/scenarios.ts"
   },
   "dependencies": {
     "@vendetta/spec-data": "workspace:*"
   },
   "devDependencies": {
-    "vitest": "^4.0.0"
+    "vitest": "^4.0.0",
+    "tsx": "^4.20.0",
+    "@types/node": "^22.20.0"
   }
 }
