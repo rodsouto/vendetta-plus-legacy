@@ -390,6 +390,26 @@ $out['distance_mission'] = array(
     '_note' => 'vmax = min speed of the fleet (application/forms/Misiones/Tropas.php:70-74); total_salary = sum(unit salary * count).',
     'cases' => $cases);
 
+// Random pairs: duration and salary are the most float-heavy formulas, so the on-chain integer
+// versions need many more cases than the hand-picked ones above.
+mt_srand(20261015);
+$cases = array();
+for ($i = 0; $i < 200; $i++) {
+    $from = array(mt_rand(1, 50), mt_rand(1, 50), mt_rand(1, 255));
+    $to = array(mt_rand(1, 50), mt_rand(1, 50), mt_rand(1, 255));
+    $ed = new TestEdificio(array(), array(), array('coord1' => $from[0], 'coord2' => $from[1], 'coord3' => $from[2]));
+    $d = $ed->getDistancia($to[0], $to[1], $to[2]);
+    $vmax = (int) round(pow(10, mt_rand(2600, 5600) / 1000));   // ~400 .. ~400,000
+    $s = (int) round(pow(10, mt_rand(0, 7000) / 1000));          // 1 .. 10,000,000
+    $cases[] = array('from' => implode(':', $from), 'to' => implode(':', $to), 'distance' => num($d),
+        // VERBATIM formulas: application/forms/Misiones/Coordenadas.php:177,182
+        'vmax' => $vmax, 'duration_seconds' => num(round(pow(($d * 3.3479) / $vmax, 0.2) * 3600)),
+        'total_salary' => $s, 'mission_salary' => num(floor(pow($d, 0.8) * $s / 2512)));
+}
+$out['distance_mission_random'] = array(
+    '_source' => 'same formulas as distance_mission; 200 random coordinate pairs, vmax and total_salary (mt_srand 20261015)',
+    'cases' => $cases);
+
 // ------------------------------------------------ 9. combat ---------------
 /** Build $tropasBatalla the way Combat/Manager.php:30-53 does. */
 function buildBattle(array $att, array $def, $resA, $resD) {
