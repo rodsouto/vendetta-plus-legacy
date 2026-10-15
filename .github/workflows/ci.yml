@@ -26,7 +26,7 @@ jobs:
       - name: Generated spec data is up to date
         run: |
           pnpm codegen
-          git diff --exit-code -- packages/spec-data/generated contracts/src/generated
+          git diff --exit-code -- packages/spec-data/generated packages/rules/generated contracts/src/generated
 
       - name: Format
         run: |
