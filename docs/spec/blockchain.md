@@ -28,7 +28,7 @@ which network it runs on. Messaging, chat and moderation are off-chain (B-10).
 |----|-------|--------|---------|
 | B-01 | Network | New | Arbitrum One public L2, no own chain; code network-agnostic |
 | B-02 | Language | New | Solidity; combat as an isolated library; no Stylus |
-| B-03 | Integer math | Adapt | Combat and troop stats in exact integer arithmetic (0 deviations); `^0.2`, `^0.8` pending |
+| B-03 | Integer math | Adapt | Every formula in exact integer arithmetic, no fixed point; 0 deviations from the vectors |
 | B-04 | No tokens in v1 | New | Resources, troops and buildings live inside the contracts |
 | B-05 | Public state | Adapt | All state is visible to everyone; `spy` / `espionage` unchanged |
 | B-06 | Lazy settlement | Adapt | D-08 implemented as "settle on touch", no keepers |
@@ -91,9 +91,13 @@ The EVM has no floating point. Formulas that use `sqrt`, fractional powers or PH
 | Combat power | modifiers with one decimal, honor % | **Exact**: modifiers ×10, integer % |
 | Honor % | interpolation, `round` | **Exact** (the interpolated value is a multiple of 1/5, never a tie) |
 | Loot (D-06) | proportional split | **Exact** (integer by design) |
-| Distance | `sqrt(dx² + dy²)`, `round` | Pending (mission module) |
-| Travel time | `(…)^0.2`, `round` | Pending: fixed point or lookup table |
-| Salary | `distance^0.8`, `floor` | Pending: fixed point or lookup table |
+| Distance | `sqrt(dx² + dy²)`, `round` | **Exact**: `s = isqrt(N)`, plus one if `N ≥ s² + s + 1` |
+| Travel time | `(…)^0.2`, `round` | **Exact** rational root (below) |
+| Salary | `distance^0.8`, `floor` | **Exact** rational root (below) |
+| Room / research time | division, `round` (research: twice) | **Exact**: `round(n/d) = (2n + d) / 2d` |
+| Troop training time | `duration / level × quantity` (float, truncated by legacy) | **Exact**: `⌊duration × quantity / level⌋` |
+| Production | `round(f × ((L+1)/2)²)`; D-07 partial flows `/7`, `/4` | **Exact**: rates kept ×28 (lcm of the converters' consumption per unit) |
+| Points | per-level values with up to 2 decimals | **Exact**: centipoints (×100) |
 
 **Exact formulas** (implemented in `contracts/src/combat/`, measured in the combat spike):
 
@@ -107,18 +111,25 @@ The EVM has no floating point. Formulas that use `sqrt`, fractional powers or PH
   `PPD = (21A − D) / (20(A + 2D))`. This is the legacy formula simplified to one fraction. Rounded
   half up to thousandths: `(2000 × num + den) / (2 × den)`.
 
-Rules for the pending formulas:
-
-- Where an input domain is small and bounded (e.g. map distances), a **lookup table** is preferred
-  over computing the function on-chain.
-- Rounding is half away from zero, as PHP.
+- **Rational powers:** `⌊s × (a/b)^(p/q)⌋` is the largest `k` with `kᵠ·bᵖ ≤ sᵠ·aᵖ`, found with an
+  integer root and an exact check. Decimal constants in `game_config.yaml` are read as exact
+  fractions (`3.3479 = 33479/10000`, `0.2 = 1/5`, `0.8 = 4/5`).
+  - Travel time `round(3600·(d·3.3479/v)^(1/5))`: `⌊2x⌋` with `s = 7200`, then `(⌊2x⌋ + 1) / 2`.
+  - Salary `⌊d^(4/5) × S / 2512⌋`: `⌊S·d^(4/5)⌋` with `s = S`, then integer division by 2512.
+  - Solidity: `S` up to ~10¹⁰ keeps `S⁵·d⁴` inside `uint256`; larger salaries need a 512-bit check.
+- Rounding is half away from zero, as PHP. All rounded values here are non-negative.
 - Every vector that does not match exactly is listed here with its tolerance (`exact` or `±1`), and
   the on-chain implementation becomes the reference for that value (B-21).
 
-**Deviation list:** none so far. All 309 target combat vectors (9 hand-written + 300 random, every
-round and troop type), all `troop_stats` (21 troops × 3 research levels), `loot` and `honor` vectors
-match exactly. Legacy PHP uses doubles, so a value exactly on a rounding tie could still differ;
-none appears in the vectors.
+Reference implementation: `packages/rules` (TypeScript, `bigint`). Solidity so far: combat, stats,
+loot, honor (`contracts/src/combat/`); the other formulas move to Solidity with their modules.
+
+**Deviation list: none.** Every vector matches exactly, in both TypeScript and Solidity where both
+exist: 309 target combat vectors (every round and troop type), `troop_stats`, `loot`, `honor`,
+`building_upgrade` (180), `research_upgrade` (192), `troop_training` (84), `storage`,
+`distance_mission` (10 + 200 random, with travel time and salary) and the 22 `production` cases
+where legacy and D-07 agree. Legacy PHP uses doubles, so a value exactly on a rounding tie could
+still differ; none appears in the vectors.
 
 ## B-04 — No tokens in v1 — New
 
@@ -461,7 +472,7 @@ Measured with a prototype before the B-03 deviation list and B-09 caps are fixed
 | Typical action (build, train, send) | ~200k gas, sub-cent on Arbitrum One |
 | Worst-case combat (21 × 21 types, 5 rounds) | **Measured: ~1.24M gas** (16 attack vs 21 defender types, 5 rounds, research 20; stats of both sides + resolution, in memory). Typical raid (3 vs 2 types, 5 rounds): ~0.51M. Storage not included. `forge test --match-contract CombatGas -vv` |
 | Storage, not combat, dominates cost | Unmeasured. Decides whether B-02 ever needs Stylus. |
-| Precision vs test vectors | **Combat: 0 deviations** (exact integer math, B-03). Travel time and salary still pending |
+| Precision vs test vectors | **0 deviations** in every formula, including travel time and salary (exact integer math, B-03) |
 | Cost of settling one building with 32 pending missions | Sets the 32 cap and `maxEvents` |
 | Daily sponsored allowance per account | Set from the measured costs and budget |
 | Smart account provider supports multi-passkey + session keys + paymaster | To be chosen |
