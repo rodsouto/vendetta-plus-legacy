@@ -261,8 +261,10 @@ Until the freeze, the "trustless rules" goal (Goals) is only partly met. This is
 
 - Battle reports, notices (delivery, occupation, trade, family) and history are **events** (logs),
   not storage.
-- An **indexer** (e.g. Ponder or The Graph) serves reports, notices and the **ranking**. Sorting
-  players on-chain is too expensive.
+- An **indexer** serves reports, notices and the **ranking**. Sorting players on-chain is too
+  expensive. The indexer is a **Goldsky Subgraph** (The Graph format), queried by the client over
+  GraphQL. Because the format is The Graph's and the events are on-chain, anyone can deploy the same
+  subgraph elsewhere.
 - The client reads live state from the contracts and history from the indexer.
 
 ## B-19 — Points on-chain — Adapt
@@ -416,6 +418,21 @@ flowchart LR
 | `Family` | Families, roles, wars (D-20) |
 | `Sanctions` | Suspension by `arbiter` (B-14) |
 
+
+## Implementation stack
+
+| Topic | Choice |
+|-------|--------|
+| Repository | This repo: `contracts/`, `packages/`, `apps/` at the root, next to `docs/spec` and the legacy PHP |
+| Monorepo | pnpm workspaces; Foundry as its own project in `contracts/`; no Turborepo/Nx for now |
+| Contracts | Solidity + Foundry. One OpenZeppelin **UUPS** proxy per module (not a Diamond), wired through a registry in `World` (B-17) |
+| Rules engine | TypeScript, `packages/rules`: pure, deterministic, `bigint` and the same fixed point as Solidity (B-03, B-20). `scripts/combat_reference.py` stays as a validation reference |
+| Ruleset | Code generation: one script turns `vendetta.yaml` + `game_config.yaml` into a Solidity constants library and an equivalent TS module. Only caps the Safe may tune (`onchain`, `premium`) live in storage |
+| First world | Vendetta only. The engine reads `roles`, never entity names (D-21), so Space4k can follow |
+| Frontend | SPA: Vite + React + TypeScript, viem + wagmi. Static, so it can be served from anywhere (including IPFS) |
+| Indexer | Goldsky Subgraphs (B-18) |
+| Languages | Code, comments and identifiers in English. UI with i18n in Spanish and English, texts taken from `application/languages/` |
+| CI | GitHub Actions on every push: `forge test`, rules engine tests, frontend build |
 
 ## Assumptions to validate
 
