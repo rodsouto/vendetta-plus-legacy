@@ -1,0 +1,7 @@
+node_modules/
+dist/
+*.tsbuildinfo
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+__pycache__/

@@ -1,0 +1,2901 @@
+{
+  "combat_target_vendetta": {
+    "_ruleset": "data/vendetta.yaml",
+    "cases": [
+      {
+        "label": "D-04: rowdy (attack) vs demolition_expert ×2, clandestine_workers ×1.3 — target picks demolition_expert, legacy picks clandestine_workers",
+        "decisions": [
+          "D-04"
+        ],
+        "attacker": {
+          "rowdy": 200
+        },
+        "defender": {
+          "demolition_expert": 100,
+          "clandestine_workers": 100
+        },
+        "attacker_research_all": 5,
+        "defender_research_all": 5,
+        "pct_power_attacker": 100,
+        "pct_power_defender": 100,
+        "troop_order": [
+          "rowdy",
+          "demolition_expert",
+          "clandestine_workers"
+        ],
+        "effective_stats": {
+          "attacker": {
+            "rowdy": {
+              "attack": 5,
+              "defense": 50
+            }
+          },
+          "defender": {
+            "demolition_expert": {
+              "attack": 2774,
+              "defense": 2774
+            },
+            "clandestine_workers": {
+              "attack": 18,
+              "defense": 183
+            }
+          }
+        },
+        "expected": {
+          "rounds_count": 1,
+          "attacker_remaining": {},
+          "defender_remaining": {
+            "demolition_expert": 100,
+            "clandestine_workers": 100
+          },
+          "rounds": [
+            {
+              "round": 1,
+              "troops": {
+                "rowdy": {
+                  "attacker_count": 200,
+                  "attacker_deaths": 200,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "demolition_expert": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 100,
+                  "defender_deaths": 0
+                },
+                "clandestine_workers": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 100,
+                  "defender_deaths": 0
+                }
+              },
+              "attacker_strikes": [
+                {
+                  "attacker": "rowdy",
+                  "target": "demolition_expert",
+                  "defender_deaths": 0
+                }
+              ],
+              "defender_strikes": [],
+              "power_sums": {
+                "PAA": 2000,
+                "PDA": 20000,
+                "PAD": 277400,
+                "PDD": 277400
+              }
+            }
+          ]
+        },
+        "legacy": {
+          "troop_order": [
+            "rowdy",
+            "demolition_expert",
+            "clandestine_workers"
+          ],
+          "rounds_count": 1,
+          "attacker_remaining": {},
+          "defender_remaining": {
+            "demolition_expert": 100,
+            "clandestine_workers": 74
+          },
+          "first_divergence": "round 1, attacker phase: target rule rowdy -> demolition_expert; legacy rowdy -> clandestine_workers"
+        }
+      },
+      {
+        "label": "D-04: gunman (attack) vs bouncer ×1.5, carrier ×1.2 — target picks bouncer, legacy picks carrier",
+        "decisions": [
+          "D-04"
+        ],
+        "attacker": {
+          "gunman": 200
+        },
+        "defender": {
+          "bouncer": 100,
+          "carrier": 100
+        },
+        "attacker_research_all": 5,
+        "defender_research_all": 5,
+        "pct_power_attacker": 100,
+        "pct_power_defender": 100,
+        "troop_order": [
+          "bouncer",
+          "gunman",
+          "carrier"
+        ],
+        "effective_stats": {
+          "attacker": {
+            "gunman": {
+              "attack": 36,
+              "defense": 131
+            }
+          },
+          "defender": {
+            "bouncer": {
+              "attack": 9,
+              "defense": 78
+            },
+            "carrier": {
+              "attack": 7,
+              "defense": 105
+            }
+          }
+        },
+        "expected": {
+          "rounds_count": 2,
+          "attacker_remaining": {
+            "gunman": 161
+          },
+          "defender_remaining": {},
+          "rounds": [
+            {
+              "round": 1,
+              "troops": {
+                "bouncer": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 100,
+                  "defender_deaths": 100
+                },
+                "gunman": {
+                  "attacker_count": 200,
+                  "attacker_deaths": 33,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "carrier": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 100,
+                  "defender_deaths": 63
+                }
+              },
+              "attacker_strikes": [
+                {
+                  "attacker": "gunman",
+                  "target": "bouncer",
+                  "defender_deaths": 74
+                }
+              ],
+              "defender_strikes": [
+                {
+                  "attacker": "gunman",
+                  "defender": "bouncer",
+                  "attacker_deaths": 0
+                },
+                {
+                  "attacker": "gunman",
+                  "defender": "carrier",
+                  "attacker_deaths": 21
+                }
+              ],
+              "power_sums": {
+                "PAA": 29074,
+                "PDA": 105796,
+                "PAD": 1834,
+                "PDD": 20328
+              }
+            },
+            {
+              "round": 2,
+              "troops": {
+                "gunman": {
+                  "attacker_count": 167,
+                  "attacker_deaths": 6,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "carrier": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 37,
+                  "defender_deaths": 37
+                }
+              },
+              "attacker_strikes": [
+                {
+                  "attacker": "gunman",
+                  "target": "carrier",
+                  "defender_deaths": 30
+                }
+              ],
+              "defender_strikes": [
+                {
+                  "attacker": "gunman",
+                  "defender": "carrier",
+                  "attacker_deaths": 0
+                }
+              ],
+              "power_sums": {
+                "PAA": 14170,
+                "PDA": 51562,
+                "PAD": 308,
+                "PDD": 4620
+              }
+            }
+          ]
+        },
+        "legacy": {
+          "troop_order": [
+            "gunman",
+            "bouncer",
+            "carrier"
+          ],
+          "rounds_count": 2,
+          "attacker_remaining": {
+            "gunman": 160
+          },
+          "defender_remaining": {},
+          "first_divergence": "round 1, attacker phase: target rule gunman -> bouncer; legacy gunman -> carrier"
+        }
+      },
+      {
+        "label": "D-04: cia_agent (attack) vs tactical_expert ×1.5, sniper ×1.3 — target picks tactical_expert, legacy picks sniper",
+        "decisions": [
+          "D-04"
+        ],
+        "attacker": {
+          "cia_agent": 200
+        },
+        "defender": {
+          "tactical_expert": 100,
+          "sniper": 100
+        },
+        "attacker_research_all": 5,
+        "defender_research_all": 5,
+        "pct_power_attacker": 100,
+        "pct_power_defender": 100,
+        "troop_order": [
+          "cia_agent",
+          "tactical_expert",
+          "sniper"
+        ],
+        "effective_stats": {
+          "attacker": {
+            "cia_agent": {
+              "attack": 138,
+              "defense": 1184
+            }
+          },
+          "defender": {
+            "tactical_expert": {
+              "attack": 166,
+              "defense": 2080
+            },
+            "sniper": {
+              "attack": 289,
+              "defense": 138
+            }
+          }
+        },
+        "expected": {
+          "rounds_count": 2,
+          "attacker_remaining": {
+            "cia_agent": 116
+          },
+          "defender_remaining": {},
+          "rounds": [
+            {
+              "round": 1,
+              "troops": {
+                "cia_agent": {
+                  "attacker_count": 200,
+                  "attacker_deaths": 74,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "tactical_expert": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 100,
+                  "defender_deaths": 77
+                },
+                "sniper": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 100,
+                  "defender_deaths": 73
+                }
+              },
+              "attacker_strikes": [
+                {
+                  "attacker": "cia_agent",
+                  "target": "tactical_expert",
+                  "defender_deaths": 47
+                }
+              ],
+              "defender_strikes": [
+                {
+                  "attacker": "cia_agent",
+                  "defender": "tactical_expert",
+                  "attacker_deaths": 23
+                },
+                {
+                  "attacker": "cia_agent",
+                  "defender": "sniper",
+                  "attacker_deaths": 9
+                }
+              ],
+              "power_sums": {
+                "PAA": 98325,
+                "PDA": 843600,
+                "PAD": 54298,
+                "PDD": 332040
+              }
+            },
+            {
+              "round": 2,
+              "troops": {
+                "cia_agent": {
+                  "attacker_count": 126,
+                  "attacker_deaths": 10,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "tactical_expert": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 23,
+                  "defender_deaths": 23
+                },
+                "sniper": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 27,
+                  "defender_deaths": 27
+                }
+              },
+              "attacker_strikes": [
+                {
+                  "attacker": "cia_agent",
+                  "target": "tactical_expert",
+                  "defender_deaths": 16
+                }
+              ],
+              "defender_strikes": [
+                {
+                  "attacker": "cia_agent",
+                  "defender": "tactical_expert",
+                  "attacker_deaths": 0
+                },
+                {
+                  "attacker": "cia_agent",
+                  "defender": "sniper",
+                  "attacker_deaths": 0
+                }
+              ],
+              "power_sums": {
+                "PAA": 70904,
+                "PDA": 608339,
+                "PAD": 12783,
+                "PDD": 66126
+              }
+            }
+          ]
+        },
+        "legacy": {
+          "troop_order": [
+            "cia_agent",
+            "tactical_expert",
+            "sniper"
+          ],
+          "rounds_count": 3,
+          "attacker_remaining": {
+            "cia_agent": 111
+          },
+          "defender_remaining": {},
+          "first_divergence": "round 1, attacker phase: target rule cia_agent -> tactical_expert; legacy cia_agent -> sniper"
+        }
+      },
+      {
+        "label": "D-04: assassin (attack) vs mercenary ×2, safeguard ×1.4 — target picks mercenary, legacy picks safeguard",
+        "decisions": [
+          "D-04"
+        ],
+        "attacker": {
+          "assassin": 200
+        },
+        "defender": {
+          "mercenary": 100,
+          "safeguard": 100
+        },
+        "attacker_research_all": 5,
+        "defender_research_all": 5,
+        "pct_power_attacker": 100,
+        "pct_power_defender": 100,
+        "troop_order": [
+          "assassin",
+          "mercenary",
+          "safeguard"
+        ],
+        "effective_stats": {
+          "attacker": {
+            "assassin": {
+              "attack": 450,
+              "defense": 3000
+            }
+          },
+          "defender": {
+            "mercenary": {
+              "attack": 1632,
+              "defense": 19589
+            },
+            "safeguard": {
+              "attack": 55,
+              "defense": 693
+            }
+          }
+        },
+        "expected": {
+          "rounds_count": 2,
+          "attacker_remaining": {},
+          "defender_remaining": {
+            "mercenary": 56,
+            "safeguard": 36
+          },
+          "rounds": [
+            {
+              "round": 1,
+              "troops": {
+                "assassin": {
+                  "attacker_count": 200,
+                  "attacker_deaths": 150,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "mercenary": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 100,
+                  "defender_deaths": 38
+                },
+                "safeguard": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 100,
+                  "defender_deaths": 64
+                }
+              },
+              "attacker_strikes": [
+                {
+                  "attacker": "assassin",
+                  "target": "mercenary",
+                  "defender_deaths": 24
+                }
+              ],
+              "defender_strikes": [
+                {
+                  "attacker": "assassin",
+                  "defender": "mercenary",
+                  "attacker_deaths": 57
+                },
+                {
+                  "attacker": "assassin",
+                  "defender": "safeguard",
+                  "attacker_deaths": 6
+                }
+              ],
+              "power_sums": {
+                "PAA": 316980,
+                "PDA": 2113200,
+                "PAD": 292732,
+                "PDD": 3516964
+              }
+            },
+            {
+              "round": 2,
+              "troops": {
+                "assassin": {
+                  "attacker_count": 50,
+                  "attacker_deaths": 50,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "mercenary": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 62,
+                  "defender_deaths": 6
+                },
+                "safeguard": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 36,
+                  "defender_deaths": 0
+                }
+              },
+              "attacker_strikes": [
+                {
+                  "attacker": "assassin",
+                  "target": "mercenary",
+                  "defender_deaths": 6
+                }
+              ],
+              "defender_strikes": [
+                {
+                  "attacker": "assassin",
+                  "defender": "mercenary",
+                  "attacker_deaths": 17
+                }
+              ],
+              "power_sums": {
+                "PAA": 60300,
+                "PDA": 402000,
+                "PAD": 192576,
+                "PDD": 2311502
+              }
+            }
+          ]
+        },
+        "legacy": {
+          "troop_order": [
+            "assassin",
+            "mercenary",
+            "safeguard"
+          ],
+          "rounds_count": 3,
+          "attacker_remaining": {},
+          "defender_remaining": {
+            "mercenary": 53
+          },
+          "first_divergence": "round 1, attacker phase: target rule assassin -> mercenary; legacy assassin -> safeguard"
+        }
+      },
+      {
+        "label": "D-04: mercenary (attack) vs tactical_expert ×1.4, demolition_expert ×1.2 — target picks tactical_expert, legacy picks demolition_expert",
+        "decisions": [
+          "D-04"
+        ],
+        "attacker": {
+          "mercenary": 200
+        },
+        "defender": {
+          "tactical_expert": 100,
+          "demolition_expert": 100
+        },
+        "attacker_research_all": 5,
+        "defender_research_all": 5,
+        "pct_power_attacker": 100,
+        "pct_power_defender": 100,
+        "troop_order": [
+          "tactical_expert",
+          "demolition_expert",
+          "mercenary"
+        ],
+        "effective_stats": {
+          "attacker": {
+            "mercenary": {
+              "attack": 1632,
+              "defense": 19589
+            }
+          },
+          "defender": {
+            "tactical_expert": {
+              "attack": 166,
+              "defense": 2080
+            },
+            "demolition_expert": {
+              "attack": 2774,
+              "defense": 2774
+            }
+          }
+        },
+        "expected": {
+          "rounds_count": 2,
+          "attacker_remaining": {
+            "mercenary": 194
+          },
+          "defender_remaining": {},
+          "rounds": [
+            {
+              "round": 1,
+              "troops": {
+                "tactical_expert": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 100,
+                  "defender_deaths": 100
+                },
+                "demolition_expert": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 100,
+                  "defender_deaths": 82
+                },
+                "mercenary": {
+                  "attacker_count": 200,
+                  "attacker_deaths": 6,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                }
+              },
+              "attacker_strikes": [
+                {
+                  "attacker": "mercenary",
+                  "target": "tactical_expert",
+                  "defender_deaths": 100
+                }
+              ],
+              "defender_strikes": [
+                {
+                  "attacker": "mercenary",
+                  "defender": "demolition_expert",
+                  "attacker_deaths": 6
+                }
+              ],
+              "power_sums": {
+                "PAA": 848640,
+                "PDA": 10186280,
+                "PAD": 294000,
+                "PDD": 485400
+              }
+            },
+            {
+              "round": 2,
+              "troops": {
+                "demolition_expert": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 18,
+                  "defender_deaths": 18
+                },
+                "mercenary": {
+                  "attacker_count": 194,
+                  "attacker_deaths": 0,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                }
+              },
+              "attacker_strikes": [
+                {
+                  "attacker": "mercenary",
+                  "target": "demolition_expert",
+                  "defender_deaths": 18
+                }
+              ],
+              "defender_strikes": [],
+              "power_sums": {
+                "PAA": 379930,
+                "PDA": 4560319,
+                "PAD": 49932,
+                "PDD": 49932
+              }
+            }
+          ]
+        },
+        "legacy": {
+          "troop_order": [
+            "mercenary",
+            "tactical_expert",
+            "demolition_expert"
+          ],
+          "rounds_count": 1,
+          "attacker_remaining": {
+            "mercenary": 194
+          },
+          "defender_remaining": {},
+          "first_divergence": "round 1, attacker phase: target rule mercenary -> tactical_expert; legacy mercenary -> demolition_expert"
+        }
+      },
+      {
+        "label": "D-05: tactical_expert counts duplicated research once (research 10)",
+        "decisions": [
+          "D-05"
+        ],
+        "attacker": {
+          "tactical_expert": 100
+        },
+        "defender": {
+          "guards": 60
+        },
+        "attacker_research_all": 10,
+        "defender_research_all": 10,
+        "pct_power_attacker": 100,
+        "pct_power_defender": 100,
+        "troop_order": [
+          "tactical_expert",
+          "guards"
+        ],
+        "effective_stats": {
+          "attacker": {
+            "tactical_expert": {
+              "attack": 185,
+              "defense": 2321
+            }
+          },
+          "defender": {
+            "guards": {
+              "attack": 682,
+              "defense": 8535
+            }
+          }
+        },
+        "expected": {
+          "rounds_count": 2,
+          "attacker_remaining": {},
+          "defender_remaining": {
+            "guards": 45
+          },
+          "rounds": [
+            {
+              "round": 1,
+              "troops": {
+                "tactical_expert": {
+                  "attacker_count": 100,
+                  "attacker_deaths": 84,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "guards": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 60,
+                  "defender_deaths": 15
+                }
+              },
+              "attacker_strikes": [
+                {
+                  "attacker": "tactical_expert",
+                  "target": "guards",
+                  "defender_deaths": 10
+                }
+              ],
+              "defender_strikes": [
+                {
+                  "attacker": "tactical_expert",
+                  "defender": "guards",
+                  "attacker_deaths": 31
+                }
+              ],
+              "power_sums": {
+                "PAA": 27195,
+                "PDA": 341187,
+                "PAD": 75020,
+                "PDD": 938850
+              }
+            },
+            {
+              "round": 2,
+              "troops": {
+                "tactical_expert": {
+                  "attacker_count": 16,
+                  "attacker_deaths": 16,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "guards": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 45,
+                  "defender_deaths": 0
+                }
+              },
+              "attacker_strikes": [
+                {
+                  "attacker": "tactical_expert",
+                  "target": "guards",
+                  "defender_deaths": 0
+                }
+              ],
+              "defender_strikes": [],
+              "power_sums": {
+                "PAA": 2960,
+                "PDA": 37136,
+                "PAD": 30690,
+                "PDD": 384075
+              }
+            }
+          ]
+        },
+        "legacy": {
+          "troop_order": [
+            "tactical_expert",
+            "guards"
+          ],
+          "rounds_count": 2,
+          "attacker_remaining": {},
+          "defender_remaining": {
+            "guards": 42
+          },
+          "first_divergence": "round 1, attacker phase: tactical_expert vs guards kills 10 (legacy 11) because effective stats differ"
+        }
+      },
+      {
+        "label": "Tie-break: no modifiers, two defender stacks of equal size -> earliest in canonical order",
+        "decisions": [
+          "D-04"
+        ],
+        "attacker": {
+          "rowdy": 300
+        },
+        "defender": {
+          "safeguard": 150,
+          "policeman": 150
+        },
+        "attacker_research_all": 0,
+        "defender_research_all": 0,
+        "pct_power_attacker": 100,
+        "pct_power_defender": 100,
+        "troop_order": [
+          "rowdy",
+          "safeguard",
+          "policeman"
+        ],
+        "effective_stats": {
+          "attacker": {
+            "rowdy": {
+              "attack": 5,
+              "defense": 50
+            }
+          },
+          "defender": {
+            "safeguard": {
+              "attack": 40,
+              "defense": 500
+            },
+            "policeman": {
+              "attack": 60,
+              "defense": 800
+            }
+          }
+        },
+        "expected": {
+          "rounds_count": 1,
+          "attacker_remaining": {},
+          "defender_remaining": {
+            "safeguard": 145,
+            "policeman": 150
+          },
+          "rounds": [
+            {
+              "round": 1,
+              "troops": {
+                "rowdy": {
+                  "attacker_count": 300,
+                  "attacker_deaths": 300,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "safeguard": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 150,
+                  "defender_deaths": 5
+                },
+                "policeman": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 150,
+                  "defender_deaths": 0
+                }
+              },
+              "attacker_strikes": [
+                {
+                  "attacker": "rowdy",
+                  "target": "safeguard",
+                  "defender_deaths": 5
+                }
+              ],
+              "defender_strikes": [
+                {
+                  "attacker": "rowdy",
+                  "defender": "safeguard",
+                  "attacker_deaths": 55
+                }
+              ],
+              "power_sums": {
+                "PAA": 1775,
+                "PDA": 17750,
+                "PAD": 21240,
+                "PDD": 265500
+              }
+            }
+          ]
+        },
+        "legacy": {
+          "troop_order": [
+            "rowdy",
+            "safeguard",
+            "policeman"
+          ],
+          "rounds_count": 1,
+          "attacker_remaining": {},
+          "defender_remaining": {
+            "safeguard": 145,
+            "policeman": 150
+          },
+          "first_divergence": null
+        }
+      },
+      {
+        "label": "Iteration order: mission lists troops in reverse canonical order (legacy iterates mission order)",
+        "decisions": [
+          "D-04"
+        ],
+        "attacker": {
+          "bouncer": 220,
+          "gunman": 280,
+          "mover": 340,
+          "carrier": 400
+        },
+        "defender": {
+          "knifer": 80,
+          "clandestine_workers": 300,
+          "safeguard": 120
+        },
+        "attacker_research_all": 4,
+        "defender_research_all": 4,
+        "pct_power_attacker": 100,
+        "pct_power_defender": 100,
+        "troop_order": [
+          "bouncer",
+          "knifer",
+          "gunman",
+          "mover",
+          "carrier",
+          "clandestine_workers",
+          "safeguard"
+        ],
+        "effective_stats": {
+          "attacker": {
+            "bouncer": {
+              "attack": 9,
+              "defense": 76
+            },
+            "gunman": {
+              "attack": 36,
+              "defense": 128
+            },
+            "mover": {
+              "attack": 4,
+              "defense": 72
+            },
+            "carrier": {
+              "attack": 7,
+              "defense": 102
+            }
+          },
+          "defender": {
+            "knifer": {
+              "attack": 12,
+              "defense": 51
+            },
+            "clandestine_workers": {
+              "attack": 18,
+              "defense": 180
+            },
+            "safeguard": {
+              "attack": 53,
+              "defense": 673
+            }
+          }
+        },
+        "expected": {
+          "rounds_count": 3,
+          "attacker_remaining": {},
+          "defender_remaining": {
+            "clandestine_workers": 55,
+            "safeguard": 75
+          },
+          "rounds": [
+            {
+              "round": 1,
+              "troops": {
+                "bouncer": {
+                  "attacker_count": 220,
+                  "attacker_deaths": 14,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "knifer": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 80,
+                  "defender_deaths": 80
+                },
+                "gunman": {
+                  "attacker_count": 280,
+                  "attacker_deaths": 110,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "mover": {
+                  "attacker_count": 340,
+                  "attacker_deaths": 303,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "carrier": {
+                  "attacker_count": 400,
+                  "attacker_deaths": 285,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "clandestine_workers": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 300,
+                  "defender_deaths": 187
+                },
+                "safeguard": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 120,
+                  "defender_deaths": 16
+                }
+              },
+              "attacker_strikes": [
+                {
+                  "attacker": "bouncer",
+                  "target": "knifer",
+                  "defender_deaths": 59
+                },
+                {
+                  "attacker": "gunman",
+                  "target": "clandestine_workers",
+                  "defender_deaths": 83
+                },
+                {
+                  "attacker": "mover",
+                  "target": "clandestine_workers",
+                  "defender_deaths": 25
+                },
+                {
+                  "attacker": "carrier",
+                  "target": "clandestine_workers",
+                  "defender_deaths": 70
+                }
+              ],
+              "defender_strikes": [
+                {
+                  "attacker": "carrier",
+                  "defender": "knifer",
+                  "attacker_deaths": 0
+                },
+                {
+                  "attacker": "mover",
+                  "defender": "clandestine_workers",
+                  "attacker_deaths": 91
+                },
+                {
+                  "attacker": "carrier",
+                  "defender": "safeguard",
+                  "attacker_deaths": 165
+                }
+              ],
+              "power_sums": {
+                "PAA": 21642,
+                "PDA": 192536,
+                "PAD": 28632,
+                "PDD": 296511
+              }
+            },
+            {
+              "round": 2,
+              "troops": {
+                "bouncer": {
+                  "attacker_count": 206,
+                  "attacker_deaths": 194,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "gunman": {
+                  "attacker_count": 170,
+                  "attacker_deaths": 98,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "mover": {
+                  "attacker_count": 37,
+                  "attacker_deaths": 37,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "carrier": {
+                  "attacker_count": 115,
+                  "attacker_deaths": 83,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "clandestine_workers": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 113,
+                  "defender_deaths": 51
+                },
+                "safeguard": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 104,
+                  "defender_deaths": 23
+                }
+              },
+              "attacker_strikes": [
+                {
+                  "attacker": "bouncer",
+                  "target": "clandestine_workers",
+                  "defender_deaths": 31
+                },
+                {
+                  "attacker": "gunman",
+                  "target": "safeguard",
+                  "defender_deaths": 15
+                },
+                {
+                  "attacker": "mover",
+                  "target": "safeguard",
+                  "defender_deaths": 0
+                },
+                {
+                  "attacker": "carrier",
+                  "target": "safeguard",
+                  "defender_deaths": 6
+                }
+              ],
+              "defender_strikes": [
+                {
+                  "attacker": "bouncer",
+                  "defender": "clandestine_workers",
+                  "attacker_deaths": 54
+                },
+                {
+                  "attacker": "bouncer",
+                  "defender": "safeguard",
+                  "attacker_deaths": 60
+                }
+              ],
+              "power_sums": {
+                "PAA": 10709,
+                "PDA": 66858,
+                "PAD": 22855,
+                "PDD": 280745
+              }
+            },
+            {
+              "round": 3,
+              "troops": {
+                "bouncer": {
+                  "attacker_count": 12,
+                  "attacker_deaths": 12,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "gunman": {
+                  "attacker_count": 72,
+                  "attacker_deaths": 72,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "carrier": {
+                  "attacker_count": 32,
+                  "attacker_deaths": 32,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "clandestine_workers": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 62,
+                  "defender_deaths": 7
+                },
+                "safeguard": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 81,
+                  "defender_deaths": 6
+                }
+              },
+              "attacker_strikes": [
+                {
+                  "attacker": "bouncer",
+                  "target": "safeguard",
+                  "defender_deaths": 0
+                },
+                {
+                  "attacker": "gunman",
+                  "target": "safeguard",
+                  "defender_deaths": 6
+                },
+                {
+                  "attacker": "carrier",
+                  "target": "safeguard",
+                  "defender_deaths": 0
+                }
+              ],
+              "defender_strikes": [
+                {
+                  "attacker": "gunman",
+                  "defender": "clandestine_workers",
+                  "attacker_deaths": 13
+                },
+                {
+                  "attacker": "gunman",
+                  "defender": "safeguard",
+                  "attacker_deaths": 8
+                }
+              ],
+              "power_sums": {
+                "PAA": 3968,
+                "PDA": 17104,
+                "PAD": 17652,
+                "PDD": 221136
+              }
+            }
+          ]
+        },
+        "legacy": {
+          "troop_order": [
+            "carrier",
+            "mover",
+            "gunman",
+            "bouncer",
+            "knifer",
+            "clandestine_workers",
+            "safeguard"
+          ],
+          "rounds_count": 3,
+          "attacker_remaining": {},
+          "defender_remaining": {
+            "clandestine_workers": 42,
+            "safeguard": 78
+          },
+          "first_divergence": "round 1, attacker phase: target rule bouncer -> knifer; legacy carrier -> clandestine_workers"
+        }
+      },
+      {
+        "label": "Mixed armies with honor penalty on both sides",
+        "decisions": [
+          "D-04",
+          "D-05"
+        ],
+        "attacker": {
+          "rowdy": 3000,
+          "gunman": 800,
+          "tactical_expert": 120,
+          "assassin": 60,
+          "mercenary": 5
+        },
+        "defender": {
+          "ninja": 15,
+          "clandestine_workers": 1500,
+          "safeguard": 400,
+          "bodyguard": 80,
+          "guards": 20
+        },
+        "attacker_research_all": 8,
+        "defender_research_all": 6,
+        "pct_power_attacker": 72,
+        "pct_power_defender": 94,
+        "troop_order": [
+          "rowdy",
+          "gunman",
+          "tactical_expert",
+          "assassin",
+          "ninja",
+          "mercenary",
+          "clandestine_workers",
+          "safeguard",
+          "bodyguard",
+          "guards"
+        ],
+        "effective_stats": {
+          "attacker": {
+            "rowdy": {
+              "attack": 5,
+              "defense": 50
+            },
+            "gunman": {
+              "attack": 38,
+              "defense": 140
+            },
+            "tactical_expert": {
+              "attack": 178,
+              "defense": 2234
+            },
+            "assassin": {
+              "attack": 489,
+              "defense": 3264
+            },
+            "mercenary": {
+              "attack": 1800,
+              "defense": 21600
+            }
+          },
+          "defender": {
+            "ninja": {
+              "attack": 595,
+              "defense": 8939
+            },
+            "clandestine_workers": {
+              "attack": 18,
+              "defense": 186
+            },
+            "safeguard": {
+              "attack": 56,
+              "defense": 712
+            },
+            "bodyguard": {
+              "attack": 154,
+              "defense": 3560
+            },
+            "guards": {
+              "attack": 619,
+              "defense": 7738
+            }
+          }
+        },
+        "expected": {
+          "rounds_count": 3,
+          "attacker_remaining": {},
+          "defender_remaining": {
+            "ninja": 8,
+            "clandestine_workers": 466,
+            "safeguard": 257,
+            "bodyguard": 17,
+            "guards": 16
+          },
+          "rounds": [
+            {
+              "round": 1,
+              "troops": {
+                "rowdy": {
+                  "attacker_count": 3000,
+                  "attacker_deaths": 3000,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "gunman": {
+                  "attacker_count": 800,
+                  "attacker_deaths": 656,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "tactical_expert": {
+                  "attacker_count": 120,
+                  "attacker_deaths": 32,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "assassin": {
+                  "attacker_count": 60,
+                  "attacker_deaths": 44,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "ninja": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 15,
+                  "defender_deaths": 3
+                },
+                "mercenary": {
+                  "attacker_count": 5,
+                  "attacker_deaths": 3,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "clandestine_workers": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 1500,
+                  "defender_deaths": 754
+                },
+                "safeguard": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 400,
+                  "defender_deaths": 111
+                },
+                "bodyguard": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 80,
+                  "defender_deaths": 39
+                },
+                "guards": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 20,
+                  "defender_deaths": 2
+                }
+              },
+              "attacker_strikes": [
+                {
+                  "attacker": "rowdy",
+                  "target": "clandestine_workers",
+                  "defender_deaths": 305
+                },
+                {
+                  "attacker": "gunman",
+                  "target": "clandestine_workers",
+                  "defender_deaths": 206
+                },
+                {
+                  "attacker": "tactical_expert",
+                  "target": "bodyguard",
+                  "defender_deaths": 32
+                },
+                {
+                  "attacker": "assassin",
+                  "target": "safeguard",
+                  "defender_deaths": 111
+                },
+                {
+                  "attacker": "mercenary",
+                  "target": "clandestine_workers",
+                  "defender_deaths": 168
+                }
+              ],
+              "defender_strikes": [
+                {
+                  "attacker": "rowdy",
+                  "defender": "ninja",
+                  "attacker_deaths": 811
+                },
+                {
+                  "attacker": "rowdy",
+                  "defender": "clandestine_workers",
+                  "attacker_deaths": 500
+                },
+                {
+                  "attacker": "rowdy",
+                  "defender": "safeguard",
+                  "attacker_deaths": 243
+                },
+                {
+                  "attacker": "assassin",
+                  "defender": "bodyguard",
+                  "attacker_deaths": 21
+                },
+                {
+                  "attacker": "gunman",
+                  "defender": "guards",
+                  "attacker_deaths": 234
+                }
+              ],
+              "power_sums": {
+                "PAA": 132981,
+                "PDA": 1068158,
+                "PAD": 166694,
+                "PDD": 2183693
+              }
+            },
+            {
+              "round": 2,
+              "troops": {
+                "gunman": {
+                  "attacker_count": 144,
+                  "attacker_deaths": 144,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "tactical_expert": {
+                  "attacker_count": 88,
+                  "attacker_deaths": 78,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "assassin": {
+                  "attacker_count": 16,
+                  "attacker_deaths": 15,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "ninja": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 12,
+                  "defender_deaths": 4
+                },
+                "mercenary": {
+                  "attacker_count": 2,
+                  "attacker_deaths": 1,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "clandestine_workers": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 746,
+                  "defender_deaths": 249
+                },
+                "safeguard": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 289,
+                  "defender_deaths": 32
+                },
+                "bodyguard": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 41,
+                  "defender_deaths": 21
+                },
+                "guards": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 18,
+                  "defender_deaths": 2
+                }
+              },
+              "attacker_strikes": [
+                {
+                  "attacker": "gunman",
+                  "target": "clandestine_workers",
+                  "defender_deaths": 30
+                },
+                {
+                  "attacker": "tactical_expert",
+                  "target": "bodyguard",
+                  "defender_deaths": 20
+                },
+                {
+                  "attacker": "assassin",
+                  "target": "safeguard",
+                  "defender_deaths": 32
+                },
+                {
+                  "attacker": "mercenary",
+                  "target": "clandestine_workers",
+                  "defender_deaths": 66
+                }
+              ],
+              "defender_strikes": [
+                {
+                  "attacker": "tactical_expert",
+                  "defender": "ninja",
+                  "attacker_deaths": 25
+                },
+                {
+                  "attacker": "tactical_expert",
+                  "defender": "clandestine_workers",
+                  "attacker_deaths": 20
+                },
+                {
+                  "attacker": "gunman",
+                  "defender": "safeguard",
+                  "attacker_deaths": 30
+                },
+                {
+                  "attacker": "assassin",
+                  "defender": "bodyguard",
+                  "attacker_deaths": 5
+                },
+                {
+                  "attacker": "tactical_expert",
+                  "defender": "guards",
+                  "attacker_deaths": 16
+                }
+              ],
+              "power_sums": {
+                "PAA": 54159,
+                "PDA": 577341,
+                "PAD": 92157,
+                "PDD": 1209062
+              }
+            },
+            {
+              "round": 3,
+              "troops": {
+                "tactical_expert": {
+                  "attacker_count": 10,
+                  "attacker_deaths": 10,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "assassin": {
+                  "attacker_count": 1,
+                  "attacker_deaths": 1,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "ninja": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 8,
+                  "defender_deaths": 0
+                },
+                "mercenary": {
+                  "attacker_count": 1,
+                  "attacker_deaths": 1,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "clandestine_workers": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 497,
+                  "defender_deaths": 31
+                },
+                "safeguard": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 257,
+                  "defender_deaths": 0
+                },
+                "bodyguard": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 20,
+                  "defender_deaths": 3
+                },
+                "guards": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 16,
+                  "defender_deaths": 0
+                }
+              },
+              "attacker_strikes": [
+                {
+                  "attacker": "tactical_expert",
+                  "target": "bodyguard",
+                  "defender_deaths": 3
+                },
+                {
+                  "attacker": "assassin",
+                  "target": "safeguard",
+                  "defender_deaths": 0
+                },
+                {
+                  "attacker": "mercenary",
+                  "target": "clandestine_workers",
+                  "defender_deaths": 31
+                }
+              ],
+              "defender_strikes": [
+                {
+                  "attacker": "tactical_expert",
+                  "defender": "ninja",
+                  "attacker_deaths": 5
+                }
+              ],
+              "power_sums": {
+                "PAA": 4608,
+                "PDA": 54229,
+                "PAD": 29307,
+                "PDD": 393050
+              }
+            }
+          ]
+        },
+        "legacy": {
+          "troop_order": [
+            "rowdy",
+            "gunman",
+            "tactical_expert",
+            "assassin",
+            "mercenary",
+            "ninja",
+            "clandestine_workers",
+            "safeguard",
+            "bodyguard",
+            "guards"
+          ],
+          "rounds_count": 3,
+          "attacker_remaining": {},
+          "defender_remaining": {
+            "ninja": 8,
+            "clandestine_workers": 451,
+            "safeguard": 255,
+            "bodyguard": 15,
+            "guards": 15
+          },
+          "first_divergence": "round 1, attacker phase: tactical_expert vs bodyguard kills 32 (legacy 33) because effective stats differ"
+        }
+      }
+    ]
+  },
+  "combat_target_space4k": {
+    "_ruleset": "data/space4k.yaml",
+    "cases": [
+      {
+        "label": "D-04: renegade (attack) vs shakal ×1.2, cougar ×1.5, camouflage_bomber ×1.8, light_laser_tower ×1.6 — target picks camouflage_bomber, legacy picks light_laser_tower",
+        "decisions": [
+          "D-04"
+        ],
+        "attacker": {
+          "renegade": 200
+        },
+        "defender": {
+          "shakal": 100,
+          "cougar": 100,
+          "camouflage_bomber": 100,
+          "light_laser_tower": 100
+        },
+        "attacker_research_all": 5,
+        "defender_research_all": 5,
+        "pct_power_attacker": 100,
+        "pct_power_defender": 100,
+        "troop_order": [
+          "shakal",
+          "renegade",
+          "cougar",
+          "camouflage_bomber",
+          "light_laser_tower"
+        ],
+        "effective_stats": {
+          "attacker": {
+            "renegade": {
+              "attack": 26,
+              "defense": 65
+            }
+          },
+          "defender": {
+            "shakal": {
+              "attack": 6,
+              "defense": 32
+            },
+            "cougar": {
+              "attack": 554,
+              "defense": 4341
+            },
+            "camouflage_bomber": {
+              "attack": 1200,
+              "defense": 675
+            },
+            "light_laser_tower": {
+              "attack": 26,
+              "defense": 30
+            }
+          }
+        },
+        "expected": {
+          "rounds_count": 1,
+          "attacker_remaining": {},
+          "defender_remaining": {
+            "shakal": 57,
+            "cougar": 100,
+            "camouflage_bomber": 94,
+            "light_laser_tower": 100
+          },
+          "rounds": [
+            {
+              "round": 1,
+              "troops": {
+                "shakal": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 100,
+                  "defender_deaths": 43
+                },
+                "renegade": {
+                  "attacker_count": 200,
+                  "attacker_deaths": 200,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "cougar": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 100,
+                  "defender_deaths": 0
+                },
+                "camouflage_bomber": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 100,
+                  "defender_deaths": 6
+                },
+                "light_laser_tower": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 100,
+                  "defender_deaths": 0
+                }
+              },
+              "attacker_strikes": [
+                {
+                  "attacker": "renegade",
+                  "target": "camouflage_bomber",
+                  "defender_deaths": 6
+                }
+              ],
+              "defender_strikes": [
+                {
+                  "attacker": "renegade",
+                  "defender": "shakal",
+                  "attacker_deaths": 13
+                },
+                {
+                  "attacker": "renegade",
+                  "defender": "cougar",
+                  "attacker_deaths": 39
+                }
+              ],
+              "power_sums": {
+                "PAA": 12503,
+                "PDA": 31259,
+                "PAD": 176000,
+                "PDD": 504800
+              }
+            }
+          ]
+        },
+        "legacy": {
+          "troop_order": [
+            "renegade",
+            "shakal",
+            "cougar",
+            "camouflage_bomber",
+            "light_laser_tower"
+          ],
+          "rounds_count": 1,
+          "attacker_remaining": {},
+          "defender_remaining": {
+            "shakal": 27,
+            "cougar": 100,
+            "camouflage_bomber": 100,
+            "light_laser_tower": 28
+          },
+          "first_divergence": "round 1, attacker phase: target rule renegade -> camouflage_bomber; legacy renegade -> light_laser_tower"
+        }
+      },
+      {
+        "label": "D-04: cougar (attack) vs raider ×1.3, noah ×1.8, plasma_tower ×1.6 — target picks noah, legacy picks plasma_tower",
+        "decisions": [
+          "D-04"
+        ],
+        "attacker": {
+          "cougar": 200
+        },
+        "defender": {
+          "raider": 100,
+          "noah": 100,
+          "plasma_tower": 100
+        },
+        "attacker_research_all": 5,
+        "defender_research_all": 5,
+        "pct_power_attacker": 100,
+        "pct_power_defender": 100,
+        "troop_order": [
+          "raider",
+          "cougar",
+          "noah",
+          "plasma_tower"
+        ],
+        "effective_stats": {
+          "attacker": {
+            "cougar": {
+              "attack": 554,
+              "defense": 4341
+            }
+          },
+          "defender": {
+            "raider": {
+              "attack": 197,
+              "defense": 624
+            },
+            "noah": {
+              "attack": 131,
+              "defense": 18000
+            },
+            "plasma_tower": {
+              "attack": 693,
+              "defense": 3059
+            }
+          }
+        },
+        "expected": {
+          "rounds_count": 3,
+          "attacker_remaining": {},
+          "defender_remaining": {
+            "noah": 22,
+            "plasma_tower": 36
+          },
+          "rounds": [
+            {
+              "round": 1,
+              "troops": {
+                "raider": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 100,
+                  "defender_deaths": 100
+                },
+                "cougar": {
+                  "attacker_count": 200,
+                  "attacker_deaths": 131,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "noah": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 100,
+                  "defender_deaths": 55
+                },
+                "plasma_tower": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 100,
+                  "defender_deaths": 48
+                }
+              },
+              "attacker_strikes": [
+                {
+                  "attacker": "cougar",
+                  "target": "noah",
+                  "defender_deaths": 33
+                }
+              ],
+              "defender_strikes": [
+                {
+                  "attacker": "cougar",
+                  "defender": "raider",
+                  "attacker_deaths": 0
+                },
+                {
+                  "attacker": "cougar",
+                  "defender": "noah",
+                  "attacker_deaths": 45
+                },
+                {
+                  "attacker": "cougar",
+                  "defender": "plasma_tower",
+                  "attacker_deaths": 18
+                }
+              ],
+              "power_sums": {
+                "PAA": 503254,
+                "PDA": 3943364,
+                "PAD": 110877,
+                "PDD": 3374300
+              }
+            },
+            {
+              "round": 2,
+              "troops": {
+                "cougar": {
+                  "attacker_count": 69,
+                  "attacker_deaths": 55,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "noah": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 45,
+                  "defender_deaths": 19
+                },
+                "plasma_tower": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 52,
+                  "defender_deaths": 16
+                }
+              },
+              "attacker_strikes": [
+                {
+                  "attacker": "cougar",
+                  "target": "noah",
+                  "defender_deaths": 12
+                }
+              ],
+              "defender_strikes": [
+                {
+                  "attacker": "cougar",
+                  "defender": "noah",
+                  "attacker_deaths": 19
+                },
+                {
+                  "attacker": "cougar",
+                  "defender": "plasma_tower",
+                  "attacker_deaths": 8
+                }
+              ],
+              "power_sums": {
+                "PAA": 129193,
+                "PDA": 1012321,
+                "PAD": 46254,
+                "PDD": 1563068
+              }
+            },
+            {
+              "round": 3,
+              "troops": {
+                "cougar": {
+                  "attacker_count": 14,
+                  "attacker_deaths": 14,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "noah": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 26,
+                  "defender_deaths": 4
+                },
+                "plasma_tower": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 36,
+                  "defender_deaths": 0
+                }
+              },
+              "attacker_strikes": [
+                {
+                  "attacker": "cougar",
+                  "target": "noah",
+                  "defender_deaths": 3
+                }
+              ],
+              "defender_strikes": [
+                {
+                  "attacker": "cougar",
+                  "defender": "noah",
+                  "attacker_deaths": 4
+                },
+                {
+                  "attacker": "cougar",
+                  "defender": "plasma_tower",
+                  "attacker_deaths": 1
+                }
+              ],
+              "power_sums": {
+                "PAA": 19833,
+                "PDA": 155408,
+                "PAD": 31367,
+                "PDD": 992124
+              }
+            }
+          ]
+        },
+        "legacy": {
+          "troop_order": [
+            "cougar",
+            "raider",
+            "noah",
+            "plasma_tower"
+          ],
+          "rounds_count": 5,
+          "attacker_remaining": {},
+          "defender_remaining": {
+            "noah": 26
+          },
+          "first_divergence": "round 1, attacker phase: target rule cougar -> noah; legacy cougar -> plasma_tower"
+        }
+      },
+      {
+        "label": "D-04: longeagle_v (attack) vs cougar ×1.7, laser_tower ×1.7 — target picks cougar, legacy picks laser_tower",
+        "decisions": [
+          "D-04"
+        ],
+        "attacker": {
+          "longeagle_v": 200
+        },
+        "defender": {
+          "cougar": 100,
+          "laser_tower": 100
+        },
+        "attacker_research_all": 5,
+        "defender_research_all": 5,
+        "pct_power_attacker": 100,
+        "pct_power_defender": 100,
+        "troop_order": [
+          "cougar",
+          "longeagle_v",
+          "laser_tower"
+        ],
+        "effective_stats": {
+          "attacker": {
+            "longeagle_v": {
+              "attack": 4341,
+              "defense": 21708
+            }
+          },
+          "defender": {
+            "cougar": {
+              "attack": 554,
+              "defense": 4341
+            },
+            "laser_tower": {
+              "attack": 131,
+              "defense": 658
+            }
+          }
+        },
+        "expected": {
+          "rounds_count": 1,
+          "attacker_remaining": {
+            "longeagle_v": 200
+          },
+          "defender_remaining": {},
+          "rounds": [
+            {
+              "round": 1,
+              "troops": {
+                "cougar": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 100,
+                  "defender_deaths": 100
+                },
+                "longeagle_v": {
+                  "attacker_count": 200,
+                  "attacker_deaths": 0,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "laser_tower": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 100,
+                  "defender_deaths": 100
+                }
+              },
+              "attacker_strikes": [
+                {
+                  "attacker": "longeagle_v",
+                  "target": "cougar",
+                  "defender_deaths": 100
+                }
+              ],
+              "defender_strikes": [
+                {
+                  "attacker": "longeagle_v",
+                  "defender": "laser_tower",
+                  "attacker_deaths": 0
+                }
+              ],
+              "power_sums": {
+                "PAA": 2951880,
+                "PDA": 14761440,
+                "PAD": 68500,
+                "PDD": 499900
+              }
+            }
+          ]
+        },
+        "legacy": {
+          "troop_order": [
+            "longeagle_v",
+            "cougar",
+            "laser_tower"
+          ],
+          "rounds_count": 1,
+          "attacker_remaining": {
+            "longeagle_v": 200
+          },
+          "defender_remaining": {},
+          "first_divergence": "round 1, attacker phase: target rule longeagle_v -> cougar; legacy longeagle_v -> laser_tower"
+        }
+      },
+      {
+        "label": "Tie-break: no modifiers, two defender stacks of equal size -> earliest in canonical order",
+        "decisions": [
+          "D-04"
+        ],
+        "attacker": {
+          "shakal": 300
+        },
+        "defender": {
+          "laser_tower": 150,
+          "emp_launcher": 150
+        },
+        "attacker_research_all": 0,
+        "defender_research_all": 0,
+        "pct_power_attacker": 100,
+        "pct_power_defender": 100,
+        "troop_order": [
+          "shakal",
+          "laser_tower",
+          "emp_launcher"
+        ],
+        "effective_stats": {
+          "attacker": {
+            "shakal": {
+              "attack": 5,
+              "defense": 25
+            }
+          },
+          "defender": {
+            "laser_tower": {
+              "attack": 100,
+              "defense": 500
+            },
+            "emp_launcher": {
+              "attack": 400,
+              "defense": 1000
+            }
+          }
+        },
+        "expected": {
+          "rounds_count": 1,
+          "attacker_remaining": {},
+          "defender_remaining": {
+            "laser_tower": 146,
+            "emp_launcher": 150
+          },
+          "rounds": [
+            {
+              "round": 1,
+              "troops": {
+                "shakal": {
+                  "attacker_count": 300,
+                  "attacker_deaths": 300,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "laser_tower": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 150,
+                  "defender_deaths": 4
+                },
+                "emp_launcher": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 150,
+                  "defender_deaths": 0
+                }
+              },
+              "attacker_strikes": [
+                {
+                  "attacker": "shakal",
+                  "target": "laser_tower",
+                  "defender_deaths": 4
+                }
+              ],
+              "defender_strikes": [
+                {
+                  "attacker": "shakal",
+                  "defender": "laser_tower",
+                  "attacker_deaths": 50
+                }
+              ],
+              "power_sums": {
+                "PAA": 1750,
+                "PDA": 8750,
+                "PAD": 29600,
+                "PDD": 148000
+              }
+            }
+          ]
+        },
+        "legacy": {
+          "troop_order": [
+            "shakal",
+            "laser_tower",
+            "emp_launcher"
+          ],
+          "rounds_count": 1,
+          "attacker_remaining": {},
+          "defender_remaining": {
+            "laser_tower": 146,
+            "emp_launcher": 150
+          },
+          "first_divergence": null
+        }
+      },
+      {
+        "label": "Iteration order: mission lists troops in reverse canonical order (legacy iterates mission order)",
+        "decisions": [
+          "D-04"
+        ],
+        "attacker": {
+          "renegade": 220,
+          "raider": 280,
+          "tjuger": 340,
+          "transporter": 400
+        },
+        "defender": {
+          "darwin": 80,
+          "light_laser_tower": 300,
+          "laser_tower": 120
+        },
+        "attacker_research_all": 4,
+        "defender_research_all": 4,
+        "pct_power_attacker": 100,
+        "pct_power_defender": 100,
+        "troop_order": [
+          "renegade",
+          "darwin",
+          "raider",
+          "tjuger",
+          "transporter",
+          "light_laser_tower",
+          "laser_tower"
+        ],
+        "effective_stats": {
+          "attacker": {
+            "renegade": {
+              "attack": 25,
+              "defense": 64
+            },
+            "raider": {
+              "attack": 192,
+              "defense": 605
+            },
+            "tjuger": {
+              "attack": 1400,
+              "defense": 942
+            },
+            "transporter": {
+              "attack": 2,
+              "defense": 6732
+            }
+          },
+          "defender": {
+            "darwin": {
+              "attack": 24,
+              "defense": 134
+            },
+            "light_laser_tower": {
+              "attack": 25,
+              "defense": 30
+            },
+            "laser_tower": {
+              "attack": 128,
+              "defense": 641
+            }
+          }
+        },
+        "expected": {
+          "rounds_count": 1,
+          "attacker_remaining": {
+            "renegade": 176,
+            "raider": 280,
+            "tjuger": 340,
+            "transporter": 400
+          },
+          "defender_remaining": {},
+          "rounds": [
+            {
+              "round": 1,
+              "troops": {
+                "renegade": {
+                  "attacker_count": 220,
+                  "attacker_deaths": 44,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "darwin": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 80,
+                  "defender_deaths": 80
+                },
+                "raider": {
+                  "attacker_count": 280,
+                  "attacker_deaths": 0,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "tjuger": {
+                  "attacker_count": 340,
+                  "attacker_deaths": 0,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "transporter": {
+                  "attacker_count": 400,
+                  "attacker_deaths": 0,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "light_laser_tower": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 300,
+                  "defender_deaths": 300
+                },
+                "laser_tower": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 120,
+                  "defender_deaths": 120
+                }
+              },
+              "attacker_strikes": [
+                {
+                  "attacker": "renegade",
+                  "target": "light_laser_tower",
+                  "defender_deaths": 146
+                },
+                {
+                  "attacker": "raider",
+                  "target": "darwin",
+                  "defender_deaths": 80
+                },
+                {
+                  "attacker": "tjuger",
+                  "target": "light_laser_tower",
+                  "defender_deaths": 154
+                },
+                {
+                  "attacker": "transporter",
+                  "target": "laser_tower",
+                  "defender_deaths": 120
+                }
+              ],
+              "defender_strikes": [],
+              "power_sums": {
+                "PAA": 550112,
+                "PDA": 3238888,
+                "PAD": 30170,
+                "PDD": 103108
+              }
+            }
+          ]
+        },
+        "legacy": {
+          "troop_order": [
+            "transporter",
+            "tjuger",
+            "raider",
+            "renegade",
+            "darwin",
+            "light_laser_tower",
+            "laser_tower"
+          ],
+          "rounds_count": 2,
+          "attacker_remaining": {
+            "transporter": 400,
+            "tjuger": 328,
+            "raider": 280,
+            "renegade": 77
+          },
+          "defender_remaining": {},
+          "first_divergence": "round 1, attacker phase: target rule renegade -> light_laser_tower; legacy transporter -> light_laser_tower"
+        }
+      },
+      {
+        "label": "Mixed armies with honor penalty on both sides",
+        "decisions": [
+          "D-04",
+          "D-05"
+        ],
+        "attacker": {
+          "shakal": 3000,
+          "raider": 800,
+          "camouflage_bomber": 120,
+          "noah": 60,
+          "sentih": 5
+        },
+        "defender": {
+          "longeagle_x": 15,
+          "light_laser_tower": 1500,
+          "laser_tower": 400,
+          "plasma_tower": 80,
+          "rocket_launcher": 20
+        },
+        "attacker_research_all": 8,
+        "defender_research_all": 6,
+        "pct_power_attacker": 72,
+        "pct_power_defender": 94,
+        "troop_order": [
+          "shakal",
+          "raider",
+          "camouflage_bomber",
+          "noah",
+          "longeagle_x",
+          "sentih",
+          "light_laser_tower",
+          "laser_tower",
+          "plasma_tower",
+          "rocket_launcher"
+        ],
+        "effective_stats": {
+          "attacker": {
+            "shakal": {
+              "attack": 7,
+              "defense": 35
+            },
+            "raider": {
+              "attack": 210,
+              "defense": 670
+            },
+            "camouflage_bomber": {
+              "attack": 1305,
+              "defense": 734
+            },
+            "noah": {
+              "attack": 140,
+              "defense": 19589
+            },
+            "sentih": {
+              "attack": 46970,
+              "defense": 313137
+            }
+          },
+          "defender": {
+            "longeagle_x": {
+              "attack": 13707,
+              "defense": 59595
+            },
+            "light_laser_tower": {
+              "attack": 26,
+              "defense": 31
+            },
+            "laser_tower": {
+              "attack": 134,
+              "defense": 673
+            },
+            "plasma_tower": {
+              "attack": 712,
+              "defense": 3112
+            },
+            "rocket_launcher": {
+              "attack": 4272,
+              "defense": 7121
+            }
+          }
+        },
+        "expected": {
+          "rounds_count": 3,
+          "attacker_remaining": {
+            "shakal": 51,
+            "raider": 370,
+            "camouflage_bomber": 72,
+            "noah": 47,
+            "sentih": 3
+          },
+          "defender_remaining": {},
+          "rounds": [
+            {
+              "round": 1,
+              "troops": {
+                "shakal": {
+                  "attacker_count": 3000,
+                  "attacker_deaths": 2612,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "raider": {
+                  "attacker_count": 800,
+                  "attacker_deaths": 264,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "camouflage_bomber": {
+                  "attacker_count": 120,
+                  "attacker_deaths": 25,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "noah": {
+                  "attacker_count": 60,
+                  "attacker_deaths": 8,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "longeagle_x": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 15,
+                  "defender_deaths": 7
+                },
+                "sentih": {
+                  "attacker_count": 5,
+                  "attacker_deaths": 1,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "light_laser_tower": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 1500,
+                  "defender_deaths": 1500
+                },
+                "laser_tower": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 400,
+                  "defender_deaths": 344
+                },
+                "plasma_tower": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 80,
+                  "defender_deaths": 35
+                },
+                "rocket_launcher": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 20,
+                  "defender_deaths": 17
+                }
+              },
+              "attacker_strikes": [
+                {
+                  "attacker": "shakal",
+                  "target": "light_laser_tower",
+                  "defender_deaths": 542
+                },
+                {
+                  "attacker": "raider",
+                  "target": "light_laser_tower",
+                  "defender_deaths": 797
+                },
+                {
+                  "attacker": "camouflage_bomber",
+                  "target": "rocket_launcher",
+                  "defender_deaths": 10
+                },
+                {
+                  "attacker": "noah",
+                  "target": "laser_tower",
+                  "defender_deaths": 234
+                },
+                {
+                  "attacker": "sentih",
+                  "target": "longeagle_x",
+                  "defender_deaths": 7
+                }
+              ],
+              "defender_strikes": [
+                {
+                  "attacker": "shakal",
+                  "defender": "longeagle_x",
+                  "attacker_deaths": 1697
+                },
+                {
+                  "attacker": "raider",
+                  "defender": "light_laser_tower",
+                  "attacker_deaths": 0
+                },
+                {
+                  "attacker": "raider",
+                  "defender": "laser_tower",
+                  "attacker_deaths": 75
+                },
+                {
+                  "attacker": "raider",
+                  "defender": "plasma_tower",
+                  "attacker_deaths": 167
+                },
+                {
+                  "attacker": "sentih",
+                  "defender": "rocket_launcher",
+                  "attacker_deaths": 0
+                }
+              ],
+              "power_sums": {
+                "PAA": 1131163,
+                "PDA": 5182341,
+                "PAD": 645817,
+                "PDD": 2224596
+              }
+            },
+            {
+              "round": 2,
+              "troops": {
+                "shakal": {
+                  "attacker_count": 388,
+                  "attacker_deaths": 250,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "raider": {
+                  "attacker_count": 536,
+                  "attacker_deaths": 166,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "camouflage_bomber": {
+                  "attacker_count": 95,
+                  "attacker_deaths": 3,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "noah": {
+                  "attacker_count": 52,
+                  "attacker_deaths": 4,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "longeagle_x": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 8,
+                  "defender_deaths": 6
+                },
+                "sentih": {
+                  "attacker_count": 4,
+                  "attacker_deaths": 1,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "laser_tower": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 56,
+                  "defender_deaths": 56
+                },
+                "plasma_tower": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 45,
+                  "defender_deaths": 41
+                },
+                "rocket_launcher": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 3,
+                  "defender_deaths": 3
+                }
+              },
+              "attacker_strikes": [
+                {
+                  "attacker": "shakal",
+                  "target": "laser_tower",
+                  "defender_deaths": 6
+                },
+                {
+                  "attacker": "raider",
+                  "target": "laser_tower",
+                  "defender_deaths": 41
+                },
+                {
+                  "attacker": "camouflage_bomber",
+                  "target": "rocket_launcher",
+                  "defender_deaths": 2
+                },
+                {
+                  "attacker": "noah",
+                  "target": "plasma_tower",
+                  "defender_deaths": 31
+                },
+                {
+                  "attacker": "sentih",
+                  "target": "longeagle_x",
+                  "defender_deaths": 5
+                }
+              ],
+              "defender_strikes": [
+                {
+                  "attacker": "raider",
+                  "defender": "longeagle_x",
+                  "attacker_deaths": 120
+                },
+                {
+                  "attacker": "raider",
+                  "defender": "laser_tower",
+                  "attacker_deaths": 0
+                },
+                {
+                  "attacker": "raider",
+                  "defender": "plasma_tower",
+                  "attacker_deaths": 29
+                },
+                {
+                  "attacker": "sentih",
+                  "defender": "rocket_launcher",
+                  "attacker_deaths": 0
+                }
+              ],
+              "power_sums": {
+                "PAA": 788113,
+                "PDA": 3776657,
+                "PAD": 215782,
+                "PDD": 895024
+              }
+            },
+            {
+              "round": 3,
+              "troops": {
+                "shakal": {
+                  "attacker_count": 138,
+                  "attacker_deaths": 87,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "raider": {
+                  "attacker_count": 370,
+                  "attacker_deaths": 0,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "camouflage_bomber": {
+                  "attacker_count": 92,
+                  "attacker_deaths": 20,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "noah": {
+                  "attacker_count": 48,
+                  "attacker_deaths": 1,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "longeagle_x": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 2,
+                  "defender_deaths": 2
+                },
+                "sentih": {
+                  "attacker_count": 3,
+                  "attacker_deaths": 0,
+                  "defender_count": 0,
+                  "defender_deaths": 0
+                },
+                "plasma_tower": {
+                  "attacker_count": 0,
+                  "attacker_deaths": 0,
+                  "defender_count": 4,
+                  "defender_deaths": 4
+                }
+              },
+              "attacker_strikes": [
+                {
+                  "attacker": "shakal",
+                  "target": "plasma_tower",
+                  "defender_deaths": 0
+                },
+                {
+                  "attacker": "raider",
+                  "target": "plasma_tower",
+                  "defender_deaths": 4
+                },
+                {
+                  "attacker": "camouflage_bomber",
+                  "target": "longeagle_x",
+                  "defender_deaths": 1
+                },
+                {
+                  "attacker": "noah",
+                  "target": "longeagle_x",
+                  "defender_deaths": 1
+                }
+              ],
+              "defender_strikes": [],
+              "power_sums": {
+                "PAA": 217076,
+                "PDA": 946478,
+                "PAD": 44008,
+                "PDD": 191460
+              }
+            }
+          ]
+        },
+        "legacy": {
+          "troop_order": [
+            "shakal",
+            "raider",
+            "camouflage_bomber",
+            "noah",
+            "sentih",
+            "longeagle_x",
+            "light_laser_tower",
+            "laser_tower",
+            "plasma_tower",
+            "rocket_launcher"
+          ],
+          "rounds_count": 3,
+          "attacker_remaining": {
+            "shakal": 51,
+            "raider": 370,
+            "camouflage_bomber": 72,
+            "noah": 47,
+            "sentih": 3
+          },
+          "defender_remaining": {},
+          "first_divergence": null
+        }
+      }
+    ]
+  }
+}

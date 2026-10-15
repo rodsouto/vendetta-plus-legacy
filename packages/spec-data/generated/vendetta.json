@@ -1,0 +1,1343 @@
+{
+  "ruleset": "vendetta",
+  "resources": [
+    "weapons",
+    "ammunition",
+    "alcohol",
+    "dollar"
+  ],
+  "rules": {
+    "troop_defense_multiplier": 10
+  },
+  "roles": {
+    "build_speed_room": "boss_office",
+    "research_speed_room": "mob_school",
+    "attack_training_room": "boot_camp",
+    "defense_training_room": "security",
+    "cargo_research": "smuggling",
+    "honor_research": "honor",
+    "occupation_troop": "occupation_troop",
+    "spy_troop": "spy"
+  },
+  "buildings": [
+    {
+      "id": "boss_office",
+      "legacy_id": "oficina",
+      "name": "Boss Office",
+      "description": "The Boss can be found in this office and here is where all the decisions are taken. Coordinate the development and speed of other areas' construction. The more level is got; the faster the rest will be developed.",
+      "cost": {
+        "weapons": 100,
+        "ammunition": 200
+      },
+      "base_duration_s": 900,
+      "points_per_level": 6,
+      "requirements": {}
+    },
+    {
+      "id": "mob_school",
+      "legacy_id": "escuela",
+      "name": "Mob School",
+      "description": "As its name suggests, this room makes the training of \"the guys\" on new techniques possible. Allow them to have more experience at combat. In the same way as for the Boss Office, the faster the training is, the faster the abilities will be developed.",
+      "cost": {
+        "weapons": 1000,
+        "ammunition": 1000,
+        "dollar": 25
+      },
+      "base_duration_s": 2000,
+      "points_per_level": 31.75,
+      "requirements": {}
+    },
+    {
+      "id": "weapons_armoury",
+      "legacy_id": "armeria",
+      "name": "Weapons Armoury",
+      "description": "Here, in the Weapons Armoury, as its name suggests, is where the weapons are kept. They will be needed in order to occupy new places and for trainings at combat. The more develop this room is, the more weapons you can make at the same time.",
+      "cost": {
+        "weapons": 12,
+        "ammunition": 60
+      },
+      "base_duration_s": 500,
+      "points_per_level": 2.32,
+      "requirements": {},
+      "production": {
+        "kind": "producer",
+        "resource": "weapons",
+        "factor": 10,
+        "base_rate": 10,
+        "formula": "rate(L) = 10 if L == 0 else 10 + round(10 * ((L+1)/2)^2)"
+      }
+    },
+    {
+      "id": "ammunition_depot",
+      "legacy_id": "municion",
+      "name": "Ammunition Depot",
+      "description": "The ammunition depot is similar to the Weapons Armoury. Here the most important ammunition is manufactured. It is necessary, in bulk, to occupy areas as well as for its use in trainings.",
+      "cost": {
+        "weapons": 9,
+        "ammunition": 15
+      },
+      "base_duration_s": 600,
+      "points_per_level": 1.39,
+      "requirements": {},
+      "production": {
+        "kind": "producer",
+        "resource": "ammunition",
+        "factor": 10,
+        "base_rate": 10,
+        "formula": "rate(L) = 10 if L == 0 else 10 + round(10 * ((L+1)/2)^2)"
+      }
+    },
+    {
+      "id": "brewery",
+      "legacy_id": "cerveceria",
+      "name": "Brewery",
+      "description": "This room manufactures alcohol. Unfortunately (or is it fortunately?) it is forbidden and because of that it is quite required by population, so it is a prosperous business. However, you will need some strategies in order to take it to the citizens.",
+      "cost": {
+        "weapons": 20,
+        "ammunition": 20
+      },
+      "base_duration_s": 1000,
+      "points_per_level": 1.6,
+      "requirements": {},
+      "production": {
+        "kind": "producer",
+        "resource": "alcohol",
+        "factor": 50,
+        "base_rate": 10,
+        "formula": "rate(L) = 10 if L == 0 else 10 + round(50 * ((L+1)/2)^2)"
+      }
+    },
+    {
+      "id": "bar",
+      "legacy_id": "taberna",
+      "name": "Bar",
+      "description": "In the Bar people drink alcohol. Here is where you traffic it. Be careful not to be detected by The Police or you're going to pay dearly for this. Since the Bar is badly supervised, the alcohol conversion is moderate.",
+      "cost": {
+        "weapons": 10,
+        "ammunition": 50
+      },
+      "base_duration_s": 1500,
+      "points_per_level": 2.1,
+      "requirements": {
+        "brewery": 1
+      },
+      "production": {
+        "kind": "converter",
+        "resource": "dollar",
+        "consumes": "alcohol",
+        "factor": 2,
+        "consumption_per_unit": 7,
+        "consumption_fixed": 3,
+        "formula": "rate(L) = 0 if L == 0 else round(2 * ((L+1)/2)^2); consumption(L) = 0 if L == 0 else rate(L) * 7 + 3"
+      }
+    },
+    {
+      "id": "smuggle",
+      "legacy_id": "contrabando",
+      "name": "Smuggle",
+      "description": "Smuggle works better than the Bar. You can sell alcohol with a greater impact, which naturally will benefit the gangster's profit. Unfortunately, this tactic is risky and much more expensive.",
+      "cost": {
+        "weapons": 2000,
+        "ammunition": 5000,
+        "dollar": 500
+      },
+      "base_duration_s": 4000,
+      "points_per_level": 136,
+      "requirements": {
+        "boss_office": 5,
+        "brewery": 8
+      },
+      "production": {
+        "kind": "converter",
+        "resource": "dollar",
+        "consumes": "alcohol",
+        "factor": 21,
+        "consumption_per_unit": 4,
+        "consumption_fixed": 1,
+        "formula": "rate(L) = 0 if L == 0 else round(21 * ((L+1)/2)^2); consumption(L) = 0 if L == 0 else rate(L) * 4 + 1"
+      }
+    },
+    {
+      "id": "weapon_storage",
+      "legacy_id": "almacenArm",
+      "name": "Weapon Storage",
+      "description": "In the Weapon Storage all the armament that is not immediately needed is kept. The process is automatic and the armament is kept there till it is needed. Besides, your enemies can not take your weapons away from this storage.",
+      "cost": {
+        "weapons": 100,
+        "ammunition": 500
+      },
+      "base_duration_s": 9000,
+      "points_per_level": 12,
+      "requirements": {
+        "weapons_armoury": 5
+      },
+      "storage": {
+        "resource": "weapons",
+        "base": 10000,
+        "per_level": 150000,
+        "safe_divisor": 10,
+        "formula": "capacity(L) = 10000 + 150000 * L; safe(L) = capacity(L) / 10"
+      }
+    },
+    {
+      "id": "ammunition_storage",
+      "legacy_id": "deposito",
+      "name": "Ammunition Storage",
+      "description": "The Ammunition Storage functions similarly to the Weapon Storage. Here you keep ammunition boxes and grenades that are not immediately needed. Besides, they are out of danger.",
+      "cost": {
+        "weapons": 500,
+        "ammunition": 600
+      },
+      "base_duration_s": 12000,
+      "points_per_level": 18,
+      "requirements": {
+        "ammunition_depot": 5
+      },
+      "storage": {
+        "resource": "ammunition",
+        "base": 10000,
+        "per_level": 150000,
+        "safe_divisor": 10,
+        "formula": "capacity(L) = 10000 + 150000 * L; safe(L) = capacity(L) / 10"
+      }
+    },
+    {
+      "id": "alcohol_storage",
+      "legacy_id": "almacenAlc",
+      "name": "Alcohol Storage",
+      "description": "Since alcohol distillation is quite simple, the production is high. In order to store it without loosing the excess production, you will need to build an Alcohol Storage. There, it will be out of danger.",
+      "cost": {
+        "weapons": 200,
+        "ammunition": 200
+      },
+      "base_duration_s": 8000,
+      "points_per_level": 7,
+      "requirements": {
+        "brewery": 5
+      },
+      "storage": {
+        "resource": "alcohol",
+        "base": 10000,
+        "per_level": 150000,
+        "safe_divisor": 10,
+        "formula": "capacity(L) = 10000 + 150000 * L; safe(L) = capacity(L) / 10"
+      }
+    },
+    {
+      "id": "safe_room",
+      "legacy_id": "caja",
+      "name": "Safe Room",
+      "description": "After having a successful smuggling, you will get quite a sum of dollars. But, be careful! If you do not want to throw it away, you should use this safe in order to prevent it from disappearing and to prevent liquidity problems.",
+      "cost": {
+        "weapons": 2000,
+        "ammunition": 2000,
+        "dollar": 1000
+      },
+      "base_duration_s": 16000,
+      "points_per_level": 91,
+      "requirements": {
+        "bar": 5
+      },
+      "storage": {
+        "resource": "dollar",
+        "base": 10000,
+        "per_level": 150000,
+        "safe_divisor": 10,
+        "formula": "capacity(L) = 10000 + 150000 * L; safe(L) = capacity(L) / 10"
+      }
+    },
+    {
+      "id": "boot_camp",
+      "legacy_id": "campo",
+      "name": "Boot Camp",
+      "description": "As its name suggests, on the Boot Camp \"your guys\" will train. It will depend on the type of units that you can produce, for example, common criminals, assassins, professionals to whom your enemies will have an extreme respect for. Depending on the level, the units will be created in less time.",
+      "cost": {
+        "weapons": 1000,
+        "ammunition": 2500
+      },
+      "base_duration_s": 5600,
+      "points_per_level": 61,
+      "requirements": {}
+    },
+    {
+      "id": "security",
+      "legacy_id": "seguridad",
+      "name": "Security",
+      "description": "In the same way as the fighters' training in the Boot Camp, here you can train the youngest ones to defend themselves. At first, they will stay permanently, always at home and protecting their rooms against enemies. If your gangsters come back they will automatically fight together.",
+      "cost": {
+        "weapons": 900,
+        "ammunition": 1600,
+        "dollar": 100
+      },
+      "base_duration_s": 6000,
+      "points_per_level": 45,
+      "requirements": {
+        "boot_camp": 2
+      }
+    },
+    {
+      "id": "spring_gun",
+      "legacy_id": "torreta",
+      "name": "Spring Gun",
+      "description": "In order to make the defenders' work lighter, you have some constructions such as this Spring Gun. Technically, they are really advanced and when they detect an enemy they will open fire.",
+      "cost": {
+        "weapons": 1000,
+        "ammunition": 2000,
+        "dollar": 200
+      },
+      "base_duration_s": 4500,
+      "points_per_level": 57,
+      "requirements": {
+        "boss_office": 5
+      }
+    },
+    {
+      "id": "hidden_mines",
+      "legacy_id": "minas",
+      "name": "Hidden Mines",
+      "description": "These Mines are even a more \"pleasant\" help. Your guys will distribute them along the house. When an enemy accidentally steps on it... Good Night!",
+      "cost": {
+        "weapons": 2000,
+        "ammunition": 2000,
+        "dollar": 150
+      },
+      "base_duration_s": 3000,
+      "points_per_level": 65.5,
+      "requirements": {
+        "boss_office": 5
+      }
+    }
+  ],
+  "research": [
+    {
+      "id": "routing",
+      "legacy_id": "rutas",
+      "name": "Routing",
+      "description": "To be more effective in order to achieve the aim as quickly as possible, your guys will have to do this training. Here you will learn to plan routes, travel quietly, and to get closer to the target without being detected, in order to achieve your work as effectively as it could possibly be.",
+      "cost": {
+        "weapons": 500,
+        "ammunition": 1200
+      },
+      "base_duration_s": 2000,
+      "points_per_level": 15.5,
+      "requirements": {}
+    },
+    {
+      "id": "strategies",
+      "legacy_id": "encargos",
+      "name": "Strategies",
+      "description": "Some units (for example the killers) need another form of planning, the job order planning. Here it concerns rather the purpose of employment, and with improved training these fighters can therefore travel faster to the goal.",
+      "cost": {
+        "weapons": 1000,
+        "ammunition": 2500,
+        "dollar": 1000
+      },
+      "base_duration_s": 5000,
+      "points_per_level": 46,
+      "requirements": {
+        "routing": 4
+      }
+    },
+    {
+      "id": "extortion",
+      "legacy_id": "extorsion",
+      "name": "Protection Money Encashment",
+      "description": "This training helps to increase protection funds from enemies. This becomes clear in their combat capability, which continues to rise with more frequent training.",
+      "cost": {
+        "weapons": 1000,
+        "ammunition": 2000
+      },
+      "base_duration_s": 3000,
+      "points_per_level": 26,
+      "requirements": {}
+    },
+    {
+      "id": "base_administration",
+      "legacy_id": "administracion",
+      "name": "Base Administration",
+      "description": "In this branch of training your Occupation Troops are trained, enabling them to occupy distant buildings.",
+      "cost": {
+        "dollar": 5000
+      },
+      "base_duration_s": 14400,
+      "points_per_level": 76,
+      "requirements": {
+        "security_patrol": 5
+      }
+    },
+    {
+      "id": "smuggling",
+      "legacy_id": "contrabando",
+      "name": "Smuggling",
+      "description": "By learning to smuggle, this will teach how to transport the most inconspicuously stolen property under the clothes, so that the attention of the police is not attracted. The better they are trained, the more they can carry.",
+      "cost": {
+        "dollar": 1500
+      },
+      "base_duration_s": 9600,
+      "points_per_level": 23.5,
+      "requirements": {
+        "strategies": 1
+      }
+    },
+    {
+      "id": "espionage",
+      "legacy_id": "espionaje",
+      "name": "Espionage",
+      "description": "In this training it is possible to learn the virtues of espionage. Using this your Spies will be able to achieve valuable information from your enemies.",
+      "cost": {
+        "weapons": 500,
+        "ammunition": 500,
+        "dollar": 300
+      },
+      "base_duration_s": 4200,
+      "points_per_level": 13,
+      "requirements": {}
+    },
+    {
+      "id": "security_patrol",
+      "legacy_id": "seguridad",
+      "name": "Security Patrol",
+      "description": "As the name already betrays, the security training improves the ability of both the gang and building to defend. A greater level reached will enhance your defense and your boys will know to defend themselves with greater effectiveness from attacks.",
+      "cost": {
+        "weapons": 1000,
+        "ammunition": 4000,
+        "dollar": 1000
+      },
+      "base_duration_s": 4000,
+      "points_per_level": 61,
+      "requirements": {}
+    },
+    {
+      "id": "gang_protection",
+      "legacy_id": "proteccion",
+      "name": "Gang Protection",
+      "description": "As with Security Patrol, this will specialise them in the diverse tactics of defense. The initial defence however will be taken from the first level of the group, and not the one level of building defence.",
+      "cost": {
+        "weapons": 3000,
+        "ammunition": 5000,
+        "dollar": 2000
+      },
+      "base_duration_s": 5000,
+      "points_per_level": 96,
+      "requirements": {
+        "security_patrol": 4
+      }
+    },
+    {
+      "id": "close_combat",
+      "legacy_id": "combate",
+      "name": "Close Combat",
+      "description": "Every fighter should have done this education at least once. It concerns close combat and could be useful. Most of your guys will even do this in delight because they become stronger.",
+      "cost": {
+        "weapons": 2000,
+        "ammunition": 2000,
+        "dollar": 3000
+      },
+      "base_duration_s": 6200,
+      "points_per_level": 76,
+      "requirements": {
+        "extortion": 3
+      }
+    },
+    {
+      "id": "short_range_weapons",
+      "legacy_id": "armas",
+      "name": "Short-Ranged Weapon Training",
+      "description": "After close combat mostly the fight with shortrange weapons follow, like knives and such. here the guys also become more skillfull in fighting which helps a lot at brawls or muggings",
+      "cost": {
+        "weapons": 1000,
+        "ammunition": 200,
+        "dollar": 3000
+      },
+      "base_duration_s": 5100,
+      "points_per_level": 53,
+      "requirements": {
+        "extortion": 5
+      }
+    },
+    {
+      "id": "firearms_training",
+      "legacy_id": "tiro",
+      "name": "Firearms Training",
+      "description": "For all who do not want to be too close to the enemy there is only one option: shooting! Here your guys learn how to use rifles right, so that the enemy won't have any time to react before he becomes history.",
+      "cost": {
+        "weapons": 5000,
+        "ammunition": 12000,
+        "dollar": 10000
+      },
+      "base_duration_s": 19200,
+      "points_per_level": 296,
+      "requirements": {
+        "short_range_weapons": 4,
+        "gang_protection": 4
+      }
+    },
+    {
+      "id": "explosives_training",
+      "legacy_id": "explosivos",
+      "name": "Explosives Training",
+      "description": "If it becomes harder, you should go through the following education. With the knowledge of building bombs, the fighters learn how to build from some boring components, an effective and fast dangerous weapon. But only the best among them will learn it.",
+      "cost": {
+        "weapons": 10000,
+        "ammunition": 19500,
+        "dollar": 15000
+      },
+      "base_duration_s": 42000,
+      "points_per_level": 471,
+      "requirements": {
+        "strategies": 4,
+        "close_combat": 4
+      }
+    },
+    {
+      "id": "guerilla_training",
+      "legacy_id": "guerrilla",
+      "name": "Guerilla Training",
+      "description": "In this education the guys will become real men. Here they learn true pain, which will help a lot in later brawls, because they won't flee, but rather will go on until no man is left standing.",
+      "cost": {
+        "weapons": 8000,
+        "ammunition": 10000,
+        "dollar": 12000
+      },
+      "base_duration_s": 20000,
+      "points_per_level": 321,
+      "requirements": {
+        "security_patrol": 6,
+        "firearms_training": 6
+      }
+    },
+    {
+      "id": "psychological_training",
+      "legacy_id": "psicologico",
+      "name": "Psychological Training",
+      "description": "This modern education turns your fighters into fighting machines. The brain washing makes them psychically harder and act calm and strongwilled in conflicts instead of getting in panic.",
+      "cost": {
+        "weapons": 2000,
+        "ammunition": 5000,
+        "dollar": 16000
+      },
+      "base_duration_s": 26000,
+      "points_per_level": 301,
+      "requirements": {
+        "guerilla_training": 4
+      }
+    },
+    {
+      "id": "chemical_training",
+      "legacy_id": "quimico",
+      "name": "Chemical Training",
+      "description": "Who has knowledge in chemistry might not kill anyone but eliminate enemies beforehand. This education is something for professionals and needs a rather long time. The result is worth seeing!",
+      "cost": {
+        "weapons": 4000,
+        "ammunition": 12000,
+        "dollar": 10000
+      },
+      "base_duration_s": 14400,
+      "points_per_level": 291,
+      "requirements": {
+        "explosives_training": 4,
+        "psychological_training": 4
+      }
+    },
+    {
+      "id": "honor",
+      "legacy_id": "honor",
+      "name": "Honor",
+      "description": "As the guys like to make nonsense, the overview who is occupying which building might get lost in time. This education the guys will be reminded who the boss is and you will hold the control over your empire. This one is very long and costly.",
+      "cost": {
+        "dollar": 280000
+      },
+      "base_duration_s": 92000,
+      "points_per_level": 4201,
+      "requirements": {
+        "espionage": 8,
+        "smuggling": 8
+      }
+    }
+  ],
+  "troops": [
+    {
+      "id": "rowdy",
+      "legacy_id": "maton",
+      "name": "Rowdy",
+      "description": "Rowdies are rather simple and naive fighters. But nonetheless they would never let a chance pass to lam enemies. In droves they are very dangerous and will scare away the enemy for sure.",
+      "role": "attack",
+      "trained_at": "boot_camp",
+      "cost": {
+        "weapons": 200,
+        "ammunition": 1000
+      },
+      "training_duration_s": 1400,
+      "points_per_unit": 6,
+      "base_attack": 5,
+      "base_defense": 5,
+      "base_capacity": 200,
+      "base_speed": 1600,
+      "salary": 1,
+      "speed_research": "routing",
+      "requirements": {},
+      "attack_research_bonuses": [],
+      "defense_research_bonuses": [],
+      "combat_modifiers": {
+        "clandestine_workers": 1.3,
+        "demolition_expert": 2
+      }
+    },
+    {
+      "id": "bouncer",
+      "legacy_id": "portero",
+      "name": "Bouncer",
+      "description": "The bouncer is more calm than the rowdie, because he is used to crowds and conflicts. But he is the same calibre and easily rages what the enemies will feel.",
+      "role": "attack",
+      "trained_at": "boot_camp",
+      "cost": {
+        "weapons": 500,
+        "ammunition": 800
+      },
+      "training_duration_s": 1600,
+      "points_per_unit": 6,
+      "base_attack": 8,
+      "base_defense": 6,
+      "base_capacity": 400,
+      "base_speed": 2000,
+      "salary": 1,
+      "speed_research": "routing",
+      "requirements": {
+        "extortion": 2
+      },
+      "attack_research_bonuses": [
+        "extortion"
+      ],
+      "defense_research_bonuses": [
+        "extortion",
+        "security_patrol"
+      ],
+      "combat_modifiers": {
+        "knifer": 1.5,
+        "guards": 1.8,
+        "fbi_agent": 0.5
+      }
+    },
+    {
+      "id": "knifer",
+      "legacy_id": "acuchillador",
+      "name": "Knifer",
+      "description": "When a rowdy gets a knife he will become a knifer. Like this the formula might look alike because also that guy is not very professional. But he is still dangerous, as the knife is not made of wood...",
+      "role": "attack",
+      "trained_at": "boot_camp",
+      "cost": {
+        "weapons": 1000,
+        "ammunition": 200
+      },
+      "training_duration_s": 2000,
+      "points_per_unit": 4,
+      "base_attack": 10,
+      "base_defense": 4,
+      "base_capacity": 300,
+      "base_speed": 2500,
+      "salary": 1,
+      "speed_research": "routing",
+      "requirements": {
+        "extortion": 4
+      },
+      "attack_research_bonuses": [
+        "extortion",
+        "short_range_weapons"
+      ],
+      "defense_research_bonuses": [
+        "extortion",
+        "close_combat"
+      ],
+      "combat_modifiers": {
+        "rowdy": 1.2,
+        "spy": 0.5
+      }
+    },
+    {
+      "id": "gunman",
+      "legacy_id": "pistolero",
+      "name": "Gunman",
+      "description": "Combined with a gun this guy is even a challenge for the enemies. After a little shooting training those guys are not that bad for the first battles.",
+      "role": "attack",
+      "trained_at": "boot_camp",
+      "cost": {
+        "weapons": 2000,
+        "ammunition": 3000
+      },
+      "training_duration_s": 1200,
+      "points_per_unit": 21,
+      "base_attack": 30,
+      "base_defense": 10,
+      "base_capacity": 500,
+      "base_speed": 2400,
+      "salary": 2,
+      "speed_research": "routing",
+      "requirements": {
+        "firearms_training": 2
+      },
+      "attack_research_bonuses": [
+        "firearms_training"
+      ],
+      "defense_research_bonuses": [
+        "security_patrol",
+        "gang_protection"
+      ],
+      "combat_modifiers": {
+        "bouncer": 1.5,
+        "carrier": 1.2,
+        "mover": 0.8
+      }
+    },
+    {
+      "id": "occupation_troop",
+      "legacy_id": "ocupacion",
+      "name": "Occupation Troop",
+      "description": "The occupation group is a time of building workers so that they can occupy new rooms. They reconstruct the whole entry hall and arrange their quarters. The occupation of new buildings only works with this troop.",
+      "role": "attack",
+      "trained_at": "boot_camp",
+      "cost": {
+        "weapons": 20000,
+        "ammunition": 10000,
+        "dollar": 20000
+      },
+      "training_duration_s": 344000,
+      "points_per_unit": 251,
+      "base_attack": 1,
+      "base_defense": 10,
+      "base_capacity": 3000,
+      "base_speed": 2000,
+      "salary": 300,
+      "speed_research": "strategies",
+      "requirements": {
+        "routing": 5
+      },
+      "attack_research_bonuses": [],
+      "defense_research_bonuses": [],
+      "combat_modifiers": {}
+    },
+    {
+      "id": "spy",
+      "legacy_id": "espia",
+      "name": "Spy",
+      "description": "The spy is sneaky, fast and precise. But not in a fight, but more to receive information. He spies for you on enemies and give you the information directly. But he will mostly be killed if the enemy is at home.",
+      "role": "attack",
+      "trained_at": "boot_camp",
+      "cost": {
+        "weapons": 500,
+        "ammunition": 200
+      },
+      "training_duration_s": 14000,
+      "points_per_unit": 3,
+      "base_attack": 1,
+      "base_defense": 1,
+      "base_capacity": 50,
+      "base_speed": 400000,
+      "salary": 1,
+      "speed_research": "strategies",
+      "requirements": {
+        "espionage": 2
+      },
+      "attack_research_bonuses": [
+        "espionage"
+      ],
+      "defense_research_bonuses": [
+        "espionage"
+      ],
+      "combat_modifiers": {}
+    },
+    {
+      "id": "mover",
+      "legacy_id": "porteador",
+      "name": "Mover",
+      "description": "The mover is a civil unit because he carries things. Therefore you better should better pick him up as a transport unit rather than a fighter.",
+      "role": "attack",
+      "trained_at": "boot_camp",
+      "cost": {
+        "weapons": 300,
+        "ammunition": 100,
+        "dollar": 1000
+      },
+      "training_duration_s": 3600,
+      "points_per_unit": 9,
+      "base_attack": 4,
+      "base_defense": 6,
+      "base_capacity": 10000,
+      "base_speed": 2400,
+      "salary": 5,
+      "speed_research": "strategies",
+      "requirements": {},
+      "attack_research_bonuses": [
+        "close_combat"
+      ],
+      "defense_research_bonuses": [
+        "close_combat"
+      ],
+      "combat_modifiers": {}
+    },
+    {
+      "id": "cia_agent",
+      "legacy_id": "cia",
+      "name": "CIA Agent",
+      "description": "This man here is from the CIA and as such very well trained already. But he is not loyal at all and has to be trained a while, which will be very costly. In the end though he is an effective weapon against enemies because he should already have taken up most educations.",
+      "role": "attack",
+      "trained_at": "boot_camp",
+      "cost": {
+        "weapons": 7000,
+        "ammunition": 10000,
+        "dollar": 2500
+      },
+      "training_duration_s": 17000,
+      "points_per_unit": 87,
+      "base_attack": 100,
+      "base_defense": 90,
+      "base_capacity": 3000,
+      "base_speed": 3400,
+      "salary": 30,
+      "speed_research": "strategies",
+      "requirements": {
+        "guerilla_training": 3,
+        "strategies": 3
+      },
+      "attack_research_bonuses": [
+        "short_range_weapons",
+        "firearms_training",
+        "guerilla_training"
+      ],
+      "defense_research_bonuses": [
+        "gang_protection",
+        "guerilla_training"
+      ],
+      "combat_modifiers": {
+        "tactical_expert": 1.5,
+        "sniper": 1.3
+      }
+    },
+    {
+      "id": "fbi_agent",
+      "legacy_id": "fbi",
+      "name": "FBI Agent",
+      "description": "If you can poach an agent from the FBI, you should be happy. Those guys sometimes may run away when it becomes stiff, but they do everything way more intelligent than the rowdies in your gang, because they are better educated.",
+      "role": "attack",
+      "trained_at": "boot_camp",
+      "cost": {
+        "weapons": 4000,
+        "ammunition": 6000,
+        "dollar": 1000
+      },
+      "training_duration_s": 15500,
+      "points_per_unit": 48,
+      "base_attack": 60,
+      "base_defense": 50,
+      "base_capacity": 2000,
+      "base_speed": 3000,
+      "salary": 20,
+      "speed_research": "strategies",
+      "requirements": {
+        "firearms_training": 2
+      },
+      "attack_research_bonuses": [
+        "gang_protection",
+        "firearms_training"
+      ],
+      "defense_research_bonuses": [
+        "gang_protection",
+        "firearms_training"
+      ],
+      "combat_modifiers": {
+        "assassin": 1.8,
+        "cia_agent": 0.6
+      }
+    },
+    {
+      "id": "carrier",
+      "legacy_id": "transportista",
+      "name": "Carrier",
+      "description": "Very much like the mover is this man here. More a civilist, he can carry a lot and his education is not very costly, so you shouldn't make him suffer with bloody massacres.",
+      "role": "attack",
+      "trained_at": "boot_camp",
+      "cost": {
+        "weapons": 1000,
+        "ammunition": 2000,
+        "dollar": 5000
+      },
+      "training_duration_s": 17200,
+      "points_per_unit": 51,
+      "base_attack": 6,
+      "base_defense": 8,
+      "base_capacity": 40000,
+      "base_speed": 5000,
+      "salary": 10,
+      "speed_research": "strategies",
+      "requirements": {
+        "psychological_training": 4
+      },
+      "attack_research_bonuses": [
+        "psychological_training"
+      ],
+      "defense_research_bonuses": [
+        "gang_protection",
+        "psychological_training"
+      ],
+      "combat_modifiers": {}
+    },
+    {
+      "id": "tactical_expert",
+      "legacy_id": "tactico",
+      "name": "Tactical Expert",
+      "description": "The problem solver is more of a professional. he knows about anatomy, knows how to speak decently and knows how to behave in public. But he is a badass in fighting, so here he got his name as it seems.",
+      "role": "attack",
+      "trained_at": "boot_camp",
+      "cost": {
+        "weapons": 5000,
+        "ammunition": 10000,
+        "dollar": 4000
+      },
+      "training_duration_s": 20000,
+      "points_per_unit": 93,
+      "base_attack": 120,
+      "base_defense": 150,
+      "base_capacity": 4000,
+      "base_speed": 4000,
+      "salary": 40,
+      "speed_research": "strategies",
+      "requirements": {
+        "firearms_training": 5,
+        "chemical_training": 3
+      },
+      "legacy_attack_research_bonuses": [
+        "close_combat",
+        "firearms_training",
+        "psychological_training",
+        "firearms_training"
+      ],
+      "attack_research_bonuses": [
+        "close_combat",
+        "firearms_training",
+        "psychological_training"
+      ],
+      "legacy_defense_research_bonuses": [
+        "close_combat",
+        "firearms_training",
+        "psychological_training",
+        "firearms_training"
+      ],
+      "defense_research_bonuses": [
+        "close_combat",
+        "firearms_training",
+        "psychological_training"
+      ],
+      "combat_modifiers": {
+        "bodyguard": 1.8,
+        "ninja": 0.8
+      },
+      "legacy_notes": [
+        "Legacy $_bonificacionesA lists firearms_training more than once, so the PHP sums that level twice. Spec counts it once (decision D-05).",
+        "Legacy $_bonificacionesD lists firearms_training more than once, so the PHP sums that level twice. Spec counts it once (decision D-05)."
+      ]
+    },
+    {
+      "id": "sniper",
+      "legacy_id": "francotirador",
+      "name": "Sniper",
+      "description": "Are the enemies represented too strong and do they need purposeful attention? Then they select the sniper, who is by the nature of their training very precise and loyal. However, it is not suited very well defensively.",
+      "role": "attack",
+      "trained_at": "boot_camp",
+      "cost": {
+        "weapons": 4000,
+        "ammunition": 500,
+        "dollar": 2000
+      },
+      "training_duration_s": 25000,
+      "points_per_unit": 28,
+      "base_attack": 200,
+      "base_defense": 10,
+      "base_capacity": 1000,
+      "base_speed": 6000,
+      "salary": 20,
+      "speed_research": "strategies",
+      "requirements": {
+        "psychological_training": 5,
+        "guerilla_training": 5
+      },
+      "attack_research_bonuses": [
+        "security_patrol",
+        "firearms_training",
+        "guerilla_training",
+        "psychological_training"
+      ],
+      "defense_research_bonuses": [
+        "firearms_training",
+        "guerilla_training",
+        "psychological_training"
+      ],
+      "combat_modifiers": {
+        "guards": 2
+      }
+    },
+    {
+      "id": "assassin",
+      "legacy_id": "asesino",
+      "name": "Assassin",
+      "description": "The professional killer is the improved sharpshooter. He might be only loyal to the dollar, but is very well to kill the enemies or to defend the base. He is simply a master of his subject.",
+      "role": "attack",
+      "trained_at": "boot_camp",
+      "cost": {
+        "weapons": 10000,
+        "ammunition": 15000,
+        "dollar": 10000
+      },
+      "training_duration_s": 6000,
+      "points_per_unit": 176,
+      "base_attack": 300,
+      "base_defense": 200,
+      "base_capacity": 2000,
+      "base_speed": 6500,
+      "salary": 45,
+      "speed_research": "strategies",
+      "requirements": {
+        "psychological_training": 7,
+        "gang_protection": 7
+      },
+      "attack_research_bonuses": [
+        "security_patrol",
+        "gang_protection",
+        "firearms_training",
+        "guerilla_training",
+        "psychological_training"
+      ],
+      "defense_research_bonuses": [
+        "security_patrol",
+        "gang_protection",
+        "firearms_training",
+        "guerilla_training",
+        "psychological_training"
+      ],
+      "combat_modifiers": {
+        "safeguard": 1.4,
+        "mercenary": 2
+      }
+    },
+    {
+      "id": "ninja",
+      "legacy_id": "ninja",
+      "name": "Ninja",
+      "description": "There is only little known about ninjas. They are known to be extremely loyal and a deadly weapon alive; professional as can be.",
+      "role": "attack",
+      "trained_at": "boot_camp",
+      "cost": {
+        "weapons": 2000,
+        "ammunition": 1000,
+        "dollar": 30000
+      },
+      "training_duration_s": 40000,
+      "points_per_unit": 236,
+      "base_attack": 400,
+      "base_defense": 600,
+      "base_capacity": 5000,
+      "base_speed": 8000,
+      "salary": 50,
+      "speed_research": "strategies",
+      "requirements": {
+        "guerilla_training": 8
+      },
+      "attack_research_bonuses": [
+        "close_combat",
+        "short_range_weapons",
+        "guerilla_training",
+        "psychological_training"
+      ],
+      "defense_research_bonuses": [
+        "close_combat",
+        "short_range_weapons",
+        "guerilla_training",
+        "psychological_training"
+      ],
+      "combat_modifiers": {
+        "carrier": 1.8,
+        "bouncer": 1.5
+      }
+    },
+    {
+      "id": "demolition_expert",
+      "legacy_id": "demoliciones",
+      "name": "Demolition Expert",
+      "description": "To kill several enemies at once, you should use this guy. he might be not good physically in fighting, but the advantages are clear. He might work wonders with a good education.",
+      "role": "attack",
+      "trained_at": "boot_camp",
+      "cost": {
+        "weapons": 40000,
+        "ammunition": 6000,
+        "dollar": 20000
+      },
+      "training_duration_s": 60000,
+      "points_per_unit": 281,
+      "base_attack": 2000,
+      "base_defense": 200,
+      "base_capacity": 2500,
+      "base_speed": 3500,
+      "salary": 60,
+      "speed_research": "strategies",
+      "requirements": {
+        "explosives_training": 6,
+        "chemical_training": 8
+      },
+      "attack_research_bonuses": [
+        "explosives_training",
+        "psychological_training",
+        "chemical_training"
+      ],
+      "defense_research_bonuses": [
+        "explosives_training",
+        "psychological_training",
+        "chemical_training"
+      ],
+      "combat_modifiers": {
+        "gunman": 1.5,
+        "policeman": 1.8
+      }
+    },
+    {
+      "id": "mercenary",
+      "legacy_id": "mercenario",
+      "name": "Mercenary",
+      "description": "This is the ultimate rambo. He is fast, precise, loyal and armed up to the teeth, so that enemies are not really happy when they hear about it. The only disadvantage might be the price.",
+      "role": "attack",
+      "trained_at": "boot_camp",
+      "cost": {
+        "weapons": 80000,
+        "ammunition": 120000,
+        "dollar": 50000
+      },
+      "training_duration_s": 144000,
+      "points_per_unit": 1176,
+      "base_attack": 1000,
+      "base_defense": 1200,
+      "base_capacity": 12000,
+      "base_speed": 4500,
+      "salary": 70,
+      "speed_research": "strategies",
+      "requirements": {
+        "guerilla_training": 9,
+        "close_combat": 9,
+        "gang_protection": 9
+      },
+      "attack_research_bonuses": [
+        "espionage",
+        "security_patrol",
+        "gang_protection",
+        "close_combat",
+        "short_range_weapons",
+        "firearms_training",
+        "guerilla_training",
+        "psychological_training"
+      ],
+      "defense_research_bonuses": [
+        "espionage",
+        "security_patrol",
+        "gang_protection",
+        "close_combat",
+        "short_range_weapons",
+        "firearms_training",
+        "guerilla_training",
+        "psychological_training"
+      ],
+      "combat_modifiers": {
+        "tactical_expert": 1.4,
+        "demolition_expert": 1.2,
+        "rowdy": 0.5
+      }
+    },
+    {
+      "id": "clandestine_workers",
+      "legacy_id": "ilegal",
+      "name": "Clandestine Workers",
+      "description": "This worker is not much of a fighter, but for fodder that is more than enough. Since he is so cheap he is set to defend your building and once he sets eyes on an enemy he goes in for a brawl.",
+      "role": "defense",
+      "trained_at": "security",
+      "cost": {
+        "weapons": 500,
+        "ammunition": 500
+      },
+      "training_duration_s": 1000,
+      "points_per_unit": 4,
+      "base_attack": 15,
+      "base_defense": 15,
+      "base_capacity": null,
+      "base_speed": null,
+      "salary": null,
+      "speed_research": null,
+      "requirements": {},
+      "attack_research_bonuses": [
+        "close_combat"
+      ],
+      "defense_research_bonuses": [
+        "close_combat"
+      ],
+      "combat_modifiers": {
+        "mover": 2
+      }
+    },
+    {
+      "id": "safeguard",
+      "legacy_id": "centinela",
+      "name": "Safeguard",
+      "description": "This one is better than his buddy, he allready knows the basic tactics and can move arround a lot easier which is a bonus to his fighting abilities. For early game protection this actually is not bad.",
+      "role": "defense",
+      "trained_at": "security",
+      "cost": {
+        "weapons": 2000,
+        "ammunition": 3000,
+        "dollar": 100
+      },
+      "training_duration_s": 2500,
+      "points_per_unit": 21,
+      "base_attack": 40,
+      "base_defense": 50,
+      "base_capacity": null,
+      "base_speed": null,
+      "salary": null,
+      "speed_research": null,
+      "requirements": {
+        "security_patrol": 2
+      },
+      "attack_research_bonuses": [
+        "security_patrol",
+        "close_combat",
+        "short_range_weapons"
+      ],
+      "defense_research_bonuses": [
+        "security_patrol",
+        "close_combat",
+        "short_range_weapons"
+      ],
+      "combat_modifiers": {
+        "rowdy": 1.8
+      }
+    },
+    {
+      "id": "policeman",
+      "legacy_id": "policia",
+      "name": "Policeman",
+      "description": "The police is not paid that well arround here, which leaves you to make them an offer they cannot reject. After their shifts they just come by and hang out in your buildings. They have been trained well so they are actually worth something in a fight.",
+      "role": "defense",
+      "trained_at": "security",
+      "cost": {
+        "weapons": 5000,
+        "ammunition": 7500,
+        "dollar": 500
+      },
+      "training_duration_s": 6000,
+      "points_per_unit": 54,
+      "base_attack": 60,
+      "base_defense": 80,
+      "base_capacity": null,
+      "base_speed": null,
+      "salary": null,
+      "speed_research": null,
+      "requirements": {
+        "close_combat": 4,
+        "firearms_training": 4
+      },
+      "attack_research_bonuses": [
+        "security_patrol",
+        "gang_protection",
+        "close_combat",
+        "firearms_training"
+      ],
+      "defense_research_bonuses": [
+        "security_patrol",
+        "gang_protection",
+        "firearms_training"
+      ],
+      "combat_modifiers": {
+        "tactical_expert": 0.6,
+        "cia_agent": 1.9,
+        "fbi_agent": 2
+      }
+    },
+    {
+      "id": "bodyguard",
+      "legacy_id": "guardaespaldas",
+      "name": "Bodyguard",
+      "description": "If you do not want to depend on foreign aid, such as policemen, what do you do? train thugs yourself. In this case the bodyguard is your man. A loyal and diligent butcher who does not let a few bullets slow him down.",
+      "role": "defense",
+      "trained_at": "security",
+      "cost": {
+        "weapons": 3000,
+        "ammunition": 1000,
+        "dollar": 4000
+      },
+      "training_duration_s": 15600,
+      "points_per_unit": 43,
+      "base_attack": 100,
+      "base_defense": 250,
+      "base_capacity": null,
+      "base_speed": null,
+      "salary": null,
+      "speed_research": null,
+      "requirements": {
+        "gang_protection": 6,
+        "close_combat": 5
+      },
+      "attack_research_bonuses": [
+        "security_patrol",
+        "gang_protection",
+        "close_combat",
+        "firearms_training",
+        "guerilla_training"
+      ],
+      "defense_research_bonuses": [
+        "security_patrol",
+        "gang_protection",
+        "guerilla_training"
+      ],
+      "combat_modifiers": {
+        "assassin": 1.5,
+        "ninja": 1.8,
+        "mover": 0.5
+      }
+    },
+    {
+      "id": "guards",
+      "legacy_id": "guardia",
+      "name": "Guards",
+      "description": "The cream of the crop of security patrol. Just as in royal castles this is a master of his trait. He knows all routes in and out of a building, every hiding spot and tactical advantagepoint, getting past him is a huge feat for your enemies.",
+      "role": "defense",
+      "trained_at": "security",
+      "cost": {
+        "weapons": 15000,
+        "ammunition": 40000,
+        "dollar": 20000
+      },
+      "training_duration_s": 20000,
+      "points_per_unit": 388,
+      "base_attack": 400,
+      "base_defense": 500,
+      "base_capacity": null,
+      "base_speed": null,
+      "salary": null,
+      "speed_research": null,
+      "requirements": {
+        "guerilla_training": 8,
+        "psychological_training": 6
+      },
+      "attack_research_bonuses": [
+        "security_patrol",
+        "close_combat",
+        "firearms_training",
+        "guerilla_training",
+        "psychological_training"
+      ],
+      "defense_research_bonuses": [
+        "security_patrol",
+        "gang_protection",
+        "firearms_training",
+        "guerilla_training",
+        "psychological_training"
+      ],
+      "combat_modifiers": {
+        "ninja": 2.1
+      }
+    }
+  ]
+}

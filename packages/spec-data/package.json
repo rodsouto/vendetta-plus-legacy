@@ -1,0 +1,21 @@
+{
+  "name": "@vendetta/spec-data",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./vectors": "./src/vectors.ts",
+    "./generated/*": "./generated/*"
+  },
+  "scripts": {
+    "codegen": "tsx scripts/build.ts",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.0",
+    "tsx": "^4.20.0",
+    "yaml": "^2.8.0"
+  }
+}

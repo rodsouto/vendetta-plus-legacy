@@ -1,0 +1,1306 @@
+{
+  "ruleset": "space4k",
+  "resources": [
+    "iron",
+    "lutinum",
+    "water",
+    "hydrogen"
+  ],
+  "rules": {
+    "troop_defense_multiplier": 1
+  },
+  "roles": {
+    "build_speed_room": "headquarter",
+    "research_speed_room": "research_lab",
+    "attack_training_room": "shipyard",
+    "defense_training_room": "orbital_defense_station",
+    "cargo_research": "enhanced_cargo_capacity",
+    "honor_research": "diplomacy",
+    "occupation_troop": "colony_ship",
+    "spy_troop": "espionage_probe"
+  },
+  "buildings": [
+    {
+      "id": "headquarter",
+      "legacy_id": "centroOperaciones",
+      "name": "Headquarter",
+      "description": "This building is part of the backbone of your planet. Construction orders are processed here and the command center directs as necessary.",
+      "cost": {
+        "iron": 150,
+        "lutinum": 100
+      },
+      "base_duration_s": 1200,
+      "points_per_level": 4.5,
+      "requirements": {}
+    },
+    {
+      "id": "research_lab",
+      "legacy_id": "centroInvestigacion",
+      "name": "Research Lab",
+      "description": "This building allows you to store the acquired knowledge to find new technologies needed to expand your empire. Your scientists will have access to technology and research complex with each level improvement.",
+      "cost": {
+        "iron": 150,
+        "lutinum": 100
+      },
+      "base_duration_s": 3000,
+      "points_per_level": 7.15,
+      "requirements": {}
+    },
+    {
+      "id": "iron_mine",
+      "legacy_id": "minaHierro",
+      "name": "Iron Mine",
+      "description": "Another basic part of your infrastructure. Iron is needed for many of your daily tasks, and with a high level, you will increase your chances of spread out immediately. Even a farmer, once said: The iron is the gold of our days!",
+      "cost": {
+        "iron": 10,
+        "lutinum": 5
+      },
+      "base_duration_s": 400,
+      "points_per_level": 1.2,
+      "requirements": {},
+      "production": {
+        "kind": "producer",
+        "resource": "iron",
+        "factor": 10,
+        "base_rate": 10,
+        "formula": "rate(L) = 10 if L == 0 else 10 + round(10 * ((L+1)/2)^2)"
+      }
+    },
+    {
+      "id": "lutinum_refinery",
+      "legacy_id": "refineriaLutino",
+      "name": "Lutinum Refinery",
+      "description": "Lutinium is necessary for advanced electronics and some special alloys. Make sure you always have a good amount stored. The refinery, enhanced to remove from your planet.",
+      "cost": {
+        "iron": 60,
+        "lutinum": 10
+      },
+      "base_duration_s": 450,
+      "points_per_level": 1.8,
+      "requirements": {},
+      "production": {
+        "kind": "producer",
+        "resource": "lutinum",
+        "factor": 10,
+        "base_rate": 10,
+        "formula": "rate(L) = 10 if L == 0 else 10 + round(10 * ((L+1)/2)^2)"
+      }
+    },
+    {
+      "id": "drilling_rig",
+      "legacy_id": "plataformaPerforacion",
+      "name": "Drilling Rig",
+      "description": "From the depths of the oceans of your planet, these platforms draw water, without disturbing the inhabitants. If your world has no water supply, or the temperature exceeds 100C, you will be unable to use it. You can get small amounts if the temperature is below 0C. In both cases, it is essential to purchase water (or hydrogen) in addition, to cater to your planet.",
+      "cost": {
+        "iron": 20,
+        "lutinum": 15
+      },
+      "base_duration_s": 300,
+      "points_per_level": 1.5,
+      "requirements": {},
+      "production": {
+        "kind": "producer",
+        "resource": "water",
+        "factor": 10,
+        "base_rate": 10,
+        "formula": "rate(L) = 10 if L == 0 else 10 + round(10 * ((L+1)/2)^2)"
+      }
+    },
+    {
+      "id": "chemical_plant",
+      "legacy_id": "plQuimica",
+      "name": "Chemical Plant",
+      "description": "Essential for the production of fuel. Hydrogen, when used as fuel, is one of the most needed materials throughout the galaxy. The amount of hydrogen produced increases with each improvement in your building.",
+      "cost": {
+        "iron": 40,
+        "lutinum": 30
+      },
+      "base_duration_s": 1000,
+      "points_per_level": 2,
+      "requirements": {
+        "drilling_rig": 1
+      },
+      "production": {
+        "kind": "converter",
+        "resource": "hydrogen",
+        "consumes": "water",
+        "factor": 2,
+        "consumption_per_unit": 7,
+        "consumption_fixed": 3,
+        "formula": "rate(L) = 0 if L == 0 else round(2 * ((L+1)/2)^2); consumption(L) = 0 if L == 0 else rate(L) * 7 + 3"
+      }
+    },
+    {
+      "id": "enhanced_chemical_plant",
+      "legacy_id": "plQuimicaMejorada",
+      "name": "Enhanced chemical plant",
+      "description": "The hydrogen production process is optimized in this building. After investing a lot of research and resources, have access to use hydrogen to produce more without spending more water than necessary.",
+      "cost": {
+        "iron": 10000,
+        "lutinum": 10000,
+        "hydrogen": 500
+      },
+      "base_duration_s": 2000,
+      "points_per_level": 316,
+      "requirements": {
+        "headquarter": 4,
+        "chemical_plant": 5
+      },
+      "production": {
+        "kind": "converter",
+        "resource": "hydrogen",
+        "consumes": "water",
+        "factor": 21,
+        "consumption_per_unit": 4,
+        "consumption_fixed": 1,
+        "formula": "rate(L) = 0 if L == 0 else round(21 * ((L+1)/2)^2); consumption(L) = 0 if L == 0 else rate(L) * 4 + 1"
+      }
+    },
+    {
+      "id": "iron_storage",
+      "legacy_id": "almacenHierro",
+      "name": "Iron storage",
+      "description": "As the name implies, it is used to store iron.",
+      "cost": {
+        "iron": 400
+      },
+      "base_duration_s": 1500,
+      "points_per_level": 5,
+      "requirements": {
+        "iron_mine": 5
+      },
+      "storage": {
+        "resource": "iron",
+        "base": 10000,
+        "per_level": 150000,
+        "safe_divisor": 10,
+        "formula": "capacity(L) = 10000 + 150000 * L; safe(L) = capacity(L) / 10"
+      }
+    },
+    {
+      "id": "lutinum_storage",
+      "legacy_id": "depositoLutino",
+      "name": "Lutinum storage",
+      "description": "To store lutinium",
+      "cost": {
+        "iron": 200,
+        "lutinum": 200
+      },
+      "base_duration_s": 1800,
+      "points_per_level": 7,
+      "requirements": {
+        "lutinum_refinery": 5
+      },
+      "storage": {
+        "resource": "lutinum",
+        "base": 10000,
+        "per_level": 150000,
+        "safe_divisor": 10,
+        "formula": "capacity(L) = 10000 + 150000 * L; safe(L) = capacity(L) / 10"
+      }
+    },
+    {
+      "id": "water_tank",
+      "legacy_id": "tanqueAgua",
+      "name": "Water tank",
+      "description": "This water is stored to be sent to the chemical plant. This tank is usually located next to it.",
+      "cost": {
+        "iron": 150
+      },
+      "base_duration_s": 1000,
+      "points_per_level": 2.5,
+      "requirements": {
+        "drilling_rig": 2
+      },
+      "storage": {
+        "resource": "water",
+        "base": 10000,
+        "per_level": 150000,
+        "safe_divisor": 10,
+        "formula": "capacity(L) = 10000 + 150000 * L; safe(L) = capacity(L) / 10"
+      }
+    },
+    {
+      "id": "hydrogen_tank",
+      "legacy_id": "tanqueHidrogeno",
+      "name": "Hydrogen tank",
+      "description": "Stores hydrogen required to supply your fleet on long trips. Without hydrogen, your fleet wander through outer space without any help.",
+      "cost": {
+        "iron": 600,
+        "lutinum": 1000,
+        "hydrogen": 500
+      },
+      "base_duration_s": 1000,
+      "points_per_level": 42,
+      "requirements": {
+        "enhanced_chemical_plant": 1
+      },
+      "storage": {
+        "resource": "hydrogen",
+        "base": 10000,
+        "per_level": 150000,
+        "safe_divisor": 10,
+        "formula": "capacity(L) = 10000 + 150000 * L; safe(L) = capacity(L) / 10"
+      }
+    },
+    {
+      "id": "shipyard",
+      "legacy_id": "hangar",
+      "name": "Shipyard",
+      "description": "Ships are made here. Without this building is impossible to develop a large fleet that allows you to defend your planet or attack your enemies. Successive improvements of the hangar give you access to superior ships necessary to keep your fleet up to date. These developments can be studied in the research center once you have the necessary requirements",
+      "cost": {
+        "iron": 1000,
+        "lutinum": 2000
+      },
+      "base_duration_s": 9600,
+      "points_per_level": 51,
+      "requirements": {}
+    },
+    {
+      "id": "orbital_defense_station",
+      "legacy_id": "estacionDefensa",
+      "name": "Orbital defense station",
+      "description": "The station can be equipped with many towers, to be very effective against enemy fleets and able to help fleets stationed in defense during a battle. Defense towers are built faster and faster with each upgrade.",
+      "cost": {
+        "iron": 1200,
+        "lutinum": 600,
+        "hydrogen": 50
+      },
+      "base_duration_s": 8400,
+      "points_per_level": 26.5,
+      "requirements": {
+        "research_lab": 1,
+        "shipyard": 1
+      }
+    },
+    {
+      "id": "planetary_shield",
+      "legacy_id": "escudoPlanetario",
+      "name": "Planetary shield",
+      "description": "The planetary shield covers your entire planet to protect your people from attacks by enemy ships, absorbing the impact of projectiles. Each level increases your strength.",
+      "cost": {
+        "iron": 6000,
+        "lutinum": 8000,
+        "hydrogen": 1000
+      },
+      "base_duration_s": 14400,
+      "points_per_level": 251,
+      "requirements": {
+        "fusion_powerplant": 4
+      }
+    },
+    {
+      "id": "fusion_powerplant",
+      "legacy_id": "centralEnergetica",
+      "name": "Fusion Powerplant",
+      "description": "It is necessary to supply the planetary shield with the huge amount of energy you need, permanently. The amount of energy available constantly, successively increases with each level.",
+      "cost": {
+        "iron": 3000,
+        "lutinum": 2500,
+        "hydrogen": 1500
+      },
+      "base_duration_s": 8400,
+      "points_per_level": 126,
+      "requirements": {
+        "orbital_defense_station": 5
+      }
+    }
+  ],
+  "research": [
+    {
+      "id": "combustion_engine",
+      "legacy_id": "motorCombustion",
+      "name": "Combustion engine",
+      "description": "Propulsion system for smaller ships",
+      "cost": {
+        "iron": 1000
+      },
+      "base_duration_s": 400,
+      "points_per_level": 6,
+      "requirements": {}
+    },
+    {
+      "id": "ion_engine",
+      "legacy_id": "motorIonico",
+      "name": "Ion engine",
+      "description": "A better and faster propulstion system than its combustion version",
+      "cost": {
+        "iron": 600,
+        "lutinum": 2000,
+        "hydrogen": 200
+      },
+      "base_duration_s": 960,
+      "points_per_level": 27,
+      "requirements": {
+        "combustion_engine": 3
+      }
+    },
+    {
+      "id": "space_curvature_propulsion",
+      "legacy_id": "propulsionEspacio",
+      "name": "Space-curvature propulsion",
+      "description": "This is an economical and faster propulsion system for larger ships.",
+      "cost": {
+        "hydrogen": 20000
+      },
+      "base_duration_s": 1200,
+      "points_per_level": 301,
+      "requirements": {
+        "ion_engine": 4
+      }
+    },
+    {
+      "id": "colonization_tech",
+      "legacy_id": "tecColonizacion",
+      "name": "Colonization tech",
+      "description": "You can colonise systems and galaxies further and further away with each improvement",
+      "cost": {
+        "iron": 1500,
+        "lutinum": 600,
+        "hydrogen": 4000
+      },
+      "base_duration_s": 7240,
+      "points_per_level": 74.5,
+      "requirements": {}
+    },
+    {
+      "id": "enhanced_cargo_capacity",
+      "legacy_id": "capCargaMejorada",
+      "name": "Enhanced cargo capacity",
+      "description": "Increases the capacity of all ships.",
+      "cost": {
+        "lutinum": 3000
+      },
+      "base_duration_s": 1750,
+      "points_per_level": 31,
+      "requirements": {
+        "combustion_engine": 5
+      }
+    },
+    {
+      "id": "espionage_technology",
+      "legacy_id": "tecEspionaje",
+      "name": "Espionage technology",
+      "description": "Improves the functions of your espionage probes",
+      "cost": {
+        "iron": 200,
+        "lutinum": 200,
+        "hydrogen": 200
+      },
+      "base_duration_s": 2000,
+      "points_per_level": 7,
+      "requirements": {
+        "combustion_engine": 2
+      }
+    },
+    {
+      "id": "space_folding_propulsion",
+      "legacy_id": "propMultidimensional",
+      "name": "Space-folding propulsion",
+      "description": "The best propulsion system in the galaxy.",
+      "cost": {
+        "lutinum": 5000,
+        "hydrogen": 30000
+      },
+      "base_duration_s": 1600,
+      "points_per_level": 501,
+      "requirements": {
+        "space_curvature_propulsion": 8
+      }
+    },
+    {
+      "id": "sensor_technology",
+      "legacy_id": "tecDeteccion",
+      "name": "Sensor technology",
+      "description": "Increases the range of visible area of the galaxy",
+      "cost": {
+        "iron": 5000,
+        "lutinum": 1800,
+        "hydrogen": 2000
+      },
+      "base_duration_s": 900,
+      "points_per_level": 74,
+      "requirements": {
+        "espionage_technology": 5,
+        "energy_focalization": 3
+      }
+    },
+    {
+      "id": "camouflage_technology",
+      "legacy_id": "tecCamuflaje",
+      "name": "Camouflage technology",
+      "description": "Each upgrade increases the time you remain invisible to your enemy.",
+      "cost": {
+        "lutinum": 4500,
+        "hydrogen": 8000
+      },
+      "base_duration_s": 1400,
+      "points_per_level": 166,
+      "requirements": {
+        "sensor_technology": 6,
+        "shield_technology": 4
+      }
+    },
+    {
+      "id": "enhanced_plating",
+      "legacy_id": "blindajeMejorado",
+      "name": "Enhanced plating",
+      "description": "Increases the armor of all ships.",
+      "cost": {
+        "iron": 2250
+      },
+      "base_duration_s": 1000,
+      "points_per_level": 12.25,
+      "requirements": {}
+    },
+    {
+      "id": "shield_technology",
+      "legacy_id": "tecDefensa",
+      "name": "Shield technology",
+      "description": "Increases the strength of the shield of all ships.",
+      "cost": {
+        "iron": 1000,
+        "lutinum": 4000,
+        "hydrogen": 1000
+      },
+      "base_duration_s": 1200,
+      "points_per_level": 61,
+      "requirements": {
+        "enhanced_plating": 3
+      }
+    },
+    {
+      "id": "energy_focalization",
+      "legacy_id": "focalizacionEnerg",
+      "name": "Energy focalization",
+      "description": "Improves the defense and attack systems by optimizing energy systems used by all ships.",
+      "cost": {
+        "iron": 2000,
+        "lutinum": 1400
+      },
+      "base_duration_s": 400,
+      "points_per_level": 25,
+      "requirements": {}
+    },
+    {
+      "id": "ionization",
+      "legacy_id": "ionizacion",
+      "name": "Ionization",
+      "description": "armor and weapons of your ship, your ability to defend and attack increases with each level.",
+      "cost": {
+        "iron": 3000,
+        "lutinum": 6000
+      },
+      "base_duration_s": 960,
+      "points_per_level": 76,
+      "requirements": {
+        "energy_focalization": 1
+      }
+    },
+    {
+      "id": "explosive_projectiles",
+      "legacy_id": "proyExplosivos",
+      "name": "Explosive projectiles",
+      "description": "Increases the power of projectile weapons (eg. missiles).",
+      "cost": {
+        "iron": 2500
+      },
+      "base_duration_s": 1000,
+      "points_per_level": 13.5,
+      "requirements": {
+        "ionization": 3
+      }
+    },
+    {
+      "id": "plasma_projectiles",
+      "legacy_id": "proyPlasma",
+      "name": "Plasma projectiles",
+      "description": "Increases the efficiency of plasma weapons.",
+      "cost": {
+        "iron": 1700,
+        "lutinum": 4000,
+        "hydrogen": 2600
+      },
+      "base_duration_s": 1600,
+      "points_per_level": 88.5,
+      "requirements": {
+        "energy_focalization": 6,
+        "ionization": 4
+      }
+    },
+    {
+      "id": "diplomacy",
+      "legacy_id": "diplomacia",
+      "name": "Diplomacy",
+      "description": "Increase your ability to diplomacy.",
+      "cost": {
+        "hydrogen": 300000
+      },
+      "base_duration_s": 500,
+      "points_per_level": 4501,
+      "requirements": {
+        "espionage_technology": 6
+      }
+    }
+  ],
+  "troops": [
+    {
+      "id": "shakal",
+      "legacy_id": "chacal",
+      "name": "Shakal",
+      "description": "Is a cheap ship, but weak of an outpost class. It is equipped with 2 lasers.",
+      "role": "attack",
+      "trained_at": "shipyard",
+      "cost": {
+        "iron": 500
+      },
+      "training_duration_s": 480,
+      "points_per_unit": 2,
+      "base_attack": 5,
+      "base_defense": 25,
+      "base_capacity": 250,
+      "base_speed": 800,
+      "salary": 10,
+      "speed_research": "combustion_engine",
+      "requirements": {},
+      "attack_research_bonuses": [
+        "energy_focalization",
+        "explosive_projectiles"
+      ],
+      "defense_research_bonuses": [
+        "enhanced_plating",
+        "energy_focalization"
+      ],
+      "combat_modifiers": {
+        "tjuger": 1.5
+      }
+    },
+    {
+      "id": "renegade",
+      "legacy_id": "renegado",
+      "name": "Renegade",
+      "description": "Outpost ship, armed with 3 lasers and more armor than the shakal",
+      "role": "attack",
+      "trained_at": "shipyard",
+      "cost": {
+        "iron": 1000,
+        "hydrogen": 50
+      },
+      "training_duration_s": 1200,
+      "points_per_unit": 3,
+      "base_attack": 20,
+      "base_defense": 50,
+      "base_capacity": 400,
+      "base_speed": 850,
+      "salary": 15,
+      "speed_research": "combustion_engine",
+      "requirements": {
+        "combustion_engine": 3
+      },
+      "attack_research_bonuses": [
+        "energy_focalization",
+        "explosive_projectiles"
+      ],
+      "defense_research_bonuses": [
+        "enhanced_plating",
+        "energy_focalization"
+      ],
+      "combat_modifiers": {
+        "shakal": 1.2,
+        "camouflage_bomber": 1.8,
+        "cougar": 1.5,
+        "light_laser_tower": 1.6
+      }
+    },
+    {
+      "id": "darwin",
+      "legacy_id": "darwin",
+      "name": "Darwin",
+      "description": "Well-shielded spacecraft for different purposes. Commonly used to address planets, benefiting from its high load capacity",
+      "role": "attack",
+      "trained_at": "shipyard",
+      "cost": {
+        "iron": 2000,
+        "lutinum": 1500
+      },
+      "training_duration_s": 4000,
+      "points_per_unit": 13,
+      "base_attack": 20,
+      "base_defense": 100,
+      "base_capacity": 5000,
+      "base_speed": 1000,
+      "salary": 30,
+      "speed_research": "combustion_engine",
+      "requirements": {
+        "combustion_engine": 1,
+        "enhanced_plating": 2
+      },
+      "attack_research_bonuses": [
+        "energy_focalization"
+      ],
+      "defense_research_bonuses": [
+        "enhanced_plating",
+        "shield_technology",
+        "energy_focalization"
+      ],
+      "combat_modifiers": {}
+    },
+    {
+      "id": "raider",
+      "legacy_id": "saqueador",
+      "name": "Raider",
+      "description": "The looters are a hybrid class heavy with hunters and destroyers. Armed with 8 laser light and 2 heavy. The five layers of shielding aczentrino are able to withstand attacks even plasma.",
+      "role": "attack",
+      "trained_at": "shipyard",
+      "cost": {
+        "iron": 5000,
+        "lutinum": 4000,
+        "hydrogen": 200
+      },
+      "training_duration_s": 7775,
+      "points_per_unit": 35,
+      "base_attack": 150,
+      "base_defense": 450,
+      "base_capacity": 2000,
+      "base_speed": 2000,
+      "salary": 40,
+      "speed_research": "combustion_engine",
+      "requirements": {
+        "ion_engine": 2,
+        "shield_technology": 3
+      },
+      "attack_research_bonuses": [
+        "energy_focalization",
+        "ionization"
+      ],
+      "defense_research_bonuses": [
+        "enhanced_plating",
+        "shield_technology",
+        "energy_focalization"
+      ],
+      "combat_modifiers": {
+        "darwin": 1.2,
+        "trader": 1.5,
+        "transporter": 1.9
+      }
+    },
+    {
+      "id": "colony_ship",
+      "legacy_id": "colonizador",
+      "name": "Colony ship",
+      "description": "The expansion is essential sooner or later. Found new colonies to gather resources, or military interests, are among the reasons. The settlers are equipped with an operations center at 1 ..",
+      "role": "attack",
+      "trained_at": "shipyard",
+      "cost": {
+        "iron": 10000,
+        "lutinum": 30000,
+        "hydrogen": 15000
+      },
+      "training_duration_s": 750000,
+      "points_per_unit": 288,
+      "base_attack": 1,
+      "base_defense": 2,
+      "base_capacity": 30000,
+      "base_speed": 100,
+      "salary": 300,
+      "speed_research": "ion_engine",
+      "requirements": {
+        "ion_engine": 4
+      },
+      "attack_research_bonuses": [],
+      "defense_research_bonuses": [
+        "espionage_technology",
+        "camouflage_technology",
+        "enhanced_plating",
+        "shield_technology",
+        "energy_focalization",
+        "ionization"
+      ],
+      "combat_modifiers": {}
+    },
+    {
+      "id": "espionage_probe",
+      "legacy_id": "sondaEspionaje",
+      "name": "Espionage probe",
+      "description": "A lightning fast unmanned spacecraft, used to explore planets.",
+      "role": "attack",
+      "trained_at": "shipyard",
+      "cost": {
+        "lutinum": 500,
+        "hydrogen": 100
+      },
+      "training_duration_s": 100,
+      "points_per_unit": 4,
+      "base_attack": 0,
+      "base_defense": 1,
+      "base_capacity": 50,
+      "base_speed": 130000000000,
+      "salary": 1,
+      "speed_research": "ion_engine",
+      "requirements": {
+        "espionage_technology": 3
+      },
+      "attack_research_bonuses": [],
+      "defense_research_bonuses": [],
+      "combat_modifiers": {}
+    },
+    {
+      "id": "tjuger",
+      "legacy_id": "tjuger",
+      "name": "Tjuger",
+      "description": "The ships tjugers are well equipped for space combat, and have achieved a great reputation over many many battles.",
+      "role": "attack",
+      "trained_at": "shipyard",
+      "cost": {
+        "iron": 6000,
+        "lutinum": 15000,
+        "hydrogen": 2000
+      },
+      "training_duration_s": 14400,
+      "points_per_unit": 106,
+      "base_attack": 1000,
+      "base_defense": 700,
+      "base_capacity": 6000,
+      "base_speed": 3500,
+      "salary": 60,
+      "speed_research": "ion_engine",
+      "requirements": {
+        "space_curvature_propulsion": 1,
+        "shield_technology": 6
+      },
+      "attack_research_bonuses": [
+        "energy_focalization",
+        "ionization",
+        "explosive_projectiles",
+        "plasma_projectiles"
+      ],
+      "defense_research_bonuses": [
+        "enhanced_plating",
+        "shield_technology",
+        "energy_focalization"
+      ],
+      "combat_modifiers": {
+        "renegade": 1.5,
+        "spit": 1.8,
+        "raider": 1.3,
+        "noah": 0.7
+      }
+    },
+    {
+      "id": "cougar",
+      "legacy_id": "cougar",
+      "name": "Cougar",
+      "description": "Armed with two towers of lasers and plasma, is a perfect craft for orbital defense patrols. The Cougar is a nice addition to the defense of large battleships.",
+      "role": "attack",
+      "trained_at": "shipyard",
+      "cost": {
+        "iron": 20000,
+        "lutinum": 5000,
+        "hydrogen": 500
+      },
+      "training_duration_s": 14400,
+      "points_per_unit": 79,
+      "base_attack": 400,
+      "base_defense": 3000,
+      "base_capacity": 15000,
+      "base_speed": 2100,
+      "salary": 90,
+      "speed_research": "ion_engine",
+      "requirements": {
+        "space_curvature_propulsion": 2,
+        "enhanced_plating": 8
+      },
+      "attack_research_bonuses": [
+        "energy_focalization",
+        "ionization",
+        "plasma_projectiles"
+      ],
+      "defense_research_bonuses": [
+        "enhanced_plating",
+        "shield_technology",
+        "energy_focalization",
+        "ionization"
+      ],
+      "combat_modifiers": {
+        "raider": 1.3,
+        "noah": 1.8,
+        "plasma_tower": 1.6,
+        "trader": 0.5
+      }
+    },
+    {
+      "id": "trader",
+      "legacy_id": "comerciante",
+      "name": "Trader",
+      "description": "Trade is essential to stabilize your economy and cater to your colonies. Traders are always needed to transport resources from one planet to another.",
+      "role": "attack",
+      "trained_at": "shipyard",
+      "cost": {
+        "iron": 2000,
+        "lutinum": 2000
+      },
+      "training_duration_s": 5000,
+      "points_per_unit": 16,
+      "base_attack": 1,
+      "base_defense": 50,
+      "base_capacity": 9000,
+      "base_speed": 1900,
+      "salary": 10,
+      "speed_research": "ion_engine",
+      "requirements": {},
+      "attack_research_bonuses": [
+        "ionization"
+      ],
+      "defense_research_bonuses": [
+        "enhanced_plating"
+      ],
+      "combat_modifiers": {}
+    },
+    {
+      "id": "transporter",
+      "legacy_id": "transportador",
+      "name": "Transporter",
+      "description": "These are bigger versions of the traderes, they also have a bigger cargo capacity as well as being equiped with a faster propulsion system.",
+      "role": "attack",
+      "trained_at": "shipyard",
+      "cost": {
+        "iron": 12000,
+        "lutinum": 8000,
+        "hydrogen": 5000
+      },
+      "training_duration_s": 9000,
+      "points_per_unit": 108,
+      "base_attack": 2,
+      "base_defense": 5000,
+      "base_capacity": 50000,
+      "base_speed": 4500,
+      "salary": 30,
+      "speed_research": "ion_engine",
+      "requirements": {
+        "space_curvature_propulsion": 5,
+        "enhanced_cargo_capacity": 8
+      },
+      "attack_research_bonuses": [
+        "ionization"
+      ],
+      "defense_research_bonuses": [
+        "enhanced_plating",
+        "shield_technology",
+        "ionization"
+      ],
+      "combat_modifiers": {}
+    },
+    {
+      "id": "camouflage_bomber",
+      "legacy_id": "bombarderoCamuflaje",
+      "name": "Camouflage bomber",
+      "description": "The stealth technology makes this essential for the battle ship. These bombers can approach the enemy without being detected.",
+      "role": "attack",
+      "trained_at": "shipyard",
+      "cost": {
+        "lutinum": 8000,
+        "hydrogen": 200
+      },
+      "training_duration_s": 14400,
+      "points_per_unit": 42,
+      "base_attack": 800,
+      "base_defense": 450,
+      "base_capacity": 4000,
+      "base_speed": 1000,
+      "salary": 100,
+      "speed_research": "ion_engine",
+      "requirements": {
+        "ion_engine": 5,
+        "espionage_technology": 5
+      },
+      "attack_research_bonuses": [
+        "espionage_technology",
+        "camouflage_technology",
+        "energy_focalization",
+        "ionization",
+        "plasma_projectiles"
+      ],
+      "defense_research_bonuses": [
+        "espionage_technology",
+        "camouflage_technology",
+        "enhanced_plating",
+        "shield_technology",
+        "energy_focalization"
+      ],
+      "combat_modifiers": {
+        "rocket_launcher": 2.2,
+        "longeagle_x": 1.8
+      }
+    },
+    {
+      "id": "longeagle_v",
+      "legacy_id": "aguilaGrandeV",
+      "name": "Longeagle V",
+      "description": "Thanks to their massive weapons, only known to very few people who have sought battles against them. His armor makes them even harder to defeat.",
+      "role": "attack",
+      "trained_at": "shipyard",
+      "cost": {
+        "iron": 120000,
+        "lutinum": 5000,
+        "hydrogen": 6000
+      },
+      "training_duration_s": 96000,
+      "points_per_unit": 371,
+      "base_attack": 3000,
+      "base_defense": 15000,
+      "base_capacity": 40000,
+      "base_speed": 2700,
+      "salary": 200,
+      "speed_research": "ion_engine",
+      "requirements": {
+        "space_curvature_propulsion": 6,
+        "enhanced_plating": 8
+      },
+      "attack_research_bonuses": [
+        "energy_focalization",
+        "ionization",
+        "explosive_projectiles",
+        "plasma_projectiles"
+      ],
+      "defense_research_bonuses": [
+        "enhanced_plating",
+        "shield_technology",
+        "energy_focalization",
+        "ionization"
+      ],
+      "combat_modifiers": {
+        "cougar": 1.7,
+        "laser_tower": 1.7
+      }
+    },
+    {
+      "id": "noah",
+      "legacy_id": "noe",
+      "name": "Noah",
+      "description": "It is an improved version of the transporter. The fastest known ship capable of carrying huge amounts of resources. Its price is no less enormous.",
+      "role": "attack",
+      "trained_at": "shipyard",
+      "cost": {
+        "lutinum": 50000,
+        "hydrogen": 9000
+      },
+      "training_duration_s": 12000,
+      "points_per_unit": 318,
+      "base_attack": 100,
+      "base_defense": 12000,
+      "base_capacity": 250000,
+      "base_speed": 8000,
+      "salary": 20,
+      "speed_research": "ion_engine",
+      "requirements": {
+        "space_folding_propulsion": 2
+      },
+      "attack_research_bonuses": [
+        "energy_focalization",
+        "ionization"
+      ],
+      "defense_research_bonuses": [
+        "camouflage_technology",
+        "enhanced_plating",
+        "shield_technology",
+        "energy_focalization",
+        "ionization"
+      ],
+      "combat_modifiers": {}
+    },
+    {
+      "id": "longeagle_x",
+      "legacy_id": "aguilaGrandeX",
+      "name": "Longeagle X",
+      "description": "This cruise is the latest model in its class. The weaknesses were improved and developed to make it the most dangerous spacecraft known.",
+      "role": "attack",
+      "trained_at": "shipyard",
+      "cost": {
+        "lutinum": 275000,
+        "hydrogen": 15000
+      },
+      "training_duration_s": 480000,
+      "points_per_unit": 1488,
+      "base_attack": 9200,
+      "base_defense": 40000,
+      "base_capacity": 150000,
+      "base_speed": 6000,
+      "salary": 125,
+      "speed_research": "ion_engine",
+      "requirements": {
+        "space_folding_propulsion": 4,
+        "plasma_projectiles": 10
+      },
+      "attack_research_bonuses": [
+        "energy_focalization",
+        "ionization",
+        "explosive_projectiles",
+        "plasma_projectiles"
+      ],
+      "defense_research_bonuses": [
+        "enhanced_plating",
+        "shield_technology",
+        "energy_focalization",
+        "ionization"
+      ],
+      "combat_modifiers": {
+        "longeagle_v": 1.5,
+        "emp_launcher": 1.6
+      }
+    },
+    {
+      "id": "spit",
+      "legacy_id": "spit",
+      "name": "Spit",
+      "description": "At some point in their history, this ship served only to the emperor. Its power and flexibility is legendary. And is known of its existence as a key player in the fleets, from Coljinarz Wars (2167-2175) ..",
+      "role": "attack",
+      "trained_at": "shipyard",
+      "cost": {
+        "iron": 1300,
+        "lutinum": 5000,
+        "hydrogen": 3000
+      },
+      "training_duration_s": 3150,
+      "points_per_unit": 51,
+      "base_attack": 300,
+      "base_defense": 250,
+      "base_capacity": 8000,
+      "base_speed": 3200,
+      "salary": 20,
+      "speed_research": "ion_engine",
+      "requirements": {
+        "ion_engine": 4,
+        "energy_focalization": 4
+      },
+      "attack_research_bonuses": [
+        "energy_focalization"
+      ],
+      "defense_research_bonuses": [
+        "enhanced_plating",
+        "energy_focalization"
+      ],
+      "combat_modifiers": {
+        "sentih": 1.7,
+        "tjuger": 0.6
+      }
+    },
+    {
+      "id": "sentih",
+      "legacy_id": "sentih",
+      "name": "Sentih",
+      "description": "This ship comes from an unknown dimension. Believed to have been brought over a millenium ago. Scientists believe it was used to explore the galaxy, and its weapon systems are superior to those developed by our civilization. Fortunately, as time passed, we have gained many new technologies (such as the use of multiple dimensions for drive systems) and make a detailed outline everything you need to make as many as needed.",
+      "role": "attack",
+      "trained_at": "shipyard",
+      "cost": {
+        "iron": 40000,
+        "lutinum": 650000,
+        "hydrogen": 250000
+      },
+      "training_duration_s": 975000,
+      "points_per_unit": 5226,
+      "base_attack": 30000,
+      "base_defense": 200000,
+      "base_capacity": 210000,
+      "base_speed": 4050,
+      "salary": 160,
+      "speed_research": "ion_engine",
+      "requirements": {
+        "espionage_technology": 15,
+        "space_folding_propulsion": 8,
+        "ionization": 15
+      },
+      "attack_research_bonuses": [
+        "espionage_technology",
+        "camouflage_technology",
+        "explosive_projectiles",
+        "plasma_projectiles"
+      ],
+      "defense_research_bonuses": [
+        "espionage_technology",
+        "camouflage_technology",
+        "enhanced_plating",
+        "shield_technology"
+      ],
+      "combat_modifiers": {
+        "longeagle_x": 1.5
+      }
+    },
+    {
+      "id": "light_laser_tower",
+      "legacy_id": "torreLaserPequena",
+      "name": "Light Lasertower",
+      "description": "This is the weakest of the defensive energy weapons. This tower is protected by a tiny layer of metal and throw a concentrated beam of energy at enemy ships. These batteries will keep your clean orbit spy probes that attempt to approach or outposts.",
+      "role": "defense",
+      "trained_at": "orbital_defense_station",
+      "cost": {
+        "iron": 600
+      },
+      "training_duration_s": 400,
+      "points_per_unit": 2,
+      "base_attack": 20,
+      "base_defense": 25,
+      "base_capacity": null,
+      "base_speed": null,
+      "salary": null,
+      "speed_research": null,
+      "requirements": {},
+      "attack_research_bonuses": [
+        "energy_focalization",
+        "ionization"
+      ],
+      "defense_research_bonuses": [
+        "shield_technology"
+      ],
+      "combat_modifiers": {
+        "tjuger": 1.4,
+        "espionage_probe": 1.2,
+        "transporter": 0.8
+      }
+    },
+    {
+      "id": "laser_tower",
+      "legacy_id": "torreLaser",
+      "name": "Laser Tower",
+      "description": "It's a much bigger version of the small laser tower is equipped with more powerful batteries. And are mounted directly on the orbital station, where the security units are responsible for its maintenance.",
+      "role": "defense",
+      "trained_at": "orbital_defense_station",
+      "cost": {
+        "iron": 3000,
+        "lutinum": 300
+      },
+      "training_duration_s": 1200,
+      "points_per_unit": 10,
+      "base_attack": 100,
+      "base_defense": 500,
+      "base_capacity": null,
+      "base_speed": null,
+      "salary": null,
+      "speed_research": null,
+      "requirements": {
+        "ionization": 2
+      },
+      "attack_research_bonuses": [
+        "energy_focalization",
+        "ionization"
+      ],
+      "defense_research_bonuses": [
+        "sensor_technology",
+        "shield_technology"
+      ],
+      "combat_modifiers": {
+        "cougar": 1.6,
+        "renegade": 1.4,
+        "sentih": 0.6
+      }
+    },
+    {
+      "id": "emp_launcher",
+      "legacy_id": "lanzadorPulsos",
+      "name": "EMP-Launcher",
+      "description": "Heavy artillery laser is consistent evolution of the laser light artillery.",
+      "role": "defense",
+      "trained_at": "orbital_defense_station",
+      "cost": {
+        "iron": 200,
+        "lutinum": 5000
+      },
+      "training_duration_s": 9600,
+      "points_per_unit": 26,
+      "base_attack": 400,
+      "base_defense": 1000,
+      "base_capacity": null,
+      "base_speed": null,
+      "salary": null,
+      "speed_research": null,
+      "requirements": {
+        "shield_technology": 2,
+        "energy_focalization": 4
+      },
+      "attack_research_bonuses": [
+        "energy_focalization",
+        "ionization"
+      ],
+      "defense_research_bonuses": [
+        "sensor_technology",
+        "shield_technology",
+        "energy_focalization"
+      ],
+      "combat_modifiers": {
+        "camouflage_bomber": 2
+      }
+    },
+    {
+      "id": "plasma_tower",
+      "legacy_id": "torrePlasma",
+      "name": "Plasmatower",
+      "description": "It is by far the most powerful energy weapon known. The plasma triggered by these towers cause problems, even for the larger ships found in the scope of your space station.",
+      "role": "defense",
+      "trained_at": "orbital_defense_station",
+      "cost": {
+        "iron": 2000,
+        "lutinum": 2000,
+        "hydrogen": 2000
+      },
+      "training_duration_s": 50,
+      "points_per_unit": 31,
+      "base_attack": 500,
+      "base_defense": 2500,
+      "base_capacity": null,
+      "base_speed": null,
+      "salary": null,
+      "speed_research": null,
+      "requirements": {
+        "plasma_projectiles": 3
+      },
+      "attack_research_bonuses": [
+        "energy_focalization",
+        "ionization",
+        "plasma_projectiles"
+      ],
+      "defense_research_bonuses": [
+        "shield_technology"
+      ],
+      "combat_modifiers": {
+        "longeagle_v": 2
+      }
+    },
+    {
+      "id": "rocket_launcher",
+      "legacy_id": "lanzamisiles",
+      "name": "Rocket Launcher",
+      "description": "Although seemingly simple, these missiles are made of different materials and all kinds of military arsenal, to make any fleet, pass hard times facing them. Causes tremendous damage on enemy ships.",
+      "role": "defense",
+      "trained_at": "orbital_defense_station",
+      "cost": {
+        "iron": 60000,
+        "lutinum": 5000,
+        "hydrogen": 1000
+      },
+      "training_duration_s": 14400,
+      "points_per_unit": 183,
+      "base_attack": 3000,
+      "base_defense": 5000,
+      "base_capacity": null,
+      "base_speed": null,
+      "salary": null,
+      "speed_research": null,
+      "requirements": {
+        "enhanced_plating": 4,
+        "explosive_projectiles": 6
+      },
+      "attack_research_bonuses": [
+        "energy_focalization",
+        "ionization",
+        "explosive_projectiles"
+      ],
+      "defense_research_bonuses": [
+        "enhanced_plating",
+        "shield_technology",
+        "energy_focalization"
+      ],
+      "combat_modifiers": {
+        "sentih": 2
+      }
+    }
+  ]
+}

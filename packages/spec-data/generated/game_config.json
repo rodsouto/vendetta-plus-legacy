@@ -1,0 +1,100 @@
+{
+  "ruleset": "vendetta",
+  "time": {
+    "upgrade_speed_multiplier": 3
+  },
+  "world": {
+    "cities": 50,
+    "neighborhoods": 50,
+    "slots_per_neighborhood": 255,
+    "grid_columns": 17,
+    "grid_rows": 15,
+    "distance_unit": 1000
+  },
+  "new_player": {
+    "starting_resources_each": 10000,
+    "starting_build_speed_room_level": 1
+  },
+  "occupation": {
+    "starting_resources_each": 1000,
+    "starting_build_speed_room_level": 1,
+    "occupation_troops_consumed": 1
+  },
+  "storage": {
+    "base_capacity": 10000,
+    "capacity_per_level": 150000,
+    "safe_divisor": 10
+  },
+  "queues": {
+    "max_room_queue_per_building": 6,
+    "max_research_queue": 6
+  },
+  "troops": {
+    "research_bonus_divisor": 10
+  },
+  "combat": {
+    "max_rounds": 5,
+    "wipe_ratio": 10,
+    "loss_ratio_decimals": 3
+  },
+  "missions": {
+    "duration_distance_factor": 3.3479,
+    "duration_exponent": 0.2,
+    "salary_distance_exponent": 0.8,
+    "salary_divisor": 2512
+  },
+  "honor": {
+    "min_buildings_for_penalty": 5,
+    "max_honor_level": 8,
+    "table_max_buildings": 100
+  },
+  "vacation": {
+    "duration_days": 15,
+    "cooldown_days": 7
+  },
+  "market": {
+    "exchange_rates": {
+      "rate_3_5_1": {
+        "weapons": 3,
+        "ammunition": 5,
+        "dollar": 1
+      },
+      "rate_2_4_1": {
+        "weapons": 2,
+        "ammunition": 4,
+        "dollar": 1
+      }
+    },
+    "delivery_window_days": 10
+  },
+  "families": {
+    "tag_length": [
+      2,
+      8
+    ],
+    "name_length": [
+      2,
+      35
+    ],
+    "board_messages_shown": 50,
+    "max_members": null
+  },
+  "onchain": {
+    "max_pending_missions_to_building": 32,
+    "max_outgoing_missions_per_player": 20,
+    "max_open_market_offers_per_player": 10
+  },
+  "premium": {
+    "duration_days": 30,
+    "without_premium": {
+      "max_room_queue_per_building": 1,
+      "max_research_queue": 1,
+      "max_troop_batches_per_queue": 1
+    },
+    "with_premium": {
+      "max_room_queue_per_building": 6,
+      "max_research_queue": 6,
+      "max_troop_batches_per_queue": 5
+    }
+  }
+}

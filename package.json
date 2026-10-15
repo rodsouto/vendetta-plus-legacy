@@ -1,0 +1,20 @@
+{
+  "name": "vendetta-onchain",
+  "private": true,
+  "packageManager": "pnpm@9.2.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "codegen": "pnpm --filter @vendetta/spec-data codegen",
+    "test": "pnpm -r test",
+    "build": "pnpm -r build",
+    "test:contracts": "cd contracts && forge test",
+    "format": "prettier --write \"packages/**/*.{ts,tsx,json}\" \"apps/**/*.{ts,tsx,json}\" --ignore-path .prettierignore",
+    "format:check": "prettier --check \"packages/**/*.{ts,tsx,json}\" \"apps/**/*.{ts,tsx,json}\" --ignore-path .prettierignore"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.0",
+    "typescript": "~5.9.3"
+  }
+}
