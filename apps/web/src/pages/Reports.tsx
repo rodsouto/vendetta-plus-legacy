@@ -29,17 +29,29 @@ interface Report {
   };
 }
 
+const LOG_WINDOW = 5_000_000n;
+
 function useBattles() {
   const g = useGame();
   return useQuery({
     queryKey: ["battles", g.clients.deployment.game],
     queryFn: async (): Promise<Report[]> => {
-      const logs = await g.clients.public.getContractEvents({
-        address: g.clients.deployment.game,
-        abi: gameAbi,
-        eventName: "Battle",
-        fromBlock: BigInt(g.clients.deployment.fromBlock),
-      } as never);
+      // Public RPCs cap the range of a log query (Arbitrum One's: 10M blocks, about a month), so
+      // query in windows. Until the indexer (B-18) this rescans from the deployment every time.
+      const latest = await g.clients.public.getBlockNumber({ cacheTime: 0 });
+      const logs: unknown[] = [];
+      for (let from = BigInt(g.clients.deployment.fromBlock); from <= latest; from += LOG_WINDOW) {
+        const to = from + LOG_WINDOW - 1n < latest ? from + LOG_WINDOW - 1n : latest;
+        logs.push(
+          ...((await g.clients.public.getContractEvents({
+            address: g.clients.deployment.game,
+            abi: gameAbi,
+            eventName: "Battle",
+            fromBlock: from,
+            toBlock: to,
+          } as never)) as unknown[]),
+        );
+      }
       const out: Report[] = [];
       for (const log of logs as unknown as {
         args: { attacker: bigint; defender: bigint; building: bigint; report: Report["r"] };

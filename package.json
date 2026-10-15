@@ -13,7 +13,9 @@
     "format": "prettier --write \"packages/**/*.{ts,tsx,json}\" \"apps/**/*.{ts,tsx,json}\" --ignore-path .prettierignore",
     "format:check": "prettier --check \"packages/**/*.{ts,tsx,json}\" \"apps/**/*.{ts,tsx,json}\" --ignore-path .prettierignore",
     "dev:local": "bash scripts/dev-local.sh",
-    "dev:aa": "pnpm --filter @vendetta/web aa"
+    "dev:aa": "pnpm --filter @vendetta/web aa",
+    "deploy:arbitrum": "bash scripts/deploy-arbitrum.sh",
+    "build:arbitrum": "pnpm --filter @vendetta/web build:arbitrum"
   },
   "devDependencies": {
     "prettier": "^3.6.0",

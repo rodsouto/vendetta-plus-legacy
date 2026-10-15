@@ -61,10 +61,12 @@ export async function loadNetwork(): Promise<Network | ConnectProblem> {
     const pimlico = `https://api.pimlico.io/v2/${arbitrum.id}/rpc?apikey=${key}`;
     const deployment: Deployment = {
       ...base,
-      rpc: (import.meta.env.VITE_RPC_URL as string | undefined) ?? base.rpc,
+      // Empty values (an unfilled .env) count as unset.
+      rpc: (import.meta.env.VITE_RPC_URL as string | undefined) || base.rpc,
       bundler: pimlico,
       paymaster: pimlico,
-      sponsorshipPolicy: import.meta.env.VITE_PIMLICO_POLICY_ID as string | undefined,
+      sponsorshipPolicy:
+        (import.meta.env.VITE_PIMLICO_POLICY_ID as string | undefined) || undefined,
     };
     return { id, chain: arbitrum, deployment, accounts: "passkey" };
   }

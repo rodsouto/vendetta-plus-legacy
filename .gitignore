@@ -10,3 +10,8 @@ apps/web/test-results/
 apps/web/playwright-report/
 apps/web/.impeccable/review/
 apps/web/.impeccable/questions/
+
+# Secrets for the Arbitrum One deploy and build (template: .env.example)
+.env
+.env.*
+!.env.example

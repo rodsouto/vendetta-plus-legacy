@@ -358,6 +358,8 @@ vacation or suspended can only end the vacation. In v1 `suspend(player, until)` 
   `arbitrum` for Arbitrum One), Pimlico's key in `VITE_PIMLICO_API_KEY` and its sponsorship policy in
   `VITE_PIMLICO_POLICY_ID`. The key ships in the static bundle, so the sponsorship policy (and
   Pimlico's allowed origins) is what bounds spending, not the key.
+- Deploy and operation (Pimlico setup, limits, `.env`, `pnpm deploy:arbitrum`):
+  [../deploy-arbitrum.md](../deploy-arbitrum.md).
 
 ## B-17 — Upgradeability — New
 

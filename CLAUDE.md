@@ -36,6 +36,8 @@ pnpm dev:local          # anvil + deploy + web app on :5173 (dev accounts, time 
 pnpm --filter @vendetta/web e2e   # Playwright flow on its own fresh chain (e2e/serve.sh, :5199)
 pnpm dev:aa             # anvil + Arbitrum One's 4337 contracts + Alto + mock paymaster + web app: passkey accounts locally
 pnpm --filter @vendetta/web e2e:aa   # Playwright passkey flow (virtual WebAuthn authenticator) on its own 4337 stack (:5198)
+pnpm deploy:arbitrum    # real deploy to Arbitrum One from .env; writes deployments/arbitrum.json (docs/deploy-arbitrum.md)
+pnpm build:arbitrum     # web app for Arbitrum One (static, apps/web/dist)
 ```
 
 ## Rules

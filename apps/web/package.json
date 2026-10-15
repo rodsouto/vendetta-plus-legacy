@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -p tsconfig.json && vite build",
+    "build:arbitrum": "VITE_NETWORK=arbitrum pnpm build",
     "preview": "vite preview",
     "abi": "tsx scripts/abi.ts",
     "test": "vitest run",
