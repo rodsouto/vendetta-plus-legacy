@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: v1.4.4
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Generated spec data is up to date
+        run: |
+          pnpm codegen
+          git diff --exit-code -- packages/spec-data/generated
+
+      - name: Format
+        run: |
+          pnpm format:check
+          forge fmt --check --root contracts
+
+      - name: Tests (rules engine, contracts)
+        run: pnpm -r test
+
+      - name: Web build
+        run: pnpm --filter @vendetta/web build
