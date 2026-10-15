@@ -9,3 +9,4 @@ apps/web/public/deployment.local.json
 apps/web/test-results/
 apps/web/playwright-report/
 apps/web/.impeccable/review/
+apps/web/.impeccable/questions/
