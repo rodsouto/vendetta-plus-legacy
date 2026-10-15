@@ -12,3 +12,4 @@ fs_permissions = [{ access = "read", path = "../packages/spec-data/generated" }]
 
 [fmt]
 line_length = 100
+ignore = ["src/generated/*.sol"]

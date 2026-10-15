@@ -1,0 +1,580 @@
+{
+  "cases": [
+    {
+      "attack": 5,
+      "capacity": 200,
+      "defense": 50,
+      "level": 0,
+      "speed": 1600,
+      "troop": 0,
+      "with_mobility": true
+    },
+    {
+      "attack": 5,
+      "capacity": 245,
+      "defense": 50,
+      "level": 5,
+      "speed": 1958,
+      "troop": 0,
+      "with_mobility": true
+    },
+    {
+      "attack": 5,
+      "capacity": 277,
+      "defense": 50,
+      "level": 15,
+      "speed": 2220,
+      "troop": 0,
+      "with_mobility": true
+    },
+    {
+      "attack": 8,
+      "capacity": 400,
+      "defense": 60,
+      "level": 0,
+      "speed": 2000,
+      "troop": 1,
+      "with_mobility": true
+    },
+    {
+      "attack": 9,
+      "capacity": 489,
+      "defense": 78,
+      "level": 5,
+      "speed": 2447,
+      "troop": 1,
+      "with_mobility": true
+    },
+    {
+      "attack": 11,
+      "capacity": 555,
+      "defense": 92,
+      "level": 15,
+      "speed": 2775,
+      "troop": 1,
+      "with_mobility": true
+    },
+    {
+      "attack": 10,
+      "capacity": 300,
+      "defense": 40,
+      "level": 0,
+      "speed": 2500,
+      "troop": 2,
+      "with_mobility": true
+    },
+    {
+      "attack": 13,
+      "capacity": 367,
+      "defense": 52,
+      "level": 5,
+      "speed": 3059,
+      "troop": 2,
+      "with_mobility": true
+    },
+    {
+      "attack": 15,
+      "capacity": 416,
+      "defense": 61,
+      "level": 15,
+      "speed": 3468,
+      "troop": 2,
+      "with_mobility": true
+    },
+    {
+      "attack": 30,
+      "capacity": 500,
+      "defense": 100,
+      "level": 0,
+      "speed": 2400,
+      "troop": 3,
+      "with_mobility": true
+    },
+    {
+      "attack": 36,
+      "capacity": 612,
+      "defense": 131,
+      "level": 5,
+      "speed": 2937,
+      "troop": 3,
+      "with_mobility": true
+    },
+    {
+      "attack": 41,
+      "capacity": 694,
+      "defense": 154,
+      "level": 15,
+      "speed": 3330,
+      "troop": 3,
+      "with_mobility": true
+    },
+    {
+      "attack": 1,
+      "capacity": 3000,
+      "defense": 100,
+      "level": 0,
+      "speed": 2000,
+      "troop": 4,
+      "with_mobility": true
+    },
+    {
+      "attack": 1,
+      "capacity": 3671,
+      "defense": 100,
+      "level": 5,
+      "speed": 2447,
+      "troop": 4,
+      "with_mobility": true
+    },
+    {
+      "attack": 1,
+      "capacity": 4162,
+      "defense": 100,
+      "level": 15,
+      "speed": 2775,
+      "troop": 4,
+      "with_mobility": true
+    },
+    {
+      "attack": 1,
+      "capacity": 50,
+      "defense": 10,
+      "level": 0,
+      "speed": 400000,
+      "troop": 5,
+      "with_mobility": true
+    },
+    {
+      "attack": 1,
+      "capacity": 61,
+      "defense": 12,
+      "level": 5,
+      "speed": 489443,
+      "troop": 5,
+      "with_mobility": true
+    },
+    {
+      "attack": 1,
+      "capacity": 69,
+      "defense": 13,
+      "level": 15,
+      "speed": 554919,
+      "troop": 5,
+      "with_mobility": true
+    },
+    {
+      "attack": 4,
+      "capacity": 10000,
+      "defense": 60,
+      "level": 0,
+      "speed": 2400,
+      "troop": 6,
+      "with_mobility": true
+    },
+    {
+      "attack": 4,
+      "capacity": 12236,
+      "defense": 73,
+      "level": 5,
+      "speed": 2937,
+      "troop": 6,
+      "with_mobility": true
+    },
+    {
+      "attack": 5,
+      "capacity": 13873,
+      "defense": 83,
+      "level": 15,
+      "speed": 3330,
+      "troop": 6,
+      "with_mobility": true
+    },
+    {
+      "attack": 100,
+      "capacity": 3000,
+      "defense": 900,
+      "level": 0,
+      "speed": 3400,
+      "troop": 7,
+      "with_mobility": true
+    },
+    {
+      "attack": 138,
+      "capacity": 3671,
+      "defense": 1184,
+      "level": 5,
+      "speed": 4160,
+      "troop": 7,
+      "with_mobility": true
+    },
+    {
+      "attack": 167,
+      "capacity": 4162,
+      "defense": 1392,
+      "level": 15,
+      "speed": 4717,
+      "troop": 7,
+      "with_mobility": true
+    },
+    {
+      "attack": 60,
+      "capacity": 2000,
+      "defense": 500,
+      "level": 0,
+      "speed": 3000,
+      "troop": 8,
+      "with_mobility": true
+    },
+    {
+      "attack": 78,
+      "capacity": 2447,
+      "defense": 658,
+      "level": 5,
+      "speed": 3671,
+      "troop": 8,
+      "with_mobility": true
+    },
+    {
+      "attack": 92,
+      "capacity": 2775,
+      "defense": 773,
+      "level": 15,
+      "speed": 4162,
+      "troop": 8,
+      "with_mobility": true
+    },
+    {
+      "attack": 6,
+      "capacity": 40000,
+      "defense": 80,
+      "level": 0,
+      "speed": 5000,
+      "troop": 9,
+      "with_mobility": true
+    },
+    {
+      "attack": 7,
+      "capacity": 48944,
+      "defense": 105,
+      "level": 5,
+      "speed": 6118,
+      "troop": 9,
+      "with_mobility": true
+    },
+    {
+      "attack": 8,
+      "capacity": 55492,
+      "defense": 123,
+      "level": 15,
+      "speed": 6936,
+      "troop": 9,
+      "with_mobility": true
+    },
+    {
+      "attack": 200,
+      "capacity": 1000,
+      "defense": 100,
+      "level": 0,
+      "speed": 6000,
+      "troop": 11,
+      "with_mobility": true
+    },
+    {
+      "attack": 289,
+      "capacity": 1224,
+      "defense": 138,
+      "level": 5,
+      "speed": 7342,
+      "troop": 11,
+      "with_mobility": true
+    },
+    {
+      "attack": 354,
+      "capacity": 1387,
+      "defense": 167,
+      "level": 15,
+      "speed": 8324,
+      "troop": 11,
+      "with_mobility": true
+    },
+    {
+      "attack": 300,
+      "capacity": 2000,
+      "defense": 2000,
+      "level": 0,
+      "speed": 6500,
+      "troop": 12,
+      "with_mobility": true
+    },
+    {
+      "attack": 450,
+      "capacity": 2447,
+      "defense": 3000,
+      "level": 5,
+      "speed": 7953,
+      "troop": 12,
+      "with_mobility": true
+    },
+    {
+      "attack": 559,
+      "capacity": 2775,
+      "defense": 3732,
+      "level": 15,
+      "speed": 9017,
+      "troop": 12,
+      "with_mobility": true
+    },
+    {
+      "attack": 400,
+      "capacity": 5000,
+      "defense": 6000,
+      "level": 0,
+      "speed": 8000,
+      "troop": 13,
+      "with_mobility": true
+    },
+    {
+      "attack": 578,
+      "capacity": 6118,
+      "defense": 8683,
+      "level": 5,
+      "speed": 9789,
+      "troop": 13,
+      "with_mobility": true
+    },
+    {
+      "attack": 709,
+      "capacity": 6936,
+      "defense": 10647,
+      "level": 15,
+      "speed": 11098,
+      "troop": 13,
+      "with_mobility": true
+    },
+    {
+      "attack": 2000,
+      "capacity": 2500,
+      "defense": 2000,
+      "level": 0,
+      "speed": 3500,
+      "troop": 14,
+      "with_mobility": true
+    },
+    {
+      "attack": 2774,
+      "capacity": 3059,
+      "defense": 2774,
+      "level": 5,
+      "speed": 4283,
+      "troop": 14,
+      "with_mobility": true
+    },
+    {
+      "attack": 3341,
+      "capacity": 3468,
+      "defense": 3341,
+      "level": 15,
+      "speed": 4856,
+      "troop": 14,
+      "with_mobility": true
+    },
+    {
+      "attack": 1000,
+      "capacity": 12000,
+      "defense": 12000,
+      "level": 0,
+      "speed": 4500,
+      "troop": 15,
+      "with_mobility": true
+    },
+    {
+      "attack": 1632,
+      "capacity": 14683,
+      "defense": 19589,
+      "level": 5,
+      "speed": 5506,
+      "troop": 15,
+      "with_mobility": true
+    },
+    {
+      "attack": 2095,
+      "capacity": 16648,
+      "defense": 25145,
+      "level": 15,
+      "speed": 6243,
+      "troop": 15,
+      "with_mobility": true
+    },
+    {
+      "attack": 15,
+      "capacity": 0,
+      "defense": 150,
+      "level": 0,
+      "speed": 0,
+      "troop": 16,
+      "with_mobility": false
+    },
+    {
+      "attack": 18,
+      "capacity": 0,
+      "defense": 183,
+      "level": 5,
+      "speed": 0,
+      "troop": 16,
+      "with_mobility": false
+    },
+    {
+      "attack": 20,
+      "capacity": 0,
+      "defense": 208,
+      "level": 15,
+      "speed": 0,
+      "troop": 16,
+      "with_mobility": false
+    },
+    {
+      "attack": 40,
+      "capacity": 0,
+      "defense": 500,
+      "level": 0,
+      "speed": 0,
+      "troop": 17,
+      "with_mobility": false
+    },
+    {
+      "attack": 55,
+      "capacity": 0,
+      "defense": 693,
+      "level": 5,
+      "speed": 0,
+      "troop": 17,
+      "with_mobility": false
+    },
+    {
+      "attack": 66,
+      "capacity": 0,
+      "defense": 835,
+      "level": 15,
+      "speed": 0,
+      "troop": 17,
+      "with_mobility": false
+    },
+    {
+      "attack": 60,
+      "capacity": 0,
+      "defense": 800,
+      "level": 0,
+      "speed": 0,
+      "troop": 18,
+      "with_mobility": false
+    },
+    {
+      "attack": 86,
+      "capacity": 0,
+      "defense": 1109,
+      "level": 5,
+      "speed": 0,
+      "troop": 18,
+      "with_mobility": false
+    },
+    {
+      "attack": 106,
+      "capacity": 0,
+      "defense": 1336,
+      "level": 15,
+      "speed": 0,
+      "troop": 18,
+      "with_mobility": false
+    },
+    {
+      "attack": 100,
+      "capacity": 0,
+      "defense": 2500,
+      "level": 0,
+      "speed": 0,
+      "troop": 19,
+      "with_mobility": false
+    },
+    {
+      "attack": 150,
+      "capacity": 0,
+      "defense": 3468,
+      "level": 5,
+      "speed": 0,
+      "troop": 19,
+      "with_mobility": false
+    },
+    {
+      "attack": 186,
+      "capacity": 0,
+      "defense": 4177,
+      "level": 15,
+      "speed": 0,
+      "troop": 19,
+      "with_mobility": false
+    },
+    {
+      "attack": 400,
+      "capacity": 0,
+      "defense": 5000,
+      "level": 0,
+      "speed": 0,
+      "troop": 20,
+      "with_mobility": false
+    },
+    {
+      "attack": 600,
+      "capacity": 0,
+      "defense": 7500,
+      "level": 5,
+      "speed": 0,
+      "troop": 20,
+      "with_mobility": false
+    },
+    {
+      "attack": 746,
+      "capacity": 0,
+      "defense": 9330,
+      "level": 15,
+      "speed": 0,
+      "troop": 20,
+      "with_mobility": false
+    },
+    {
+      "attack": 166,
+      "capacity": 0,
+      "defense": 2080,
+      "level": 5,
+      "speed": 0,
+      "troop": 10,
+      "with_mobility": false
+    },
+    {
+      "attack": 166,
+      "capacity": 0,
+      "defense": 2080,
+      "level": 5,
+      "speed": 0,
+      "troop": 10,
+      "with_mobility": false
+    },
+    {
+      "attack": 185,
+      "capacity": 0,
+      "defense": 2321,
+      "level": 10,
+      "speed": 0,
+      "troop": 10,
+      "with_mobility": false
+    },
+    {
+      "attack": 178,
+      "capacity": 0,
+      "defense": 2234,
+      "level": 8,
+      "speed": 0,
+      "troop": 10,
+      "with_mobility": false
+    }
+  ]
+}

@@ -1,0 +1,116 @@
+{
+  "cases": [
+    {
+      "capacity": 2000,
+      "label": "capacity < total unprotected",
+      "loot": [
+        500,
+        500,
+        500,
+        500
+      ],
+      "unprotected": [
+        4000,
+        4000,
+        4000,
+        4000
+      ]
+    },
+    {
+      "capacity": 400000,
+      "label": "capacity > total unprotected",
+      "loot": [
+        2000,
+        1000,
+        500,
+        200
+      ],
+      "unprotected": [
+        2000,
+        1000,
+        500,
+        200
+      ]
+    },
+    {
+      "capacity": 10000,
+      "label": "one resource scarce",
+      "loot": [
+        6685,
+        7,
+        3308,
+        0
+      ],
+      "unprotected": [
+        99000,
+        100,
+        49000,
+        0
+      ]
+    },
+    {
+      "capacity": 200000,
+      "label": "zero unprotected (all under safe amount)",
+      "loot": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "unprotected": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "capacity": 50,
+      "label": "rounding pushes legacy loot above capacity",
+      "loot": [
+        17,
+        17,
+        16,
+        0
+      ],
+      "unprotected": [
+        100,
+        100,
+        100,
+        0
+      ]
+    },
+    {
+      "capacity": 37680,
+      "label": "smuggling research scales capacity; storage protects",
+      "loot": [
+        19694,
+        3949,
+        12489,
+        1548
+      ],
+      "unprotected": [
+        369000,
+        74000,
+        234000,
+        29000
+      ]
+    },
+    {
+      "capacity": 0,
+      "label": "defender survives -> no loot",
+      "loot": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "unprotected": [
+        49000,
+        49000,
+        49000,
+        49000
+      ]
+    }
+  ]
+}

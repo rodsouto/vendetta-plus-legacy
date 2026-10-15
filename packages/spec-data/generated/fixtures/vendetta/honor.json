@@ -1,0 +1,499 @@
+{
+  "cases": [
+    {
+      "buildings": 1,
+      "honor": 0,
+      "pct": 100
+    },
+    {
+      "buildings": 1,
+      "honor": 1,
+      "pct": 100
+    },
+    {
+      "buildings": 1,
+      "honor": 2,
+      "pct": 100
+    },
+    {
+      "buildings": 1,
+      "honor": 3,
+      "pct": 100
+    },
+    {
+      "buildings": 1,
+      "honor": 4,
+      "pct": 100
+    },
+    {
+      "buildings": 1,
+      "honor": 5,
+      "pct": 100
+    },
+    {
+      "buildings": 1,
+      "honor": 6,
+      "pct": 100
+    },
+    {
+      "buildings": 1,
+      "honor": 7,
+      "pct": 100
+    },
+    {
+      "buildings": 1,
+      "honor": 8,
+      "pct": 100
+    },
+    {
+      "buildings": 4,
+      "honor": 0,
+      "pct": 100
+    },
+    {
+      "buildings": 4,
+      "honor": 1,
+      "pct": 100
+    },
+    {
+      "buildings": 4,
+      "honor": 2,
+      "pct": 100
+    },
+    {
+      "buildings": 4,
+      "honor": 3,
+      "pct": 100
+    },
+    {
+      "buildings": 4,
+      "honor": 4,
+      "pct": 100
+    },
+    {
+      "buildings": 4,
+      "honor": 5,
+      "pct": 100
+    },
+    {
+      "buildings": 4,
+      "honor": 6,
+      "pct": 100
+    },
+    {
+      "buildings": 4,
+      "honor": 7,
+      "pct": 100
+    },
+    {
+      "buildings": 4,
+      "honor": 8,
+      "pct": 100
+    },
+    {
+      "buildings": 5,
+      "honor": 0,
+      "pct": 99
+    },
+    {
+      "buildings": 5,
+      "honor": 1,
+      "pct": 99
+    },
+    {
+      "buildings": 5,
+      "honor": 2,
+      "pct": 99
+    },
+    {
+      "buildings": 5,
+      "honor": 3,
+      "pct": 99
+    },
+    {
+      "buildings": 5,
+      "honor": 4,
+      "pct": 99
+    },
+    {
+      "buildings": 5,
+      "honor": 5,
+      "pct": 99
+    },
+    {
+      "buildings": 5,
+      "honor": 6,
+      "pct": 99
+    },
+    {
+      "buildings": 5,
+      "honor": 7,
+      "pct": 99
+    },
+    {
+      "buildings": 5,
+      "honor": 8,
+      "pct": 99
+    },
+    {
+      "buildings": 7,
+      "honor": 0,
+      "pct": 99
+    },
+    {
+      "buildings": 7,
+      "honor": 1,
+      "pct": 99
+    },
+    {
+      "buildings": 7,
+      "honor": 2,
+      "pct": 99
+    },
+    {
+      "buildings": 7,
+      "honor": 3,
+      "pct": 99
+    },
+    {
+      "buildings": 7,
+      "honor": 4,
+      "pct": 99
+    },
+    {
+      "buildings": 7,
+      "honor": 5,
+      "pct": 99
+    },
+    {
+      "buildings": 7,
+      "honor": 6,
+      "pct": 99
+    },
+    {
+      "buildings": 7,
+      "honor": 7,
+      "pct": 99
+    },
+    {
+      "buildings": 7,
+      "honor": 8,
+      "pct": 99
+    },
+    {
+      "buildings": 12,
+      "honor": 0,
+      "pct": 99
+    },
+    {
+      "buildings": 12,
+      "honor": 1,
+      "pct": 99
+    },
+    {
+      "buildings": 12,
+      "honor": 2,
+      "pct": 99
+    },
+    {
+      "buildings": 12,
+      "honor": 3,
+      "pct": 99
+    },
+    {
+      "buildings": 12,
+      "honor": 4,
+      "pct": 99
+    },
+    {
+      "buildings": 12,
+      "honor": 5,
+      "pct": 99
+    },
+    {
+      "buildings": 12,
+      "honor": 6,
+      "pct": 99
+    },
+    {
+      "buildings": 12,
+      "honor": 7,
+      "pct": 99
+    },
+    {
+      "buildings": 12,
+      "honor": 8,
+      "pct": 99
+    },
+    {
+      "buildings": 23,
+      "honor": 0,
+      "pct": 89
+    },
+    {
+      "buildings": 23,
+      "honor": 1,
+      "pct": 91
+    },
+    {
+      "buildings": 23,
+      "honor": 2,
+      "pct": 94
+    },
+    {
+      "buildings": 23,
+      "honor": 3,
+      "pct": 95
+    },
+    {
+      "buildings": 23,
+      "honor": 4,
+      "pct": 96
+    },
+    {
+      "buildings": 23,
+      "honor": 5,
+      "pct": 97
+    },
+    {
+      "buildings": 23,
+      "honor": 6,
+      "pct": 98
+    },
+    {
+      "buildings": 23,
+      "honor": 7,
+      "pct": 98
+    },
+    {
+      "buildings": 23,
+      "honor": 8,
+      "pct": 98
+    },
+    {
+      "buildings": 50,
+      "honor": 0,
+      "pct": 19
+    },
+    {
+      "buildings": 50,
+      "honor": 1,
+      "pct": 26
+    },
+    {
+      "buildings": 50,
+      "honor": 2,
+      "pct": 35
+    },
+    {
+      "buildings": 50,
+      "honor": 3,
+      "pct": 44
+    },
+    {
+      "buildings": 50,
+      "honor": 4,
+      "pct": 54
+    },
+    {
+      "buildings": 50,
+      "honor": 5,
+      "pct": 63
+    },
+    {
+      "buildings": 50,
+      "honor": 6,
+      "pct": 71
+    },
+    {
+      "buildings": 50,
+      "honor": 7,
+      "pct": 79
+    },
+    {
+      "buildings": 50,
+      "honor": 8,
+      "pct": 84
+    },
+    {
+      "buildings": 99,
+      "honor": 0,
+      "pct": 1
+    },
+    {
+      "buildings": 99,
+      "honor": 1,
+      "pct": 1
+    },
+    {
+      "buildings": 99,
+      "honor": 2,
+      "pct": 2
+    },
+    {
+      "buildings": 99,
+      "honor": 3,
+      "pct": 3
+    },
+    {
+      "buildings": 99,
+      "honor": 4,
+      "pct": 6
+    },
+    {
+      "buildings": 99,
+      "honor": 5,
+      "pct": 9
+    },
+    {
+      "buildings": 99,
+      "honor": 6,
+      "pct": 14
+    },
+    {
+      "buildings": 99,
+      "honor": 7,
+      "pct": 21
+    },
+    {
+      "buildings": 99,
+      "honor": 8,
+      "pct": 30
+    },
+    {
+      "buildings": 100,
+      "honor": 0,
+      "pct": 1
+    },
+    {
+      "buildings": 100,
+      "honor": 1,
+      "pct": 1
+    },
+    {
+      "buildings": 100,
+      "honor": 2,
+      "pct": 2
+    },
+    {
+      "buildings": 100,
+      "honor": 3,
+      "pct": 3
+    },
+    {
+      "buildings": 100,
+      "honor": 4,
+      "pct": 6
+    },
+    {
+      "buildings": 100,
+      "honor": 5,
+      "pct": 9
+    },
+    {
+      "buildings": 100,
+      "honor": 6,
+      "pct": 14
+    },
+    {
+      "buildings": 100,
+      "honor": 7,
+      "pct": 20
+    },
+    {
+      "buildings": 100,
+      "honor": 8,
+      "pct": 29
+    },
+    {
+      "buildings": 101,
+      "honor": 0,
+      "pct": 1
+    },
+    {
+      "buildings": 101,
+      "honor": 1,
+      "pct": 1
+    },
+    {
+      "buildings": 101,
+      "honor": 2,
+      "pct": 2
+    },
+    {
+      "buildings": 101,
+      "honor": 3,
+      "pct": 3
+    },
+    {
+      "buildings": 101,
+      "honor": 4,
+      "pct": 6
+    },
+    {
+      "buildings": 101,
+      "honor": 5,
+      "pct": 9
+    },
+    {
+      "buildings": 101,
+      "honor": 6,
+      "pct": 14
+    },
+    {
+      "buildings": 101,
+      "honor": 7,
+      "pct": 20
+    },
+    {
+      "buildings": 101,
+      "honor": 8,
+      "pct": 29
+    },
+    {
+      "buildings": 150,
+      "honor": 0,
+      "pct": 1
+    },
+    {
+      "buildings": 150,
+      "honor": 1,
+      "pct": 1
+    },
+    {
+      "buildings": 150,
+      "honor": 2,
+      "pct": 1
+    },
+    {
+      "buildings": 150,
+      "honor": 3,
+      "pct": 2
+    },
+    {
+      "buildings": 150,
+      "honor": 4,
+      "pct": 4
+    },
+    {
+      "buildings": 150,
+      "honor": 5,
+      "pct": 6
+    },
+    {
+      "buildings": 150,
+      "honor": 6,
+      "pct": 9
+    },
+    {
+      "buildings": 150,
+      "honor": 7,
+      "pct": 13
+    },
+    {
+      "buildings": 150,
+      "honor": 8,
+      "pct": 19
+    }
+  ]
+}
