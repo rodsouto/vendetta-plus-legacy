@@ -45,13 +45,14 @@ export function Account() {
           </tr>
           <tr>
             <td>{t("account.premium")}</td>
-            <td className="num">
-              {premium ? (
-                `${t("account.premiumUntil")} ${clock(p.premiumUntil > g.world.globalPremiumUntil ? p.premiumUntil : g.world.globalPremiumUntil)}`
-              ) : (
-                <span className="muted">{t("account.noPremium")}</span>
-              )}
-            </td>
+            {premium ? (
+              <td className="num">
+                {`${t("account.premiumUntil")} ${clock(p.premiumUntil > g.world.globalPremiumUntil ? p.premiumUntil : g.world.globalPremiumUntil)}`}
+              </td>
+            ) : (
+              // A sentence, not a figure: it wraps instead of widening the page on a phone.
+              <td className="muted">{t("account.noPremium")}</td>
+            )}
           </tr>
         </tbody>
       </table>
