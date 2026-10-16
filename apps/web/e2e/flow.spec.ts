@@ -59,7 +59,8 @@ test("register, build, train, attack and read the report", async ({ page }) => {
 
   await warp(page, "+1 d");
   await page.getByRole("button", { name: "Procesar misiones" }).click();
-  await expect(stamp(page)).toBeVisible();
+  // Its own stamp: the one from sending the attack may still be on screen.
+  await expect(page.locator(".stamp-toast", { hasText: "Procesar misiones" })).toBeVisible();
 
   await page.goto("/#/reports");
   await expect(page.getByRole("button", { name: "Ver informe" }).first()).toBeVisible();

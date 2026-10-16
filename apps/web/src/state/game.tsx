@@ -126,6 +126,9 @@ const errorName = (e: unknown): string => {
   return "unknown";
 };
 
+/** advance() calls an action takes in front at most before it gives up on a backlog (B-08). */
+const MAX_BACKLOG_RETRIES = 3;
+
 const gameCall = (game: Address, functionName: string, args: readonly unknown[]): Call => ({
   to: game,
   abi: gameAbi,
@@ -214,16 +217,19 @@ export function GameProvider({
 
   /**
    * Sends the calls; if due missions piled up, or more came due than the gas allowed for (B-08),
-   * processes them first in the same operation and retries once.
+   * processes them first in the same operation and retries, with one more advance() each time
+   * (processing arrivals can bring their returns due too).
    */
   const send = useCallback(
     async (calls: Call[], from: From) => {
-      try {
-        await signer.send(calls, from);
-      } catch (e) {
-        if (errorName(e) !== "Backlog") throw e;
-        const advance = gameCall(game, "advance", [BigInt(sim.MAX_MISSIONS_PER_TX)]);
-        await signer.send([advance, ...calls], from);
+      const advance = gameCall(game, "advance", [BigInt(sim.MAX_MISSIONS_PER_TX)]);
+      for (let advances = 0; ; advances++) {
+        try {
+          await signer.send([...Array<Call>(advances).fill(advance), ...calls], from);
+          return;
+        } catch (e) {
+          if (errorName(e) !== "Backlog" || advances === MAX_BACKLOG_RETRIES) throw e;
+        }
       }
     },
     [signer, game],
