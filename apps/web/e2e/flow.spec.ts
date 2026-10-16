@@ -1,5 +1,6 @@
 // Main flow on a local chain: two players register, one builds, trains, attacks the other and reads
-// the battle report. Also captures the review screenshots (desktop and mobile).
+// the battle report and the ranking (from the indexer). Also captures the review screenshots
+// (desktop and mobile).
 import { expect, test, type Page } from "@playwright/test";
 
 const stamp = (page: Page) => page.locator(".stamp-toast");
@@ -73,12 +74,18 @@ test("register, build, train, attack and read the report", async ({ page }) => {
   await expect(page.getByText("Sobrevivientes")).toBeVisible();
   expect(passkeyStack).toEqual([]);
 
+  // The ranking comes from the subgraph on the local graph-node (e2e/serve.sh).
+  await page.goto("/#/ranking");
+  const ranked = page.locator("table.ledger").first().locator("tbody tr");
+  await expect(ranked.nth(1)).toBeVisible({ timeout: 30_000 });
+
   // Review captures.
   const shots: [string, string][] = [
     ["book", "/#/book"],
     ["map", "/#/map"],
     ["missions", "/#/missions"],
     ["reports", "/#/reports"],
+    ["ranking", "/#/ranking"],
   ];
   for (const [name, url] of shots) {
     await page.setViewportSize({ width: 1440, height: 900 });

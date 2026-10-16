@@ -43,7 +43,7 @@ which network it runs on. Messaging, chat and moderation are off-chain (B-10).
 | B-15 | Accounts | New | Kernel smart account, one passkey per device, passkey directory, recovery, native session keys |
 | B-16 | Gas | New | Low sponsored allowance; above it the player pays via credits |
 | B-17 | Upgradeability | New | Proxy, no timelock, admin in a Safe; later frozen, one immutable deploy per world |
-| B-18 | Events and indexer | New | Reports and notices as events; ranking in the indexer |
+| B-18 | Events and indexer | New | Reports and notices as events (reports read from the RPC); ranking in the indexer |
 | B-19 | Points on-chain | Adapt | D-24 points kept incrementally on-chain |
 | B-20 | Optimistic client | New | Client runs the same rules engine and projects results |
 | B-21 | Parity tests | New | Foundry against the test vectors with explicit tolerances |
@@ -390,21 +390,27 @@ Until the freeze, the "trustless rules" goal (Goals) is only partly met. This is
 - Battle reports, notices (delivery, occupation, trade, family) and history are **events** (logs),
   not storage.
 - The `Battle` event carries the **inputs and totals**: the attacking and defending player, both armies, both players' research and
-  honor percentage, survivors and loot. Combat is deterministic, so the indexer recomputes the exact
+  honor percentage, survivors and loot. Combat is deterministic, so the client recomputes the exact
   rounds (deaths per round and troop type, 06-combat.md#battle-report) with `packages/rules`. This
   costs less gas than logging every round.
-- An **indexer** serves reports, notices and the **ranking**. Sorting players on-chain is too
-  expensive. The indexer is a **Goldsky Subgraph** (The Graph format), queried by the client over
-  GraphQL. Because the format is The Graph's and the events are on-chain, anyone can deploy the same
-  subgraph elsewhere.
-- The client reads live state from the contracts and history from the indexer.
+- **Reports are read straight from the RPC**, only the recent ones: public RPCs cap the block range of
+  a log query (Arbitrum One's: 10M blocks, about a month), and the client asks for the last 5M blocks.
+  Losing older reports is accepted; they are not worth an index.
+- An **indexer** serves the **ranking**: sorting players on-chain is too expensive. It is a
+  **Goldsky Subgraph** (The Graph format, `packages/indexer`), queried by the client over GraphQL.
+  It ranks on `PointsChanged` (B-19) and keeps family membership from the family events. Because the
+  format is The Graph's and the events are on-chain, anyone can deploy the same subgraph elsewhere.
+  Locally (dev and e2e) it runs on a graph-node in Docker.
+- The client reads live state from the contracts and the ranking from the indexer.
 
 ## B-19 — Points on-chain — Adapt
 
 Points (D-24) are kept on-chain because they drive rules (honor, [06-combat.md](06-combat.md#honor)).
 They are updated **incrementally** on every change that affects them, and must always equal the value
 derived from state. A view function recomputes them from scratch, used by tests to check this
-invariant.
+invariant. Every change emits `PointsChanged(player, centipoints)` with the new total (once per
+settlement, not per finished item), so the indexer ranks on the stored value (B-18); the
+differential scenarios check that the last event of each player equals its stored points.
 
 ## B-20 — Optimistic client — New
 

@@ -29,6 +29,8 @@ interface Report {
   };
 }
 
+// Public RPCs cap the range of a log query (Arbitrum One's: 10M blocks, about a month). Reports
+// are not worth an index: only the recent ones are shown (5M blocks, about two weeks on Arbitrum).
 const LOG_WINDOW = 5_000_000n;
 
 function useBattles() {
@@ -36,22 +38,15 @@ function useBattles() {
   return useQuery({
     queryKey: ["battles", g.clients.deployment.game],
     queryFn: async (): Promise<Report[]> => {
-      // Public RPCs cap the range of a log query (Arbitrum One's: 10M blocks, about a month), so
-      // query in windows. Until the indexer (B-18) this rescans from the deployment every time.
       const latest = await g.clients.public.getBlockNumber({ cacheTime: 0 });
-      const logs: unknown[] = [];
-      for (let from = BigInt(g.clients.deployment.fromBlock); from <= latest; from += LOG_WINDOW) {
-        const to = from + LOG_WINDOW - 1n < latest ? from + LOG_WINDOW - 1n : latest;
-        logs.push(
-          ...((await g.clients.public.getContractEvents({
-            address: g.clients.deployment.game,
-            abi: gameAbi,
-            eventName: "Battle",
-            fromBlock: from,
-            toBlock: to,
-          } as never)) as unknown[]),
-        );
-      }
+      const start = BigInt(g.clients.deployment.fromBlock);
+      const logs = (await g.clients.public.getContractEvents({
+        address: g.clients.deployment.game,
+        abi: gameAbi,
+        eventName: "Battle",
+        fromBlock: latest - start > LOG_WINDOW ? latest - LOG_WINDOW : start,
+        toBlock: latest,
+      } as never)) as unknown[];
       const out: Report[] = [];
       for (const log of logs as unknown as {
         args: { attacker: bigint; defender: bigint; building: bigint; report: Report["r"] };

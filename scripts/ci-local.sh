@@ -31,6 +31,9 @@ pnpm -r test
 step "web build"
 pnpm --filter @vendetta/web build
 
+step "indexer build"
+pnpm --filter @vendetta/indexer build
+
 step "end-to-end (local chain + app)"
 pnpm --filter @vendetta/web e2e
 

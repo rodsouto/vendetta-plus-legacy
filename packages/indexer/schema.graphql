@@ -1,0 +1,22 @@
+# Ranking (08-progression.md#ranking, B-18). Points are the stored on-chain value (B-19), announced
+# by PointsChanged after every change.
+
+type Player @entity(immutable: false) {
+  "Player id (decimal)"
+  id: ID!
+  centipoints: BigInt!
+  buildings: Int!
+  "Family the player belongs to, if any (null after leaving or when it is dissolved)"
+  family: Family
+}
+
+type Family @entity(immutable: false) {
+  "Family id (decimal)"
+  id: ID!
+  tag: String!
+  name: String!
+  alive: Boolean!
+  members: Int!
+  "Sum of the members' points"
+  centipoints: BigInt!
+}

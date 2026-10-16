@@ -1,0 +1,39 @@
+specVersion: 1.3.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: Game
+    network: {{network}}
+    source:
+      abi: IGameEvents
+      address: "{{address}}"
+      startBlock: {{startBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - Player
+        - Family
+      abis:
+        - name: IGameEvents
+          file: ../../contracts/out/GameErrors.sol/IGameEvents.json
+      eventHandlers:
+        - event: PlayerRegistered(indexed uint64,indexed address,uint64)
+          handler: handlePlayerRegistered
+        - event: PointsChanged(indexed uint64,uint128)
+          handler: handlePointsChanged
+        - event: BuildingOccupied(indexed uint64,indexed uint64,uint64)
+          handler: handleBuildingOccupied
+        - event: BuildingAbandoned(indexed uint64,indexed uint64)
+          handler: handleBuildingAbandoned
+        - event: FamilyCreated(indexed uint64,indexed uint64,string,string)
+          handler: handleFamilyCreated
+        - event: FamilyChanged(indexed uint64,indexed uint64,uint8)
+          handler: handleFamilyChanged
+        - event: FamilyDissolved(indexed uint64)
+          handler: handleFamilyDissolved
+      file: ./src/mapping.ts

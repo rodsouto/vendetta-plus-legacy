@@ -249,7 +249,8 @@
     "title": "Ranking",
     "players": "Players",
     "families": "Families",
-    "buildings": "Buildings"
+    "buildings": "Buildings",
+    "unavailable": "The ranking is not available right now."
   },
   "dev": {
     "title": "Workshop (local only)",
