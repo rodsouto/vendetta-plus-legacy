@@ -50,6 +50,17 @@ test("create an account with a passkey, play without prompts, sign in on another
   await expect(stamp(a.page)).toContainText("Asentado", { timeout: 60_000 });
   expect(await a.prompts()).toBe(afterCreate);
 
+  // The workshop shows on a local chain with passkeys too, without the dev account switcher.
+  await a.page.getByRole("link", { name: "Taller" }).click();
+  await expect(a.page.getByRole("heading", { name: "Adelantar el tiempo" })).toBeVisible();
+  await expect(a.page.getByRole("heading", { name: "Jugar como" })).toHaveCount(0);
+  await a.page.getByRole("button", { name: "Premium global 30 días" }).click();
+  await expect(stamp(a.page)).toContainText("Asentado", { timeout: 30_000 });
+  await a.page.getByRole("button", { name: "+1 h", exact: true }).click();
+  await a.page.getByRole("button", { name: "Procesar misiones" }).click();
+  await expect(stamp(a.page)).toContainText("Procesar misiones", { timeout: 30_000 });
+  expect(await a.prompts()).toBe(afterCreate);
+
   await a.page.goto("/#/account");
   await expect(a.page.getByText(/^Hasta /)).toBeVisible();
 

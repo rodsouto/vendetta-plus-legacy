@@ -1,4 +1,5 @@
-// Local workshop (development accounts only): switch dev accounts, move the chain clock, process missions, admin actions.
+// Local workshop (anvil only, never Arbitrum One): switch dev accounts (dev mode), move the chain
+// clock, process missions, admin actions with the deployer's dev key.
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useGame } from "../state/game.js";
@@ -19,18 +20,22 @@ export function Dev() {
       <header className="account-head">
         <h2>{t("dev.title")}</h2>
       </header>
-      <h3>{t("dev.account")}</h3>
-      <div className="form-row">
-        {DEV_KEYS.map((_, i) => (
-          <button
-            key={i}
-            className={`btn${dev?.account === i ? " primary" : ""}`}
-            onClick={() => dev?.use(i)}
-          >
-            {i === 0 ? t("dev.admin") : `#${i}`} · {devAccount(i).address.slice(0, 6)}
-          </button>
-        ))}
-      </div>
+      {dev && (
+        <>
+          <h3>{t("dev.account")}</h3>
+          <div className="form-row">
+            {DEV_KEYS.map((_, i) => (
+              <button
+                key={i}
+                className={`btn${dev.account === i ? " primary" : ""}`}
+                onClick={() => dev.use(i)}
+              >
+                {i === 0 ? t("dev.admin") : `#${i}`} · {devAccount(i).address.slice(0, 6)}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
       <h3>{t("dev.time")}</h3>
       <div className="form-row">
         {[
@@ -52,7 +57,13 @@ export function Dev() {
           className="btn"
           disabled={g.busy}
           onClick={() =>
-            void g.act({ done: t("dev.advance"), functionName: "advance", args: [50n] })
+            // Anyone may call it; the admin needs no session or sign-in.
+            void g.act({
+              done: t("dev.advance"),
+              functionName: "advance",
+              args: [50n],
+              from: "admin",
+            })
           }
         >
           {t("dev.advance")}

@@ -121,8 +121,9 @@ function Game() {
   const { t } = useTranslation();
   const g = useGame();
   const { path } = useRoute();
-  // The workshop drives anvil with the development accounts: local only.
-  const pages = PAGES.filter(([id]) => id !== "dev" || g.signer.mode === "dev");
+  // The workshop drives anvil (time travel, the deployer's admin key): local only, never on
+  // Arbitrum One. With passkeys (`pnpm dev:aa`) it shows too, without the account switcher.
+  const pages = PAGES.filter(([id]) => id !== "dev" || g.network.id === "local");
   const page = pages.find(([id]) => id === path) ?? pages[0]!;
   const Page = page[2];
   const signedOut = g.signer.mode === "passkey" && !g.address;

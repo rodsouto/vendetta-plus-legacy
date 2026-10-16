@@ -46,7 +46,7 @@ export interface Call {
 /**
  * actor: the address game actions come from (the session, or the dev account itself).
  * controller: the player's own account, for account management (a passkey prompt).
- * admin: the deployer (local workshop only).
+ * admin: the deployer, anvil's first account (local workshop only).
  * { key }: the simple account of a recovery code's key (B-26), another controller.
  */
 export type From = "actor" | "controller" | "admin" | { key: Hex };
@@ -106,6 +106,21 @@ function revertName(logs: readonly { data: Hash; topics: readonly Hash[] }[], ab
   return undefined;
 }
 
+/** Sends the calls one by one as plain transactions from a development account (local only). */
+async function sendPlain(clients: Clients, account: number, calls: Call[]) {
+  const wallet = clients.wallet(account);
+  for (const c of calls) {
+    const hash = await wallet.writeContract({
+      ...c,
+      address: c.to,
+      chain: wallet.chain,
+      account: wallet.account!,
+    } as never);
+    const receipt = await clients.public.waitForTransactionReceipt({ hash });
+    if (receipt.status !== "success") throw new RevertedError();
+  }
+}
+
 export class DevSigner extends Observable implements Signer {
   readonly mode = "dev";
   account: number;
@@ -140,17 +155,7 @@ export class DevSigner extends Observable implements Signer {
 
   async send(calls: Call[], from: From) {
     if (typeof from === "object") throw new Error("no recovery codes with dev accounts");
-    const wallet = this.clients.wallet(from === "admin" ? 0 : this.account);
-    for (const c of calls) {
-      const hash = await wallet.writeContract({
-        ...c,
-        address: c.to,
-        chain: wallet.chain,
-        account: wallet.account!,
-      } as never);
-      const receipt = await this.clients.public.waitForTransactionReceipt({ hash });
-      if (receipt.status !== "success") throw new RevertedError();
-    }
+    await sendPlain(this.clients, from === "admin" ? 0 : this.account, calls);
   }
 }
 
@@ -245,8 +250,12 @@ export class PasskeySigner extends Observable implements Signer {
   }
 
   async send(calls: Call[], from: From) {
+    // The local 4337 stack deploys with anvil's first account, so the workshop's admin stays it.
+    if (from === "admin") {
+      if (this.network.id !== "local") throw new Error("no admin with passkeys");
+      return sendPlain(this.clients, 0, calls);
+    }
     if (!this.identity) throw new Error("signed out");
-    if (from === "admin") throw new Error("no admin with passkeys");
     const account =
       from === "controller"
         ? await kernelAccount(this.client, this.identity)
