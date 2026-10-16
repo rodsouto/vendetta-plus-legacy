@@ -160,6 +160,7 @@ library Missions {
         p.buildings += 1;
         p.centipoints = p.centipoints + s.buildings[bid].centipoints
             - uint128(Ruleset.OCCUPATION_TROOPS_CONSUMED * Ruleset.troopCentipoints()[occ]);
+        emit IGameEvents.PointsChanged(m.owner, p.centipoints);
         emit IGameEvents.BuildingOccupied(bid, m.owner, id);
         _sendBack(s, id, t);
     }
@@ -175,7 +176,9 @@ library Missions {
             Settlement.credit(origin, _cargo(m));
         } else {
             // The building was abandoned: troops are lost.
-            s.players[m.owner].centipoints -= uint128(Settlement.troopCentipoints(m.troops));
+            Player storage p = s.players[m.owner];
+            p.centipoints -= uint128(Settlement.troopCentipoints(m.troops));
+            emit IGameEvents.PointsChanged(m.owner, p.centipoints);
         }
         _finish(s, id);
     }
@@ -346,6 +349,7 @@ library Missions {
         if (p.buildings <= 1) revert LastBuilding();
         Access.settleForAction(s, p, id);
         p.centipoints -= b.centipoints + uint128(Settlement.troopCentipoints(b.troops));
+        emit IGameEvents.PointsChanged(pid, p.centipoints);
         if (p.researchBuilding == id) {
             delete p.researchQueue;
             p.researchBuilding = 0;

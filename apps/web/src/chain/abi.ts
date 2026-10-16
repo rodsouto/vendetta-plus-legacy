@@ -1955,6 +1955,25 @@ export const gameAbi = [
   },
   {
     "type": "event",
+    "name": "PointsChanged",
+    "inputs": [
+      {
+        "name": "player",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      },
+      {
+        "name": "centipoints",
+        "type": "uint128",
+        "indexed": false,
+        "internalType": "uint128"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "PremiumGranted",
     "inputs": [
       {
