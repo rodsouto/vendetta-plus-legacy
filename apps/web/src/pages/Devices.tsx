@@ -1,14 +1,26 @@
 // Devices and recovery (B-15, B-26): the controllers of the player, adding another device (it shows
 // a link or QR that a device already in the account approves), recovery codes, and recovering the
 // account on a new device with one.
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { isAddress, type Address } from "viem";
-import { renderSVG } from "uqr";
 import { useGame } from "../state/game.js";
 import { useRoute, go } from "../router.js";
 import { controllerKey } from "../chain/load.js";
 import { knownRecovery, newRecoveryCode } from "../account/recovery.js";
+
+/** A QR code of `text`; the encoder loads on first use (only a device joining needs it). */
+function Qr({ text }: { text: string }) {
+  const [svg, setSvg] = useState("");
+  useEffect(() => {
+    let live = true;
+    void import("uqr").then(({ renderSVG }) => live && setSvg(renderSVG(text, { border: 2 })));
+    return () => {
+      live = false;
+    };
+  }, [text]);
+  return <div className="qr" dangerouslySetInnerHTML={{ __html: svg }} />;
+}
 
 const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 
@@ -175,7 +187,7 @@ export function Joining() {
         <h2>{t("joining.title")}</h2>
       </header>
       <p className="note">{t("joining.body")}</p>
-      <div className="qr" dangerouslySetInnerHTML={{ __html: renderSVG(link, { border: 2 }) }} />
+      <Qr text={link} />
       <p className="join-link">
         <a href={link}>{link}</a>
       </p>

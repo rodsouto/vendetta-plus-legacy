@@ -1,40 +1,17 @@
 // Who sends the player's transactions. The game state (state/game.tsx) only sees this interface:
 // - DevSigner: anvil's development accounts, plain transactions (local only).
 // - PasskeySigner: the passkey's Kernel account for account management and this device's session
-//   account for every game action, both as sponsored ERC-4337 operations (B-15, B-16).
-import {
-  decodeErrorResult,
-  decodeEventLog,
-  http,
-  type Abi,
-  type Address,
-  type Chain,
-  type Hash,
-  type Hex,
-  type PublicClient,
-} from "viem";
-import { entryPoint07Abi } from "viem/account-abstraction";
-import { createSmartAccountClient } from "permissionless";
-import { createPimlicoClient } from "permissionless/clients/pimlico";
+//   account for every game action, both as sponsored ERC-4337 operations (B-15, B-16). The passkey
+//   stack (stack.ts: permissionless, ox) loads on its first use, not with the app.
+import type { Abi, Address, Hex, PublicClient } from "viem";
 import type { Clients } from "../chain/config.js";
 import { devAccount } from "../chain/config.js";
 import type { Network } from "../chain/networks.js";
-import {
-  createIdentity,
-  ENTRY_POINT,
-  kernelAccount,
-  signInIdentity,
-  type Identity,
-} from "./passkey.js";
-import {
-  deviceSession,
-  forgetSession,
-  sessionAccount,
-  storedIdentity,
-  storedSession,
-  storeIdentity,
-  type DeviceSession,
-} from "./session.js";
+import type { Identity } from "./passkey.js";
+import type { DeviceSession } from "./session.js";
+import { storedIdentity, storedSession, storeIdentity, storeSession } from "./store.js";
+
+const stack = () => import("./stack.js");
 
 export interface Call {
   to: Address;
@@ -77,33 +54,18 @@ abstract class Observable {
   }
 }
 
-const CALL_GAS_HEADROOM = 100_000n;
+/** No account in the directory matches the passkey the player picked. */
+export class NoAccountError extends Error {
+  constructor() {
+    super("No account for this passkey");
+  }
+}
 
 /** A call that reverted on chain; `errorName` is the contract's custom error when it is known. */
 export class RevertedError extends Error {
   constructor(readonly errorName?: string) {
     super(errorName ?? "reverted");
   }
-}
-
-/** The custom error behind a reverted operation, from the EntryPoint's UserOperationRevertReason. */
-function revertName(logs: readonly { data: Hash; topics: readonly Hash[] }[], abis: Abi[]) {
-  for (const log of logs) {
-    try {
-      const ev = decodeEventLog({ abi: entryPoint07Abi, ...log, topics: log.topics as never });
-      if (ev.eventName !== "UserOperationRevertReason") continue;
-      for (const abi of abis) {
-        try {
-          return decodeErrorResult({ abi, data: ev.args.revertReason }).errorName;
-        } catch {
-          /* not this contract's error */
-        }
-      }
-    } catch {
-      /* another event */
-    }
-  }
-  return undefined;
 }
 
 /** Sends the calls one by one as plain transactions from a development account (local only). */
@@ -164,7 +126,6 @@ export class PasskeySigner extends Observable implements Signer {
   identity: Identity | null;
   session: DeviceSession | null = null;
   private chainId: number;
-  private pimlico;
 
   constructor(
     private clients: Clients,
@@ -174,10 +135,6 @@ export class PasskeySigner extends Observable implements Signer {
     this.chainId = network.deployment.chainId;
     this.identity = storedIdentity(this.chainId);
     if (this.identity) this.session = storedSession(this.chainId, this.identity.address);
-    this.pimlico = createPimlicoClient({
-      transport: http(network.deployment.paymaster ?? network.deployment.bundler!),
-      entryPoint: ENTRY_POINT,
-    });
   }
 
   get controller() {
@@ -197,7 +154,7 @@ export class PasskeySigner extends Observable implements Signer {
   private async adopt(id: Identity) {
     this.identity = id;
     storeIdentity(this.chainId, id);
-    this.session = await deviceSession(this.client, this.chainId, id.address);
+    this.session = await (await stack()).deviceSession(this.client, this.chainId, id.address);
     this.changed();
   }
 
@@ -206,12 +163,13 @@ export class PasskeySigner extends Observable implements Signer {
    * session once another device or a recovery code has added it: `joining`).
    */
   async create(name: string, joining = false) {
-    const id = await createIdentity(this.client, name);
+    const id = await (await stack()).createIdentity(this.client, name);
     await this.adopt(joining ? { ...id, joining } : id);
   }
 
   async signIn() {
-    await this.adopt({ ...(await signInIdentity(this.client, this.directory)), published: true });
+    const id = await (await stack()).signInIdentity(this.client, this.directory);
+    await this.adopt({ ...id, published: true });
   }
 
   /** The passkey is in the directory and the account is a controller: nothing pending. */
@@ -224,29 +182,11 @@ export class PasskeySigner extends Observable implements Signer {
 
   /** Forgets the player on this device (the passkey and the account stay). */
   signOut() {
-    if (this.identity) forgetSession(this.chainId, this.identity.address);
+    if (this.identity) storeSession(this.chainId, this.identity.address, null);
     storeIdentity(this.chainId, null);
     this.identity = null;
     this.session = null;
     this.changed();
-  }
-
-  private smartClient(
-    account: Awaited<ReturnType<typeof kernelAccount>> | Awaited<ReturnType<typeof sessionAccount>>,
-  ) {
-    return createSmartAccountClient({
-      account,
-      chain: this.network.chain as Chain,
-      client: this.client,
-      bundlerTransport: http(this.network.deployment.bundler!),
-      paymaster: this.pimlico,
-      paymasterContext: this.network.deployment.sponsorshipPolicy
-        ? { sponsorshipPolicyId: this.network.deployment.sponsorshipPolicy }
-        : undefined,
-      userOperation: {
-        estimateFeesPerGas: async () => (await this.pimlico.getUserOperationGasPrice()).fast,
-      },
-    });
   }
 
   async send(calls: Call[], from: From) {
@@ -256,29 +196,14 @@ export class PasskeySigner extends Observable implements Signer {
       return sendPlain(this.clients, 0, calls);
     }
     if (!this.identity) throw new Error("signed out");
-    const account =
-      from === "controller"
-        ? await kernelAccount(this.client, this.identity)
-        : await sessionAccount(this.client, from === "actor" ? this.session!.key : from.key);
-    const client = this.smartClient(account);
-    // With the abi, viem decodes a revert during gas estimation into the contract's error.
-    const gas = await client.estimateUserOperationGas({ calls: calls as never });
-    // A game action costs more the later it runs (lazy settlement, due missions processed on the
-    // way, B-06/B-07), so the execution limit gets headroom. It is fixed before the paymaster
-    // signs, since its signature covers the limits; unused gas is barely charged.
-    const hash: Hash = await client.sendUserOperation({
-      calls: calls as never,
-      ...gas,
-      callGasLimit: (gas.callGasLimit * 3n) / 2n + CALL_GAS_HEADROOM,
-    });
-    const receipt = await client.waitForUserOperationReceipt({ hash });
-    if (!receipt.success)
-      throw new RevertedError(
-        revertName(
-          receipt.logs,
-          calls.map((c) => c.abi),
-        ),
-      );
+    const key = from === "actor" ? this.session!.key : typeof from === "object" ? from.key : null;
+    const { sendOperation } = await stack();
+    await sendOperation(
+      this.client,
+      this.network,
+      key ? { key } : { identity: this.identity },
+      calls,
+    );
   }
 }
 

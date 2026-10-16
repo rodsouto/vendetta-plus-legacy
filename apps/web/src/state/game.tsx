@@ -21,17 +21,20 @@ import { gameAbi } from "../chain/abi.js";
 import { makeClients, type Clients } from "../chain/config.js";
 import { loadNetwork, type Network } from "../chain/networks.js";
 import { controllerKey, loadWorld, project, cloneWorld, type Snapshot } from "../chain/load.js";
-import { isPublished, NoAccountError, publishCall } from "../account/passkey.js";
-import { sessionAccount } from "../account/session.js";
 import { parseRecoveryCode, recoveryKey, rememberRecovery } from "../account/recovery.js";
 import {
   DevSigner,
+  NoAccountError,
   PasskeySigner,
   RevertedError,
   makeSigner,
   type Call,
   type From,
 } from "../account/signer.js";
+
+// The passkey stack (permissionless, ox) loads on first use, not with the app.
+const passkeys = () => import("../account/passkey.js");
+const sessions = () => import("../account/session.js");
 
 export interface Toast {
   id: number;
@@ -295,6 +298,7 @@ export function GameProvider({
     const key = controller;
     const calls: Call[] = [];
     if (signer instanceof PasskeySigner && signer.identity && !signer.identity.published) {
+      const { isPublished, publishCall } = await passkeys();
       if (await isPublished(clients.public, signer.directory, signer.identity)) signer.settled();
       else calls.push(publishCall(signer.directory, signer.identity));
     }
@@ -327,6 +331,7 @@ export function GameProvider({
       const calls: Call[] = [];
       setBusy(true);
       try {
+        const { isPublished, publishCall } = await passkeys();
         // A passkey made by an earlier attempt that did not land is reused.
         if (!signer.identity)
           await signer.create(`Vendetta ${at.city}:${at.neighborhood}:${at.slot}`);
@@ -467,6 +472,7 @@ export function GameProvider({
         toast(t("errors.invalidCode"), true);
         return false;
       }
+      const { sessionAccount } = await sessions();
       const a = (await sessionAccount(clients.public, recoveryKey(bytes))).address;
       const ok = await addController(a, t("devices.activated"));
       if (ok) rememberRecovery(clients.deployment.chainId, a);
@@ -478,6 +484,7 @@ export function GameProvider({
   const recover = useCallback(
     async (code: string) => {
       if (!(signer instanceof PasskeySigner) || !snapshot) return false;
+      const { sessionAccount } = await sessions();
       const bytes = parseRecoveryCode(code);
       const key = bytes && recoveryKey(bytes);
       const rec = key && controllerKey((await sessionAccount(clients.public, key)).address);
@@ -501,6 +508,7 @@ export function GameProvider({
         // The new account publishes its passkey and opens this device's session (a prompt). If
         // that is cancelled, the first action does it.
         const calls: Call[] = [];
+        const { isPublished, publishCall } = await passkeys();
         if (!(await isPublished(clients.public, signer.directory, id)))
           calls.push(publishCall(signer.directory, id));
         calls.push(gameCall(game, "authorizeSession", [session, until]));

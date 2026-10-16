@@ -5,48 +5,14 @@
 import type { Address, Hex, PublicClient } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { toSimpleSmartAccount } from "permissionless/accounts";
-import { ENTRY_POINT, type Identity } from "./passkey.js";
+import { ENTRY_POINT } from "./passkey.js";
+import { storedSession, storeSession } from "./store.js";
 
 export interface DeviceSession {
   key: Hex;
   /** The simple account the key controls: the address Game authorizes. */
   address: Address;
 }
-
-export const storeGet = <T>(name: string) => store.get<T>(name);
-export const storeSet = (name: string, value: unknown) => store.set(name, value);
-
-const store = {
-  get<T>(name: string): T | null {
-    try {
-      const raw = localStorage.getItem(name);
-      return raw ? (JSON.parse(raw) as T) : null;
-    } catch {
-      return null;
-    }
-  },
-  set(name: string, value: unknown) {
-    try {
-      if (value === null) localStorage.removeItem(name);
-      else localStorage.setItem(name, JSON.stringify(value));
-    } catch {
-      /* private mode: lasts until the tab closes */
-    }
-  },
-};
-
-const identityKey = (chainId: number) => `vendetta.identity.${chainId}`;
-const sessionKey = (chainId: number, controller: Address) =>
-  `vendetta.session.${chainId}.${controller.toLowerCase()}`;
-
-export const storedIdentity = (chainId: number) => store.get<Identity>(identityKey(chainId));
-export const storeIdentity = (chainId: number, id: Identity | null) =>
-  store.set(identityKey(chainId), id);
-
-export const storedSession = (chainId: number, controller: Address) =>
-  store.get<DeviceSession>(sessionKey(chainId, controller));
-export const forgetSession = (chainId: number, controller: Address) =>
-  store.set(sessionKey(chainId, controller), null);
 
 export const sessionAccount = (client: PublicClient, key: Hex) =>
   toSimpleSmartAccount({ client, owner: privateKeyToAccount(key), entryPoint: ENTRY_POINT });
@@ -61,6 +27,6 @@ export async function deviceSession(
   if (known) return known;
   const key = generatePrivateKey();
   const session = { key, address: (await sessionAccount(client, key)).address };
-  store.set(sessionKey(chainId, controller), session);
+  storeSession(chainId, controller, session);
   return session;
 }

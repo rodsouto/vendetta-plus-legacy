@@ -34,12 +34,20 @@ test("create an account with a passkey, play without prompts, sign in on another
   await a.page.addInitScript(() => localStorage.setItem("lang", "es"));
 
   // Device A: entry screen → pick a lot → create the account (passkey + one operation).
+  // The entry screen does not download the passkey stack: it loads on the first passkey.
+  const passkeyStack: string[] = [];
+  a.page.on("request", (r) => {
+    if (/permissionless|\/ox[./]|uqr/.test(r.url())) passkeyStack.push(r.url());
+  });
   await a.page.goto("/#/book");
   await expect(a.page.getByRole("heading", { name: "Entrar a la ciudad" })).toBeVisible();
   await a.page.getByRole("button", { name: /^25:25:120 / }).click();
+  await a.page.waitForLoadState("networkidle");
+  expect(passkeyStack).toEqual([]);
   await a.page.getByRole("button", { name: "Crear cuenta y fundar aquí" }).click();
   await expect(stamp(a.page)).toContainText("Cuenta abierta", { timeout: 60_000 });
   expect(await a.credentials()).toHaveLength(1);
+  expect(passkeyStack.length).toBeGreaterThan(0); // the filter does see the stack
   const afterCreate = await a.prompts();
 
   // A game action goes out through the session: no prompt.

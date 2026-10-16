@@ -12,6 +12,7 @@ import { readContract } from "viem/actions";
 import { toKernelSmartAccount } from "permissionless/accounts";
 import { Base64, PublicKey, WebAuthnP256 } from "ox";
 import { directoryAbi } from "../chain/abi.js";
+import { NoAccountError } from "./signer.js";
 
 /** What this device remembers about the signed-in player (public data only). */
 export interface Identity {
@@ -91,12 +92,6 @@ async function lookupAll(client: PublicClient, directory: Address, credentialId:
     });
     entries.push(...page);
     if (BigInt(page.length) < PAGE) return entries;
-  }
-}
-
-export class NoAccountError extends Error {
-  constructor() {
-    super("No account for this passkey");
   }
 }
 

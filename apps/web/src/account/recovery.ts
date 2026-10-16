@@ -2,7 +2,7 @@
 // base32 characters. The code derives a key whose simple 4337 account (like a session's) is one
 // more controller of the player, so on a new device it can add that device's passkey account.
 import { concatHex, keccak256, toHex, type Address, type Hex } from "viem";
-import { storeGet, storeSet } from "./session.js";
+import { store } from "./store.js";
 
 const ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"; // Crockford: no I, L, O, U
 const BYTES = 15;
@@ -36,6 +36,6 @@ export const recoveryKey = (code: Hex): Hex => keccak256(concatHex([DOMAIN, code
 
 // Recovery accounts this device made, only to label them in the device list.
 const knownKey = (chainId: number) => `vendetta.recovery.${chainId}`;
-export const knownRecovery = (chainId: number) => storeGet<Address[]>(knownKey(chainId)) ?? [];
+export const knownRecovery = (chainId: number) => store.get<Address[]>(knownKey(chainId)) ?? [];
 export const rememberRecovery = (chainId: number, a: Address) =>
-  storeSet(knownKey(chainId), [...knownRecovery(chainId), a]);
+  store.set(knownKey(chainId), [...knownRecovery(chainId), a]);

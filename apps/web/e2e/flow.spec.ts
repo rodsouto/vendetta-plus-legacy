@@ -23,6 +23,11 @@ async function register(page: Page, slot: number) {
 }
 
 test("register, build, train, attack and read the report", async ({ page }) => {
+  // Dev accounts never download the passkey stack (it loads on first use).
+  const passkeyStack: string[] = [];
+  page.on("request", (r) => {
+    if (/permissionless|\/ox[./]|uqr/.test(r.url())) passkeyStack.push(r.url());
+  });
   await page.addInitScript(() => localStorage.setItem("lang", "es"));
   const slotA = 100;
   await page.goto("/#/dev");
@@ -66,6 +71,7 @@ test("register, build, train, attack and read the report", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Ver informe" }).first()).toBeVisible();
   await page.getByRole("button", { name: "Ver informe" }).first().click();
   await expect(page.getByText("Sobrevivientes")).toBeVisible();
+  expect(passkeyStack).toEqual([]);
 
   // Review captures.
   const shots: [string, string][] = [
