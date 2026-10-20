@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Local development: anvil + deploy + indexer (graph-node in Docker, B-18) + web app.
+# Local development: anvil + deploy + indexer (graph-node in Docker, B-18) + keeper (B-22) + web app.
 # Usage: pnpm dev:local. Anvil's well-known development keys are used; account 0 deploys and is the
 # admin. Without Docker the app runs without the indexer (the ranking says it is unavailable).
 set -euo pipefail
@@ -41,4 +41,8 @@ cat > "$root/apps/web/public/deployment.local.json" <<JSON
 JSON
 
 cd "$root"
+# Reveals hidden missions when they arrive and processes due ones (B-22); account 9 pays.
+pnpm --filter @vendetta/web keeper public/deployment.local.json local &
+keeper_pid=$!
+trap 'kill $anvil_pid $keeper_pid 2>/dev/null || true; bash "$indexer_sh" down "$indexer_port"' EXIT
 pnpm --filter @vendetta/web dev

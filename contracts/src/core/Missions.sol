@@ -27,6 +27,9 @@ import {Battle} from "./Battle.sol";
 import {MarketRules} from "./Market.sol";
 import {
     Backlog,
+    Unrevealed,
+    BadReveal,
+    InvalidCover,
     InvalidMission,
     InvalidCoordinate,
     OwnTarget,
@@ -42,7 +45,7 @@ import {
     IGameEvents
 } from "./GameErrors.sol";
 
-/// Missions and the global mission queue (B-07, B-08; 07-missions.md). Linked external library.
+/// Missions and the global mission queue (B-07, B-08, B-22; 07-missions.md). Linked external library.
 /// Mirrors packages/rules/src/sim/missions.ts: same checks, same order, same errors.
 library Missions {
     /// Missions processed by one action at most before it reverts with Backlog (B-08).
@@ -62,7 +65,9 @@ library Missions {
         CoreState storage s = GameStorage.core();
         _processDue(s, MAX_MISSIONS_PER_TX);
         uint64 head = Heap.head(s);
-        if (head != 0 && s.missions[head].arrival <= block.timestamp) revert Backlog();
+        if (head == 0 || s.missions[head].arrival > block.timestamp) return;
+        if (_awaitingReveal(s.missions[head])) revert Unrevealed();
+        revert Backlog();
     }
 
     /// Anyone can process up to `max` due missions; never reverts on a remaining backlog (only when
@@ -74,12 +79,32 @@ library Missions {
     function _processDue(CoreState storage s, uint256 max) private returns (uint256 n) {
         while (n < max) {
             uint64 id = Heap.head(s);
-            if (id == 0 || s.missions[id].arrival > block.timestamp) break;
+            if (id == 0) break;
+            Mission storage m = s.missions[id];
+            if (m.arrival > block.timestamp || _awaitingReveal(m)) break;
             if (gasleft() < MISSION_GAS_RESERVE) revert Backlog();
             Heap.remove(s, id);
             _process(s, id);
             ++n;
         }
+    }
+
+    /// A due hidden mission still within its reveal grace stops the queue (B-22).
+    function _awaitingReveal(Mission storage m) private view returns (bool) {
+        return m.hidden && !m.returning
+            && block.timestamp < uint256(m.arrival) + Ruleset.HIDDEN_REVEAL_GRACE;
+    }
+
+    /// A revealed hidden mission gives its bond back to the origin building, if still its own.
+    function _refundBond(CoreState storage s, Mission storage m, uint256 t) private {
+        Building storage origin = s.buildings[m.origin];
+        if (origin.owner == m.owner) {
+            SettleLib.settle(m.origin, t);
+            uint256[RESOURCES] memory bond;
+            bond[Ruleset.SALARY_RESOURCE] = m.bond;
+            Settlement.credit(origin, bond);
+        }
+        m.bond = 0;
     }
 
     function _finish(CoreState storage s, uint64 id) private {
@@ -113,8 +138,21 @@ library Missions {
         Mission storage m = s.missions[id];
         uint256 t = m.arrival;
         if (m.returning) return _arriveHome(s, id, t);
+        if (m.hidden) {
+            m.bond = 0; // forfeit: nobody revealed it within the grace (B-22)
+            emit IGameEvents.MissionForfeited(id);
+            return _sendBack(s, id, t);
+        }
         uint64 target = s.buildingAt[GameStorage.coordKey(m.city, m.neighborhood, m.slot)];
         uint64 targetOwner = target == 0 ? 0 : s.buildings[target].owner;
+        if (m.cover > 0) {
+            _refundBond(s, m, t);
+            // D-18 at arrival: the target's owner was on vacation when the mission was sent.
+            Player storage o = s.players[targetOwner];
+            if (target != 0 && o.vacationStart <= m.start && m.start < o.vacationUntil) {
+                return _sendBack(s, id, t);
+            }
+        }
         uint8 kind = m.kind;
         if (kind == ATTACK) {
             if (target == 0 || targetOwner == m.owner) return _sendBack(s, id, t);
@@ -173,7 +211,9 @@ library Missions {
             for (uint256 i; i < TROOPS; ++i) {
                 origin.troops[i] += m.troops[i];
             }
-            Settlement.credit(origin, _cargo(m));
+            uint256[RESOURCES] memory back = _cargo(m);
+            back[Ruleset.SALARY_RESOURCE] += m.bond;
+            Settlement.credit(origin, back);
         } else {
             // The building was abandoned: troops are lost.
             Player storage p = s.players[m.owner];
@@ -220,19 +260,101 @@ library Missions {
 
         Plan memory plan = _plan(p, b, troops);
         if (kind != TRANSPORT) delete resources;
-        _charge(b, plan, target, resources);
-        mid = _create(s, pid, id, kind, target, plan.duration);
+        _charge(
+            b, plan, Map.distance([uint256(b.city), b.neighborhood, b.slot], target), resources, 0
+        );
+        mid = _create(s, pid, id, troops, resources, plan.duration);
         Mission storage m = s.missions[mid];
+        (m.kind, m.city, m.neighborhood, m.slot) =
+        (kind, uint8(target[0]), uint8(target[1]), uint8(target[2]));
         m.trade = trade;
-        for (uint256 i; i < TROOPS; ++i) {
-            b.troops[i] -= uint64(troops[i]);
-            m.troops[i] = uint64(troops[i]);
-        }
-        for (uint256 r; r < RESOURCES; ++r) {
-            m.cargo[r] = uint64(resources[r]);
-        }
         p.missions += 1;
         emit IGameEvents.MissionSent(mid, pid, id, kind, m.city, m.neighborhood, m.slot, m.arrival);
+    }
+
+    /// A mission whose kind and target stay secret until revealed (B-22). Duration and salary use
+    /// the declared `cover` distance (grid units), at most the distance to the farthest map corner.
+    function sendHidden(
+        address caller,
+        uint64 id,
+        bytes32 commit,
+        uint32 cover,
+        uint256[TROOPS] memory troops,
+        uint256[RESOURCES] memory resources,
+        bytes calldata ciphertext
+    ) external returns (uint64 mid) {
+        CoreState storage s = GameStorage.core();
+        (uint64 pid, uint256 duration) = _chargeHidden(s, caller, id, cover, troops, resources);
+        mid = _create(s, pid, id, troops, resources, duration);
+        Mission storage m = s.missions[mid];
+        (m.hidden, m.cover, m.bond, m.commit) =
+        (true, cover, uint64(Ruleset.HIDDEN_MISSION_BOND), commit);
+        emit IGameEvents.MissionSent(mid, pid, id, 0, 0, 0, 0, m.arrival);
+        emit IGameEvents.HiddenMissionSent(mid, commit, cover, ciphertext);
+    }
+
+    function _chargeHidden(
+        CoreState storage s,
+        address caller,
+        uint64 id,
+        uint32 cover,
+        uint256[TROOPS] memory troops,
+        uint256[RESOURCES] memory resources
+    ) private returns (uint64 pid, uint256 duration) {
+        Player storage p;
+        Building storage b;
+        (pid, p, b) = Access.owned(s, caller, id);
+        uint256 dist = uint256(cover) * Ruleset.DISTANCE_UNIT;
+        if (cover == 0 || dist > Map.maxDistanceFrom([uint256(b.city), b.neighborhood, b.slot])) {
+            revert InvalidCover();
+        }
+        if (p.missions >= Ruleset.MAX_OUTGOING_MISSIONS) revert TooManyMissions();
+        Access.settleForAction(s, p, id);
+        Plan memory plan = _plan(p, b, troops);
+        _charge(b, plan, dist, resources, Ruleset.HIDDEN_MISSION_BOND);
+        p.missions += 1;
+        return (pid, plan.duration);
+    }
+
+    /// Anyone may reveal a hidden mission, any time: it checks the commitment and the target only,
+    /// and touches no building, so it never drains the queue. An invalid reveal reverts; if nobody
+    /// can reveal it, the mission is forfeited after the grace.
+    function reveal(uint64 missionId, uint8 kind, uint256[3] memory target, bytes32 salt) external {
+        Mission storage m = GameStorage.core().missions[missionId];
+        if (!m.hidden || m.returning) return; // already revealed, recalled or resolved: clients race
+        if (keccak256(abi.encode(m.owner, kind, target[0], target[1], target[2], salt)) != m.commit)
+        {
+            revert BadReveal();
+        }
+        uint256[3] memory from = [uint256(m.fromCity), m.fromNeighborhood, m.fromSlot];
+        _checkTarget(kind, target, from);
+        if (Map.distance(from, target) > uint256(m.cover) * Ruleset.DISTANCE_UNIT) {
+            revert InvalidCover();
+        }
+        if (kind != TRANSPORT) {
+            for (uint256 r; r < RESOURCES; ++r) {
+                if (m.cargo[r] > 0) revert InvalidMission();
+            }
+        }
+        m.hidden = false;
+        (m.kind, m.city, m.neighborhood, m.slot) =
+        (kind, uint8(target[0]), uint8(target[1]), uint8(target[2]));
+        emit IGameEvents.MissionRevealed(missionId, kind, m.city, m.neighborhood, m.slot);
+    }
+
+    /// A valid kind and coordinate, other than the origin.
+    function _checkTarget(uint8 kind, uint256[3] memory target, uint256[3] memory from)
+        private
+        pure
+    {
+        if (kind < ATTACK || kind > OCCUPY) revert InvalidMission();
+        if (
+            target[0] < 1 || target[0] > Ruleset.CITIES || target[1] < 1
+                || target[1] > Ruleset.NEIGHBORHOODS || target[2] < 1 || target[2] > Ruleset.SLOTS
+        ) revert InvalidCoordinate();
+        if (target[0] == from[0] && target[1] == from[1] && target[2] == from[2]) {
+            revert InvalidMission();
+        }
     }
 
     function _validateTarget(
@@ -242,14 +364,7 @@ library Missions {
         uint8 kind,
         uint256[3] memory target
     ) private view {
-        if (kind < ATTACK || kind > OCCUPY) revert InvalidMission();
-        if (
-            target[0] < 1 || target[0] > Ruleset.CITIES || target[1] < 1
-                || target[1] > Ruleset.NEIGHBORHOODS || target[2] < 1 || target[2] > Ruleset.SLOTS
-        ) revert InvalidCoordinate();
-        if (target[0] == b.city && target[1] == b.neighborhood && target[2] == b.slot) {
-            revert InvalidMission();
-        }
+        _checkTarget(kind, target, [uint256(b.city), b.neighborhood, b.slot]);
         uint64 targetId = s.buildingAt[GameStorage.coordKey(target[0], target[1], target[2])];
         if (kind == ATTACK && targetId != 0 && s.buildings[targetId].owner == pid) {
             revert OwnTarget();
@@ -260,14 +375,15 @@ library Missions {
         }
     }
 
-    /// Travel time, salary, cargo limit; pays resources + salary from the building.
+    /// Travel time, salary, cargo limit over `dist`; pays resources + salary (+ bond) from the
+    /// building.
     function _charge(
         Building storage b,
         Plan memory plan,
-        uint256[3] memory target,
-        uint256[RESOURCES] memory resources
+        uint256 dist,
+        uint256[RESOURCES] memory resources,
+        uint256 bond
     ) private {
-        uint256 dist = Map.distance([uint256(b.city), b.neighborhood, b.slot], target);
         plan.duration = Map.travelSeconds(dist, plan.speed);
         plan.salary = Map.salary(dist, plan.salaryUnits);
         uint256 carried;
@@ -279,7 +395,7 @@ library Missions {
         for (uint256 r; r < RESOURCES; ++r) {
             cost[r] = resources[r];
         }
-        cost[Ruleset.SALARY_RESOURCE] += plan.salary;
+        cost[Ruleset.SALARY_RESOURCE] += plan.salary + bond;
         if (!Settlement.affordable(b, cost)) revert CannotAfford();
         Settlement.pay(b, cost);
     }
@@ -288,14 +404,22 @@ library Missions {
         CoreState storage s,
         uint64 pid,
         uint64 origin,
-        uint8 kind,
-        uint256[3] memory target,
+        uint256[TROOPS] memory troops,
+        uint256[RESOURCES] memory cargo,
         uint256 duration
     ) private returns (uint64 mid) {
         mid = ++s.nextMission;
         Mission storage m = s.missions[mid];
-        (m.owner, m.origin, m.kind) = (pid, origin, kind);
-        (m.city, m.neighborhood, m.slot) = (uint8(target[0]), uint8(target[1]), uint8(target[2]));
+        Building storage b = s.buildings[origin];
+        (m.owner, m.origin) = (pid, origin);
+        (m.fromCity, m.fromNeighborhood, m.fromSlot) = (b.city, b.neighborhood, b.slot);
+        for (uint256 i; i < TROOPS; ++i) {
+            b.troops[i] -= uint64(troops[i]);
+            m.troops[i] = uint64(troops[i]);
+        }
+        for (uint256 r; r < RESOURCES; ++r) {
+            m.cargo[r] = uint64(cargo[r]);
+        }
         (m.start, m.arrival, m.duration) =
         (uint40(block.timestamp), uint40(block.timestamp + duration), uint40(duration));
         m.seq = s.seq++;

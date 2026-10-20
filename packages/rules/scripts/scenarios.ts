@@ -6,14 +6,16 @@
 // Two kinds:
 //  - random: random core actions (queues, cancels, premium) by a few players, mostly reverts and edges;
 //  - bots: players that grow, train, attack, transport, station, occupy, recall and abandon over
-//    months of game time, so battles, loot, occupations and returns to lost buildings happen.
+//    months of game time, so battles, loot, occupations and returns to lost buildings happen;
+//  - hidden: bots that send hidden missions (B-22) and reveal them on time, late, wrongly or never.
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { sim, vendetta as rs } from "../src/index.js";
+import { distance, sim, vendetta as rs } from "../src/index.js";
 
 const RANDOM = { count: 16, steps: 80 };
 const BOTS = { count: 8, steps: 400 };
+const HIDDEN = { count: 4, steps: 400 };
 const T0 = 1_700_000_000n;
 
 /** Action codes shared with Scenarios.t.sol. */
@@ -55,6 +57,8 @@ const ACTION = {
   revokeSession: 34, // [session (actor id)]
   addController: 35, // [controller (actor id)]
   removeController: 36, // [controller (actor id)]
+  sendHiddenMission: 37, // [building, kind, city, neighborhood, slot, salt, cover, troops × 21, resources × 4]
+  reveal: 38, // [mission, kind, city, neighborhood, slot, salt]
 } as const;
 
 /** Family tags and names by index, shared with Scenarios.t.sol (some invalid on purpose). */
@@ -105,6 +109,13 @@ const trainingSnap = (q: sim.TrainingItem[]) =>
 /** Every session address ever authorized, so revoked ones are checked too (as zeros). */
 const SESSIONS = new Set<string>();
 
+/** Plaintext of the hidden missions sent in the current scenario, by mission id: [kind, city, neighborhood, slot, salt]. */
+const SECRETS = new Map<number, number[]>();
+
+/** The player an actor plays for (as controller or session), as Scenarios.t.sol computes it. */
+const playerFor = (w: sim.World, controller: string) =>
+  w.playerOf.get(controller) ?? w.sessions.get(controller)?.player ?? 0n;
+
 function snapshot(w: sim.World) {
   return {
     sessions: [...SESSIONS].map((k) => {
@@ -142,6 +153,12 @@ function snapshot(w: sim.World) {
         m.arrival,
         m.duration,
         m.seq,
+        m.from.city,
+        m.from.neighborhood,
+        m.from.slot,
+        m.hidden ? 1n : 0n,
+        m.cover,
+        m.bond,
       ].map(num),
       id: num(m.id),
       troops: m.troops.map(num),
@@ -162,6 +179,7 @@ function snapshot(w: sim.World) {
         p.family,
         BigInt(p.rank),
         p.sessionEpoch,
+        p.vacationStart,
       ].map(num),
       applications: p.applications.map(num),
       offers: p.offers.map(num),
@@ -240,6 +258,21 @@ function run(w: sim.World, controller: string, a: Action, now: bigint): void {
         n.slice(5 + rs.troops.length, 5 + rs.troops.length + rs.resources.length),
         n[5 + rs.troops.length + rs.resources.length] ?? 0n,
         now,
+      );
+    case ACTION.sendHiddenMission: {
+      const target = { city: n[2]!, neighborhood: n[3]!, slot: n[4]! };
+      const commit = sim.hiddenCommit(playerFor(w, controller), Number(n[1]), target, n[5]!);
+      const troops = n.slice(7, 7 + rs.troops.length);
+      const res = n.slice(7 + rs.troops.length, 7 + rs.troops.length + rs.resources.length);
+      return void sim.sendHiddenMission(w, controller, n[0]!, commit, n[6]!, troops, res, now);
+    }
+    case ACTION.reveal:
+      return sim.reveal(
+        w,
+        n[0]!,
+        Number(n[1]),
+        { city: n[2]!, neighborhood: n[3]!, slot: n[4]! },
+        n[5]!,
       );
     case ACTION.recall:
       return sim.recall(w, controller, n[0]!, now);
@@ -429,7 +462,13 @@ const RESEARCH_GOALS: [string, number][] = [
   ["honor", 2],
 ];
 
-function botCandidates(w: sim.World, controller: string, r: () => number, now: bigint): Action[] {
+function botCandidates(
+  w: sim.World,
+  controller: string,
+  r: () => number,
+  now: bigint,
+  hidden = false,
+): Action[] {
   const pick = <T>(xs: T[]) => xs[Math.floor(r() * xs.length)]!;
   const pid = w.playerOf.get(controller)!;
   const p = w.players.get(pid)!;
@@ -443,19 +482,22 @@ function botCandidates(w: sim.World, controller: string, r: () => number, now: b
     troops: number[],
     res = [0, 0, 0, 0],
     trade = 0,
-  ) => ({
-    action: ACTION.sendMission,
-    args: [
-      Number(b.id),
-      kind,
-      Number(to.city),
-      Number(to.neighborhood),
-      Number(to.slot),
-      ...troops,
-      ...res,
-      trade,
-    ],
-  });
+  ): Action => {
+    if (hidden && trade === 0 && r() < 0.85) return hide(w, b, kind, to, troops, res, r);
+    return {
+      action: ACTION.sendMission,
+      args: [
+        Number(b.id),
+        kind,
+        Number(to.city),
+        Number(to.neighborhood),
+        Number(to.slot),
+        ...troops,
+        ...res,
+        trade,
+      ],
+    };
+  };
   const army = (share: number) =>
     b.troops.map((n, i) => (rs.troops[i]!.isAttack ? Math.ceil(Number(n) * share) : 0));
 
@@ -527,6 +569,65 @@ function botCandidates(w: sim.World, controller: string, r: () => number, now: b
     out.push({ action: ACTION.cancelTraining, args: [Number(b.id), q, Math.floor(r() * 2)] });
   } else {
     out.push({ action: ACTION.advance, args: [1 + Math.floor(r() * 3)] });
+  }
+  return out;
+}
+
+/**
+ * The same mission, hidden (B-22): usually an honest random cover, sometimes one that fails at send
+ * (0, beyond the map) or at reveal (shorter than the distance), or cargo on a non-transport.
+ */
+function hide(
+  w: sim.World,
+  b: sim.Building,
+  kind: number,
+  to: sim.Building["coord"],
+  troops: number[],
+  res: number[],
+  r: () => number,
+): Action {
+  const d = Number(distance(rs, b.coord, to) / rs.config.distanceUnit);
+  const k = r();
+  const cover =
+    k < 0.04
+      ? 0
+      : k < 0.08
+        ? 5000
+        : k < 0.14 && d > 1
+          ? d - 1
+          : d + Math.floor(r() * (Math.max(Math.ceil(d / 2), 20) + 1));
+  const cargo = kind !== sim.TRANSPORT && r() < 0.03 ? [10, 0, 0, 0] : res;
+  const salt = 1 + Math.floor(r() * 1_000_000_000);
+  return {
+    action: ACTION.sendHiddenMission,
+    args: [
+      Number(b.id),
+      kind,
+      Number(to.city),
+      Number(to.neighborhood),
+      Number(to.slot),
+      salt,
+      cover,
+      ...troops,
+      ...cargo,
+    ],
+  };
+}
+
+/** Reveals anyone could send now: due hidden missions first, sometimes with a wrong salt. */
+function revealCandidates(w: sim.World, r: () => number, now: bigint): Action[] {
+  const out: Action[] = [];
+  for (const m of w.missions.values()) {
+    const secret = SECRETS.get(num(m.id));
+    if (!m.hidden || m.returning || !secret) continue;
+    const due = m.arrival <= now;
+    if (r() < (due ? 0.5 : 0.05)) {
+      const wrong = r() < 0.1;
+      out.push({
+        action: ACTION.reveal,
+        args: [num(m.id), ...secret.slice(0, 4), wrong ? secret[4]! + 1 : secret[4]!],
+      });
+    }
   }
   return out;
 }
@@ -647,8 +748,9 @@ function socialCandidates(
   return out;
 }
 
-function botScenario(seed: number) {
+function botScenario(seed: number, hidden = false) {
   SESSIONS.clear();
+  SECRETS.clear();
   const r = rng(seed);
   const w = sim.newWorld(rs);
   const actors = 2 + Math.floor(r() * 3);
@@ -678,9 +780,17 @@ function botScenario(seed: number) {
   // Each seat may have a session key (B-15) that plays for it; ids 500+ never control a player.
   const sessions: (number | undefined)[] = Array.from({ length: actors }, () => undefined);
   let nextSession = 500;
-  while (steps.length < BOTS.steps) {
+  while (steps.length < (hidden ? HIDDEN : BOTS).steps) {
     // Hours to a couple of days between actions: months of game time in total.
+    const before = now;
     now += BigInt(Math.floor(r() < 0.6 ? r() * 60_000 : r() * 300_000));
+    if (hidden && r() < 0.4) {
+      // Land right after the next hidden arrival, often within its reveal grace.
+      const next = [...w.missions.values()]
+        .filter((m) => m.hidden && !m.returning && m.arrival > before)
+        .sort((a, b) => (a.arrival < b.arrival ? -1 : 1))[0];
+      if (next) now = next.arrival + BigInt(Math.floor(r() * 90));
+    }
     if (r() < 0.03) {
       // The admin suspends, lifts or grants premium to a random player.
       const player = 1 + Math.floor(r() * actors);
@@ -733,7 +843,8 @@ function botScenario(seed: number) {
         args: [pool[Math.floor(r() * pool.length)]!],
       });
     }
-    candidates.push(...botCandidates(w, controller, r, now));
+    if (hidden) candidates.push(...revealCandidates(w, r, now));
+    candidates.push(...botCandidates(w, controller, r, now, hidden));
     if (candidates.length === 0) continue;
     // Usually the first candidate that works; sometimes a failing one, to test reverts too.
     let chosen = candidates[0]!;
@@ -748,6 +859,8 @@ function botScenario(seed: number) {
     if (chosen.action === ACTION.removeController && error === "")
       seatOwners.splice(seatOwners.indexOf(chosen.args[0]!), 1);
     if (chosen.action === ACTION.authorizeSession && error === "") sessions[seat] = chosen.args[0]!;
+    if (chosen.action === ACTION.sendHiddenMission && error === "")
+      SECRETS.set(num(w.nextMission) - 1, chosen.args.slice(1, 6));
     record(actor, chosen, error);
     // A session that expired, was revoked or died with a transfer is dropped after one more try.
     const live = sessions[seat];
@@ -764,6 +877,7 @@ mkdirSync(dir, { recursive: true });
 const scenarios = [
   ...Array.from({ length: RANDOM.count }, (_, i) => randomScenario(20261015 + i)),
   ...Array.from({ length: BOTS.count }, (_, i) => botScenario(20271015 + i)),
+  ...Array.from({ length: HIDDEN.count }, (_, i) => botScenario(20281015 + i, true)),
 ];
 // One file per scenario: Foundry pays memory gas for every byte it reads.
 scenarios.forEach((sc, i) =>
@@ -775,7 +889,9 @@ const count = (a: number) => steps.filter((x) => x.action === a && x.error === "
 console.log(
   `packages/rules/generated/scenarios/vendetta/: ${scenarios.length} scenarios, ${steps.length} steps, ` +
     `${steps.filter((x) => x.error).length} expected reverts; ok: ${count(ACTION.train)} train, ` +
-    `${count(ACTION.sendMission)} missions, ${count(ACTION.recall)} recalls, ${count(ACTION.abandon)} abandons, ` +
+    `${count(ACTION.sendMission)} missions, ${count(ACTION.sendHiddenMission)} hidden, ` +
+    `${count(ACTION.reveal)} reveals, ${steps.filter((x) => x.error === "Unrevealed").length} unrevealed, ` +
+    `${count(ACTION.recall)} recalls, ${count(ACTION.abandon)} abandons, ` +
     `${count(ACTION.authorizeSession)} sessions, ${count(ACTION.addController)} + ` +
     `${count(ACTION.removeController)} - controllers`,
 );

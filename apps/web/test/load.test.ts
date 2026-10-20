@@ -5,6 +5,8 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { sim, vendetta as rs } from "@vendetta/rules";
 import { gameAbi } from "../src/chain/abi.js";
 import { loadWorld, project } from "../src/chain/load.js";
+import { ciphertextOf, timelockFor } from "../src/chain/hidden.js";
+import type { Network } from "../src/chain/networks.js";
 import { startChain } from "./anvil.js";
 import type { Clients } from "../src/chain/config.js";
 
@@ -87,5 +89,45 @@ describe.skipIf(!hasAnvil)("chain loader", () => {
     expect([...projected.missions.keys()]).toEqual([...chain.missions.keys()]);
     expect(projected.players.get(1n)!.centipoints).toBe(chain.players.get(1n)!.centipoints);
     expect(chain.families.get(1n)!.tag).toBe("MOB");
+  }, 60_000);
+
+  // Runs after the test above: player 1 has its 5 rowdies back home.
+  it("loads hidden missions, reads their ciphertext and projects their reveal (B-22)", async () => {
+    const timelock = timelockFor({ id: "local" } as Network);
+    const target = { city: 1n, neighborhood: 1n, slot: 2n };
+    const plain = { kind: sim.ATTACK, target, salt: 12345n };
+    const commit = sim.hiddenCommit(1n, sim.ATTACK, target, plain.salt);
+    const troops = rs.troops.map((_, i) => (i === 0 ? 5n : 0n));
+    const ciphertext = await timelock.encrypt(plain, 0n);
+    await send(1, "sendHiddenMission", [1n, commit, 4, troops, [0n, 0n, 0n, 0n], ciphertext]);
+
+    const snap = await loadWorld(clients.public, clients.deployment.game);
+    const [m] = [...snap.world.missions.values()];
+    expect(m).toMatchObject({ hidden: true, kind: 0, cover: 4n, commit });
+    const c = await ciphertextOf(clients.public, clients.deployment.game, 0, m!.id);
+    expect(await timelock.decrypt(c!)).toEqual(plain);
+
+    const at = m!.arrival + 1n;
+    expect(project(snap.world, at).missions.get(m!.id)!.returning).toBe(false); // blocked
+    const known = new Map([[commit, plain]]);
+    const projected = project(snap.world, at, known);
+    expect(projected.missions.get(m!.id)!.returning).toBe(true);
+
+    const salt = `0x${plain.salt.toString(16).padStart(64, "0")}`;
+    await send(3, "reveal", [m!.id, sim.ATTACK, [1n, 1n, 2n], salt]);
+    for (const id of [1n, 2n]) {
+      await clients.public.request({
+        method: "evm_setNextBlockTimestamp" as never,
+        params: [Number(at)] as never,
+      });
+      await send(3, "poke", [id]);
+    }
+    const chain = (await loadWorld(clients.public, clients.deployment.game)).world;
+    for (const id of [1n, 2n]) {
+      const a = projected.buildings.get(id)!;
+      const b = chain.buildings.get(id)!;
+      expect({ stock: a.stock, troops: a.troops }).toEqual({ stock: b.stock, troops: b.troops });
+    }
+    expect(chain.missions.get(m!.id)).toMatchObject({ hidden: false, returning: true });
   }, 60_000);
 });

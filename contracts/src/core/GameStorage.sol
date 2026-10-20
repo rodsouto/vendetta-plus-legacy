@@ -38,6 +38,14 @@ struct Mission {
     uint64[TROOPS] troops;
     uint64[RESOURCES] cargo; // whole resources
     uint64 trade; // market trade this transport delivers for (D-19), 0 = none
+    uint8 fromCity; // coordinate of the origin at send
+    uint8 fromNeighborhood;
+    uint8 fromSlot;
+    // Hidden missions (B-22): kind and target stay 0 until revealed; public missions have cover 0.
+    bool hidden; // kind and target not revealed yet
+    uint32 cover; // declared distance in grid units (≥ the real one) that duration and salary used
+    uint64 bond; // salary resource held until the mission resolves or returns; lost on forfeit
+    bytes32 commit; // keccak256(abi.encode(owner, kind, city, neighborhood, slot, salt))
 }
 
 uint8 constant CAPO = 1;
@@ -108,6 +116,7 @@ struct Player {
     uint64[] applications; // families applied to (B-31)
     uint64[] offers; // trades where this player is the seller (B-09 cap)
     uint32 sessionEpoch; // bumped by transferPlayer and removeController: older sessions die (B-15)
+    uint40 vacationStart; // when the last vacation started: hidden missions sent during it bounce (B-22)
 }
 
 /// A session key: an address allowed to play for a player until `until` (B-15).

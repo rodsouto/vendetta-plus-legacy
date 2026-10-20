@@ -1,7 +1,7 @@
 // Reads the on-chain state with Game's views and rebuilds the TypeScript simulator's World from it
 // (B-20). Local worlds are small, so every entity is loaded by id; the indexer replaces this in 4c.
 import type { Address, PublicClient } from "viem";
-import { sim, vendetta as rs } from "@vendetta/rules";
+import { sim, vendetta as rs, type HiddenPlain } from "@vendetta/rules";
 import { gameAbi } from "./abi.js";
 
 const big = (x: number | bigint) => BigInt(x);
@@ -75,6 +75,7 @@ export async function loadWorld(
       centipoints: p.centipoints,
       missions: big(p.missions),
       vacationUntil: big(p.vacationUntil),
+      vacationStart: big(p.vacationStart),
       suspendedUntil: big(p.suspendedUntil),
       premiumUntil: big(p.premiumUntil),
       family: p.family,
@@ -122,6 +123,15 @@ export async function loadWorld(
       troops: [...m.troops],
       cargo: [...m.cargo],
       trade: m.trade,
+      from: {
+        city: big(m.fromCity),
+        neighborhood: big(m.fromNeighborhood),
+        slot: big(m.fromSlot),
+      },
+      hidden: m.hidden,
+      cover: big(m.cover),
+      bond: m.bond,
+      commit: (m.commit as string).toLowerCase(),
     });
   });
   w.pending = [...w.missions.values()]
@@ -191,11 +201,37 @@ export function cloneWorld(w: sim.World): sim.World {
 }
 
 /**
- * The world as the contract would compute it at `now`: due missions processed in global order,
- * every building settled (B-06, B-07). Used for the live view; the chain state is not changed.
+ * Applies the reveals the client can make (`known` plaintexts, by commitment) to hidden missions;
+ * returns the ids revealed. A plaintext that does not reveal (a wrong one) is skipped.
  */
-export function project(w: sim.World, now: bigint): sim.World {
+export function revealKnown(w: sim.World, known: ReadonlyMap<string, HiddenPlain>): bigint[] {
+  const out: bigint[] = [];
+  for (const m of w.missions.values()) {
+    const p = m.hidden && !m.returning ? known.get(m.commit) : undefined;
+    if (!p) continue;
+    try {
+      sim.reveal(w, m.id, p.kind, p.target, p.salt);
+      out.push(m.id);
+    } catch (e) {
+      if (!(e instanceof sim.GameError)) throw e;
+    }
+  }
+  return out;
+}
+
+/**
+ * The world as the contract would compute it at `now`: due missions processed in global order,
+ * every building settled (B-06, B-07). Hidden missions the client knows are revealed first (B-22);
+ * an unknown one blocks the queue, as on chain. Used for the live view; the chain state is not
+ * changed.
+ */
+export function project(
+  w: sim.World,
+  now: bigint,
+  known: ReadonlyMap<string, HiddenPlain> = new Map(),
+): sim.World {
   const p = cloneWorld(w);
+  revealKnown(p, known);
   sim.processDue(p, now, Number.MAX_SAFE_INTEGER);
   for (const b of p.buildings.values()) if (b.lastUpdate < now) sim.settle(p, b, now);
   return p;

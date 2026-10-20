@@ -160,6 +160,10 @@ export interface Config {
   occupationTroopsConsumed: bigint;
   /** Missions a player can have in flight (B-09). */
   maxOutgoingMissions: number;
+  /** Salary resource paid per hidden mission, back unless forfeited (B-22). */
+  hiddenMissionBond: bigint;
+  /** How long a due hidden mission blocks the queue before it is forfeited (B-22). */
+  hiddenRevealGrace: bigint;
   vacationSeconds: bigint;
   vacationCooldownSeconds: bigint;
   marketWindowSeconds: bigint;
@@ -320,6 +324,8 @@ export function loadRuleset(raw: RawRuleset, cfg: typeof gameConfig): Ruleset {
       occupationBuildSpeedLevel: BigInt(cfg.occupation.starting_build_speed_room_level),
       occupationTroopsConsumed: BigInt(cfg.occupation.occupation_troops_consumed),
       maxOutgoingMissions: cfg.onchain.max_outgoing_missions_per_player,
+      hiddenMissionBond: BigInt(cfg.onchain.hidden_mission_bond),
+      hiddenRevealGrace: BigInt(cfg.onchain.hidden_reveal_grace_seconds),
       vacationSeconds: BigInt(cfg.vacation.duration_days) * 86400n,
       vacationCooldownSeconds: BigInt(cfg.vacation.cooldown_days) * 86400n,
       marketWindowSeconds: BigInt(cfg.market.delivery_window_days) * 86400n,

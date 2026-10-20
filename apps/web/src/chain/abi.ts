@@ -614,6 +614,41 @@ export const gameAbi = [
             "name": "trade",
             "type": "uint64",
             "internalType": "uint64"
+          },
+          {
+            "name": "fromCity",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "fromNeighborhood",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "fromSlot",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "hidden",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "cover",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "bond",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "commit",
+            "type": "bytes32",
+            "internalType": "bytes32"
           }
         ]
       }
@@ -727,6 +762,11 @@ export const gameAbi = [
             "name": "sessionEpoch",
             "type": "uint32",
             "internalType": "uint32"
+          },
+          {
+            "name": "vacationStart",
+            "type": "uint40",
+            "internalType": "uint40"
           }
         ]
       }
@@ -1215,6 +1255,34 @@ export const gameAbi = [
   },
   {
     "type": "function",
+    "name": "reveal",
+    "inputs": [
+      {
+        "name": "mission",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "kind",
+        "type": "uint8",
+        "internalType": "uint8"
+      },
+      {
+        "name": "target",
+        "type": "uint256[3]",
+        "internalType": "uint256[3]"
+      },
+      {
+        "name": "salt",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "revokeSession",
     "inputs": [
       {
@@ -1224,6 +1292,50 @@ export const gameAbi = [
       }
     ],
     "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "sendHiddenMission",
+    "inputs": [
+      {
+        "name": "building",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "commit",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "cover",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "troops",
+        "type": "uint256[21]",
+        "internalType": "uint256[21]"
+      },
+      {
+        "name": "resources",
+        "type": "uint256[4]",
+        "internalType": "uint256[4]"
+      },
+      {
+        "name": "ciphertext",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
     "stateMutability": "nonpayable"
   },
   {
@@ -1704,6 +1816,37 @@ export const gameAbi = [
   },
   {
     "type": "event",
+    "name": "HiddenMissionSent",
+    "inputs": [
+      {
+        "name": "mission",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      },
+      {
+        "name": "commit",
+        "type": "bytes32",
+        "indexed": false,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "cover",
+        "type": "uint32",
+        "indexed": false,
+        "internalType": "uint32"
+      },
+      {
+        "name": "ciphertext",
+        "type": "bytes",
+        "indexed": false,
+        "internalType": "bytes"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "Initialized",
     "inputs": [
       {
@@ -1718,6 +1861,19 @@ export const gameAbi = [
   {
     "type": "event",
     "name": "MissionEnded",
+    "inputs": [
+      {
+        "name": "mission",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "MissionForfeited",
     "inputs": [
       {
         "name": "mission",
@@ -1762,6 +1918,43 @@ export const gameAbi = [
         "type": "uint40",
         "indexed": false,
         "internalType": "uint40"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "MissionRevealed",
+    "inputs": [
+      {
+        "name": "mission",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      },
+      {
+        "name": "kind",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "uint8"
+      },
+      {
+        "name": "city",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "uint8"
+      },
+      {
+        "name": "neighborhood",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "uint8"
+      },
+      {
+        "name": "slot",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "uint8"
       }
     ],
     "anonymous": false
@@ -2687,7 +2880,17 @@ export const gameAbi = [
   },
   {
     "type": "error",
+    "name": "BadReveal",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "CargoExceeded",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidCover",
     "inputs": []
   },
   {
@@ -2728,6 +2931,11 @@ export const gameAbi = [
   {
     "type": "error",
     "name": "TooManyMissions",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "Unrevealed",
     "inputs": []
   },
   {

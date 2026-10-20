@@ -1,6 +1,6 @@
-// Main flow on a local chain: two players register, one builds, trains, attacks the other and reads
-// the battle report and the ranking (from the indexer). Also captures the review screenshots
-// (desktop and mobile).
+// Main flow on a local chain: two players register, one builds, trains, attacks the other (a hidden
+// mission, B-22) and reads the battle report and the ranking (from the indexer). Also captures the
+// review screenshots (desktop and mobile).
 import { expect, test, type Page } from "@playwright/test";
 
 const stamp = (page: Page) => page.locator(".stamp-toast");
@@ -62,6 +62,12 @@ test("register, build, train, attack and read the report", async ({ page }) => {
   await page.getByRole("textbox", { name: /Cantidad Maton/ }).fill("5");
   await page.getByRole("button", { name: "Enviar", exact: true }).click();
   await expect(stamp(page)).toContainText("Misión en camino");
+
+  // The attack travels hidden (B-22): the defender sees something coming, not what or where to.
+  await as(page, 2);
+  await page.goto("/#/missions");
+  await expect(page.getByText("Oculta → puede ser para vos")).toBeVisible();
+  await as(page, 1);
 
   await warp(page, "+1 d");
   await page.getByRole("button", { name: "Procesar misiones" }).click();

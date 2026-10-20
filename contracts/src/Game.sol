@@ -95,6 +95,25 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
         return Missions.send(msg.sender, building, kind, target, troops, resources, trade);
     }
 
+    /// A mission whose kind and target stay secret until revealed (B-22).
+    function sendHiddenMission(
+        uint64 building,
+        bytes32 commit,
+        uint32 cover,
+        uint256[TROOPS] calldata troops,
+        uint256[RESOURCES] calldata resources,
+        bytes calldata ciphertext
+    ) external drained returns (uint64) {
+        return Missions.sendHidden(
+            msg.sender, building, commit, cover, troops, resources, ciphertext
+        );
+    }
+
+    /// Anyone, any time, and without draining the queue: it touches no building (B-22).
+    function reveal(uint64 mission, uint8 kind, uint256[3] calldata target, bytes32 salt) external {
+        Missions.reveal(mission, kind, target, salt);
+    }
+
     function recall(uint64 mission) external drained {
         Missions.recall(msg.sender, mission);
     }
@@ -264,6 +283,7 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
         uint64[] applications;
         uint64[] offers;
         uint32 sessionEpoch;
+        uint40 vacationStart;
     }
 
     function getBuilding(uint64 id) external view returns (BuildingView memory v) {
@@ -301,7 +321,8 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
             p.rank,
             p.applications,
             p.offers,
-            p.sessionEpoch
+            p.sessionEpoch,
+            p.vacationStart
         );
     }
 

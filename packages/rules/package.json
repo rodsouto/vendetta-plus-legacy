@@ -12,7 +12,8 @@
     "scenarios": "tsx scripts/scenarios.ts"
   },
   "dependencies": {
-    "@vendetta/spec-data": "workspace:*"
+    "@vendetta/spec-data": "workspace:*",
+    "@noble/hashes": "^1.8.0"
   },
   "devDependencies": {
     "vitest": "^4.0.0",

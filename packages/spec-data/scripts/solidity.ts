@@ -87,6 +87,8 @@ interface GameConfig {
     max_family_applications_per_player: number;
     max_session_seconds: number;
     max_controllers_per_player: number;
+    hidden_mission_bond: number;
+    hidden_reveal_grace_seconds: number;
   };
   vacation: { duration_days: number; cooldown_days: number };
   market: { exchange_rates: Record<string, Record<string, number>>; delivery_window_days: number };
@@ -289,6 +291,8 @@ library ${name} {
     uint256 internal constant TROOP_QUEUE = ${q("max_troop_batches_per_queue", false)};
     uint256 internal constant TROOP_QUEUE_PREMIUM = ${q("max_troop_batches_per_queue", true)};
     uint256 internal constant MAX_OUTGOING_MISSIONS = ${config.onchain.max_outgoing_missions_per_player};
+    uint256 internal constant HIDDEN_MISSION_BOND = ${config.onchain.hidden_mission_bond};
+    uint256 internal constant HIDDEN_REVEAL_GRACE = ${config.onchain.hidden_reveal_grace_seconds};
     uint256 internal constant OCCUPATION_TROOP = ${troopIndex.get(rs.roles.occupation_troop!)!};
     uint256 internal constant OCCUPATION_RESOURCES = ${config.occupation.starting_resources_each};
     uint256 internal constant OCCUPATION_BUILD_SPEED_LEVEL = ${config.occupation.starting_build_speed_room_level};

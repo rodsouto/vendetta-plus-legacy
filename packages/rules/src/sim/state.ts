@@ -34,6 +34,12 @@ export interface Mission {
   troops: bigint[];
   cargo: bigint[]; // whole resources, ruleset order
   trade: bigint; // market trade this transport delivers for (D-19), 0 = none
+  from: { city: bigint; neighborhood: bigint; slot: bigint }; // coordinate of the origin at send
+  // Hidden missions (B-22): kind and target stay 0 until revealed; public missions have cover 0.
+  hidden: boolean; // kind and target not revealed yet
+  cover: bigint; // declared distance in grid units (≥ the real one) that duration and salary used
+  bond: bigint; // salary resource held until the mission resolves or returns; lost on forfeit
+  commit: string; // keccak256(abi.encode(owner, kind, city, neighborhood, slot, salt)), 0x-hex
 }
 
 export const CAPO = 1;
@@ -101,6 +107,7 @@ export interface Player {
   centipoints: bigint; // rooms of every building + research + troops at home and in missions (B-19)
   missions: bigint; // missions in flight, outbound or returning (B-09)
   vacationUntil: bigint; // on vacation while now < vacationUntil (D-18)
+  vacationStart: bigint; // when the last vacation started: hidden missions sent during it bounce (B-22)
   suspendedUntil: bigint; // suspended while now < suspendedUntil (B-14)
   premiumUntil: bigint; // B-25
   family: bigint; // valid only while that family is alive

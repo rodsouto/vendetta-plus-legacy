@@ -17,6 +17,9 @@ error TimingRoomRequired();
 error ResearchElsewhere();
 error NothingToCancel();
 error Backlog();
+error Unrevealed();
+error BadReveal();
+error InvalidCover();
 error InvalidMission();
 error OwnTarget();
 error InvalidTroops();
@@ -92,6 +95,13 @@ interface IGameEvents {
         uint8 slot,
         uint40 arrival
     );
+    /// A hidden mission (B-22): `MissionSent` carries kind 0 and coordinate 0; the tlock
+    /// ciphertext of (kind, target, salt) is only here, never stored.
+    event HiddenMissionSent(uint64 indexed mission, bytes32 commit, uint32 cover, bytes ciphertext);
+    event MissionRevealed(
+        uint64 indexed mission, uint8 kind, uint8 city, uint8 neighborhood, uint8 slot
+    );
+    event MissionForfeited(uint64 indexed mission);
     event MissionRecalled(uint64 indexed mission, uint40 arrival);
     event MissionReturning(uint64 indexed mission, uint40 arrival);
     event MissionEnded(uint64 indexed mission);

@@ -153,7 +153,14 @@
     "sent": "Misión en camino",
     "returning": "Volviendo",
     "available": "disponibles",
-    "noTroops": "No hay tropas de ataque en este edificio."
+    "noTroops": "No hay tropas de ataque en este edificio.",
+    "hidden": "Oculta",
+    "hiddenTarget": "destino oculto",
+    "mayBeYou": "puede ser para vos",
+    "bond": "Fianza (vuelve al resolverse)",
+    "hiddenNote": "El tipo y el destino quedan ocultos hasta la llegada. El viaje y el salario se calculan sobre una distancia de cobertura al azar, para que no delaten el destino.",
+    "publicNote": "Los transportes de una orden del mercado viajan a la vista.",
+    "revealing": "revelándose"
   },
   "reports": {
     "title": "Informes de batalla",
@@ -316,7 +323,10 @@
     "unknown": "La transacción falló.",
     "TooManyControllers": "La cuenta ya tiene 5 dispositivos o códigos: quitá uno primero.",
     "LastController": "No podés quitar el último dispositivo de la cuenta.",
-    "invalidCode": "Ese código no corresponde a ninguna cuenta."
+    "invalidCode": "Ese código no corresponde a ninguna cuenta.",
+    "Unrevealed": "Una misión oculta acaba de llegar y todavía no se reveló. Esperá unos segundos y reintentá.",
+    "BadReveal": "El destino revelado no coincide con el de la misión.",
+    "InvalidCover": "La distancia de cobertura no es válida para ese destino."
   },
   "theme": {
     "label": "Tema",

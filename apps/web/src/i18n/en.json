@@ -153,7 +153,14 @@
     "sent": "Mission on its way",
     "returning": "Returning",
     "available": "available",
-    "noTroops": "No attack troops in this building."
+    "noTroops": "No attack troops in this building.",
+    "hidden": "Hidden",
+    "hiddenTarget": "hidden target",
+    "mayBeYou": "may be for you",
+    "bond": "Bond (back when it resolves)",
+    "hiddenNote": "The kind and target stay hidden until arrival. Travel time and salary use a random cover distance, so they do not give the target away.",
+    "publicNote": "Transports for a market order travel in the open.",
+    "revealing": "revealing"
   },
   "reports": {
     "title": "Battle reports",
@@ -316,7 +323,10 @@
     "unknown": "The transaction failed.",
     "TooManyControllers": "The account already has 5 devices or codes: remove one first.",
     "LastController": "You cannot remove the account's last device.",
-    "invalidCode": "That code does not belong to any account."
+    "invalidCode": "That code does not belong to any account.",
+    "Unrevealed": "A hidden mission just arrived and is not revealed yet. Wait a few seconds and retry.",
+    "BadReveal": "The revealed target does not match the mission.",
+    "InvalidCover": "The cover distance is not valid for that target."
   },
   "theme": {
     "label": "Theme",

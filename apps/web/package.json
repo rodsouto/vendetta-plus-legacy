@@ -13,7 +13,8 @@
     "e2e": "playwright test",
     "e2e:aa": "playwright test -c playwright.aa.config.ts",
     "aa": "tsx scripts/aa-stack.ts --public --indexer 8500",
-    "aa:fixture": "tsx scripts/aa-fixture.ts"
+    "aa:fixture": "tsx scripts/aa-fixture.ts",
+    "keeper": "tsx scripts/keeper.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.104.0",
@@ -25,6 +26,7 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-i18next": "^17.0.0",
+    "tlock-js": "0.9.0",
     "uqr": "0.1.2",
     "viem": "2.57.7"
   },

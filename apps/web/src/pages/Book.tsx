@@ -1,7 +1,7 @@
 // The account page of one building: balance, next entries, rooms, research and troops.
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { productionRates, sim, troopStats, vendetta as rs } from "@vendetta/rules";
+import { distance, productionRates, sim, troopStats, vendetta as rs } from "@vendetta/rules";
 import { useGame } from "../state/game.js";
 import { CostCells, CostHeads, Countdown, Empty, Locked } from "../ui/parts.js";
 import { Icon } from "../ui/icons.js";
@@ -168,12 +168,14 @@ function NextEntries({ b }: { b: sim.Building }) {
     });
   });
   for (const m of w.missions.values()) {
-    const ownMission =
-      m.owner === p.id && (m.origin === b.id || sim.coordKey(m.target) === sim.coordKey(b.coord));
-    const incoming =
-      m.owner !== p.id && !m.returning && sim.coordKey(m.target) === sim.coordKey(b.coord);
+    const here = m.hidden
+      ? distance(rs, m.from, b.coord) <= m.cover * rs.config.distanceUnit // may be (B-22)
+      : sim.coordKey(m.target) === sim.coordKey(b.coord);
+    const ownMission = m.owner === p.id && (m.origin === b.id || (!m.hidden && here));
+    const incoming = m.owner !== p.id && !m.returning && here;
     if (!ownMission && !incoming) continue;
-    const kind = t(`missions.kinds.${m.kind}`);
+    const kind = m.hidden ? t("missions.hidden") : t(`missions.kinds.${m.kind}`);
+    const to = m.hidden ? t("missions.hiddenTarget") : coord(m.target);
     lines.push({
       at: m.arrival,
       start: m.start,
@@ -181,8 +183,8 @@ function NextEntries({ b }: { b: sim.Building }) {
         ? `${t("book.incoming")}: ${kind}`
         : m.returning
           ? `${t("book.returning")} · ${kind}`
-          : `${kind} → ${coord(m.target)}`,
-      sub: incoming ? playerLabel(w, m.owner) : coord(m.target),
+          : `${kind} → ${to}`,
+      sub: incoming ? playerLabel(w, m.owner) : to,
       hostile: incoming && m.kind === sim.ATTACK,
     });
   }

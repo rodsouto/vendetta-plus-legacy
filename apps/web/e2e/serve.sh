@@ -17,4 +17,9 @@ directory="$(jq -r '[.transactions[] | select(.contractName == "PasskeyDirectory
 indexer="$(bash "$indexer_sh" up 8600 8555 "$game" 0 | tail -n 1)"
 export VITE_DEPLOYMENT="{\"chainId\":31337,\"rpc\":\"$rpc\",\"game\":\"$game\",\"directory\":\"$directory\",\"fromBlock\":0,\"indexer\":\"$indexer\"}"
 cd "$root/apps/web"
-exec npx vite --port 5199 --strictPort
+# The keeper reveals hidden missions as they arrive (B-22), as on a real deployment.
+deployment="$(mktemp)"
+echo "$VITE_DEPLOYMENT" > "$deployment"
+npx tsx scripts/keeper.ts "$deployment" local &
+trap 'kill %1 %2 2>/dev/null || true' EXIT
+npx vite --port 5199 --strictPort

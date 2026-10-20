@@ -57,6 +57,7 @@ export const register = atomic(function register(
     centipoints: b.centipoints,
     missions: 0n,
     vacationUntil: 0n,
+    vacationStart: 0n,
     suspendedUntil: 0n,
     premiumUntil: 0n,
     family: 0n,

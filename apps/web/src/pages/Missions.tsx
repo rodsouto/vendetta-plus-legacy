@@ -1,8 +1,10 @@
 // Sending missions (07-missions.md) and following them: distance, travel time, salary and cargo are
-// computed with the same exact formulas as the contract (packages/rules).
+// computed with the same exact formulas as the contract (packages/rules). Missions go hidden
+// (B-22) with a random cover distance, except transports bound to a market order.
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  coverFor,
   distance,
   missionSalary,
   sim,
@@ -10,6 +12,7 @@ import {
   troopStats,
   vendetta as rs,
 } from "@vendetta/rules";
+import { randomSalt } from "../chain/hidden.js";
 import { useGame } from "../state/game.js";
 import { useRoute } from "../router.js";
 import { Countdown, Empty } from "../ui/parts.js";
@@ -43,6 +46,15 @@ function MissionsFor({ b, p }: { b: sim.Building; p: sim.Player }) {
   const res = rs.resources.map((_, i) =>
     kind === sim.TRANSPORT ? BigInt(Number(cargo[i] ?? "0") || 0) : 0n,
   );
+  const hidden = !(kind === sim.TRANSPORT && trade !== "0");
+  // A fresh random cover for every target, so repeated sends do not average it out.
+  const cover = useMemo(
+    () =>
+      target
+        ? coverFor(rs, b.coord, target, crypto.getRandomValues(new Uint32Array(1))[0]! / 2 ** 32)
+        : 0n,
+    [to, b.id],
+  );
 
   const plan = useMemo(() => {
     if (!target) return null;
@@ -58,10 +70,23 @@ function MissionsFor({ b, p }: { b: sim.Building; p: sim.Player }) {
     });
     const dist = distance(rs, b.coord, target);
     if (speed === 0n) return { dist };
-    const secs = travelSeconds(rs, dist, speed);
-    const salary = missionSalary(rs, dist, salaryUnits);
+    const over = hidden ? cover * rs.config.distanceUnit : dist;
+    const secs = travelSeconds(rs, over, speed);
+    const salary = missionSalary(rs, over, salaryUnits);
     return { dist, secs, salary, free: capacity - salary };
-  }, [to, troops, p.research, b.id]);
+  }, [to, troops, p.research, b.id, hidden, cover]);
+
+  // Shown before sending: a hidden mission's target is only checked on-chain at its arrival.
+  const targetError = useMemo(() => {
+    if (!target) return null;
+    try {
+      sim.checkSendTarget(g.world, p.id, b.coord, kind, target, g.now);
+      return null;
+    } catch (e) {
+      if (e instanceof sim.GameError) return e.code;
+      throw e;
+    }
+  }, [to, kind, b.id, g.world, g.now]);
 
   const trades = [...g.world.trades.values()].filter(
     (x) => x.accepted && sim.tradeOpenFor(g.world, x.id, p.id, g.now),
@@ -69,9 +94,50 @@ function MissionsFor({ b, p }: { b: sim.Building; p: sim.Player }) {
   const attackTroops = rs.troops.filter((tr) => tr.isAttack && b.troops[tr.index]! > 0n);
   const mine = [...g.world.missions.values()].filter((m) => m.owner === p.id);
   const myCoords = new Set(g.myBuildings.map((x) => sim.coordKey(x.coord)));
+  // A hidden mission may be for any of my buildings within its cover of where it left.
+  const reaches = (m: sim.Mission) =>
+    g.myBuildings.some((x) => distance(rs, m.from, x.coord) <= m.cover * rs.config.distanceUnit);
   const incoming = [...g.world.missions.values()].filter(
-    (m) => m.owner !== p.id && !m.returning && myCoords.has(sim.coordKey(m.target)),
+    (m) =>
+      m.owner !== p.id &&
+      !m.returning &&
+      (m.hidden ? reaches(m) : myCoords.has(sim.coordKey(m.target))),
   );
+
+  const send = async () => {
+    if (!target || targetError) return;
+    if (!hidden) {
+      await g.act({
+        done: t("missions.sent"),
+        check: (w, c, n) =>
+          sim.sendMission(w, c, b.id, kind, target, counts, res, BigInt(trade), n),
+        functionName: "sendMission",
+        args: [
+          b.id,
+          kind,
+          [target.city, target.neighborhood, target.slot],
+          counts,
+          res,
+          BigInt(trade),
+        ],
+      });
+      return;
+    }
+    const plain = { kind, target, salt: randomSalt() };
+    const commit = sim.hiddenCommit(p.id, kind, target, plain.salt);
+    const arrival = g.now + (plan && "secs" in plan && plan.secs !== undefined ? plan.secs : 0n);
+    const ciphertext = await g.timelock.encrypt(plain, arrival);
+    g.rememberHidden(commit, plain);
+    await g.act({
+      done: t("missions.sent"),
+      check: (w, c, n) => {
+        sim.checkSendTarget(w, p.id, b.coord, kind, target, n);
+        return sim.sendHiddenMission(w, c, b.id, commit, cover, counts, res, n);
+      },
+      functionName: "sendHiddenMission",
+      args: [b.id, commit, Number(cover), counts, res, ciphertext],
+    });
+  };
 
   return (
     <>
@@ -195,6 +261,14 @@ function MissionsFor({ b, p }: { b: sim.Building; p: sim.Player }) {
                       <Icon name="dollar" /> {amount(plan.salary!)}
                     </td>
                   </tr>
+                  {hidden && (
+                    <tr>
+                      <td>{t("missions.bond")}</td>
+                      <td className="num">
+                        <Icon name="dollar" /> {amount(rs.config.hiddenMissionBond)}
+                      </td>
+                    </tr>
+                  )}
                   <tr className="total">
                     <td>{t("missions.capacity")}</td>
                     <td className={`num${plan.free! < 0n ? " red" : ""}`}>{amount(plan.free!)}</td>
@@ -204,27 +278,17 @@ function MissionsFor({ b, p }: { b: sim.Building; p: sim.Player }) {
             </tbody>
           </table>
         )}
+        <p className="note">{t(hidden ? "missions.hiddenNote" : "missions.publicNote")}</p>
+        {targetError && (
+          <p className="note red" role="alert">
+            {t(`errors.${targetError}`)}
+          </p>
+        )}
         <p>
           <button
             className="btn primary"
-            disabled={g.busy || !target}
-            onClick={() =>
-              target &&
-              void g.act({
-                done: t("missions.sent"),
-                check: (w, c, n) =>
-                  sim.sendMission(w, c, b.id, kind, target, counts, res, BigInt(trade), n),
-                functionName: "sendMission",
-                args: [
-                  b.id,
-                  kind,
-                  [target.city, target.neighborhood, target.slot],
-                  counts,
-                  res,
-                  BigInt(trade),
-                ],
-              })
-            }
+            disabled={g.busy || !target || !!targetError}
+            onClick={() => void send()}
           >
             {t("missions.send")}
           </button>
@@ -241,21 +305,43 @@ function MissionsFor({ b, p }: { b: sim.Building; p: sim.Player }) {
               .sort((a, z) => (a.arrival < z.arrival ? -1 : 1))
               .map((m) => {
                 const hostile = m.owner !== p.id;
-                const units = m.troops.reduce((s, n) => s + n, 0n);
+                // Troops and cargo are public on-chain, hidden missions included: shown in full.
+                const troopsText = m.troops
+                  .map((n, i) => (n > 0n ? `${amount(n)} × ${troopName(i)}` : ""))
+                  .filter(Boolean)
+                  .join(", ");
                 return (
                   <li
                     key={String(m.id)}
-                    className={hostile && m.kind === sim.ATTACK ? "hostile" : undefined}
+                    className={
+                      hostile && (m.hidden || m.kind === sim.ATTACK) ? "hostile" : undefined
+                    }
                   >
                     <span className="when">
                       <Countdown at={m.arrival} />
                     </span>
                     <span className="what">
-                      {t(`missions.kinds.${m.kind}`)}{" "}
-                      {m.returning ? `· ${t("missions.returning")}` : `→ ${coord(m.target)}`}
+                      {m.hidden ? t("missions.hidden") : t(`missions.kinds.${m.kind}`)}{" "}
+                      {m.returning
+                        ? `· ${t("missions.returning")}`
+                        : m.hidden
+                          ? `→ ${hostile ? t("missions.mayBeYou") : t("missions.hiddenTarget")}`
+                          : `→ ${coord(m.target)}`}
                       <small>
-                        {hostile ? playerLabel(g.world, m.owner) : ""} {amount(units)} u ·{" "}
-                        {clock(m.arrival)}
+                        {hostile ? `${playerLabel(g.world, m.owner)} · ` : ""}
+                        {troopsText}
+                        {rs.resources.map((r, i) =>
+                          m.cargo[i]! > 0n ? (
+                            <span key={r}>
+                              {" "}
+                              · <Icon name={r} /> {amount(m.cargo[i]!)}
+                            </span>
+                          ) : null,
+                        )}{" "}
+                        · {clock(m.arrival)}
+                        {m.hidden && !m.returning && m.arrival <= g.now
+                          ? ` · ${t("missions.revealing")}`
+                          : ""}
                       </small>
                     </span>
                     {!hostile && !m.returning ? (

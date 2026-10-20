@@ -17,6 +17,7 @@ export const startVacation = atomic(function startVacation(
   if (p.vacationUntil > 0n && now < p.vacationUntil + w.rs.config.vacationCooldownSeconds)
     fail("VacationCooldown");
   p.vacationUntil = now + w.rs.config.vacationSeconds;
+  p.vacationStart = now;
 });
 
 /** Ends the vacation now; the cooldown counts from here. */

@@ -31,6 +31,7 @@ library Account {
                 && block.timestamp < p.vacationUntil + Ruleset.VACATION_COOLDOWN_SECONDS
         ) revert VacationCooldown();
         p.vacationUntil = uint40(block.timestamp + Ruleset.VACATION_SECONDS);
+        p.vacationStart = uint40(block.timestamp);
         emit IGameEvents.VacationStarted(pid, p.vacationUntil);
     }
 

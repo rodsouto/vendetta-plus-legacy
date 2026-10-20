@@ -33,6 +33,16 @@ export function distance(rs: Ruleset, from: Coord, to: Coord): bigint {
   return roundSqrt((a.x - b.x) ** 2n + (a.y - b.y) ** 2n) * rs.config.distanceUnit;
 }
 
+/** Distance to the farthest corner of the map: the longest trip from `from` (B-22 cover cap). */
+export function maxDistanceFrom(rs: Ruleset, from: Coord): bigint {
+  const a = gridPosition(rs, from);
+  const w = rs.config.cities * rs.config.gridColumns - 1n;
+  const h = rs.config.neighborhoods * rs.config.gridRows - 1n;
+  const dx = a.x > w - a.x ? a.x : w - a.x;
+  const dy = a.y > h - a.y ? a.y : h - a.y;
+  return roundSqrt(dx ** 2n + dy ** 2n) * rs.config.distanceUnit;
+}
+
 /**
  * One-way travel time in seconds: round(3600 × (d × factor / v)^exponent), v = slowest speed.
  * round(x) = ⌊(⌊2x⌋ + 1) / 2⌋, and ⌊2x⌋ is an exact rational power.

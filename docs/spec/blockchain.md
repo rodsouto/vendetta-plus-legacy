@@ -30,9 +30,9 @@ which network it runs on. Messaging, chat and moderation are off-chain (B-10).
 | B-02 | Language | New | Solidity; combat as an isolated library; no Stylus |
 | B-03 | Integer math | Adapt | Every formula in exact integer arithmetic, no fixed point; 0 deviations from the vectors |
 | B-04 | No tokens in v1 | New | Resources, troops and buildings live inside the contracts |
-| B-05 | Public state | Adapt | All state is visible to everyone; `spy` / `espionage` unchanged |
+| B-05 | Public state | Adapt | All state is visible to everyone except hidden mission targets (B-22); `spy` / `espionage` unchanged |
 | B-06 | Lazy settlement | Adapt | D-08 in two levels: local per building on touch, global mission queue; no keepers |
-| B-07 | Global mission order | New | All missions resolve in global arrival order (heap); local events stay per building |
+| B-07 | Global mission order | New | All missions resolve in global arrival order (heap); local events stay per building; an unrevealed hidden mission blocks it for a short grace |
 | B-08 | Chunked settlement | New | Actions process ≤ 10 due missions, else revert `Backlog`; `advance(n)`; one event always fits in a block |
 | B-09 | Hard caps | Adapt | Queue, mission and offer limits, configurable |
 | B-10 | Off-chain social | Adapt | Messaging, chat, moderation off-chain |
@@ -47,7 +47,7 @@ which network it runs on. Messaging, chat and moderation are off-chain (B-10).
 | B-19 | Points on-chain | Adapt | D-24 points kept incrementally on-chain |
 | B-20 | Optimistic client | New | Client runs the same rules engine and projects results |
 | B-21 | Parity tests | New | Foundry against the test vectors with explicit tolerances |
-| B-22 | Hidden information | v2 | Hidden mission **target**, revealed by timelock encryption; FHE only as research |
+| B-22 | Hidden information | New | Hidden mission **kind and target** (v1), revealed by timelock encryption, with a random cover distance and a bond; hidden building state (FHE) only as research |
 | B-23 | Arbitration | v2 | Kleros v2 as `arbiter`, under a written rulebook |
 | B-24 | Tokenization | v2 | One ERC-721 per **account** wrapping B-26; no per-building or per-troop tokens |
 | B-25 | Premium | New | Longer queues; granted by the admin per player (paid off-chain) or to everyone |
@@ -152,7 +152,7 @@ transit. Consequences:
   defense of `spy` and `mercenary`. The report keeps the legacy spy rule, even though the information
   is public.
 
-Hidden information is B-22 (v2).
+Exception: the kind and target of a hidden mission stay secret until it arrives (B-22).
 
 ## B-06 — Lazy settlement — Adapt
 
@@ -179,6 +179,8 @@ Every mission in the world resolves in **global arrival order**, ties broken by 
   (B-08). Each one first settles its target building **locally** up to the arrival time, then
   resolves (combat, delivery, occupation, return). If a backlog remains, the action reverts and the
   client calls `advance` until the queue is caught up.
+- A due hidden mission that nobody revealed yet stops the queue for at most a short grace (B-22):
+  actions revert with `Unrevealed`, and the client reveals it first.
 - Why global and not per target: a mission's return depends on a battle in another building, and
   honor depends on occupations still in flight. With per-target order, settling one building would
   need a recursive resolution across buildings and players, with a work stack stored on-chain and
@@ -426,7 +428,7 @@ has no randomness (B-12).
 - Each vector passes exactly, or is listed in B-03 with its tolerance.
 - The client rules engine (B-20) runs the same vectors.
 
-## B-22 — Hidden information — v2
+## B-22 — Hidden information — New
 
 Constraints:
 
@@ -440,7 +442,7 @@ Options considered:
 
 | Option | Hides | Notes |
 |--------|-------|-------|
-| **Hidden target + timelock encryption** | Where a mission goes | **Chosen for v2.** Details below. |
+| **Hidden target + timelock encryption** | Where a mission goes | **Chosen, in v1.** Details below. |
 | **Private keeper** (operator holds the secrets) | Where a mission goes | Rejected: the operator sees every target first, and a leaked key leaks them all. |
 | **Shutter threshold encryption** (keyper committee, time or event triggers) | Where a mission goes; with ZK, building state until attacked | Encrypt now, reveal later: the contract never computes on ciphertext. Alternative to drand tlock for the hidden target, needed only for event triggers (e.g. "when the previous mission resolves"). Hiding building state would take a commitment plus a ZK proof per action, with the state encrypted to a trigger "an attack arrives here", which solves the offline defender. Trust: a threshold of keypers can decrypt early. Event triggers still in development; Arbitrum One support unconfirmed. **Research only.** |
 | **Client-side ZK** (Noir, Circom) | Own actions (e.g. "I can afford this") | Verifier ~250–400k gas. Does not solve battles against an offline defender. |
@@ -448,26 +450,57 @@ Options considered:
 | **TEE / confidential EVM** (Oasis Sapphire) | Full state | Another network; trust in enclave hardware. |
 | **ZK for scaling** (RISC Zero, SP1) | Nothing | Off-chain simulation with an on-chain proof. Fallback if full on-chain proves too expensive. |
 
-**Hidden target (v2):**
+**Hidden target (v1).** Brought forward from v2: with public targets, an automated defender
+dodges every attack precisely, and travel time stops meaning anything. Measured in the B-22 spike:
+tlock works from the browser and Node against drand quicknet (~0.5 s to encrypt, ~1 s to decrypt,
+394-byte ciphertext, 60 kB gzip loaded on demand); EIP-2537 is live on Arbitrum One but its pairing
+precompile only returns a boolean, so decrypting tlock on-chain is not practical.
 
-- Everyone sees that a mission left, its troops and its arrival time. Nobody sees **its target**
-  until it arrives.
-- At send time the mission stores `hash(target, salt)` and the pair `(target, salt)` encrypted with
-  **drand timelock encryption** (tlock) for the drand round at the arrival time. Before that round
-  nobody can decrypt it, including the game operator.
-- **Reveal:** after arrival, anyone (the attacker, our keeper, any player) decrypts and submits
-  `(target, salt)`. The contract checks it against the hash. The attacker may also reveal earlier.
-- **Forfeit:** if not revealed by `arrival + grace` (e.g. 5 minutes), for example because the
-  attacker encrypted garbage, anyone can call `forfeit(id)`. The mission is dropped and **its troops
-  are lost**.
-- **Salary** is charged at send time, as today. It reveals the distance (a ring of possible
-  targets), not the target. Accepted.
-- **Ordering:** the global mission order (B-07) already resolves missions one after another by
-  arrival, so a hidden target only adds one condition: a mission is resolved after it is revealed or
-  forfeited. With tlock anyone can reveal, so the queue waits at most the grace period.
-- Station, transport and occupy missions are hidden the same way, so an attack does not stand out.
-
-To validate in v2: a tlock library usable from the browser, and the gas cost of the reveal.
+- **Send.** `sendHiddenMission(building, commit, cover, troops, resources, ciphertext)`, with
+  `commit = keccak256(abi.encode(owner, kind, city, neighborhood, slot, salt))`: the kind is
+  hidden too. Everyone sees that a mission left, its troops, its cargo and its arrival time; nobody
+  sees its kind or target until it is revealed. The client encrypts `(kind, target, salt)` with
+  **drand timelock encryption** (tlock) for the drand round at the arrival time; the ciphertext is
+  only emitted in `HiddenMissionSent`, never stored.
+- **Cover distance.** The contract cannot compute the travel time from a target it does not know,
+  so the sender declares a **cover** distance (grid units) ≥ the real distance. Duration and salary
+  are computed on `cover` with the usual formulas. Duration and salary reveal the exact distance
+  (the spike measured a median of **1** candidate target with 50–200 buildings), so the client
+  always picks a random cover: `cover = d + U(0, max(⌈d/2⌉, 20))`, which leaves ≥ 13 candidates in
+  9 of 10 sends with 200 buildings, for ~5% more travel time and ~20% more salary. The salary
+  difference is not refunded. `1 ≤ cover ≤` the distance from the origin to the farthest map
+  corner, the longest trip that building can already make with a real target, so hiding never
+  allows a longer trip (fleet save) than today.
+- **Bond.** A hidden mission also pays `hidden_mission_bond` in the salary resource
+  ([game_config.yaml](data/game_config.yaml)). It goes back to the origin building when the
+  mission resolves after a reveal, or when it comes home after a recall; it is lost on forfeit.
+- **Reveal.** `reveal(id, kind, target, salt)`: anyone, any time (before the drand round only the
+  sender knows the plaintext). The contract checks the hash, that the kind and coordinate are
+  valid and not the origin, and that `distance(origin, target) ≤ cover`; otherwise it reverts, and
+  the mission is eventually forfeited. Revealing a mission that is no longer hidden does nothing, so
+  clients and the keeper can race. Reveal does not drain the queue: it touches no building, so it
+  can always go before the action it unblocks.
+- **Resolution.** The global queue (B-07) keeps its order. A due mission still hidden **blocks the
+  queue** until `arrival + hidden_reveal_grace_seconds`: actions revert with `Unrevealed`, and
+  `advance` stops there. The defender cannot dodge, because its own action has to reveal and
+  resolve the attack first. Clients therefore reveal any due hidden mission they can (their own
+  from local storage, others' by decrypting the ciphertext) in front of every action, and the
+  keeper reveals as soon as the round is out.
+- **Forfeit.** Once the grace has passed, the head is resolved in order as a forfeit: it turns
+  back from its arrival time with all its troops and cargo, and the bond is lost. Garbage
+  ciphertexts can stall the world for the grace at most, at the cost of a bond.
+- **Arrival rules** are the usual ones (07-missions.md), plus D-18 checked at arrival: a hidden
+  mission bounces if the target's owner was on vacation when it was sent (a vacation started later
+  does not protect).
+- `sendMission` stays public; the client uses it only for transports bound to a trade (D-19), whose
+  counterparty is public anyway. Recall works the same on hidden missions.
+- **Timelock per network.** On Arbitrum One, tlock for the quicknet round at `arrival + 10 s`, so
+  inclusion latency never lets anyone open it before the mission lands. On local chains the
+  plaintext travels as is ("plain"): anvil's clock jumps (time travel) and drand's does not.
+- **Measured:** `sendHiddenMission` ~400k gas with a 400-byte ciphertext, `reveal` ~13k
+  (`forge test --match-contract HiddenMissions -vv`).
+- **Accepted leaks:** the cover ring; the cargo (a mission carrying resources is a transport); the
+  troops (an occupation needs its occupation troop).
 
 ## B-23 — Arbitration — v2
 

@@ -90,6 +90,23 @@ pnpm build:arbitrum     # VITE_NETWORK=arbitrum, reads .env and deployments/arbi
 to the API key's allowed origins. Passkeys are bound to the domain (WebAuthn relying party): moving
 to another domain loses access for existing passkeys, so pick the final domain first.
 
+## 5. Keeper
+
+Hidden missions (B-22) block the mission queue from their arrival until someone reveals them, for
+at most `hidden_reveal_grace_seconds` (60 s); after that they are forfeited. Clients reveal the due
+ones they can open in front of every action, but a keeper reveals each one as soon as its drand
+round is out, so nobody waits and no honest mission is forfeited. It also processes due missions.
+It holds no secret; anyone may run another.
+
+```bash
+KEEPER_PRIVATE_KEY=0x... RPC_URL=https://... \
+  pnpm --filter @vendetta/web keeper ../../deployments/arbitrum.json arbitrum
+```
+
+Fund the key with a little ETH: a reveal costs ~13k gas, `advance` depends on what is due. Run it
+somewhere that stays up (any small VM or container); it needs outbound HTTPS to the RPC and to
+`api.drand.sh`.
+
 ## Running costs
 
 Measured on the local stack (`actualGasUsed`): create an account ~1.16M gas, renew a session
@@ -102,5 +119,8 @@ roughly a cent per action, plus Pimlico's surcharge.
   weeks; the public RPC allows 10M per query). Older reports are not shown.
 - The ranking shows stored points (B-19): a player whose queues finished but who has not acted since
   (lazy settlement, B-06) ranks with the points of their last settlement.
+- Hidden missions are encrypted to drand quicknet (League of Entropy). If drand stopped, nobody but
+  the sender could reveal them and they would be forfeited after the grace (troops come home, the
+  bond is lost).
 - `PasskeyDirectory` has no owner and no upgrades: a new version means a new deploy and a new
   address in `deployments/arbitrum.json`. Existing entries would not carry over.

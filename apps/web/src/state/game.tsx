@@ -2,6 +2,8 @@
 // and the world projected to that clock (B-20), the player's selection, and act(): validate an
 // action in the simulator, then send it, wait for it and reload. With passkeys, act() first renews
 // this device's session when it has lapsed (one passkey prompt), so game actions never prompt.
+// Hidden missions (B-22): every send reveals first the due hidden missions this client can open
+// (its own, or others' once their timelock is out), since the contract blocks on them.
 import {
   createContext,
   useCallback,
@@ -16,11 +18,18 @@ import {
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { BaseError, ContractFunctionRevertedError, type Address } from "viem";
 import { useTranslation } from "react-i18next";
-import { sim, vendetta as rs } from "@vendetta/rules";
+import { sim, vendetta as rs, type HiddenPlain } from "@vendetta/rules";
 import { gameAbi } from "../chain/abi.js";
 import { makeClients, type Clients } from "../chain/config.js";
 import { loadNetwork, type Network } from "../chain/networks.js";
 import { controllerKey, loadWorld, project, cloneWorld, type Snapshot } from "../chain/load.js";
+import {
+  ciphertextOf,
+  storePlain,
+  storedPlains,
+  timelockFor,
+  type Timelock,
+} from "../chain/hidden.js";
 import { parseRecoveryCode, recoveryKey, rememberRecovery } from "../account/recovery.js";
 import {
   DevSigner,
@@ -73,6 +82,12 @@ interface Game {
   building: sim.Building | undefined;
   selectBuilding: (id: bigint) => void;
   act: (r: ActRequest) => Promise<boolean>;
+  /** Encrypts hidden missions until their arrival (B-22). */
+  timelock: Timelock;
+  /** Plaintexts of hidden missions this client can reveal, by commitment. */
+  known: ReadonlyMap<string, HiddenPlain>;
+  /** Keeps the plaintext of a hidden mission this device sends. */
+  rememberHidden: (commit: string, p: HiddenPlain) => void;
   busy: boolean;
   refresh: () => Promise<void>;
   /** Dev only: move the chain clock forward. */
@@ -132,6 +147,9 @@ const errorName = (e: unknown): string => {
 /** advance() calls an action takes in front at most before it gives up on a backlog (B-08). */
 const MAX_BACKLOG_RETRIES = 3;
 
+/** Seconds between two attempts to open the timelock of the same hidden mission. */
+const DECRYPT_RETRY = 4;
+
 const gameCall = (game: Address, functionName: string, args: readonly unknown[]): Call => ({
   to: game,
   abi: gameAbi,
@@ -183,13 +201,46 @@ export function GameProvider({
   }, []);
 
   const now = BigInt(wall + offset.current);
+  const game = clients.deployment.game;
+  const timelock = useMemo(() => timelockFor(network), [network]);
+  // Own plaintexts are kept per player account; switching accounts starts from that one's.
+  const account = signer.controller ? controllerKey(signer.controller) : "";
+  const [known, setKnown] = useState(() => storedPlains(game, account));
+  const [knownFor, setKnownFor] = useState(account);
+  if (knownFor !== account) {
+    setKnownFor(account);
+    setKnown(storedPlains(game, account));
+  }
+  const rememberHidden = useCallback(
+    (commit: string, p: HiddenPlain) => {
+      storePlain(game, account, commit, p);
+      setKnown((k) => new Map(k).set(commit.toLowerCase(), p));
+    },
+    [game, account],
+  );
   const world = useMemo(
     () =>
       snapshot
-        ? project(snapshot.world, now > snapshot.chainTime ? now : snapshot.chainTime)
+        ? project(snapshot.world, now > snapshot.chainTime ? now : snapshot.chainTime, known)
         : null,
-    [snapshot, now],
+    [snapshot, now, known],
   );
+
+  // Opens the timelock of every due hidden mission this client cannot reveal yet (B-22).
+  const tried = useRef(new Map<bigint, number>());
+  useEffect(() => {
+    if (!snapshot) return;
+    for (const m of snapshot.world.missions.values()) {
+      if (!m.hidden || m.returning || m.arrival > now || known.has(m.commit)) continue;
+      if ((tried.current.get(m.id) ?? 0) > wall - DECRYPT_RETRY) continue;
+      tried.current.set(m.id, wall);
+      const { deployment } = clients;
+      void ciphertextOf(clients.public, game, deployment.fromBlock, m.id)
+        .then((c) => (c ? timelock.decrypt(c) : null))
+        .then((p) => p && setKnown((k) => new Map(k).set(m.commit, p)))
+        .catch((e) => console.warn("hidden mission", m.id, e));
+    }
+  }, [snapshot, now, wall, known, clients, game, timelock]);
 
   const address = signer.controller;
   const owner = address ? controllerKey(address) : "";
@@ -214,28 +265,47 @@ export function GameProvider({
     await qc.invalidateQueries({ queryKey: ["battles"] });
   }, [qc]);
 
-  const game = clients.deployment.game;
   // A fresh authorization ends a little before the cap, so it still fits when it lands on chain.
   const sessionDeadline = (at: bigint) => at + rs.config.maxSessionSeconds - 600n;
 
+  /** reveal() calls for the hidden missions due by `at` that this client can open (B-22). */
+  const reveals = useCallback(
+    (at: bigint): Call[] =>
+      [...(snapshot?.world.missions.values() ?? [])]
+        .filter((m) => m.hidden && !m.returning && m.arrival <= at && known.has(m.commit))
+        .map((m) => {
+          const p = known.get(m.commit)!;
+          const { city, neighborhood, slot } = p.target;
+          const salt = `0x${p.salt.toString(16).padStart(64, "0")}`;
+          return gameCall(game, "reveal", [m.id, p.kind, [city, neighborhood, slot], salt]);
+        }),
+    [snapshot, known, game],
+  );
+
   /**
-   * Sends the calls; if due missions piled up, or more came due than the gas allowed for (B-08),
-   * processes them first in the same operation and retries, with one more advance() each time
-   * (processing arrivals can bring their returns due too).
+   * Sends the calls after the reveals they need; if due missions piled up, or more came due than
+   * the gas allowed for (B-08), processes them first in the same operation and retries, with one
+   * more advance() each time (processing arrivals can bring their returns due too). A hidden
+   * mission that came due meanwhile (Unrevealed) is retried with the reveals of that moment.
    */
   const send = useCallback(
     async (calls: Call[], from: From) => {
       const advance = gameCall(game, "advance", [BigInt(sim.MAX_MISSIONS_PER_TX)]);
-      for (let advances = 0; ; advances++) {
+      for (let advances = 0, tries = 0; ; tries++) {
+        const at = BigInt(Math.floor(Date.now() / 1000) + offset.current);
         try {
-          await signer.send([...Array<Call>(advances).fill(advance), ...calls], from);
+          const front = [...reveals(at), ...Array<Call>(advances).fill(advance)];
+          await signer.send([...front, ...calls], from);
           return;
         } catch (e) {
-          if (errorName(e) !== "Backlog" || advances === MAX_BACKLOG_RETRIES) throw e;
+          const name = errorName(e);
+          if (!(name === "Backlog" || name === "Unrevealed") || tries === MAX_BACKLOG_RETRIES)
+            throw e;
+          if (name === "Backlog") advances++;
         }
       }
     },
-    [signer, game],
+    [signer, game, reveals],
   );
 
   const fail = useCallback(
@@ -261,7 +331,7 @@ export function GameProvider({
       renew?: { check: (w: sim.World) => unknown; calls: Call[] };
     }) => {
       if (!snapshot) return false;
-      const w = cloneWorld(project(snapshot.world, now));
+      const w = cloneWorld(project(snapshot.world, now, known));
       try {
         r.renew?.check(w);
         r.check?.(w, now);
@@ -286,7 +356,7 @@ export function GameProvider({
         setBusy(false);
       }
     },
-    [snapshot, now, signer, toast, t, refresh, fail, send],
+    [snapshot, now, known, signer, toast, t, refresh, fail, send],
   );
 
   /**
@@ -501,7 +571,7 @@ export function GameProvider({
         const kernel = controllerKey(id.address);
         const session = signer.session!.address;
         const until = sessionDeadline(now);
-        const w = cloneWorld(project(snapshot.world, now));
+        const w = cloneWorld(project(snapshot.world, now, known));
         sim.addController(w, rec, kernel, now);
         sim.authorizeSession(w, kernel, controllerKey(session), until, now);
         await send([gameCall(game, "addController", [id.address])], { key });
@@ -527,7 +597,7 @@ export function GameProvider({
         await refresh();
       }
     },
-    [signer, snapshot, clients, now, game, send, toast, t, fail, refresh],
+    [signer, snapshot, clients, now, known, game, send, toast, t, fail, refresh],
   );
 
   const warp = useCallback(
@@ -560,6 +630,9 @@ export function GameProvider({
     building,
     selectBuilding: setSelected,
     act,
+    timelock,
+    known,
+    rememberHidden,
     busy,
     refresh,
     warp,

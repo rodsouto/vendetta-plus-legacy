@@ -53,6 +53,8 @@ library VendettaRuleset {
     uint256 internal constant TROOP_QUEUE = 1;
     uint256 internal constant TROOP_QUEUE_PREMIUM = 5;
     uint256 internal constant MAX_OUTGOING_MISSIONS = 20;
+    uint256 internal constant HIDDEN_MISSION_BOND = 500;
+    uint256 internal constant HIDDEN_REVEAL_GRACE = 60;
     uint256 internal constant OCCUPATION_TROOP = 4;
     uint256 internal constant OCCUPATION_RESOURCES = 1000;
     uint256 internal constant OCCUPATION_BUILD_SPEED_LEVEL = 1;

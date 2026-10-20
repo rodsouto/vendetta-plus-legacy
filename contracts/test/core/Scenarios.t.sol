@@ -93,7 +93,7 @@ contract ScenariosTest is GameTestBase {
         uint256[] queueSeq;
         uint256[] research;
         uint256 researchBuilding;
-        uint256[] social; // vacationUntil, suspendedUntil, premiumUntil, family, rank, sessionEpoch
+        uint256[] social; // vacationUntil, suspendedUntil, premiumUntil, family, rank, sessionEpoch, vacationStart
     }
 
     struct SessionSnap {
@@ -129,7 +129,8 @@ contract ScenariosTest is GameTestBase {
     }
 
     // One test per group of scenarios: Foundry never frees memory within a test.
-    // 0-15: random core scenarios; 16-23: bots (missions, battles, occupations).
+    // 0-15: random core scenarios; 16-23: bots (missions, battles, occupations); 24-27: bots with
+    // hidden missions (B-22).
     function test_random_00_03() public {
         _run(0, 4);
     }
@@ -178,10 +179,26 @@ contract ScenariosTest is GameTestBase {
         _run(23, 24);
     }
 
+    function test_hidden_24() public {
+        _run(24, 25);
+    }
+
+    function test_hidden_25() public {
+        _run(25, 26);
+    }
+
+    function test_hidden_26() public {
+        _run(26, 27);
+    }
+
+    function test_hidden_27() public {
+        _run(27, 28);
+    }
+
     function test_allScenariosCovered() public view {
         assertEq(
             vm.parseJsonUint(vm.readFile(string.concat(DIR, "index.json")), ".count"),
-            24,
+            28,
             "update the test groups"
         );
     }
@@ -235,20 +252,41 @@ contract ScenariosTest is GameTestBase {
         uint256[] memory a = st.args;
         bytes memory call;
         uint256 act = st.action;
-        if (act == 0) call = abi.encodeCall(Game.register, (a[0], a[1], a[2]));
-        else if (act == 1) call = abi.encodeCall(Game.queueRoom, (uint64(a[0]), a[1]));
-        else if (act == 2) call = abi.encodeCall(Game.queueResearch, (uint64(a[0]), a[1]));
-        else if (act == 3) call = abi.encodeCall(Game.cancelRoom, (uint64(a[0]), a[1]));
-        else if (act == 4) call = abi.encodeCall(Game.cancelResearch, (uint64(a[0]), a[1]));
-        else if (act == 5) call = abi.encodeCall(Game.poke, (uint64(a[0])));
-        else if (act == 6) call = abi.encodeCall(Game.setGlobalPremium, (a[0]));
-        else if (act == 7) call = abi.encodeCall(Game.train, (uint64(a[0]), a[1], a[2]));
-        else if (act == 8) call = abi.encodeCall(Game.cancelTraining, (uint64(a[0]), a[1], a[2]));
-        else if (act == 9) call = _sendCall(a);
-        else if (act == 10) call = abi.encodeCall(Game.recall, (uint64(a[0])));
-        else if (act == 11) call = abi.encodeCall(Game.abandon, (uint64(a[0])));
-        else if (act == 12) call = abi.encodeCall(Game.advance, (a[0]));
-        else call = _socialCall(act, a);
+        if (act == 0) {
+            call = abi.encodeCall(Game.register, (a[0], a[1], a[2]));
+        } else if (act == 1) {
+            call = abi.encodeCall(Game.queueRoom, (uint64(a[0]), a[1]));
+        } else if (act == 2) {
+            call = abi.encodeCall(Game.queueResearch, (uint64(a[0]), a[1]));
+        } else if (act == 3) {
+            call = abi.encodeCall(Game.cancelRoom, (uint64(a[0]), a[1]));
+        } else if (act == 4) {
+            call = abi.encodeCall(Game.cancelResearch, (uint64(a[0]), a[1]));
+        } else if (act == 5) {
+            call = abi.encodeCall(Game.poke, (uint64(a[0])));
+        } else if (act == 6) {
+            call = abi.encodeCall(Game.setGlobalPremium, (a[0]));
+        } else if (act == 7) {
+            call = abi.encodeCall(Game.train, (uint64(a[0]), a[1], a[2]));
+        } else if (act == 8) {
+            call = abi.encodeCall(Game.cancelTraining, (uint64(a[0]), a[1], a[2]));
+        } else if (act == 9) {
+            call = _sendCall(a);
+        } else if (act == 10) {
+            call = abi.encodeCall(Game.recall, (uint64(a[0])));
+        } else if (act == 11) {
+            call = abi.encodeCall(Game.abandon, (uint64(a[0])));
+        } else if (act == 12) {
+            call = abi.encodeCall(Game.advance, (a[0]));
+        } else if (act == 37) {
+            call = _hiddenCall(game, who, a);
+        } else if (act == 38) {
+            call = abi.encodeCall(
+                Game.reveal, (uint64(a[0]), uint8(a[1]), [a[2], a[3], a[4]], bytes32(a[5]))
+            );
+        } else {
+            call = _socialCall(act, a);
+        }
         vm.prank(who);
         (bool ok, bytes memory ret) = address(game).call(call);
         if (ok) return "";
@@ -330,8 +368,30 @@ contract ScenariosTest is GameTestBase {
         );
     }
 
+    /// The commitment is computed here as the client would, for the player the actor plays for.
+    function _hiddenCall(Game game, address who, uint256[] memory a)
+        internal
+        view
+        returns (bytes memory)
+    {
+        uint64 pid = game.playerOf(who);
+        if (pid == 0) pid = game.getSession(who).player;
+        bytes32 commit = keccak256(abi.encode(pid, uint8(a[1]), a[2], a[3], a[4], bytes32(a[5])));
+        uint256[TROOPS] memory troops;
+        uint256[RESOURCES] memory res;
+        for (uint256 i; i < TROOPS; ++i) {
+            troops[i] = a[7 + i];
+        }
+        for (uint256 r; r < RESOURCES; ++r) {
+            res[r] = a[7 + TROOPS + r];
+        }
+        return abi.encodeCall(
+            Game.sendHiddenMission, (uint64(a[0]), commit, uint32(a[6]), troops, res, hex"c0ffee")
+        );
+    }
+
     function _errorName(bytes4 sel) internal pure returns (string memory) {
-        string[46] memory names = [
+        string[49] memory names = [
             "AlreadyRegistered",
             "InvalidCoordinate",
             "SlotTaken",
@@ -377,7 +437,10 @@ contract ScenariosTest is GameTestBase {
             "InvalidSession",
             "SessionTooLong",
             "TooManyControllers",
-            "LastController"
+            "LastController",
+            "Unrevealed",
+            "BadReveal",
+            "InvalidCover"
         ];
         for (uint256 i; i < names.length; ++i) {
             if (bytes4(keccak256(bytes(string.concat(names[i], "()")))) == sel) return names[i];
@@ -459,15 +522,16 @@ contract ScenariosTest is GameTestBase {
         pure
         returns (bool)
     {
-        uint256[6] memory f = [
+        uint256[7] memory f = [
             uint256(p.vacationUntil),
             p.suspendedUntil,
             p.premiumUntil,
             p.family,
             p.rank,
-            p.sessionEpoch
+            p.sessionEpoch,
+            p.vacationStart
         ];
-        for (uint256 k; k < 6; ++k) {
+        for (uint256 k; k < 7; ++k) {
             if (f[k] != e.social[k]) return false;
         }
         if (p.applications.length != e.applications.length || p.offers.length != e.offers.length) {
@@ -561,7 +625,7 @@ contract ScenariosTest is GameTestBase {
         for (uint256 i; i < exp.length; ++i) {
             MissionSnap memory e = exp[i];
             Mission memory m = game.getMission(uint64(e.id));
-            uint256[11] memory f = [
+            uint256[17] memory f = [
                 uint256(m.owner),
                 m.origin,
                 m.kind,
@@ -572,9 +636,15 @@ contract ScenariosTest is GameTestBase {
                 m.start,
                 m.arrival,
                 m.duration,
-                m.seq
+                m.seq,
+                m.fromCity,
+                m.fromNeighborhood,
+                m.fromSlot,
+                m.hidden ? 1 : 0,
+                m.cover,
+                m.bond
             ];
-            for (uint256 k; k < 11; ++k) {
+            for (uint256 k; k < 17; ++k) {
                 if (f[k] != e.fields[k]) return false;
             }
             for (uint256 t; t < TROOPS; ++t) {

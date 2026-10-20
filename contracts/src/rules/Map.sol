@@ -27,6 +27,19 @@ library Map {
         y = (c[1] - 1) * Ruleset.GRID_ROWS + row - 1;
     }
 
+    /// Distance to the farthest corner of the map: the longest trip from `a` (B-22 cover cap).
+    function maxDistanceFrom(uint256[3] memory a) internal pure returns (uint256) {
+        (uint256 x, uint256 y) = _grid(a);
+        uint256 w = Ruleset.CITIES * Ruleset.GRID_COLUMNS - 1;
+        uint256 h = Ruleset.NEIGHBORHOODS * Ruleset.GRID_ROWS - 1;
+        uint256 dx = x > w - x ? x : w - x;
+        uint256 dy = y > h - y ? y : h - y;
+        uint256 n = dx * dx + dy * dy;
+        uint256 s = Math.sqrt(n);
+        if (n >= s * s + s + 1) s += 1; // round half up
+        return s * Ruleset.DISTANCE_UNIT;
+    }
+
     /// One-way travel time: round(3600 × (d × F / v)^E) = ⌊(⌊2x⌋ + 1) / 2⌋.
     function travelSeconds(uint256 dist, uint256 speed) internal pure returns (uint256) {
         uint256 twice = floorPow(
