@@ -91,6 +91,7 @@ market:
   exchange_rates:                       # value of 1 dollar expressed in each resource
     rate_3_5_1: {weapons: 3, ammunition: 5, dollar: 1}
     rate_2_4_1: {weapons: 2, ammunition: 4, dollar: 1}
+  default_penalty_percent: 10           # NOT legacy (D-19): added to the restitution a defaulter owes
   delivery_window_days: 10              # after acceptance
 
 families:

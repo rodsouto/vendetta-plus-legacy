@@ -36,7 +36,7 @@ which network it runs on. Messaging, chat and moderation are off-chain (B-10).
 | B-08 | Chunked settlement | New | Actions process ≤ 10 due missions, else revert `Backlog`; `advance(n)`; one event always fits in a block |
 | B-09 | Hard caps | Adapt | Queue, mission and offer limits, configurable |
 | B-10 | Off-chain social | Adapt | Messaging, chat, moderation off-chain |
-| B-11 | Market | Keep | D-19 as is: no escrow, trust; non-delivery can be taken to Kleros |
+| B-11 | Market | Keep | D-19 as is: no escrow; a defaulter's restitution and penalty are collected on-chain |
 | B-12 | Starting coordinate | Keep | Player chooses any free coordinate; no randomness needed |
 | B-13 | Multi-accounts and bots | Keep | Everything allowed in v1 |
 | B-14 | Sanctions module | New | `suspend(player, until)` by an `arbiter` role |
@@ -48,7 +48,7 @@ which network it runs on. Messaging, chat and moderation are off-chain (B-10).
 | B-20 | Optimistic client | New | Client runs the same rules engine and projects results |
 | B-21 | Parity tests | New | Foundry against the test vectors with explicit tolerances |
 | B-22 | Hidden information | New | Hidden mission **kind and target** (v1), revealed by timelock encryption, with a random cover distance and a bond; hidden building state (FHE) only as research |
-| B-23 | Arbitration | v2 | Kleros v2 as `arbiter`, under a written rulebook |
+| B-23 | Arbitration | v2 | Kleros v2 as `arbiter`, under a written rulebook (pushing, bashing, bounties) |
 | B-24 | Tokenization | v2 | One ERC-721 per **account** wrapping B-26; no per-building or per-troop tokens |
 | B-25 | Premium | New | Longer queues; granted by the admin per player (paid off-chain) or to everyone |
 | B-26 | Player identity | New | State keyed by `playerId`; up to 5 controllers (devices, recovery code) that can change; accounts can be given away |
@@ -244,31 +244,62 @@ On-chain moderation does not exist: no one can ban an account. The only sanction
 
 ## B-11 — Market — Keep
 
-D-19 unchanged: offers at fixed rates, delivery by ordinary transport missions, **partial deliveries**
+D-19 as is: offers at fixed rates, delivery by ordinary transport missions, **partial deliveries**
 from any number of buildings, **10-day window** after acceptance, **no escrow**. Each shipment is
-credited on arrival, so a party that does not deliver keeps what it received.
+credited on arrival; a party that does not deliver owes **restitution plus a penalty**, which the
+contract computes and collects (D-19, [Default](decisions.md#default)).
 
 Why no escrow: one payment often needs several transports from different buildings (cargo depends on
 the troops sent, [07-missions.md](07-missions.md#salary-and-cargo)), so a trade cannot be settled in
-one step, and an escrow that holds partial deliveries would work as an unlootable vault.
+one step, and an escrow that holds partial deliveries would work as an unlootable vault. Restitution
+starts only when the window closes, so until then nothing is locked or safe from loot.
 
-Counterparty risk is part of the game, and has two answers:
+Why not Kleros (as first planned): every fact of a default (`delivered`, `paid`, the window) is
+on-chain, so the contract can decide it with rules announced up front, and a jury would cost more
+than most trades. Kleros (B-23) keeps only what the contract cannot see.
 
-- **Reputation:** every offer, acceptance and delivery emits an event. The indexer (B-18) shows each
-  player's trade history (completed and not delivered).
-- **Arbitration:** not delivering an accepted trade is a rule violation that anyone can take to
-  Kleros (B-23). The sanction is a suspension (B-14).
+Counterparty risk has two answers:
+
+- **Reputation:** every offer, acceptance, delivery, claim and debt emits an event. The indexer
+  (B-18) shows each player's trade history (completed, defaulted, debts still open).
+- **Restitution:** collected on-chain, no arbiter.
 
 On-chain details:
 
 - `offerTrade(buyer, sold, quantity, price)`: the price must equal one of the fixed rates exactly,
   compared with integers over the common denominator (`quantity / rate[sold] = Σ price[r] / rate[r]`).
   The converted resource (alcohol) is neither sold nor paid, and a resource is never traded for itself.
+  The trade stores the index of the rate it matched (with two rates a price matches only one).
 - A seller has at most 10 open trades (pending, or accepted inside the window and not complete, B-09).
 - `sendMission(…, trade)`: a transport names the trade it delivers for (D-19). At arrival the
-  resources are credited first; then, if the trade is accepted and inside its window, a seller →
-  buyer shipment of exactly the sold resource adds to `delivered`, and a buyer → seller shipment
-  within what remains of the price adds to `paid`. Anything else is a plain transport.
+  resources are credited first; then the cargo counts, per resource and up to what remains:
+  - inside the window: seller → buyer, the sold resource adds to `delivered`; buyer → seller, each
+    price resource adds to `paid`;
+  - after the window: debtor → creditor, each owed resource adds to `returned`.
+
+  The rest of the cargo is a plain transport.
+- The debt is a pure function of the trade: `owed` (D-19, penalty included) from `delivered`,
+  `paid`, the rate and `default_penalty_percent`, minus `returned`. No state changes when the
+  window closes.
+- `claimTrade(trade, fromBuilding, toBuilding, amount[RESOURCES])`: creditor only, after the
+  window. `fromBuilding` belongs to the debtor and `toBuilding` to the creditor; both are settled
+  first (B-06). Each `amount[r]` must be ≤ what remains of `owed[r]`, ≤ the stock of `fromBuilding`
+  and ≤ the free capacity of `toBuilding`, alcohol and resources not owed are 0, and at least one
+  is > 0; otherwise it reverts. The resources move directly (no mission) and add to `returned`.
+  Works whether the debtor is active, suspended or on vacation.
+- **Registration:** the first claim sets `Trade.registered` and increments the debtor's
+  `Player.debts` and `owes[debtor][creditor]`. When `returned` reaches `owed`, both decrement.
+  Every check below is O(1).
+- **Restrictions** while `Player.debts > 0`: `offerTrade` and `acceptTrade` revert `InDebt`;
+  `startVacation` reverts; `sendMission` of a transport to a building not owned by the sender or
+  by one of its creditors reverts `InDebt`. Hidden missions (B-22) cannot be checked at send, so at
+  arrival a transport (hidden or not) from a player with debts to such a building **bounces**:
+  it turns back with its troops and cargo.
+- **Vacation lock:** `acceptTrade` sets `tradeLockUntil` of both parties to the latest window end;
+  `startVacation` reverts while `now ≤ tradeLockUntil`. A trade completed early still holds the
+  lock until its window closes (one timestamp instead of a list of trades per buyer).
+- Events: `TradeSettled` (also after the window, with `returned`), `TradeClaimed(trade, amount)`,
+  `DebtRegistered(trade, debtor, creditor)`, `DebtPaid(trade)`.
 
 ## B-12 — Starting coordinate — Keep
 
@@ -287,7 +318,7 @@ Everything is allowed in v1:
 - Multiple accounts are not prevented, even though each new account gets the `new_player` starting
   resources ([game_config.yaml](data/game_config.yaml)) and can send them to another account.
 
-A written rulebook (pushing and similar abuse) and arbitration come later (B-23).
+A written rulebook (pushing, bashing and similar abuse) and arbitration come later (B-23).
 
 ## B-14 — Sanctions module — New
 
@@ -491,7 +522,8 @@ precompile only returns a boolean, so decrypting tlock on-chain is not practical
   ciphertexts can stall the world for the grace at most, at the cost of a bond.
 - **Arrival rules** are the usual ones (07-missions.md), plus D-18 checked at arrival: a hidden
   mission bounces if the target's owner was on vacation when it was sent (a vacation started later
-  does not protect).
+  does not protect). A transport from a player in debt to anyone but its own buildings and its
+  creditors also bounces (B-11).
 - `sendMission` stays public; the client uses it only for transports bound to a trade (D-19), whose
   counterparty is public anyway. Recall works the same on hidden missions.
 - **Timelock per network.** On Arbitrum One, tlock for the quicknet round at `arrival + 10 s`, so
@@ -504,10 +536,19 @@ precompile only returns a boolean, so decrypting tlock on-chain is not practical
 
 ## B-23 — Arbitration — v2
 
-A written rulebook (pushing, multi-account abuse, etc.). Anyone can open a case on **Kleros v2**
-(Arbitrum One, B-01) by paying the arbitration cost. Not delivering an accepted market trade
-(B-11) is one of the violations. The ruling calls B-14 (`suspend` for X days).
-Open: the exact rules and the list of sanctions.
+A written rulebook for the abuse the contracts cannot see. Anyone can open a case on **Kleros v2**
+(Arbitrum One, B-01) by paying the arbitration cost. The ruling calls B-14 (`suspend` for X days).
+Violations in mind:
+
+- **Pushing:** moving resources to one's own or an allied account abusively: new accounts created
+  for their starting resources, being looted on purpose by one's own account, emptying the
+  buildings to another account before a trade window closes to dodge restitution (B-11).
+- **Bashing:** attacking the same player repeatedly beyond a limit the rulebook sets.
+- **Unpaid bounties:** a player offers a reward for attacking someone and does not pay it. There
+  is no bounty mechanism yet.
+
+Not delivering an accepted market trade is not here: the contract collects restitution (B-11).
+Open: the exact rules, the list of sanctions, the court and the cost per case.
 
 ## B-24 — Tokenization — v2
 
@@ -557,7 +598,8 @@ sanctions) is keyed by a **`playerId`**, never by an address. Each player has **
   the only controller and every session dies. It is in v1. The v2 NFT (B-24) only wraps it.
 - **Not allowed while suspended** (B-14), so a sanction cannot be escaped by moving the account.
 - Everything moves with the account: buildings, troops, missions in flight, queues, premium, family
-  membership and role, market trades.
+  membership and role, market trades and debts. A player in debt (B-11) can transfer the account:
+  the creditor collects from it just the same.
 - Sanctions and open Kleros cases (B-23) follow the account, not the person.
 - A controller address controls at most one player at a time.
 
@@ -643,7 +685,7 @@ Modules are storage namespaces and libraries inside the single `Game` proxy, not
 | `Queue` | Room, research and troop queues, deferred payment (D-11), duration at start (B-29) |
 | `Mission` | Send, recall, global mission queue (B-07, B-08), arrival rules, salary |
 | `Combat` | Pure library: battle, loot, honor (B-02) |
-| `Market` | Offers, acceptance, settlement by transport (B-11) |
+| `Market` | Offers, acceptance, settlement by transport, restitution claims (B-11) |
 | `Family` | Families, roles, wars (D-20) |
 | `Sanctions` | Suspension by `arbiter` (B-14) |
 

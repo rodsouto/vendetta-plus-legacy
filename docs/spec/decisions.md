@@ -31,7 +31,7 @@ of these; when they disagree, blockchain.md wins for that implementation.
 | D-16 | Double fight per round | Keep | Each pairing fights in both phases |
 | D-17 | Honor > 100 buildings | Fix | Cap honor at 8 before every branch |
 | D-18 | Vacation | Keep + Fix | Legacy rules; cooldown enforced server-side |
-| D-19 | Market | Keep + Fix | Legacy mechanics with bugs fixed |
+| D-19 | Market | Keep + Fix | Legacy mechanics with bugs fixed; a defaulter owes restitution plus a penalty |
 | D-20 | Families & wars | Keep + Fix | Legacy mechanics with authorization fixed |
 | D-21 | Space4k | — | Second ruleset: same mechanics, own data |
 | D-22 | Server-side validation | Fix | Every action validated on the server |
@@ -192,10 +192,48 @@ player never logged in after an automatic expiry.
 ## D-19 — Market — Keep + Fix
 
 Keep the legacy mechanics (offers at fixed exchange rates, delivery via transport missions, 10-day
-window, no escrow, no penalty). **Fixes:**
+window, no escrow). **Fixes:**
 - The transport mission stores the **trade id** chosen by the player, and settlement applies to that trade only.
 - Validate quantities > 0, compare rates with integer arithmetic, and reject trading a resource for itself.
 - Neither party can delete an accepted trade; only pending offers can be cancelled (by either party).
+- A shipment counts for its trade **up to what remains** of each resource; the rest of the cargo
+  (other resources, the excess) is a plain transport the recipient keeps. Legacy ignored the whole
+  shipment if any part did not fit, which loses shipments to a race when several are in flight.
+- **Default has a remedy** (legacy: none, the trade just stops settling). Below.
+
+### Default
+
+When the window closes, each side is valued at the trade's rate (the one its price matched):
+the seller's progress is `delivered / quantity`, the buyer's `paidValue / priceValue`, where a value
+is `Σ amount[r] / rate[r]`. The party further behind is the **debtor**, the other the
+**creditor**. Equal progress (including nothing sent) means no debt. At most one party is a debtor.
+
+- **Restitution in kind.** The debtor gives back what it received beyond what it gave, in the
+  resources it received:
+  - buyer in debt: `owed[sold] = delivered − ⌊quantity × paidValue / priceValue⌋`;
+  - seller in debt: the excess value is returned in proportion to what was paid,
+    `owed[r] = ⌈paid[r] × (paidValue × quantity − priceValue × delivered) / (paidValue × quantity)⌉`.
+- **Penalty:** each `owed[r]` grows by `market.default_penalty_percent` (10%,
+  [game_config.yaml](data/game_config.yaml)): `⌈owed[r] × (100 + p) / 100⌉`. Roundings favour the
+  creditor.
+- **No substitution.** Only the owed resources pay the debt; a debtor without them has to produce,
+  loot or receive them.
+- The debt is fixed when the window closes, never expires and follows the account (B-26).
+- **Payment:** the creditor **claims** it from a building of the debtor, as many times as needed
+  (an exact amount per resource that fits in the debt, in the debtor's stock and in the creditor's
+  free capacity). The debtor can also pay voluntarily: after the window, a transport to the
+  creditor that names the trade counts, in kind and up to what remains. Several creditors claim
+  independently, with no priority.
+- **Registered debt.** The creditor's first claim registers the debt. While a player has a
+  registered debt and until it is paid, they cannot offer or accept trades, start a vacation, or
+  send transports to anyone but their own buildings and their creditors.
+- **Vacation:** nobody can start a vacation while party to an accepted trade whose window has not
+  closed (D-18).
+- A suspension (B-14) does not extend the window. A creditor can claim from a debtor who is
+  suspended or on vacation.
+
+What the contract cannot see (emptying the buildings to another account before the window closes,
+being looted on purpose) is pushing, for the rulebook (B-23).
 
 ## D-20 — Families & wars — Keep + Fix
 
