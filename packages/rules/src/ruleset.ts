@@ -167,6 +167,8 @@ export interface Config {
   vacationSeconds: bigint;
   vacationCooldownSeconds: bigint;
   marketWindowSeconds: bigint;
+  /** Added to the restitution a defaulter owes, in percent (D-19). */
+  marketPenaltyPercent: bigint;
   maxOpenOffers: number;
   maxApplications: number;
   /** Longest session key authorization, in seconds (B-15). */
@@ -329,6 +331,7 @@ export function loadRuleset(raw: RawRuleset, cfg: typeof gameConfig): Ruleset {
       vacationSeconds: BigInt(cfg.vacation.duration_days) * 86400n,
       vacationCooldownSeconds: BigInt(cfg.vacation.cooldown_days) * 86400n,
       marketWindowSeconds: BigInt(cfg.market.delivery_window_days) * 86400n,
+      marketPenaltyPercent: BigInt(cfg.market.default_penalty_percent),
       maxOpenOffers: cfg.onchain.max_open_market_offers_per_player,
       maxApplications: cfg.onchain.max_family_applications_per_player,
       maxSessionSeconds: BigInt(cfg.onchain.max_session_seconds),

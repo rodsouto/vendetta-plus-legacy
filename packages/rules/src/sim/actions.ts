@@ -65,6 +65,8 @@ export const register = atomic(function register(
     applications: [],
     offers: [],
     sessionEpoch: 0n,
+    debts: 0,
+    tradeLockUntil: 0n,
   });
   w.playerOf.set(controller, pid);
   return pid;

@@ -253,6 +253,34 @@ export const gameAbi = [
   },
   {
     "type": "function",
+    "name": "claimTrade",
+    "inputs": [
+      {
+        "name": "trade",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "fromBuilding",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "toBuilding",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "amount",
+        "type": "uint256[4]",
+        "internalType": "uint256[4]"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "counters",
     "inputs": [],
     "outputs": [
@@ -767,6 +795,16 @@ export const gameAbi = [
             "name": "vacationStart",
             "type": "uint40",
             "internalType": "uint40"
+          },
+          {
+            "name": "debts",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "tradeLockUntil",
+            "type": "uint40",
+            "internalType": "uint40"
           }
         ]
       }
@@ -867,6 +905,21 @@ export const gameAbi = [
           },
           {
             "name": "paid",
+            "type": "uint64[4]",
+            "internalType": "uint64[4]"
+          },
+          {
+            "name": "rate",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "registered",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "returned",
             "type": "uint64[4]",
             "internalType": "uint64[4]"
           }
@@ -1051,6 +1104,30 @@ export const gameAbi = [
       }
     ],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "owes",
+    "inputs": [
+      {
+        "name": "debtor",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "creditor",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -1728,6 +1805,44 @@ export const gameAbi = [
         "type": "address",
         "indexed": true,
         "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "DebtPaid",
+    "inputs": [
+      {
+        "name": "trade",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "DebtRegistered",
+    "inputs": [
+      {
+        "name": "trade",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      },
+      {
+        "name": "debtor",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      },
+      {
+        "name": "creditor",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
       }
     ],
     "anonymous": false
@@ -2500,6 +2615,25 @@ export const gameAbi = [
   },
   {
     "type": "event",
+    "name": "TradeClaimed",
+    "inputs": [
+      {
+        "name": "trade",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      },
+      {
+        "name": "amount",
+        "type": "uint64[4]",
+        "indexed": false,
+        "internalType": "uint64[4]"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "TradeOffered",
     "inputs": [
       {
@@ -2519,6 +2653,30 @@ export const gameAbi = [
         "type": "uint64",
         "indexed": true,
         "internalType": "uint64"
+      },
+      {
+        "name": "sold",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "uint8"
+      },
+      {
+        "name": "quantity",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "price",
+        "type": "uint64[4]",
+        "indexed": false,
+        "internalType": "uint64[4]"
+      },
+      {
+        "name": "rate",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "uint8"
       }
     ],
     "anonymous": false
@@ -2541,6 +2699,12 @@ export const gameAbi = [
       },
       {
         "name": "paid",
+        "type": "uint64[4]",
+        "indexed": false,
+        "internalType": "uint64[4]"
+      },
+      {
+        "name": "returned",
         "type": "uint64[4]",
         "indexed": false,
         "internalType": "uint64[4]"
@@ -2890,6 +3054,11 @@ export const gameAbi = [
   },
   {
     "type": "error",
+    "name": "InDebt",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "InvalidCover",
     "inputs": []
   },
@@ -2985,6 +3154,11 @@ export const gameAbi = [
   },
   {
     "type": "error",
+    "name": "TradeOpen",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "VacationCooldown",
     "inputs": []
   },
@@ -3031,6 +3205,11 @@ export const gameAbi = [
   {
     "type": "error",
     "name": "UnknownFamily",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidClaim",
     "inputs": []
   },
   {

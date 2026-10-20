@@ -30,10 +30,10 @@ contract ScenariosTest is GameTestBase {
         "BuildingSnap(uint256 centipoints,uint256 id,uint256 last_update,uint256[] levels,uint256 owner,uint256[] queue_finish,uint256[] queue_index,uint256[] queue_seq,uint256[] stock,uint256[] training_attack,uint256[] training_defense,uint256[] troops)"
         "MissionSnap(uint256[] cargo,uint256[] fields,uint256 id,uint256[] troops)"
         "FamilySnap(bool alive,uint256 id,uint256 members,string name,string tag)"
-        "PlayerSnap(uint256[] applications,uint256 buildings,uint256 centipoints,uint256[] controllers,uint256 id,uint256 missions,uint256[] offers,uint256[] queue_finish,uint256[] queue_index,uint256[] queue_seq,uint256[] research,uint256 research_building,uint256[] social)"
+        "PlayerSnap(uint256[] applications,uint256 buildings,uint256 centipoints,uint256[] controllers,uint256 id,uint256 missions,uint256[] offers,uint256[] owes,uint256[] queue_finish,uint256[] queue_index,uint256[] queue_seq,uint256[] research,uint256 research_building,uint256[] social)"
         "SessionSnap(uint256 actor,uint256 epoch,uint256 player,uint256 until)"
         "State(BuildingSnap[] buildings,FamilySnap[] families,MissionSnap[] missions,PlayerSnap[] players,SessionSnap[] sessions,TradeSnap[] trades,WarSnap[] wars)"
-        "TradeSnap(uint256[] fields,uint256 id,uint256[] paid,uint256[] price)"
+        "TradeSnap(uint256[] fields,uint256 id,uint256[] paid,uint256[] price,uint256[] returned)"
         "WarSnap(uint256[] fields,uint256 id)"
         "Step(uint256 action,uint256 actor,uint256[] args,string error,State state,uint256 time)";
 
@@ -69,10 +69,12 @@ contract ScenariosTest is GameTestBase {
     }
 
     struct TradeSnap {
-        uint256[] fields; // seller, buyer, sold, accepted, acceptedAt, quantity, delivered
+        // seller, buyer, sold, accepted, acceptedAt, quantity, delivered, rate, registered
+        uint256[] fields;
         uint256 id;
         uint256[] paid;
         uint256[] price;
+        uint256[] returned;
     }
 
     struct WarSnap {
@@ -88,12 +90,15 @@ contract ScenariosTest is GameTestBase {
         uint256 id;
         uint256 missions;
         uint256[] offers;
+        uint256[] owes; // registered unpaid debts to every player, by id (B-11)
         uint256[] queueFinish;
         uint256[] queueIndex;
         uint256[] queueSeq;
         uint256[] research;
         uint256 researchBuilding;
-        uint256[] social; // vacationUntil, suspendedUntil, premiumUntil, family, rank, sessionEpoch, vacationStart
+        // vacationUntil, suspendedUntil, premiumUntil, family, rank, sessionEpoch, vacationStart,
+        // debts, tradeLockUntil
+        uint256[] social;
     }
 
     struct SessionSnap {
@@ -130,7 +135,8 @@ contract ScenariosTest is GameTestBase {
 
     // One test per group of scenarios: Foundry never frees memory within a test.
     // 0-15: random core scenarios; 16-23: bots (missions, battles, occupations); 24-27: bots with
-    // hidden missions (B-22).
+    // hidden missions (B-22); 28: the scripted market default walk-through; 29-32: market bots
+    // (D-19, B-11).
     function test_random_00_03() public {
         _run(0, 4);
     }
@@ -195,10 +201,30 @@ contract ScenariosTest is GameTestBase {
         _run(27, 28);
     }
 
+    function test_market_28() public {
+        _run(28, 29);
+    }
+
+    function test_market_29() public {
+        _run(29, 30);
+    }
+
+    function test_market_30() public {
+        _run(30, 31);
+    }
+
+    function test_market_31() public {
+        _run(31, 32);
+    }
+
+    function test_market_32() public {
+        _run(32, 33);
+    }
+
     function test_allScenariosCovered() public view {
         assertEq(
             vm.parseJsonUint(vm.readFile(string.concat(DIR, "index.json")), ".count"),
-            28,
+            33,
             "update the test groups"
         );
     }
@@ -283,6 +309,11 @@ contract ScenariosTest is GameTestBase {
         } else if (act == 38) {
             call = abi.encodeCall(
                 Game.reveal, (uint64(a[0]), uint8(a[1]), [a[2], a[3], a[4]], bytes32(a[5]))
+            );
+        } else if (act == 39) {
+            call = abi.encodeCall(
+                Game.claimTrade,
+                (uint64(a[0]), uint64(a[1]), uint64(a[2]), [a[3], a[4], a[5], a[6]])
             );
         } else {
             call = _socialCall(act, a);
@@ -391,7 +422,7 @@ contract ScenariosTest is GameTestBase {
     }
 
     function _errorName(bytes4 sel) internal pure returns (string memory) {
-        string[49] memory names = [
+        string[52] memory names = [
             "AlreadyRegistered",
             "InvalidCoordinate",
             "SlotTaken",
@@ -440,7 +471,10 @@ contract ScenariosTest is GameTestBase {
             "LastController",
             "Unrevealed",
             "BadReveal",
-            "InvalidCover"
+            "InvalidCover",
+            "InDebt",
+            "TradeOpen",
+            "InvalidClaim"
         ];
         for (uint256 i; i < names.length; ++i) {
             if (bytes4(keccak256(bytes(string.concat(names[i], "()")))) == sel) return names[i];
@@ -487,7 +521,7 @@ contract ScenariosTest is GameTestBase {
             if (!_sameQueue(p.researchQueue, e.queueIndex, e.queueSeq, e.queueFinish)) {
                 return false;
             }
-            if (!_sameSocial(p, e) || !_sameControllers(p.controllers, e.controllers)) {
+            if (!_sameSocial(game, p, e) || !_sameControllers(p.controllers, e.controllers)) {
                 return false;
             }
         }
@@ -517,22 +551,27 @@ contract ScenariosTest is GameTestBase {
         return true;
     }
 
-    function _sameSocial(Game.PlayerView memory p, PlayerSnap memory e)
+    function _sameSocial(Game game, Game.PlayerView memory p, PlayerSnap memory e)
         internal
-        pure
+        view
         returns (bool)
     {
-        uint256[7] memory f = [
+        uint256[9] memory f = [
             uint256(p.vacationUntil),
             p.suspendedUntil,
             p.premiumUntil,
             p.family,
             p.rank,
             p.sessionEpoch,
-            p.vacationStart
+            p.vacationStart,
+            p.debts,
+            p.tradeLockUntil
         ];
-        for (uint256 k; k < 7; ++k) {
+        for (uint256 k; k < 9; ++k) {
             if (f[k] != e.social[k]) return false;
+        }
+        for (uint256 c; c < e.owes.length; ++c) {
+            if (game.owes(uint64(e.id), uint64(c + 1)) != e.owes[c]) return false;
         }
         if (p.applications.length != e.applications.length || p.offers.length != e.offers.length) {
             return false;
@@ -585,20 +624,25 @@ contract ScenariosTest is GameTestBase {
         if (live != exp.length) return false;
         for (uint256 i; i < exp.length; ++i) {
             Trade memory t = game.getTrade(uint64(exp[i].id));
-            uint256[7] memory f = [
+            uint256[9] memory f = [
                 uint256(t.seller),
                 t.buyer,
                 t.sold,
                 t.accepted ? 1 : 0,
                 t.acceptedAt,
                 t.quantity,
-                t.delivered
+                t.delivered,
+                t.rate,
+                t.registered ? 1 : 0
             ];
-            for (uint256 k; k < 7; ++k) {
+            for (uint256 k; k < 9; ++k) {
                 if (f[k] != exp[i].fields[k]) return false;
             }
             for (uint256 r; r < RESOURCES; ++r) {
-                if (t.price[r] != exp[i].price[r] || t.paid[r] != exp[i].paid[r]) return false;
+                if (
+                    t.price[r] != exp[i].price[r] || t.paid[r] != exp[i].paid[r]
+                        || t.returned[r] != exp[i].returned[r]
+                ) return false;
             }
         }
         return true;

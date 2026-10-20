@@ -48,6 +48,9 @@ error NoOffer();
 error InvalidOffer();
 error TooManyOffers();
 error InvalidTrade();
+error InDebt();
+error TradeOpen();
+error InvalidClaim();
 error NotController();
 error InvalidSession();
 error SessionTooLong();
@@ -131,8 +134,27 @@ interface IGameEvents {
     event WarDeclared(uint64 indexed war, uint64 indexed a, uint64 indexed b);
     event PeaceOffered(uint64 indexed war, uint64 family, uint8 offer);
     event WarEnded(uint64 indexed war, uint64 winner);
-    event TradeOffered(uint64 indexed trade, uint64 indexed seller, uint64 indexed buyer);
+    /// The terms travel with the event, so the indexer needs no calls to rebuild a trade (B-18).
+    event TradeOffered(
+        uint64 indexed trade,
+        uint64 indexed seller,
+        uint64 indexed buyer,
+        uint8 sold,
+        uint64 quantity,
+        uint64[RESOURCES] price,
+        uint8 rate
+    );
     event TradeAccepted(uint64 indexed trade);
     event TradeCancelled(uint64 indexed trade);
-    event TradeSettled(uint64 indexed trade, uint64 delivered, uint64[RESOURCES] paid);
+    /// A transport naming the trade counted: inside the window towards `delivered` / `paid`, after
+    /// it towards `returned` (B-11).
+    event TradeSettled(
+        uint64 indexed trade, uint64 delivered, uint64[RESOURCES] paid, uint64[RESOURCES] returned
+    );
+    /// The creditor collected `amount` of the debt directly from a building of the debtor.
+    event TradeClaimed(uint64 indexed trade, uint64[RESOURCES] amount);
+    /// First claim on a defaulted trade: the debt now restricts the debtor (B-11).
+    event DebtRegistered(uint64 indexed trade, uint64 indexed debtor, uint64 indexed creditor);
+    /// A registered debt was fully returned.
+    event DebtPaid(uint64 indexed trade);
 }

@@ -81,6 +81,9 @@ export interface Trade {
   paid: bigint[];
   accepted: boolean;
   acceptedAt: bigint;
+  rate: number; // index of the exchange rate the price matched (B-11): values the default (D-19)
+  registered: boolean; // the creditor claimed once: the debt counts in Player.debts and owes
+  returned: bigint[]; // restitution received by the creditor after the window, per resource
 }
 
 export interface Building {
@@ -115,6 +118,8 @@ export interface Player {
   applications: bigint[]; // families applied to (B-31)
   offers: bigint[]; // trades where this player is the seller (B-09 cap)
   sessionEpoch: bigint; // bumped by transferPlayer and removeController: older sessions stop working (B-15)
+  debts: number; // registered trade debts not yet paid (B-11): restricts market, vacation and transports
+  tradeLockUntil: bigint; // latest window end of an accepted trade: no vacation while now ≤ it (D-18)
 }
 
 /** A session key: an address allowed to play for a player until `until` (B-15). */
@@ -146,6 +151,7 @@ export interface World {
   activeWar: Map<string, bigint>; // "<low>:<high>" family pair → running war
   nextTrade: bigint;
   trades: Map<bigint, Trade>;
+  owes: Map<string, number>; // "debtor:creditor" → registered unpaid debts between them (B-11)
   sessions: Map<string, Session>; // session address → authorization
 }
 
@@ -174,6 +180,7 @@ export function newWorld(rs: Ruleset): World {
     activeWar: new Map(),
     nextTrade: 1n,
     trades: new Map(),
+    owes: new Map(),
     sessions: new Map(),
   };
 }

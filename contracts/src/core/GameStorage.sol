@@ -84,6 +84,9 @@ struct Trade {
     uint64 delivered;
     uint64[RESOURCES] price;
     uint64[RESOURCES] paid;
+    uint8 rate; // index of the exchange rate the price matched (B-11): values the default (D-19)
+    bool registered; // the creditor claimed once: the debt counts in Player.debts and owes
+    uint64[RESOURCES] returned; // restitution received by the creditor after the window
 }
 
 struct Building {
@@ -117,6 +120,8 @@ struct Player {
     uint64[] offers; // trades where this player is the seller (B-09 cap)
     uint32 sessionEpoch; // bumped by transferPlayer and removeController: older sessions die (B-15)
     uint40 vacationStart; // when the last vacation started: hidden missions sent during it bounce (B-22)
+    uint32 debts; // registered trade debts not yet paid (B-11): restricts market, vacation, transports
+    uint40 tradeLockUntil; // latest window end of an accepted trade: no vacation while now ≤ it (D-18)
 }
 
 /// A session key: an address allowed to play for a player until `until` (B-15).
@@ -150,6 +155,7 @@ struct CoreState {
     uint64 nextTrade;
     mapping(uint64 => Trade) trades;
     mapping(address => Session) sessions; // session address → authorization
+    mapping(uint64 => mapping(uint64 => uint32)) owes; // debtor → creditor → registered unpaid debts (B-11)
 }
 
 library GameStorage {

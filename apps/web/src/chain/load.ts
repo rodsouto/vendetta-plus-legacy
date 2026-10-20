@@ -83,6 +83,8 @@ export async function loadWorld(
       applications: [...p.applications],
       offers: [...p.offers],
       sessionEpoch: BigInt(p.sessionEpoch),
+      debts: Number(p.debts),
+      tradeLockUntil: big(p.tradeLockUntil),
     });
     for (const c of p.controllers as Address[]) w.playerOf.set(controllerKey(c), id);
   });
@@ -179,8 +181,19 @@ export async function loadWorld(
       paid: [...t.paid],
       accepted: t.accepted,
       acceptedAt: big(t.acceptedAt),
+      rate: t.rate,
+      registered: t.registered,
+      returned: [...t.returned],
     });
   });
+  // owes[debtor][creditor] (B-11) is not listable on-chain; it is the registered debts still open.
+  for (const t of w.trades.values()) {
+    if (!t.registered) continue;
+    const d = sim.tradeDebt(w, t);
+    if (!sim.inDefault(d)) continue;
+    const key = sim.owesKey(d.debtor, d.creditor);
+    w.owes.set(key, (w.owes.get(key) ?? 0) + 1);
+  }
 
   sv.forEach((s, i) => {
     if (s.player === 0n) return;

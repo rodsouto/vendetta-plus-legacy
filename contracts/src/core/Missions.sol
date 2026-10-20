@@ -42,6 +42,7 @@ import {
     LastBuilding,
     TargetOnVacation,
     InvalidTrade,
+    InDebt,
     IGameEvents
 } from "./GameErrors.sol";
 
@@ -170,6 +171,11 @@ library Missions {
             return _finish(s, id);
         }
         if (kind == TRANSPORT) {
+            // B-11: a debtor's transport to anyone but itself and its creditors turns back, cargo
+            // included (hidden missions cannot be checked at send).
+            if (!MarketRules.transportAllowed(s, m.owner, s.players[m.owner], targetOwner)) {
+                return _sendBack(s, id, t);
+            }
             if (target != 0) {
                 SettleLib.settle(target, t);
                 Settlement.credit(s.buildings[target], _cargo(m));
@@ -251,7 +257,7 @@ library Missions {
     ) external returns (uint64 mid) {
         CoreState storage s = GameStorage.core();
         (uint64 pid, Player storage p, Building storage b) = Access.owned(s, caller, id);
-        _validateTarget(s, pid, b, kind, target);
+        _validateTarget(s, pid, p, b, kind, target);
         if (trade != 0 && (kind != TRANSPORT || !MarketRules.openFor(s, trade, pid))) {
             revert InvalidTrade();
         }
@@ -357,22 +363,24 @@ library Missions {
         }
     }
 
+    /// Mirrors checkSendTarget in missions.ts, which clients also run before a hidden mission.
     function _validateTarget(
         CoreState storage s,
         uint64 pid,
+        Player storage p,
         Building storage b,
         uint8 kind,
         uint256[3] memory target
     ) private view {
         _checkTarget(kind, target, [uint256(b.city), b.neighborhood, b.slot]);
         uint64 targetId = s.buildingAt[GameStorage.coordKey(target[0], target[1], target[2])];
-        if (kind == ATTACK && targetId != 0 && s.buildings[targetId].owner == pid) {
-            revert OwnTarget();
+        uint64 to = targetId == 0 ? 0 : s.buildings[targetId].owner;
+        if (to != 0) {
+            if (kind == ATTACK && to == pid) revert OwnTarget();
+            if (s.players[to].vacationUntil > block.timestamp) revert TargetOnVacation(); // D-18
         }
-        if (targetId != 0 && s.players[s.buildings[targetId].owner].vacationUntil > block.timestamp)
-        {
-            revert TargetOnVacation(); // D-18
-        }
+        // B-11: a player with a registered debt only transports to its own and its creditors'.
+        if (kind == TRANSPORT && !MarketRules.transportAllowed(s, pid, p, to)) revert InDebt();
     }
 
     /// Travel time, salary, cargo limit over `dist`; pays resources + salary (+ bond) from the

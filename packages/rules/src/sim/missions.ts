@@ -20,7 +20,7 @@ import {
 } from "./common.js";
 import { fail } from "./errors.js";
 import { warScore } from "./families.js";
-import { settleTrade, tradeOpenFor } from "./market.js";
+import { settleTrade, tradeOpenFor, transportAllowed } from "./market.js";
 import {
   affordable,
   credit,
@@ -206,6 +206,8 @@ function process(w: World, m: Mission): void {
     return finish(w, m);
   }
   if (m.kind === TRANSPORT) {
+    // B-11: a debtor's transport to anyone but itself and its creditors turns back, cargo included.
+    if (!transportAllowed(w, w.players.get(m.owner)!, target?.owner)) return sendBack(w, m, t);
     if (target) {
       settle(w, target, t);
       credit(w, target, Object.fromEntries(w.rs.resources.map((r, i) => [r, m.cargo[i]!])));
@@ -336,7 +338,7 @@ function checkTarget(w: World, kind: number, target: Coord, from: Coord): void {
 /**
  * What sendMission checks about the target when it leaves. A hidden mission cannot be checked
  * on-chain until its reveal, so clients run this before sending one: a mission that would bounce
- * on arrival (D-18) or attack its own sender never leaves.
+ * on arrival (D-18, B-11) or attack its own sender never leaves.
  */
 export function checkSendTarget(
   w: World,
@@ -348,10 +350,13 @@ export function checkSendTarget(
 ): void {
   checkTarget(w, kind, target, from);
   const targetId = w.buildingAt.get(coordKey(target));
-  if (targetId === undefined) return;
-  const to = w.buildings.get(targetId)!.owner;
-  if (kind === ATTACK && to === owner) fail("OwnTarget");
-  if (onVacation(w.players.get(to)!, now)) fail("TargetOnVacation"); // D-18
+  const to = targetId === undefined ? undefined : w.buildings.get(targetId)!.owner;
+  if (to !== undefined) {
+    if (kind === ATTACK && to === owner) fail("OwnTarget");
+    if (onVacation(w.players.get(to)!, now)) fail("TargetOnVacation"); // D-18
+  }
+  // B-11: a player with a registered debt only transports to its own and its creditors' buildings.
+  if (kind === TRANSPORT && !transportAllowed(w, w.players.get(owner)!, to)) fail("InDebt");
 }
 
 export const sendMission = atomic(function sendMission(

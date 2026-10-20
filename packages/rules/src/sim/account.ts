@@ -5,7 +5,10 @@ import { drain } from "./missions.js";
 import { fail } from "./errors.js";
 import type { World } from "./state.js";
 
-/** 15 days; needs no own missions in flight and 7 days since the last vacation ended. */
+/**
+ * 15 days; needs no own missions in flight, 7 days since the last vacation ended, no registered
+ * trade debt and no accepted trade whose window is still open (D-19, B-11).
+ */
 export const startVacation = atomic(function startVacation(
   w: World,
   controller: string,
@@ -16,6 +19,8 @@ export const startVacation = atomic(function startVacation(
   if (p.missions > 0n) fail("MissionsInFlight");
   if (p.vacationUntil > 0n && now < p.vacationUntil + w.rs.config.vacationCooldownSeconds)
     fail("VacationCooldown");
+  if (p.debts > 0) fail("InDebt");
+  if (now <= p.tradeLockUntil) fail("TradeOpen");
   p.vacationUntil = now + w.rs.config.vacationSeconds;
   p.vacationStart = now;
 });

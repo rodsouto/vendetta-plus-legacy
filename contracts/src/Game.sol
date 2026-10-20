@@ -250,6 +250,17 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
         Market.accept(msg.sender, trade);
     }
 
+    /// The creditor of a defaulted trade collects `amount` of each owed resource from a building
+    /// of the debtor into one of its own (D-19, B-11). Reverts unless every amount fits.
+    function claimTrade(
+        uint64 trade,
+        uint64 fromBuilding,
+        uint64 toBuilding,
+        uint256[RESOURCES] calldata amount
+    ) external drained {
+        Market.claim(msg.sender, trade, fromBuilding, toBuilding, amount);
+    }
+
     // ------------------------------------------------------------------ views (raw stored state)
 
     struct BuildingView {
@@ -284,6 +295,8 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
         uint64[] offers;
         uint32 sessionEpoch;
         uint40 vacationStart;
+        uint32 debts;
+        uint40 tradeLockUntil;
     }
 
     function getBuilding(uint64 id) external view returns (BuildingView memory v) {
@@ -322,8 +335,15 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
             p.applications,
             p.offers,
             p.sessionEpoch,
-            p.vacationStart
+            p.vacationStart,
+            p.debts,
+            p.tradeLockUntil
         );
+    }
+
+    /// Registered trade debts `debtor` still owes `creditor` (B-11).
+    function owes(uint64 debtor, uint64 creditor) external view returns (uint32) {
+        return GameStorage.core().owes[debtor][creditor];
     }
 
     function getFamily(uint64 id) external view returns (Family memory) {

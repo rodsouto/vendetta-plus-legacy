@@ -91,7 +91,11 @@ interface GameConfig {
     hidden_reveal_grace_seconds: number;
   };
   vacation: { duration_days: number; cooldown_days: number };
-  market: { exchange_rates: Record<string, Record<string, number>>; delivery_window_days: number };
+  market: {
+    exchange_rates: Record<string, Record<string, number>>;
+    default_penalty_percent: number;
+    delivery_window_days: number;
+  };
   families: { tag_length: [number, number]; name_length: [number, number] };
   honor: { table: Record<string, number[]> };
   premium: {
@@ -313,6 +317,8 @@ library ${name} {
     uint256 internal constant VACATION_SECONDS = ${config.vacation.duration_days * 86400};
     uint256 internal constant VACATION_COOLDOWN_SECONDS = ${config.vacation.cooldown_days * 86400};
     uint256 internal constant MARKET_WINDOW_SECONDS = ${config.market.delivery_window_days * 86400};
+    /// Added to the restitution a defaulter owes, in percent (D-19).
+    uint256 internal constant DEFAULT_PENALTY_PERCENT = ${config.market.default_penalty_percent};
     uint256 internal constant MAX_OPEN_OFFERS = ${config.onchain.max_open_market_offers_per_player};
     uint256 internal constant MAX_APPLICATIONS = ${config.onchain.max_family_applications_per_player};
     uint256 internal constant MAX_SESSION_SECONDS = ${config.onchain.max_session_seconds};

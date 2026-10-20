@@ -11,6 +11,8 @@ import {
     SessionTooLong,
     MissionsInFlight,
     VacationCooldown,
+    InDebt,
+    TradeOpen,
     NotOnVacation,
     ControllerTaken,
     TooManyControllers,
@@ -21,7 +23,8 @@ import {
 /// Vacation (D-18), sanctions (B-14), premium (B-25), account transfer and controllers (B-26).
 /// Linked external library. Mirrors packages/rules/src/sim/account.ts.
 library Account {
-    /// 15 days; needs no own missions in flight and 7 days since the last vacation ended.
+    /// 15 days; needs no own missions in flight, 7 days since the last vacation ended, no
+    /// registered trade debt and no accepted trade whose window is still open (D-19, B-11).
     function startVacation(address caller) external {
         CoreState storage s = GameStorage.core();
         (uint64 pid, Player storage p) = Access.active(s, caller);
@@ -30,6 +33,8 @@ library Account {
             p.vacationUntil > 0
                 && block.timestamp < p.vacationUntil + Ruleset.VACATION_COOLDOWN_SECONDS
         ) revert VacationCooldown();
+        if (p.debts > 0) revert InDebt();
+        if (block.timestamp <= p.tradeLockUntil) revert TradeOpen();
         p.vacationUntil = uint40(block.timestamp + Ruleset.VACATION_SECONDS);
         p.vacationStart = uint40(block.timestamp);
         emit IGameEvents.VacationStarted(pid, p.vacationUntil);
