@@ -122,6 +122,8 @@ struct Player {
     uint40 vacationStart; // when the last vacation started: hidden missions sent during it bounce (B-22)
     uint32 debts; // registered trade debts not yet paid (B-11): restricts market, vacation, transports
     uint40 tradeLockUntil; // latest window end of an accepted trade: no vacation while now ≤ it (D-18)
+    address transferTo; // pending transfer target (B-26), 0 = none
+    uint40 transferAt; // when the pending transfer can be executed
 }
 
 /// A session key: an address allowed to play for a player until `until` (B-15).
@@ -129,6 +131,13 @@ struct Session {
     uint64 player;
     uint40 until;
     uint32 epoch;
+}
+
+/// Per-controller data (B-26), keyed by address: a controller manages one player at a time and its
+/// entry is deleted when it leaves the player.
+struct ControllerInfo {
+    bool recovery; // a recovery code's account rather than a device (B-15)
+    uint40 removalAt; // its removal was scheduled and can be executed from here; 0 = none
 }
 
 /// Core state (ERC-7201 namespace "vendetta.storage.core").
@@ -156,6 +165,7 @@ struct CoreState {
     mapping(uint64 => Trade) trades;
     mapping(address => Session) sessions; // session address → authorization
     mapping(uint64 => mapping(uint64 => uint32)) owes; // debtor → creditor → registered unpaid debts (B-11)
+    mapping(address => ControllerInfo) controllerInfo; // B-26
 }
 
 library GameStorage {

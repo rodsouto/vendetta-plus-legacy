@@ -33,14 +33,14 @@ pnpm test:contracts     # forge test only
 pnpm --filter @vendetta/web dev
 pnpm format             # prettier; forge fmt inside contracts/
 scripts/ci-local.sh     # the CI steps on a fresh clone of HEAD (no GitHub needed)
-pnpm dev:local          # anvil + deploy + indexer (graph-node in Docker, :8500) + keeper (reveals hidden missions, B-22) + web app on :5173 (dev accounts, time travel in the Workshop page)
+pnpm dev:local          # anvil + deploy + indexer (graph-node in Docker, :8500) + keeper (reveals hidden missions, B-22; settles stale points for the ranking, B-19) + web app on :5173 (dev accounts, time travel in the Workshop page)
 pnpm --filter @vendetta/web e2e   # Playwright flow on its own fresh chain and indexer (e2e/serve.sh, :5199)
 pnpm dev:aa             # anvil + Arbitrum One's 4337 contracts + Alto + mock paymaster + indexer + web app: passkey accounts locally
 pnpm --filter @vendetta/web e2e:aa   # Playwright passkey flow (virtual WebAuthn authenticator) on its own 4337 stack (:5198)
 pnpm deploy:arbitrum    # real deploy to Arbitrum One from .env; writes deployments/arbitrum.json (docs/deploy-arbitrum.md)
 pnpm --filter @vendetta/indexer deploy:goldsky <version>   # subgraph to Goldsky for deployments/arbitrum.json
 pnpm build:arbitrum     # web app for Arbitrum One (static, apps/web/dist)
-pnpm --filter @vendetta/web keeper <deployment.json> [local|arbitrum]   # reveals hidden missions as they arrive and processes due ones
+pnpm --filter @vendetta/web keeper <deployment.json> [local|arbitrum]   # reveals hidden missions as they arrive, processes due ones and settles stale points for the ranking
 ```
 
 ## Rules

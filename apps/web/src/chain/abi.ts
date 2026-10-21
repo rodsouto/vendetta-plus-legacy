@@ -59,6 +59,11 @@ export const gameAbi = [
         "name": "controller",
         "type": "address",
         "internalType": "address"
+      },
+      {
+        "name": "recovery",
+        "type": "bool",
+        "internalType": "bool"
       }
     ],
     "outputs": [],
@@ -181,6 +186,19 @@ export const gameAbi = [
   },
   {
     "type": "function",
+    "name": "cancelRemoval",
+    "inputs": [
+      {
+        "name": "controller",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "cancelResearch",
     "inputs": [
       {
@@ -248,6 +266,13 @@ export const gameAbi = [
         "internalType": "uint256"
       }
     ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "cancelTransfer",
+    "inputs": [],
     "outputs": [],
     "stateMutability": "nonpayable"
   },
@@ -803,6 +828,26 @@ export const gameAbi = [
           },
           {
             "name": "tradeLockUntil",
+            "type": "uint40",
+            "internalType": "uint40"
+          },
+          {
+            "name": "removalAt",
+            "type": "uint40[]",
+            "internalType": "uint40[]"
+          },
+          {
+            "name": "recovery",
+            "type": "bool[]",
+            "internalType": "bool[]"
+          },
+          {
+            "name": "transferTo",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "transferAt",
             "type": "uint40",
             "internalType": "uint40"
           }
@@ -1786,6 +1831,56 @@ export const gameAbi = [
         "type": "address",
         "indexed": true,
         "internalType": "address"
+      },
+      {
+        "name": "recovery",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ControllerRemovalCancelled",
+    "inputs": [
+      {
+        "name": "player",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      },
+      {
+        "name": "controller",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ControllerRemovalScheduled",
+    "inputs": [
+      {
+        "name": "player",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      },
+      {
+        "name": "controller",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "at",
+        "type": "uint40",
+        "indexed": false,
+        "internalType": "uint40"
       }
     ],
     "anonymous": false
@@ -2229,6 +2324,44 @@ export const gameAbi = [
       },
       {
         "name": "until",
+        "type": "uint40",
+        "indexed": false,
+        "internalType": "uint40"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "PlayerTransferCancelled",
+    "inputs": [
+      {
+        "name": "player",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "PlayerTransferScheduled",
+    "inputs": [
+      {
+        "name": "player",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      },
+      {
+        "name": "to",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "at",
         "type": "uint40",
         "indexed": false,
         "internalType": "uint40"
@@ -3129,6 +3262,16 @@ export const gameAbi = [
   },
   {
     "type": "error",
+    "name": "NoRemoval",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NoTransfer",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "NotAllowed",
     "inputs": []
   },
@@ -3144,6 +3287,11 @@ export const gameAbi = [
   },
   {
     "type": "error",
+    "name": "RemovalPending",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "SessionTooLong",
     "inputs": []
   },
@@ -3155,6 +3303,11 @@ export const gameAbi = [
   {
     "type": "error",
     "name": "TradeOpen",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TransferPending",
     "inputs": []
   },
   {

@@ -2,7 +2,7 @@
 pragma solidity 0.8.28;
 
 import {VendettaRuleset as Ruleset} from "../generated/VendettaRuleset.sol";
-import {Player, Session, CoreState, GameStorage} from "./GameStorage.sol";
+import {Player, Session, ControllerInfo, CoreState, GameStorage} from "./GameStorage.sol";
 import {Access} from "./Access.sol";
 import {
     NotRegistered,
@@ -17,6 +17,10 @@ import {
     ControllerTaken,
     TooManyControllers,
     LastController,
+    RemovalPending,
+    NoRemoval,
+    TransferPending,
+    NoTransfer,
     IGameEvents
 } from "./GameErrors.sol";
 
@@ -62,51 +66,98 @@ library Account {
         emit IGameEvents.PremiumGranted(player, uint40(until));
     }
 
-    /// Give the whole account to another address that controls no player: it becomes the only
-    /// controller.
+    /// Give the whole account to another address that controls no player, in two steps (B-26): the
+    /// first call schedules it, the same call once due executes it and `to` becomes the only
+    /// controller; a different `to` re-schedules. Any controller cancels meanwhile.
     function transfer(address caller, address to) external {
         CoreState storage s = GameStorage.core();
         Access.controllerOnly(s, caller);
         (uint64 pid, Player storage p) = Access.active(s, caller);
-        _free(s, to);
+        _free(s, to); // when scheduled and again when executed
+        if (p.transferTo != to) {
+            p.transferTo = to;
+            p.transferAt = uint40(block.timestamp + Ruleset.CONTROLLER_REMOVAL_DELAY);
+            emit IGameEvents.PlayerTransferScheduled(pid, to, p.transferAt);
+            return;
+        }
+        if (block.timestamp < p.transferAt) revert TransferPending();
         address[] storage cs = p.controllers;
         for (uint256 i; i < cs.length; ++i) {
             delete s.playerOf[cs[i]];
+            delete s.controllerInfo[cs[i]];
         }
         delete p.controllers;
         cs.push(to);
         s.playerOf[to] = pid;
+        delete p.transferTo;
+        delete p.transferAt;
         p.sessionEpoch++; // sessions authorized by the previous owners stop working
         emit IGameEvents.PlayerTransferred(pid, caller, to);
     }
 
-    /// A controller adds another one (B-26): a new device's passkey account or a recovery code.
-    /// All controllers are equal. Allowed while locked, like sessions.
-    function addController(address caller, address added) external {
+    /// Any controller drops the pending transfer. Works while locked.
+    function cancelTransfer(address caller) external {
+        CoreState storage s = GameStorage.core();
+        (uint64 pid, Player storage p) = Access.controllerOnly(s, caller);
+        if (p.transferTo == address(0)) revert NoTransfer();
+        delete p.transferTo;
+        delete p.transferAt;
+        emit IGameEvents.PlayerTransferCancelled(pid);
+    }
+
+    /// A controller adds another one (B-26): a new device's passkey account or a recovery code
+    /// (`recovery`, kept so every device labels it right). All controllers are equal. Allowed while
+    /// locked, like sessions.
+    function addController(address caller, address added, bool recovery) external {
         CoreState storage s = GameStorage.core();
         (uint64 pid, Player storage p) = Access.controllerOnly(s, caller);
         _free(s, added);
         if (p.controllers.length >= Ruleset.MAX_CONTROLLERS) revert TooManyControllers();
         p.controllers.push(added);
         s.playerOf[added] = pid;
-        emit IGameEvents.ControllerAdded(pid, added);
+        s.controllerInfo[added] = ControllerInfo(recovery, 0);
+        emit IGameEvents.ControllerAdded(pid, added, recovery);
     }
 
-    /// A controller removes one (itself included), never the last. Every session dies (a lost
-    /// device's too); the remaining devices authorize theirs again.
+    /// A controller removes itself at once, never the last. Removing another one takes two steps
+    /// (B-26): the first call schedules it after the delay and kills every session (a lost device's
+    /// too; the remaining devices authorize theirs again); the same call once due executes it,
+    /// killing the sessions again. Before that it reverts RemovalPending. The targeted controller
+    /// keeps every right meanwhile, cancelling included.
     function removeController(address caller, address removed) external {
         CoreState storage s = GameStorage.core();
         (uint64 pid, Player storage p) = Access.controllerOnly(s, caller);
         if (s.playerOf[removed] != pid) revert NotAllowed();
         address[] storage cs = p.controllers;
-        if (cs.length == 1) revert LastController();
+        if (cs.length == 1) revert LastController(); // only reachable removing oneself
+        if (removed != caller) {
+            ControllerInfo storage info = s.controllerInfo[removed];
+            if (info.removalAt == 0) {
+                info.removalAt = uint40(block.timestamp + Ruleset.CONTROLLER_REMOVAL_DELAY);
+                p.sessionEpoch++;
+                emit IGameEvents.ControllerRemovalScheduled(pid, removed, info.removalAt);
+                return;
+            }
+            if (block.timestamp < info.removalAt) revert RemovalPending();
+        }
         uint256 i;
         while (cs[i] != removed) ++i;
         cs[i] = cs[cs.length - 1];
         cs.pop();
         delete s.playerOf[removed];
+        delete s.controllerInfo[removed];
         p.sessionEpoch++;
         emit IGameEvents.ControllerRemoved(pid, removed);
+    }
+
+    /// Any controller (the targeted one included) drops a scheduled removal. Works while locked.
+    function cancelRemoval(address caller, address removed) external {
+        CoreState storage s = GameStorage.core();
+        (uint64 pid,) = Access.controllerOnly(s, caller);
+        ControllerInfo storage info = s.controllerInfo[removed];
+        if (s.playerOf[removed] != pid || info.removalAt == 0) revert NoRemoval();
+        info.removalAt = 0;
+        emit IGameEvents.ControllerRemovalCancelled(pid, removed);
     }
 
     /// An address that can manage an account: not zero, no player's controller, no live session.

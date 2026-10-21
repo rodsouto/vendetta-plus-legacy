@@ -85,6 +85,16 @@ export async function loadWorld(
       sessionEpoch: BigInt(p.sessionEpoch),
       debts: Number(p.debts),
       tradeLockUntil: big(p.tradeLockUntil),
+      removalAt: new Map(
+        (p.controllers as Address[]).flatMap((c, i) =>
+          p.removalAt[i] > 0 ? [[controllerKey(c), big(p.removalAt[i])] as const] : [],
+        ),
+      ),
+      recovery: new Set(
+        (p.controllers as Address[]).filter((_, i) => p.recovery[i]).map(controllerKey),
+      ),
+      transferTo: /^0x0+$/.test(p.transferTo) ? "" : controllerKey(p.transferTo),
+      transferAt: big(p.transferAt),
     });
     for (const c of p.controllers as Address[]) w.playerOf.set(controllerKey(c), id);
   });

@@ -17,9 +17,10 @@ directory="$(jq -r '[.transactions[] | select(.contractName == "PasskeyDirectory
 indexer="$(bash "$indexer_sh" up 8600 8555 "$game" 0 | tail -n 1)"
 export VITE_DEPLOYMENT="{\"chainId\":31337,\"rpc\":\"$rpc\",\"game\":\"$game\",\"directory\":\"$directory\",\"fromBlock\":0,\"indexer\":\"$indexer\"}"
 cd "$root/apps/web"
-# The keeper reveals hidden missions as they arrive (B-22), as on a real deployment.
+# The keeper reveals hidden missions as they arrive (B-22) and settles stale points for the ranking
+# (B-19, every 5 s here so the ranking e2e sees them), as on a real deployment.
 deployment="$(mktemp)"
 echo "$VITE_DEPLOYMENT" > "$deployment"
-npx tsx scripts/keeper.ts "$deployment" local &
+KEEPER_SETTLE_INTERVAL_MS=5000 npx tsx scripts/keeper.ts "$deployment" local &
 trap 'kill %1 %2 2>/dev/null || true' EXIT
 npx vite --port 5199 --strictPort

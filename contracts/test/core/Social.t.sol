@@ -216,7 +216,10 @@ contract SocialTest is GameTestBase {
         vm.expectRevert(ControllerTaken.selector);
         game.transferPlayer(bob);
         vm.prank(alice);
-        game.transferPlayer(dave);
+        game.transferPlayer(dave); // scheduled (B-26)
+        skip(Ruleset.CONTROLLER_REMOVAL_DELAY);
+        vm.prank(alice);
+        game.transferPlayer(dave); // executed
         assertEq(game.playerOf(dave), 1);
         assertEq(game.playerOf(alice), 0);
         vm.prank(alice);

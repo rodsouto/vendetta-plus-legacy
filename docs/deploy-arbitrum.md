@@ -98,14 +98,20 @@ ones they can open in front of every action, but a keeper reveals each one as so
 round is out, so nobody waits and no honest mission is forfeited. It also processes due missions.
 It holds no secret; anyone may run another.
 
+It also keeps the ranking current (B-19): every `KEEPER_SETTLE_INTERVAL_MS` (default 10 minutes) it
+rebuilds the world from the views, finds the buildings whose settlement would change their owner's
+points (queues that finished since the last settlement) and calls `poke(building)` for each, at
+most 25 per run. `poke` is permissionless and changes nothing a player action would not; a revert
+on a mission backlog is retried once the mission job catches up.
+
 ```bash
-KEEPER_PRIVATE_KEY=0x... RPC_URL=https://... \
+KEEPER_PRIVATE_KEY=0x... RPC_URL=https://... KEEPER_SETTLE_INTERVAL_MS=600000 \
   pnpm --filter @vendetta/web keeper ../../deployments/arbitrum.json arbitrum
 ```
 
-Fund the key with a little ETH: a reveal costs ~13k gas, `advance` depends on what is due. Run it
-somewhere that stays up (any small VM or container); it needs outbound HTTPS to the RPC and to
-`api.drand.sh`.
+Fund the key with a little ETH: a reveal costs ~13k gas, `advance` depends on what is due, a `poke`
+~33k–330k depending on what finished. Run it somewhere that stays up (any small VM or container);
+it needs outbound HTTPS to the RPC and to `api.drand.sh`.
 
 ## Running costs
 
@@ -117,8 +123,11 @@ roughly a cent per action, plus Pimlico's surcharge.
 
 - The Reports page reads `Battle` events straight from the RPC, only the last 5M blocks (about two
   weeks; the public RPC allows 10M per query). Older reports are not shown.
-- The ranking shows stored points (B-19): a player whose queues finished but who has not acted since
-  (lazy settlement, B-06) ranks with the points of their last settlement.
+- The ranking shows stored points (B-19). The keeper settles the buildings whose points changed, so
+  it lags at most its settle interval; without a keeper, a player whose queues finished but who has
+  not acted since (lazy settlement, B-06) ranks with the points of their last settlement.
+- The keeper rebuilds the whole world with one call per entity (`loadWorld`), and missions are
+  never pruned, so each settle run grows with the world. Fine for v1; a loader on the indexer later.
 - Hidden missions are encrypted to drand quicknet (League of Entropy). If drand stopped, nobody but
   the sender could reveal them and they would be forfeited after the grace (troops come home, the
   bond is lost).

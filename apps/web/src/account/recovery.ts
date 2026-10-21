@@ -1,7 +1,7 @@
 // Recovery codes (B-15, B-26): 120 random bits the player writes down, shown as six groups of four
 // base32 characters. The code derives a key whose simple 4337 account (like a session's) is one
 // more controller of the player, so on a new device it can add that device's passkey account.
-import { concatHex, keccak256, toHex, type Address, type Hex } from "viem";
+import { concatHex, keccak256, toHex, type Hex } from "viem";
 import { store } from "./store.js";
 
 const ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"; // Crockford: no I, L, O, U
@@ -34,8 +34,9 @@ export function parseRecoveryCode(text: string): Hex | null {
 /** The private key behind a code (never stored). */
 export const recoveryKey = (code: Hex): Hex => keccak256(concatHex([DOMAIN, code]));
 
-// Recovery accounts this device made, only to label them in the device list.
-const knownKey = (chainId: number) => `vendetta.recovery.${chainId}`;
-export const knownRecovery = (chainId: number) => store.get<Address[]>(knownKey(chainId)) ?? [];
-export const rememberRecovery = (chainId: number, a: Address) =>
-  store.set(knownKey(chainId), [...knownRecovery(chainId), a]);
+// The code's account this device recovered with (its controller key), so the device list
+// suggests replacing it: a used code may have been seen. The chain itself tells codes from devices.
+const usedKey = (chainId: number) => `vendetta.recoveryUsed.${chainId}`;
+export const usedRecovery = (chainId: number) => store.get<string>(usedKey(chainId)) ?? undefined;
+export const rememberUsedRecovery = (chainId: number, controller: string) =>
+  store.set(usedKey(chainId), controller);

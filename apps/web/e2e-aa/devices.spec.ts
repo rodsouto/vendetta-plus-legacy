@@ -1,6 +1,7 @@
 // Several controllers per player (B-26) on the local 4337 stack: a recovery code brings the account
-// to a device with a new passkey, that device removes the lost one, and a device from "another
-// ecosystem" (its own passkey) joins through the link an existing device approves.
+// to a device with a new passkey, that device schedules the lost one's removal (cancels it, asks
+// again, executes it once due), and a device from "another ecosystem" (its own passkey) joins
+// through the link an existing device approves.
 import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 
 const stamp = (page: Page) => page.locator(".stamp-toast").last();
@@ -68,19 +69,50 @@ test("recover with a code, remove the lost device, add a device from another eco
   await fresh.page.goto("/#/account");
   await expect(fresh.page.getByText(/^Hasta /)).toBeVisible();
   await expect(fresh.page.getByRole("button", { name: "Quitar", exact: true })).toHaveCount(3);
+  // The chain tells the code from the devices (B-15), and this device remembers it used it.
+  await expect(fresh.page.getByText("Código de recuperación 0x")).toBeVisible();
+  await expect(fresh.page.getByText("usado para recuperar en este dispositivo")).toBeVisible();
 
-  // It removes the lost phone; its own session is authorized again in the same operation.
-  await fresh.page
-    .getByRole("row", { name: new RegExp(short(lost)) })
-    .getByRole("button", { name: "Quitar", exact: true })
-    .click();
-  await expect(stamp(fresh.page)).toContainText("Quitado de la cuenta", { timeout: 60_000 });
+  // It asks to remove the lost phone: scheduled days ahead (B-26). Every session dies now and its
+  // own is authorized again in the same operation (one prompt).
+  const lostRow = () => fresh.page.getByRole("row", { name: new RegExp(short(lost)) });
+  await lostRow().getByRole("button", { name: "Quitar", exact: true }).click();
+  await expect(stamp(fresh.page)).toContainText("Quita pedida", { timeout: 60_000 });
   expect(await fresh.prompts()).toBe(recovered + 1);
+  await expect(lostRow().getByText(/Se puede quitar desde/)).toBeVisible();
+  await expect(fresh.page.getByRole("button", { name: "Quitar", exact: true })).toHaveCount(2);
+  await expect(fresh.page.getByText(/^Hasta /)).toBeVisible();
+
+  // The phone sees it coming (and could cancel); its session is dead.
+  await phone.page.reload();
+  await phone.page.goto("/#/account");
+  await expect(phone.page.getByText(/Alguien pidió quitar este dispositivo/)).toBeVisible({
+    timeout: 30_000,
+  });
+  await expect(phone.page.getByText("Vencido: la próxima orden te pide la passkey")).toBeVisible();
+
+  // Cancelled (a prompt, no renewal needed), then asked again.
+  await fresh.page.getByRole("button", { name: "Cancelar la quita" }).click();
+  await expect(stamp(fresh.page)).toContainText("Quita cancelada", { timeout: 60_000 });
+  expect(await fresh.prompts()).toBe(recovered + 2);
+  await expect(fresh.page.getByRole("button", { name: "Quitar", exact: true })).toHaveCount(3);
+  await lostRow().getByRole("button", { name: "Quitar", exact: true }).click();
+  await expect(stamp(fresh.page)).toContainText("Quita pedida", { timeout: 60_000 });
+  expect(await fresh.prompts()).toBe(recovered + 3);
+
+  // Once due, the same call executes it (the workshop moves the local chain a week ahead).
+  await fresh.page.goto("/#/dev");
+  await fresh.page.getByRole("button", { name: "+7 d", exact: true }).click();
+  await fresh.page.waitForTimeout(500);
+  await fresh.page.goto("/#/account");
+  await lostRow().getByRole("button", { name: "Quitar ahora" }).click();
+  await expect(stamp(fresh.page)).toContainText("Quitado de la cuenta", { timeout: 60_000 });
+  expect(await fresh.prompts()).toBe(recovered + 4);
   await expect(fresh.page.getByRole("button", { name: "Quitar", exact: true })).toHaveCount(2);
   await expect(fresh.page.getByText(/^Hasta /)).toBeVisible();
   await fresh.page.getByRole("button", { name: "Irse de vacaciones (15 días)" }).click();
   await expect(stamp(fresh.page)).toContainText("Irse de vacaciones", { timeout: 60_000 });
-  expect(await fresh.prompts()).toBe(recovered + 1);
+  expect(await fresh.prompts()).toBe(recovered + 4);
 
   // The lost phone no longer reaches the account.
   await phone.page.reload();
@@ -101,7 +133,7 @@ test("recover with a code, remove the lost device, add a device from another eco
   await fresh.page.goto(link);
   await fresh.page.getByRole("button", { name: "Aprobar dispositivo" }).click();
   await expect(stamp(fresh.page)).toContainText("Dispositivo agregado", { timeout: 60_000 });
-  expect(await fresh.prompts()).toBe(recovered + 2);
+  expect(await fresh.prompts()).toBe(recovered + 5);
 
   // The laptop moves on by itself; its first order publishes its passkey and opens its session.
   await expect(laptop.page.getByRole("heading", { name: "Sumá este dispositivo" })).toBeHidden({

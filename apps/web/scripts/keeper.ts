@@ -1,10 +1,12 @@
-// Keeper (B-22, B-08): reveals hidden missions as soon as their timelock opens and processes due
-// missions, so the global queue does not wait for a player to act. It holds no secret: anyone may
-// run one, and clients reveal on their own when it is down.
+// Keeper (B-22, B-08, B-19): reveals hidden missions as soon as their timelock opens, processes
+// due missions, and settles the buildings whose points lag behind their finished queues, so the
+// global queue and the ranking (B-18) do not wait for a player to act. It holds no secret: anyone
+// may run one, and clients reveal on their own when it is down.
 //
 // Usage: tsx scripts/keeper.ts <deployment.json> [local|arbitrum]
-//   KEEPER_PRIVATE_KEY  the account that pays the gas (default: anvil's account 9, local only)
-//   RPC_URL             overrides the deployment's rpc
+//   KEEPER_PRIVATE_KEY         the account that pays the gas (default: anvil's account 9, local only)
+//   RPC_URL                    overrides the deployment's rpc
+//   KEEPER_SETTLE_INTERVAL_MS  how often stale points are settled (default 10 min; 5 s on local)
 import { readFileSync } from "node:fs";
 import { createPublicClient, createWalletClient, http, type Hex, type PublicClient } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
@@ -13,10 +15,13 @@ import { sim, vendetta as rs } from "@vendetta/rules";
 import { gameAbi } from "../src/chain/abi.js";
 import { anvilChain } from "../src/chain/config.js";
 import { ciphertextOf, timelockFor } from "../src/chain/hidden.js";
+import { cloneWorld, loadWorld } from "../src/chain/load.js";
 import type { Deployment, Network, NetworkId } from "../src/chain/networks.js";
 
 const ANVIL_KEY_9 = "0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6";
 const TICK_MS = 2000;
+/** Pokes per settle run: bounds the gas spent at once; the rest waits for the next run. */
+const MAX_POKES_PER_RUN = 25;
 
 const [file, id = "local"] = process.argv.slice(2);
 if (!file) throw new Error("usage: keeper.ts <deployment.json> [local|arbitrum]");
@@ -25,8 +30,12 @@ const deployment: Deployment = { ...base, rpc: process.env.RPC_URL || base.rpc }
 const chain = id === "arbitrum" ? arbitrum : anvilChain(deployment);
 const key = (process.env.KEEPER_PRIVATE_KEY || (id === "local" ? ANVIL_KEY_9 : "")) as Hex;
 if (!key) throw new Error("KEEPER_PRIVATE_KEY is required off local chains");
+const SETTLE_INTERVAL_MS = Number(
+  process.env.KEEPER_SETTLE_INTERVAL_MS || (id === "local" ? 5_000 : 600_000),
+);
 
-const transport = http(deployment.rpc);
+// Batched: loading the world is one call per entity.
+const transport = http(deployment.rpc, { batch: { batchSize: 100 } });
 const client = createPublicClient({ chain, transport }) as PublicClient;
 const wallet = createWalletClient({ chain, transport, account: privateKeyToAccount(key) });
 const timelock = timelockFor({ id: id as NetworkId } as Network);
@@ -90,14 +99,62 @@ async function tick(): Promise<void> {
   console.log("advanced the mission queue");
 }
 
+/**
+ * Settles the buildings whose points would change (B-06, B-19): lazy settlement leaves a player
+ * whose queues finished at the points of its last settlement until a transaction touches the
+ * building, and the ranking (B-18) ranks on the stored value. The simulator tells which buildings
+ * those are; `poke` is permissionless, and the state is the same either way.
+ */
+async function settleStale(): Promise<void> {
+  const { world, chainTime } = await loadWorld(client, game);
+  const c = cloneWorld(world);
+  try {
+    sim.drain(c, chainTime); // poke drains the queue first: a backlog waits for the mission job
+  } catch (e) {
+    if (!(e instanceof sim.GameError)) throw e;
+    console.log(`settle: waiting on the mission queue (${e.code})`);
+    return;
+  }
+  const stale: bigint[] = [];
+  for (const b of c.buildings.values()) {
+    if (b.owner === 0n || b.lastUpdate >= chainTime) continue;
+    const p = c.players.get(b.owner)!;
+    const before = p.centipoints;
+    sim.settle(c, b, chainTime);
+    if (p.centipoints !== before) stale.push(b.id);
+  }
+  let sent = 0;
+  for (const id of stale.slice(0, MAX_POKES_PER_RUN)) {
+    try {
+      await call("poke", [id]);
+      sent++;
+    } catch (e) {
+      // Backlog or Unrevealed: the mission job catches up and the next run retries.
+      console.warn(`poke ${id} failed:`, (e as Error).message.split("\n")[0]);
+      break;
+    }
+  }
+  if (stale.length > 0) console.log(`settled ${sent} of ${stale.length} stale buildings`);
+}
+
 console.log(
-  `keeper for ${game} on ${chain.name} (${deployment.rpc}), timelock ${id === "arbitrum" ? "drand" : "plain"}`,
+  `keeper for ${game} on ${chain.name} (${deployment.rpc}), timelock ${id === "arbitrum" ? "drand" : "plain"}, ` +
+    `settling stale points every ${SETTLE_INTERVAL_MS / 1000} s`,
 );
+let lastSettle = 0;
 for (;;) {
   try {
     await tick();
   } catch (e) {
     console.error("tick failed:", (e as Error).message.split("\n")[0]);
+  }
+  if (Date.now() - lastSettle >= SETTLE_INTERVAL_MS) {
+    lastSettle = Date.now();
+    try {
+      await settleStale();
+    } catch (e) {
+      console.error("settle failed:", (e as Error).message.split("\n")[0]);
+    }
   }
   await new Promise((r) => setTimeout(r, TICK_MS));
 }

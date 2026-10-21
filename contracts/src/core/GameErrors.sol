@@ -56,6 +56,10 @@ error InvalidSession();
 error SessionTooLong();
 error TooManyControllers();
 error LastController();
+error RemovalPending();
+error NoRemoval();
+error TransferPending();
+error NoTransfer();
 
 struct BattleReport {
     uint64[TROOPS] attacker;
@@ -123,10 +127,14 @@ interface IGameEvents {
     event PlayerSuspended(uint64 indexed player, uint40 until);
     event PremiumGranted(uint64 indexed player, uint40 until);
     event PlayerTransferred(uint64 indexed player, address from, address to);
-    event ControllerAdded(uint64 indexed player, address indexed controller);
+    event ControllerAdded(uint64 indexed player, address indexed controller, bool recovery);
     event ControllerRemoved(uint64 indexed player, address indexed controller);
     event SessionAuthorized(uint64 indexed player, address indexed session, uint40 until);
     event SessionRevoked(uint64 indexed player, address indexed session);
+    event ControllerRemovalScheduled(uint64 indexed player, address indexed controller, uint40 at);
+    event ControllerRemovalCancelled(uint64 indexed player, address indexed controller);
+    event PlayerTransferScheduled(uint64 indexed player, address to, uint40 at);
+    event PlayerTransferCancelled(uint64 indexed player);
     event FamilyCreated(uint64 indexed family, uint64 indexed capo, string tag, string name);
     event FamilyChanged(uint64 indexed family, uint64 indexed player, uint8 rank); // rank 0 = left
     event FamilyDissolved(uint64 indexed family);

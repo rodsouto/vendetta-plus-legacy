@@ -30,7 +30,7 @@ import {
   timelockFor,
   type Timelock,
 } from "../chain/hidden.js";
-import { parseRecoveryCode, recoveryKey, rememberRecovery } from "../account/recovery.js";
+import { parseRecoveryCode, recoveryKey, rememberUsedRecovery } from "../account/recovery.js";
 import {
   DevSigner,
   NoAccountError,
@@ -103,10 +103,15 @@ interface Game {
   joining: boolean;
   /** A new passkey on this device to join an account another device adds it to (B-26). */
   prepareDevice: () => Promise<boolean>;
-  /** Another device's account (or a recovery code's) manages this player too. */
-  addController: (a: Address) => Promise<boolean>;
-  /** Removes a controller (sim key); this device keeps playing unless it removed itself. */
+  /** Another device's account (or a recovery code's, `recovery`) manages this player too. */
+  addController: (a: Address, recovery?: boolean) => Promise<boolean>;
+  /**
+   * Removes a controller (sim key): this device leaves at once (and signs out); another one is
+   * scheduled by the first call and removed by the same call once due (B-26).
+   */
   removeController: (key: string) => Promise<boolean>;
+  /** Drops a scheduled removal (sim key). */
+  cancelRemoval: (key: string) => Promise<boolean>;
   /** Activates a recovery code the player has written down. */
   addRecoveryCode: (code: string) => Promise<boolean>;
   /** Signed out: a new passkey on this device, added to the player by its recovery code. */
@@ -267,6 +272,7 @@ export function GameProvider({
 
   // A fresh authorization ends a little before the cap, so it still fits when it lands on chain.
   const sessionDeadline = (at: bigint) => at + rs.config.maxSessionSeconds - 600n;
+  const days = Number(rs.config.controllerRemovalDelay / 86400n); // B-26, for the toasts
 
   /** reveal() calls for the hidden missions due by `at` that this client can open (B-22). */
   const reveals = useCallback(
@@ -493,12 +499,12 @@ export function GameProvider({
   }, [signer, fail]);
 
   const addController = useCallback(
-    (a: Address, done = t("devices.added")) =>
+    (a: Address, recovery = false, done = t("devices.added")) =>
       act({
         done,
-        check: (w, c, n) => sim.addController(w, c, controllerKey(a), n),
+        check: (w, c, n) => sim.addController(w, c, controllerKey(a), recovery, n),
         functionName: "addController",
-        args: [a],
+        args: [a, recovery],
         from: "controller",
       }),
     [act, t],
@@ -518,12 +524,15 @@ export function GameProvider({
         if (ok) signOut();
         return ok;
       }
-      // Removing kills every session (B-26); this device authorizes its own again, same operation.
+      // The first call schedules the removal, the same call once due executes it (B-26). Both
+      // kill every session, so this device authorizes its own again in the same operation.
+      const at = me?.removalAt.get(key);
+      const executes = at !== undefined && now >= at;
       const until = sessionDeadline(now);
       const calls = [gameCall(game, "removeController", [key])];
       if (actor) calls.push(gameCall(game, "authorizeSession", [actor, until]));
       return run({
-        done: t("devices.removed"),
+        done: executes ? t("devices.removed") : t("devices.scheduled", { days }),
         check: (w, n) => {
           sim.removeController(w, owner, key, n);
           if (actor) sim.authorizeSession(w, owner, controller, until, n);
@@ -532,7 +541,19 @@ export function GameProvider({
         from: "controller",
       });
     },
-    [owner, controller, actor, now, game, act, run, signOut, t],
+    [me, owner, controller, actor, now, days, game, act, run, signOut, t],
+  );
+
+  const cancelRemoval = useCallback(
+    (key: string) =>
+      act({
+        done: t("devices.cancelled"),
+        check: (w, c, n) => sim.cancelRemoval(w, c, key, n),
+        functionName: "cancelRemoval",
+        args: [key],
+        from: "controller",
+      }),
+    [act, t],
   );
 
   const addRecoveryCode = useCallback(
@@ -544,9 +565,7 @@ export function GameProvider({
       }
       const { sessionAccount } = await sessions();
       const a = (await sessionAccount(clients.public, recoveryKey(bytes))).address;
-      const ok = await addController(a, t("devices.activated"));
-      if (ok) rememberRecovery(clients.deployment.chainId, a);
-      return ok;
+      return addController(a, true, t("devices.activated"));
     },
     [clients, addController, toast, t],
   );
@@ -572,9 +591,9 @@ export function GameProvider({
         const session = signer.session!.address;
         const until = sessionDeadline(now);
         const w = cloneWorld(project(snapshot.world, now, known));
-        sim.addController(w, rec, kernel, now);
+        sim.addController(w, rec, kernel, false, now);
         sim.authorizeSession(w, kernel, controllerKey(session), until, now);
-        await send([gameCall(game, "addController", [id.address])], { key });
+        await send([gameCall(game, "addController", [id.address, false])], { key });
         // The new account publishes its passkey and opens this device's session (a prompt). If
         // that is cancelled, the first action does it.
         const calls: Call[] = [];
@@ -584,6 +603,7 @@ export function GameProvider({
         calls.push(gameCall(game, "authorizeSession", [session, until]));
         await send(calls, "controller");
         signer.settled();
+        rememberUsedRecovery(clients.deployment.chainId, rec); // the list suggests replacing it
         toast(t("recovery.done"));
         return true;
       } catch (e) {
@@ -645,6 +665,7 @@ export function GameProvider({
     prepareDevice,
     addController,
     removeController,
+    cancelRemoval,
     addRecoveryCode,
     recover,
     toasts,

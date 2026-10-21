@@ -120,6 +120,12 @@ export interface Player {
   sessionEpoch: bigint; // bumped by transferPlayer and removeController: older sessions stop working (B-15)
   debts: number; // registered trade debts not yet paid (B-11): restricts market, vacation and transports
   tradeLockUntil: bigint; // latest window end of an accepted trade: no vacation while now ≤ it (D-18)
+  /** Controllers whose removal is scheduled → when it can be executed (B-26). */
+  removalAt: Map<string, bigint>;
+  /** Controllers that are recovery codes rather than devices (B-15). */
+  recovery: Set<string>;
+  transferTo: string; // pending transfer target (B-26), "" = none
+  transferAt: bigint; // when the pending transfer can be executed
 }
 
 /** A session key: an address allowed to play for a player until `until` (B-15). */

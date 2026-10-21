@@ -2,13 +2,13 @@
 // (B-25), suspension (B-14) and transfer (B-26).
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { isAddress } from "viem";
+import { isAddress, type Address } from "viem";
 import { sim } from "@vendetta/rules";
 import { useGame } from "../state/game.js";
 import { Empty } from "../ui/parts.js";
 import { clock, playerLabel } from "../ui/format.js";
 import { controllerKey } from "../chain/load.js";
-import { ApproveDevice, Devices } from "./Devices.js";
+import { ApproveDevice, Devices, PendingBanner } from "./Devices.js";
 
 export function Account() {
   const g = useGame();
@@ -21,6 +21,8 @@ export function Account() {
   // D-19, B-11: no vacation with a registered market debt or an accepted trade's window open.
   const creditors = [...g.world.players.values()].filter((x) => sim.owes(g.world, p.id, x.id) > 0);
   const tradeLocked = !vacation && g.now <= p.tradeLockUntil;
+  const days = Number(g.world.rs.config.controllerRemovalDelay / 86400n);
+  const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
   return (
     <>
       <header className="account-head">
@@ -28,6 +30,7 @@ export function Account() {
         <span className="folio">{g.address?.slice(0, 10)}…</span>
       </header>
       {g.signer.mode === "passkey" && <ApproveDevice />}
+      <PendingBanner />
       <table className="ledger">
         <tbody>
           <tr>
@@ -109,7 +112,50 @@ export function Account() {
       )}
 
       <h3>{t("account.transfer")}</h3>
-      <p className="note">{t("account.transferNote")}</p>
+      <p className="note">{t("account.transferNote", { days })}</p>
+      {p.transferTo !== "" && (
+        <>
+          <p className="note">
+            {t("account.transferPending")} <span className="muted">{short(p.transferTo)}</span>,{" "}
+            {t("account.transferFrom")} {clock(p.transferAt)}
+          </p>
+          <div className="form-row">
+            <button
+              className="btn primary"
+              disabled={g.busy || g.now < p.transferAt}
+              onClick={
+                () =>
+                  void g
+                    .act({
+                      done: t("account.transferred"),
+                      check: (w, c, n) => sim.transferPlayer(w, c, p.transferTo, n),
+                      functionName: "transferPlayer",
+                      args: [p.transferTo as Address],
+                      from: "controller",
+                    })
+                    .then((ok) => ok && g.signOut()) // this device no longer manages the account
+              }
+            >
+              {t("account.transferNow")}
+            </button>
+            <button
+              className="btn quiet"
+              disabled={g.busy}
+              onClick={() =>
+                void g.act({
+                  done: t("account.transferCancelled"),
+                  check: (w, c, n) => sim.cancelTransfer(w, c, n),
+                  functionName: "cancelTransfer",
+                  args: [],
+                  from: "controller",
+                })
+              }
+            >
+              {t("account.transferCancel")}
+            </button>
+          </div>
+        </>
+      )}
       <div className="form-row">
         <label className="field" style={{ flex: "1 1 18rem" }}>
           {t("account.to")}
@@ -124,16 +170,18 @@ export function Account() {
           className="btn primary"
           disabled={g.busy || !isAddress(to)}
           onClick={() =>
-            void g.act({
-              done: t("account.transferred"),
-              check: (w, c, n) => sim.transferPlayer(w, c, controllerKey(to as `0x${string}`), n),
-              functionName: "transferPlayer",
-              args: [to],
-              from: "controller",
-            })
+            void g
+              .act({
+                done: t("account.transferScheduled", { days }),
+                check: (w, c, n) => sim.transferPlayer(w, c, controllerKey(to as Address), n),
+                functionName: "transferPlayer",
+                args: [to],
+                from: "controller",
+              })
+              .then((ok) => ok && setTo(""))
           }
         >
-          {t("account.transfer")}
+          {t("account.transferSubmit")}
         </button>
       </div>
     </>

@@ -215,32 +215,64 @@ describe("sim: account (D-18, B-14, B-25, B-26)", () => {
     sim.grantPremium(w, 1n, t + day);
     sim.queueRoom(w, "alice", 1n, room("weapons_armoury"), t);
     sim.queueRoom(w, "alice", 1n, room("weapons_armoury"), t); // second item: premium only
-    sim.transferPlayer(w, "alice", "carol", t);
+    sim.transferPlayer(w, "alice", "carol", t); // scheduled
+    expect(w.players.get(1n)!.transferTo).toBe("carol");
+    expect(w.playerOf.has("carol")).toBe(false);
+    expect(() => sim.transferPlayer(w, "alice", "carol", t)).toThrow("TransferPending");
+    sim.transferPlayer(w, "alice", "carol", t + rs.config.controllerRemovalDelay); // executed
     expect(w.playerOf.get("carol")).toBe(1n);
+    expect(w.players.get(1n)!.transferTo).toBe("");
     expect(() => sim.queueRoom(w, "alice", 1n, room("boss_office"), t)).toThrow("NotRegistered");
   });
 
-  it("several controllers manage one account; removing one kills the sessions (B-26)", () => {
+  it("several controllers manage one account; removing another one takes two steps (B-26)", () => {
     const w = sim.newWorld(rs);
     const t = 1_700_000_000n;
+    const delay = rs.config.controllerRemovalDelay;
+    const p = () => w.players.get(1n)!;
     sim.register(w, "phone", at, t);
-    sim.addController(w, "phone", "laptop", t);
-    sim.addController(w, "laptop", "code", t);
-    expect(w.players.get(1n)!.controllers).toEqual(["phone", "laptop", "code"]);
-    expect(() => sim.addController(w, "phone", "laptop", t)).toThrow("ControllerTaken");
+    sim.addController(w, "phone", "laptop", false, t);
+    sim.addController(w, "laptop", "code", true, t);
+    expect(p().controllers).toEqual(["phone", "laptop", "code"]);
+    expect(p().recovery).toEqual(new Set(["code"]));
+    expect(() => sim.addController(w, "phone", "laptop", false, t)).toThrow("ControllerTaken");
     sim.authorizeSession(w, "phone", "key", t + day, t);
-    expect(() => sim.addController(w, "key", "other", t)).toThrow("NotController");
-    sim.removeController(w, "code", "phone", t); // the lost phone, from the recovery code
-    expect(w.players.get(1n)!.controllers).toEqual(["code", "laptop"]);
+    expect(() => sim.addController(w, "key", "other", false, t)).toThrow("NotController");
+    // the lost phone, from the recovery code: scheduled first; every session dies at once and
+    // the phone keeps its rights meanwhile
+    sim.removeController(w, "code", "phone", t);
+    expect(p().controllers).toEqual(["phone", "laptop", "code"]);
+    expect(p().removalAt.get("phone")).toBe(t + delay);
     expect(sim.sessionPlayer(w, "key", t)).toBeUndefined();
+    sim.queueRoom(w, "phone", 1n, room("boss_office"), t);
+    expect(() => sim.removeController(w, "code", "phone", t + delay - 1n)).toThrow(
+      "RemovalPending",
+    );
+    sim.cancelRemoval(w, "phone", "phone", t); // the targeted one may cancel
+    expect(p().removalAt.size).toBe(0);
+    expect(() => sim.cancelRemoval(w, "phone", "phone", t)).toThrow("NoRemoval");
+    sim.removeController(w, "code", "phone", t);
+    sim.removeController(w, "code", "phone", t + delay); // due: executed
+    expect(p().controllers).toEqual(["code", "laptop"]);
+    expect(p().removalAt.size).toBe(0);
+    expect(p().sessionEpoch).toBe(3n);
     expect(() => sim.queueRoom(w, "phone", 1n, room("boss_office"), t)).toThrow("NotRegistered");
-    sim.removeController(w, "code", "code", t);
+    sim.removeController(w, "code", "code", t + delay); // itself: at once
+    expect(p().controllers).toEqual(["laptop"]);
+    expect(p().recovery.size).toBe(0);
     expect(() => sim.removeController(w, "laptop", "laptop", t)).toThrow("LastController");
     for (let i = 1; i < rs.config.maxControllers; i++)
-      sim.addController(w, "laptop", `device${i}`, t);
-    expect(() => sim.addController(w, "laptop", "one-more", t)).toThrow("TooManyControllers");
+      sim.addController(w, "laptop", `device${i}`, false, t);
+    expect(() => sim.addController(w, "laptop", "one-more", false, t)).toThrow(
+      "TooManyControllers",
+    );
+    // a transfer in two steps too, cancellable by any controller meanwhile
     sim.transferPlayer(w, "laptop", "carol", t);
-    expect(w.players.get(1n)!.controllers).toEqual(["carol"]);
+    sim.cancelTransfer(w, "device1", t);
+    expect(() => sim.cancelTransfer(w, "device1", t)).toThrow("NoTransfer");
+    sim.transferPlayer(w, "laptop", "carol", t);
+    sim.transferPlayer(w, "laptop", "carol", t + delay);
+    expect(p().controllers).toEqual(["carol"]);
     expect(w.playerOf.has("device1")).toBe(false);
   });
 });

@@ -1,13 +1,15 @@
 // Devices and recovery (B-15, B-26): the controllers of the player, adding another device (it shows
 // a link or QR that a device already in the account approves), recovery codes, and recovering the
-// account on a new device with one.
+// account on a new device with one. Removing another controller takes two steps a delay apart,
+// cancellable meanwhile; this device leaves at once.
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { isAddress, type Address } from "viem";
 import { useGame } from "../state/game.js";
 import { useRoute, go } from "../router.js";
 import { controllerKey } from "../chain/load.js";
-import { knownRecovery, newRecoveryCode } from "../account/recovery.js";
+import { newRecoveryCode, usedRecovery } from "../account/recovery.js";
+import { clock } from "../ui/format.js";
 
 /** A QR code of `text`; the encoder loads on first use (only a device joining needs it). */
 function Qr({ text }: { text: string }) {
@@ -44,43 +46,77 @@ export function Devices() {
   const [code, setCode] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   if (!g.me) return null;
-  const codes = new Set(knownRecovery(g.clients.deployment.chainId).map(controllerKey));
+  const me = g.me;
+  const days = Number(g.world.rs.config.controllerRemovalDelay / 86400n);
+  const used = usedRecovery(g.clients.deployment.chainId);
   const added = addressIn(link);
   return (
     <>
       <h3>{t("devices.title")}</h3>
-      <p className="note">{t("devices.note")}</p>
+      <p className="note">{t("devices.note", { days })}</p>
       <table className="ledger">
         <tbody>
-          {g.me.controllers.map((c) => {
+          {me.controllers.map((c) => {
             const who =
               c === g.owner
                 ? t("devices.this")
-                : codes.has(c)
+                : me.recovery.has(c)
                   ? t("devices.code")
                   : t("devices.other");
+            const at = me.removalAt.get(c);
+            const due = at !== undefined && g.now >= at;
+            const label = `${who} ${short(c)}`;
             return (
               <tr key={c}>
                 <td>
                   {who} <span className="muted">{short(c)}</span>
+                  {c === used && <span className="muted"> · {t("devices.usedHere")}</span>}
+                  {at !== undefined && (
+                    <>
+                      {" "}
+                      <span className={due ? "stamp" : "stamp blue"}>
+                        {t("devices.pending")} {clock(at)}
+                      </span>
+                    </>
+                  )}
                 </td>
                 <td className="num">
-                  <button
-                    className="btn quiet"
-                    disabled={g.busy || g.me!.controllers.length === 1}
-                    onClick={() => {
-                      if (confirm(t("devices.confirmRemove", { who: `${who} ${short(c)}` })))
-                        void g.removeController(c);
-                    }}
-                  >
-                    {t("devices.remove")}
-                  </button>
+                  {at !== undefined && (
+                    <button
+                      className="btn quiet"
+                      disabled={g.busy}
+                      onClick={() => void g.cancelRemoval(c)}
+                    >
+                      {t("devices.cancel")}
+                    </button>
+                  )}
+                  {(at === undefined || due) && (
+                    <>
+                      {" "}
+                      <button
+                        className={due ? "btn primary" : "btn quiet"}
+                        disabled={g.busy || me.controllers.length === 1}
+                        onClick={() => {
+                          const ask =
+                            c === g.owner || due
+                              ? t("devices.confirmRemove", { who: label })
+                              : t("devices.confirmSchedule", { who: label, days });
+                          if (confirm(ask)) void g.removeController(c);
+                        }}
+                      >
+                        {due ? t("devices.removeNow") : t("devices.remove")}
+                      </button>
+                    </>
+                  )}
                 </td>
               </tr>
             );
           })}
         </tbody>
       </table>
+      {used !== undefined && me.controllers.includes(used) && (
+        <p className="note">{t("devices.usedNote")}</p>
+      )}
 
       <h3>{t("devices.add")}</h3>
       <p className="note">{t("devices.addNote")}</p>
@@ -138,6 +174,40 @@ export function Devices() {
             </button>
           </div>
         </>
+      )}
+    </>
+  );
+}
+
+/**
+ * Account page: a removal scheduled against this device, or a pending transfer of the account
+ * (B-26). Whoever holds a device sees it coming and can cancel it.
+ */
+export function PendingBanner() {
+  const g = useGame();
+  const { t } = useTranslation();
+  if (!g.me) return null;
+  const at = g.me.removalAt.get(g.owner);
+  const to = g.me.transferTo;
+  if (at === undefined && to === "") return null;
+  return (
+    <>
+      {at !== undefined && (
+        <p className="note red" role="alert">
+          {t("devices.pendingSelf", { when: clock(at) })}{" "}
+          <button
+            className="btn quiet"
+            disabled={g.busy}
+            onClick={() => void g.cancelRemoval(g.owner)}
+          >
+            {t("devices.cancel")}
+          </button>
+        </p>
+      )}
+      {to !== "" && (
+        <p className="note red" role="alert">
+          {t("account.transferPendingBanner", { to: short(to), when: clock(g.me.transferAt) })}
+        </p>
       )}
     </>
   );

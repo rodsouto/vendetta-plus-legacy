@@ -81,6 +81,8 @@ library VendettaRuleset {
     uint256 internal constant MAX_APPLICATIONS = 5;
     uint256 internal constant MAX_SESSION_SECONDS = 2592000;
     uint256 internal constant MAX_CONTROLLERS = 5;
+    /// Removing another controller or transferring the account waits this long (B-26).
+    uint256 internal constant CONTROLLER_REMOVAL_DELAY = 259200;
     uint256 internal constant TAG_MIN = 2;
     uint256 internal constant TAG_MAX = 8;
     uint256 internal constant NAME_MIN = 2;

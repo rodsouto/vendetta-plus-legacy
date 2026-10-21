@@ -3,6 +3,7 @@
 // - PasskeySigner: the passkey's Kernel account for account management and this device's session
 //   account for every game action, both as sponsored ERC-4337 operations (B-15, B-16). The passkey
 //   stack (stack.ts: permissionless, ox) loads on its first use, not with the app.
+import { BaseError, decodeErrorResult, RawContractError } from "viem";
 import type { Abi, Address, Hex, PublicClient } from "viem";
 import type { Clients } from "../chain/config.js";
 import { devAccount } from "../chain/config.js";
@@ -68,6 +69,37 @@ export class RevertedError extends Error {
   }
 }
 
+/**
+ * The custom error a mined transaction reverted with, replayed at its own block: anvil mines one
+ * transaction per block, so that is the state and the timestamp it ran with. A mission coming due
+ * between the gas estimate and the block makes a drained action revert with Backlog (B-08), and
+ * the client retries with advance() only when it can name the error.
+ */
+async function revertName(clients: Clients, hash: Hex, block: bigint, abi: Abi) {
+  try {
+    const tx = await clients.public.getTransaction({ hash });
+    await clients.public.call({
+      to: tx.to!,
+      data: tx.input,
+      account: tx.from,
+      gas: tx.gas,
+      blockNumber: block,
+    });
+  } catch (e) {
+    const raw = e instanceof BaseError ? e.walk((x) => x instanceof RawContractError) : null;
+    const data = raw instanceof RawContractError ? raw.data : undefined;
+    const hex = typeof data === "string" ? data : data?.data;
+    if (hex && hex !== "0x") {
+      try {
+        return decodeErrorResult({ abi, data: hex }).errorName;
+      } catch {
+        /* not one of the game's errors */
+      }
+    }
+  }
+  return undefined;
+}
+
 /** Sends the calls one by one as plain transactions from a development account (local only). */
 async function sendPlain(clients: Clients, account: number, calls: Call[]) {
   const wallet = clients.wallet(account);
@@ -79,7 +111,9 @@ async function sendPlain(clients: Clients, account: number, calls: Call[]) {
       account: wallet.account!,
     } as never);
     const receipt = await clients.public.waitForTransactionReceipt({ hash });
-    if (receipt.status !== "success") throw new RevertedError();
+    if (receipt.status !== "success") {
+      throw new RevertedError(await revertName(clients, hash, receipt.blockNumber, c.abi));
+    }
   }
 }
 

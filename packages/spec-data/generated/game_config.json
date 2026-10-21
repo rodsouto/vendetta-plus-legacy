@@ -308,6 +308,7 @@
     "max_family_applications_per_player": 5,
     "max_session_seconds": 2592000,
     "max_controllers_per_player": 5,
+    "controller_removal_delay_seconds": 259200,
     "hidden_mission_bond": 500,
     "hidden_reveal_grace_seconds": 60
   },

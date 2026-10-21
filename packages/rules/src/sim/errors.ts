@@ -52,7 +52,11 @@ export type GameErrorName =
   | "InvalidSession"
   | "SessionTooLong"
   | "TooManyControllers"
-  | "LastController";
+  | "LastController"
+  | "RemovalPending"
+  | "NoRemoval"
+  | "TransferPending"
+  | "NoTransfer";
 
 export class GameError extends Error {
   constructor(readonly code: GameErrorName) {

@@ -168,7 +168,8 @@ is implemented in two levels:
   returns with loot, transports, occupations that change the building count used by honor).
 - **No keepers are required for correctness.** If nobody touches a building, its events wait. The
   result is the same whenever they are processed. Keepers (or the client) may advance state for
-  convenience only.
+  convenience only. Our keeper also settles the buildings whose points would change, so the ranking
+  (B-18) stays current; the state is the same either way.
 
 ## B-07 — Global mission order — New
 
@@ -353,9 +354,11 @@ vacation or suspended can only end the vacation. In v1 `suspend(player, until)` 
   key verifies its sign-in assertion and whose account that key derives, and rebuilds the account
   without a server. Entries are uncapped and read in pages, so a squatter cannot block a credential.
 - **Recovery code:** the client draws a random key, shows it once for the player to keep, and adds
-  the simple 4337 account it controls (as for sessions) as another controller. On a new device:
-  new passkey, then the code adds its account as a controller and may remove the lost one. An
-  email-based method may come later (it needs a service).
+  the simple 4337 account it controls (as for sessions) as another controller, flagged as a recovery
+  code (B-26) so every device lists it as one. On a new device: new passkey, then the code adds its
+  account as a controller and may schedule the lost one's removal. A used code is still a
+  controller: the client suggests replacing it. An email-based method may come later (it needs a
+  service).
 - **Session keys, native to the game:** the controller calls `authorizeSession(session, until)` to
   let a per-device address (a simple 4337 account held by a browser key) play for it, at most
   `onchain.max_session_seconds` (30 days); renewing is authorizing again, `revokeSession` ends it.
@@ -376,10 +379,12 @@ vacation or suspended can only end the vacation. In v1 `suspend(player, until)` 
   address; a device already in the account opens it and approves (`addController`, one prompt).
   *Recovery code* = 120 random bits shown as six groups of four base32 characters; the key is
   `keccak256("vendetta recovery v1" ‖ bits)` and its simple account becomes a controller (one
-  prompt). *Recover* = new passkey, then the code's account adds it (no prompt), then the new
-  account publishes its passkey and authorizes the session (one prompt). An account that joined
-  without publishing yet publishes with its first session renewal. *Remove a device* re-authorizes
-  this device's session in the same operation, since removal kills every session.
+  prompt). *Recover* = new passkey, then the code's account adds it as a device (no prompt), then
+  the new account publishes its passkey and authorizes the session (one prompt); the device remembers
+  which code it used and suggests a new one. An account that joined without publishing yet publishes
+  with its first session renewal. *Remove a device* schedules the removal (B-26) and later executes
+  it; both steps kill every session, so each re-authorizes this device's session in the same
+  operation.
   Kernel v3.1 (the last version with a WebAuthn validator in permissionless.js) and the
   SimpleAccount factory for the session, both already deployed on Arbitrum One. permissionless.js
   0.4 always signs with `usePrecompiled = false`, so the passkey signature is checked by the
@@ -435,6 +440,9 @@ Until the freeze, the "trustless rules" goal (Goals) is only partly met. This is
   format is The Graph's and the events are on-chain, anyone can deploy the same subgraph elsewhere.
   Locally (dev and e2e) it runs on a graph-node in Docker.
 - The client reads live state from the contracts and the ranking from the indexer.
+- The ranking shows stored points (B-19). Our keeper pokes the buildings whose settlement would
+  change them, so the ranking lags at most the keeper's interval; without it, a player ranks with
+  the points of its last settlement.
 
 ## B-19 — Points on-chain — Adapt
 
@@ -443,7 +451,9 @@ They are updated **incrementally** on every change that affects them, and must a
 derived from state. A view function recomputes them from scratch, used by tests to check this
 invariant. Every change emits `PointsChanged(player, centipoints)` with the new total (once per
 settlement, not per finished item), so the indexer ranks on the stored value (B-18); the
-differential scenarios check that the last event of each player equals its stored points.
+differential scenarios check that the last event of each player equals its stored points. Lazy
+settlement (B-06) leaves stored points behind finished queues until a building is touched; the
+keeper settles such buildings for the ranking only.
 
 ## B-20 — Optimistic client — New
 
@@ -583,20 +593,35 @@ Values live in the `premium` section of [data/game_config.yaml](data/game_config
 All game state (buildings, research, points, family, missions, queues, market trades, premium,
 sanctions) is keyed by a **`playerId`**, never by an address. Each player has **1 to
 `onchain.max_controllers_per_player` (5) controllers**: its devices' accounts and recovery codes
-(B-15). They are all equal: any of them manages the account and plays.
+(B-15). They are all equal: any of them manages the account and plays. The contract records which
+controllers are recovery codes, so every device labels them right.
 
-- `addController(address)`: by a controller (never a session key), for an address that controls
-  no player and is no live session (`ControllerTaken`), within the cap (`TooManyControllers`).
-- `removeController(address)`: by a controller, itself included, never the last one
-  (`LastController`). It bumps `sessionEpoch`, so every session dies, a lost device's included;
-  the remaining devices authorize theirs again.
-- Both work while locked (vacation, suspension): the player stays the same, so no sanction is
-  escaped.
-- There is no hierarchy: a stolen device can remove the others. A delay on removals can be added
-  if this becomes a problem.
-- `transferPlayer(newController)` gives the whole account to someone else: the new address becomes
-  the only controller and every session dies. It is in v1. The v2 NFT (B-24) only wraps it.
-- **Not allowed while suspended** (B-14), so a sanction cannot be escaped by moving the account.
+- `addController(address, recovery)`: by a controller (never a session key), for an address that
+  controls no player and is no live session (`ControllerTaken`), within the cap
+  (`TooManyControllers`). Immediate.
+- `removeController(address)`: by a controller. Removing **itself** is immediate, never the last one
+  (`LastController`). Removing **another** controller takes two steps: the first call schedules it
+  for `now + onchain.controller_removal_delay_seconds` (3 days), bumps `sessionEpoch` (every session
+  dies now, a lost device's included; the remaining devices authorize theirs again) and emits
+  `ControllerRemovalScheduled`; once due, the same call by any controller executes it
+  (`ControllerRemoved`, `sessionEpoch` bumped again). Before that it reverts `RemovalPending`.
+  Nothing is lazy: a due removal stays pending until someone executes it. The targeted controller
+  keeps every right meanwhile, cancelling included.
+- `cancelRemoval(address)`: any controller drops a scheduled removal (`NoRemoval` if there is none).
+- All of these work while locked (vacation, suspension): the player stays the same, so no sanction
+  is escaped.
+- **Residual risk.** A thief holding an unlocked device and the owner can cancel each other's
+  removal forever: a stalemate, but neither takes the account alone, since nothing executes while
+  the other side cancels. The owner cuts the thief's play at once with `revokeSession` (any
+  controller revokes any session of the player) and wipes the device remotely.
+- `transferPlayer(newController)` gives the whole account to someone else, in the same two steps:
+  the first call schedules it (`PlayerTransferScheduled`; the target must be free, checked again at
+  execution), the same call once due executes it (`PlayerTransferred`: the new address becomes the
+  only controller and every session dies), a call with a different target re-schedules,
+  `TransferPending` before it is due, and any controller cancels with `cancelTransfer()`
+  (`NoTransfer`). Scheduling and executing need the player active: **not on vacation nor suspended**
+  (B-14), so a sanction cannot be escaped by moving the account; cancelling works while locked. It
+  is in v1. The v2 NFT (B-24) only wraps it.
 - Everything moves with the account: buildings, troops, missions in flight, queues, premium, family
   membership and role, market trades and debts. A player in debt (B-11) can transfer the account:
   the creditor collects from it just the same.

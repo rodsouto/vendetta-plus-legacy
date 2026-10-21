@@ -97,6 +97,14 @@ contract SessionsTest is GameTestBase {
         game.revokeSession(key);
         vm.expectRevert(NotController.selector);
         game.transferPlayer(makeAddr("other"));
+        vm.expectRevert(NotController.selector);
+        game.cancelTransfer();
+        vm.expectRevert(NotController.selector);
+        game.addController(makeAddr("other"), false);
+        vm.expectRevert(NotController.selector);
+        game.removeController(alice);
+        vm.expectRevert(NotController.selector);
+        game.cancelRemoval(alice);
         vm.expectRevert(AlreadyRegistered.selector);
         game.register(1, 1, 3);
         vm.stopPrank();
@@ -120,17 +128,22 @@ contract SessionsTest is GameTestBase {
     }
 
     function test_transferKillsOldSessions() public {
-        _authorize(alice, key, T0 + DAY);
+        _authorize(alice, key, T0 + 7 * DAY);
         address carol = makeAddr("carol");
         vm.prank(alice);
-        game.transferPlayer(carol);
+        game.transferPlayer(carol); // scheduled (B-26): the session lives on meanwhile
+        assertEq(game.getPlayer(1).sessionEpoch, 0);
+        assertEq(game.playerFor(key), 1);
+        vm.warp(T0 + Ruleset.CONTROLLER_REMOVAL_DELAY);
+        vm.prank(alice);
+        game.transferPlayer(carol); // executed
         assertEq(game.getPlayer(1).sessionEpoch, 1);
         assertEq(game.playerFor(key), 0);
         vm.prank(key);
         vm.expectRevert(NotRegistered.selector);
         game.queueRoom(1, 0);
         // the new owner can authorize the same device again
-        _authorize(carol, key, T0 + DAY);
+        _authorize(carol, key, block.timestamp + DAY);
         assertEq(game.playerFor(key), 1);
     }
 

@@ -109,6 +109,7 @@ onchain:
   max_family_applications_per_player: 5 # open applications to families (B-31)
   max_session_seconds: 2592000          # longest session key authorization: 30 days (B-15)
   max_controllers_per_player: 5         # devices (passkeys) and recovery codes that manage an account (B-26)
+  controller_removal_delay_seconds: 259200 # removing another controller or transferring the account completes after 3 days; any controller can cancel meanwhile (B-26)
   hidden_mission_bond: 500              # salary resource paid per hidden mission: back when it resolves or returns, lost on forfeit (B-22)
   hidden_reveal_grace_seconds: 60       # a due hidden mission blocks the queue this long before it is forfeited (B-22)
 

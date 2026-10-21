@@ -153,6 +153,12 @@ run(join(web, "node_modules/.bin/alto"), [
   String(base + 1),
 ]);
 await until("bundler", rpcUp(bundlerRpc, "eth_supportedEntryPoints"));
+// The mock paymaster signs validUntil = Date.now() + ~17 h on the wall clock, while the workshop
+// moves the chain days ahead (vacations, scheduled removals: B-26), which would expire every
+// sponsorship on chain (AA32). It runs in this process and is its only clock user from here on, so
+// give it a clock a year ahead: its sponsorships outlive any local time travel.
+const wallNow = Date.now.bind(Date);
+Date.now = () => wallNow() + 365 * 86_400_000;
 await paymaster({ anvilRpc, altoRpc: bundlerRpc, port: base + 2, host: "127.0.0.1" }).start();
 
 const deployment: Deployment = {

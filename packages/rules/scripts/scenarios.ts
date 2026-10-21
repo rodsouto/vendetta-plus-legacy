@@ -59,11 +59,13 @@ const ACTION = {
   acceptTrade: 32, // [trade]
   authorizeSession: 33, // [session (actor id), until]
   revokeSession: 34, // [session (actor id)]
-  addController: 35, // [controller (actor id)]
-  removeController: 36, // [controller (actor id)]
+  addController: 35, // [controller (actor id), recovery 0/1]
+  removeController: 36, // [controller (actor id)]: itself at once; another one schedules, then executes once due
   sendHiddenMission: 37, // [building, kind, city, neighborhood, slot, salt, cover, troops × 21, resources × 4]
   reveal: 38, // [mission, kind, city, neighborhood, slot, salt]
   claimTrade: 39, // [trade, fromBuilding, toBuilding, amount × 4]
+  cancelRemoval: 40, // [controller (actor id)]
+  cancelTransfer: 41, // []
 } as const;
 
 /** Family tags and names by index, shared with Scenarios.t.sol (some invalid on purpose). */
@@ -178,6 +180,9 @@ function snapshot(w: sim.World) {
       ...queueSnap(p.researchQueue),
       research: p.research.map(num),
       research_building: num(p.researchBuilding),
+      // Parallel to controllers: a recovery code (B-15), and when a scheduled removal is due (B-26).
+      recovery: p.controllers.map((c) => (p.recovery.has(c) ? 1 : 0)),
+      removal_at: p.controllers.map((c) => num(p.removalAt.get(c) ?? 0n)),
       social: [
         p.vacationUntil,
         p.suspendedUntil,
@@ -188,6 +193,8 @@ function snapshot(w: sim.World) {
         p.vacationStart,
         BigInt(p.debts),
         p.tradeLockUntil,
+        p.transferTo === "" ? 0n : BigInt(p.transferTo),
+        p.transferAt,
       ].map(num),
       applications: p.applications.map(num),
       offers: p.offers.map(num),
@@ -342,9 +349,13 @@ function run(w: sim.World, controller: string, a: Action, now: bigint): void {
     case ACTION.revokeSession:
       return sim.revokeSession(w, controller, String(n[0]), now);
     case ACTION.addController:
-      return sim.addController(w, controller, String(n[0]), now);
+      return sim.addController(w, controller, String(n[0]), n[1] === 1n, now);
     case ACTION.removeController:
       return sim.removeController(w, controller, String(n[0]), now);
+    case ACTION.cancelRemoval:
+      return sim.cancelRemoval(w, controller, String(n[0]), now);
+    case ACTION.cancelTransfer:
+      return sim.cancelTransfer(w, controller, now);
   }
   throw new Error(`unknown action ${a.action}`);
 }
@@ -757,8 +768,13 @@ function socialCandidates(
       out.push({ action: ACTION.cancelTrade, args: [num(pick(cancellable).id)] });
   } else if (roll < 0.95) {
     out.push({ action: ACTION.startVacation, args: [] });
+  } else if (p.transferTo !== "" && r() < 0.3) {
+    out.push({ action: ACTION.cancelTransfer, args: [] });
   } else {
-    out.push({ action: ACTION.transferPlayer, args: [1000 + Math.floor(r() * 1000)] });
+    // Mostly the pending target again, so the transfer executes once due (B-26).
+    const to =
+      p.transferTo !== "" && r() < 0.7 ? Number(p.transferTo) : 1000 + Math.floor(r() * 1000);
+    out.push({ action: ACTION.transferPlayer, args: [to] });
   }
   void b;
   return out;
@@ -810,6 +826,8 @@ const EXPECTED: Record<string, string> = {
 };
 
 const COVERED = new Set<string>();
+/** Scheduled removals and transfers the bots executed once due (B-26); none means the bias is off. */
+const EXECUTED = { removals: 0, transfers: 0 };
 /** Hidden transports a debtor sent to a third party: they must come back with their cargo. */
 const BOUNCERS = new Set<number>();
 /** Successful claims per trade. */
@@ -1251,13 +1269,19 @@ function botScenario(seed: number, mode: Mode = "bots") {
       const other = owners[Math.floor(r() * actors)]![0]!;
       const target =
         r() < 0.15 ? other : r() < 0.05 && session !== undefined ? session : nextDevice++;
-      candidates.push({ action: ACTION.addController, args: [target] });
-    } else if (k < 0.09) {
-      // Drop a device (maybe itself, maybe the last one); sometimes another seat's.
+      candidates.push({ action: ACTION.addController, args: [target, r() < 0.3 ? 1 : 0] });
+    } else if (k < 0.1) {
+      // Drop a device (maybe itself, maybe the last one) or cancel a scheduled removal; mostly
+      // one already scheduled, so removals execute once due (B-26); sometimes another seat's.
       const pool = r() < 0.15 ? owners[Math.floor(r() * actors)]! : seatOwners;
+      const scheduled = [...w.players.get(BigInt(seat + 1))!.removalAt.keys()].map(Number);
+      const target =
+        scheduled.length > 0 && r() < 0.7
+          ? scheduled[Math.floor(r() * scheduled.length)]!
+          : pool[Math.floor(r() * pool.length)]!;
       candidates.push({
-        action: ACTION.removeController,
-        args: [pool[Math.floor(r() * pool.length)]!],
+        action: k < 0.09 ? ACTION.removeController : ACTION.cancelRemoval,
+        args: [target],
       });
     }
     if (hidden || market) candidates.push(...revealCandidates(w, r, now));
@@ -1279,10 +1303,20 @@ function botScenario(seed: number, mode: Mode = "bots") {
       error = attempt(w, String(actor), c, now);
       if (error === "" || r() < (c.cover ? 0.5 : 0.15)) break;
     }
-    if (chosen.action === ACTION.transferPlayer && error === "") owners[seat] = [chosen.args[0]!];
-    if (chosen.action === ACTION.addController && error === "") seatOwners.push(chosen.args[0]!);
-    if (chosen.action === ACTION.removeController && error === "")
-      seatOwners.splice(seatOwners.indexOf(chosen.args[0]!), 1);
+    // Seats follow the world: a scheduled removal keeps the controller until it executes, and a
+    // transfer only moves the seat when it executes (B-26). Count the executions for coverage.
+    const seatPlayer = w.players.get(BigInt(seat + 1))!;
+    if (
+      chosen.action === ACTION.removeController &&
+      error === "" &&
+      chosen.args[0] !== owner &&
+      !seatPlayer.controllers.includes(String(chosen.args[0]))
+    )
+      EXECUTED.removals++;
+    if (chosen.action === ACTION.transferPlayer && error === "" && seatPlayer.transferTo === "")
+      EXECUTED.transfers++;
+    for (let i = 0; i < actors; i++)
+      owners[i] = w.players.get(BigInt(i + 1))!.controllers.map(Number);
     if (chosen.action === ACTION.authorizeSession && error === "") sessions[seat] = chosen.args[0]!;
     if (chosen.action === ACTION.sendHiddenMission && error === "")
       SECRETS.set(num(w.nextMission) - 1, chosen.args.slice(1, 6));
@@ -1542,6 +1576,126 @@ function scriptedMarketScenario(seed: number) {
   return { actors: 3, seed, steps };
 }
 
+/**
+ * A deterministic walk through the controller rules (B-26, B-15): kinds, a scheduled removal
+ * (pending, cancelled, executed), immediate self-removal, and a transfer in two steps, also while
+ * suspended. The bots add breadth. Actor 0 is the phone, 1 another player, 2000+ devices, 2001 a
+ * recovery code, 500 a session, 1000+ transfer targets.
+ */
+function scriptedControllersScenario(seed: number) {
+  SESSIONS.clear();
+  SECRETS.clear();
+  const w = sim.newWorld(rs);
+  let now = T0;
+  const steps: unknown[] = [];
+  const act = (actor: number, action: number, args: number[]): string => {
+    const a: Action = { action, args };
+    const error = attempt(w, actor < 0 ? "admin" : String(actor), a, now);
+    steps.push({
+      action,
+      actor: Math.max(actor, 0),
+      args,
+      error,
+      state: snapshot(w),
+      time: num(now),
+    });
+    return error;
+  };
+  const expect = (want: string, got: string, what: string) => {
+    if (got !== want)
+      throw new Error(`scripted controllers: ${what}: expected "${want}", got "${got}"`);
+  };
+  const assume = (ok: boolean, what: string) => {
+    if (!ok) throw new Error(`scripted controllers: ${what}`);
+  };
+  const ok = (got: string, what: string) => expect("", got, what);
+  const jump = (seconds: number) => (now += BigInt(seconds));
+  const DAY = 86400;
+  const DELAY = Number(rs.config.controllerRemovalDelay);
+  const P = () => w.players.get(1n)!;
+
+  ok(act(0, ACTION.register, [1, 1, 1]), "the phone registers");
+  ok(act(1, ACTION.register, [1, 1, 8]), "another player registers");
+  ok(act(0, ACTION.addController, [2000, 0]), "a laptop");
+  ok(act(0, ACTION.addController, [2001, 1]), "a recovery code");
+  SESSIONS.add("500");
+  ok(act(0, ACTION.authorizeSession, [500, Number(now) + DAY]), "a session");
+  assume(P().recovery.has("2001") && !P().recovery.has("2000"), "the code is flagged");
+
+  // The laptop schedules the phone's removal: every session dies now, the phone keeps its rights.
+  ok(act(2000, ACTION.removeController, [0]), "the laptop schedules the phone's removal");
+  assume(
+    P().removalAt.get("0") === now + BigInt(DELAY) &&
+      P().sessionEpoch === 1n &&
+      sim.sessionPlayer(w, "500", now) === undefined,
+    "scheduled, sessions dead",
+  );
+  ok(act(0, ACTION.queueRoom, [1, room("boss_office")]), "the phone still plays");
+  expect("RemovalPending", act(2000, ACTION.removeController, [0]), "not due yet");
+  ok(act(0, ACTION.cancelRemoval, [0]), "the phone cancels its own removal");
+  expect("NoRemoval", act(0, ACTION.cancelRemoval, [0]), "nothing to cancel");
+  expect("NoRemoval", act(0, ACTION.cancelRemoval, [1]), "another player's controller");
+  ok(act(0, ACTION.authorizeSession, [500, Number(now) + DAY]), "the session again");
+  expect("NotController", act(500, ACTION.cancelRemoval, [0]), "a session cannot cancel");
+  expect("NotController", act(500, ACTION.removeController, [0]), "a session cannot remove");
+
+  // The code schedules it again; once due the same call executes it.
+  ok(act(2001, ACTION.removeController, [0]), "the code schedules the phone's removal");
+  jump(2 * DAY);
+  expect("RemovalPending", act(2001, ACTION.removeController, [0]), "still pending");
+  jump(DAY + 1);
+  ok(act(2001, ACTION.removeController, [0]), "executed");
+  assume(P().controllers.join() === "2001,2000" && P().sessionEpoch === 3n, "swap-and-pop, epoch");
+  ok(act(0, ACTION.register, [1, 1, 30]), "the freed phone registers a player of its own");
+  assume(
+    w.players.get(3n)!.recovery.size === 0 && w.players.get(3n)!.removalAt.size === 0,
+    "a clean slate",
+  );
+  ok(act(2000, ACTION.removeController, [2000]), "the laptop removes itself at once");
+  assume(P().controllers.join() === "2001", "only the code is left");
+  expect("LastController", act(2001, ACTION.removeController, [2001]), "never the last");
+
+  // Transfers: scheduled, pending, re-scheduled, cancelled, checked again when executing.
+  ok(act(2001, ACTION.addController, [2002, 0]), "a new device");
+  ok(act(2001, ACTION.transferPlayer, [1000]), "transfer scheduled");
+  expect("TransferPending", act(2001, ACTION.transferPlayer, [1000]), "not due yet");
+  ok(act(2001, ACTION.transferPlayer, [1001]), "re-scheduled to another address");
+  assume(P().transferTo === "1001", "re-scheduled");
+  ok(act(2002, ACTION.cancelTransfer, []), "the new device cancels it");
+  expect("NoTransfer", act(2002, ACTION.cancelTransfer, []), "nothing to cancel");
+  expect(
+    "ControllerTaken",
+    act(2001, ACTION.transferPlayer, [1]),
+    "a controller of another player",
+  );
+  ok(act(2001, ACTION.transferPlayer, [1000]), "scheduled again");
+  jump(3 * DAY);
+  ok(act(1000, ACTION.register, [1, 1, 40]), "the target registers meanwhile");
+  expect("ControllerTaken", act(2001, ACTION.transferPlayer, [1000]), "checked again on execution");
+  ok(act(2001, ACTION.transferPlayer, [1002]), "scheduled to a free address");
+  jump(3 * DAY);
+  ok(act(2001, ACTION.transferPlayer, [1002]), "executed");
+  assume(
+    P().controllers.join() === "1002" &&
+      P().transferTo === "" &&
+      P().removalAt.size === 0 &&
+      P().recovery.size === 0,
+    "transferred, clean",
+  );
+
+  // A self-removal drops its own schedule; managing works while suspended, transferring does not.
+  ok(act(1002, ACTION.addController, [2003, 0]), "a device");
+  ok(act(1002, ACTION.removeController, [2003]), "its removal scheduled");
+  ok(act(2003, ACTION.removeController, [2003]), "it removes itself at once");
+  expect("NoRemoval", act(1002, ACTION.cancelRemoval, [2003]), "the schedule went with it");
+  ok(act(-1, ACTION.suspend, [1, Number(now) + DAY]), "suspended");
+  expect("Suspended", act(1002, ACTION.transferPlayer, [1003]), "no transfer while suspended");
+  ok(act(1002, ACTION.addController, [2004, 0]), "adding works suspended");
+  ok(act(1002, ACTION.removeController, [2004]), "scheduling works suspended");
+  ok(act(1002, ACTION.cancelRemoval, [2004]), "cancelling works suspended");
+  return { actors: 2, seed, steps };
+}
+
 const here = dirname(fileURLToPath(import.meta.url));
 const dir = join(here, "../generated/scenarios/vendetta");
 rmSync(join(here, "../generated/scenarios"), { recursive: true, force: true });
@@ -1552,10 +1706,16 @@ const scenarios = [
   ...Array.from({ length: HIDDEN.count }, (_, i) => botScenario(20281015 + i, "hidden")),
   scriptedMarketScenario(20291014),
   ...Array.from({ length: MARKET.count }, (_, i) => botScenario(20291015 + i, "market")),
+  scriptedControllersScenario(20301014),
 ];
 const uncovered = MARKET_COVERAGE.filter((c) => !COVERED.has(c));
 if (uncovered.length > 0) {
   throw new Error(`market scenarios do not cover: ${uncovered.join(", ")}`);
+}
+if (EXECUTED.removals === 0 || EXECUTED.transfers === 0) {
+  throw new Error(
+    `bots executed ${EXECUTED.removals} scheduled removals and ${EXECUTED.transfers} transfers`,
+  );
 }
 // One file per scenario: Foundry pays memory gas for every byte it reads.
 scenarios.forEach((sc, i) =>
@@ -1571,6 +1731,8 @@ console.log(
     `${count(ACTION.reveal)} reveals, ${steps.filter((x) => x.error === "Unrevealed").length} unrevealed, ` +
     `${count(ACTION.recall)} recalls, ${count(ACTION.abandon)} abandons, ` +
     `${count(ACTION.authorizeSession)} sessions, ${count(ACTION.addController)} + ` +
-    `${count(ACTION.removeController)} - controllers, ${count(ACTION.claimTrade)} claims, ` +
+    `${count(ACTION.removeController)} - controllers (${EXECUTED.removals} executed, ` +
+    `${count(ACTION.cancelRemoval)} cancelled), ${EXECUTED.transfers} transfers executed, ` +
+    `${count(ACTION.claimTrade)} claims, ` +
     `${steps.filter((x) => x.error === "InDebt").length} InDebt`,
 );

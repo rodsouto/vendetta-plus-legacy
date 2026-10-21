@@ -30,7 +30,7 @@ contract ScenariosTest is GameTestBase {
         "BuildingSnap(uint256 centipoints,uint256 id,uint256 last_update,uint256[] levels,uint256 owner,uint256[] queue_finish,uint256[] queue_index,uint256[] queue_seq,uint256[] stock,uint256[] training_attack,uint256[] training_defense,uint256[] troops)"
         "MissionSnap(uint256[] cargo,uint256[] fields,uint256 id,uint256[] troops)"
         "FamilySnap(bool alive,uint256 id,uint256 members,string name,string tag)"
-        "PlayerSnap(uint256[] applications,uint256 buildings,uint256 centipoints,uint256[] controllers,uint256 id,uint256 missions,uint256[] offers,uint256[] owes,uint256[] queue_finish,uint256[] queue_index,uint256[] queue_seq,uint256[] research,uint256 research_building,uint256[] social)"
+        "PlayerSnap(uint256[] applications,uint256 buildings,uint256 centipoints,uint256[] controllers,uint256 id,uint256 missions,uint256[] offers,uint256[] owes,uint256[] queue_finish,uint256[] queue_index,uint256[] queue_seq,uint256[] recovery,uint256[] removal_at,uint256[] research,uint256 research_building,uint256[] social)"
         "SessionSnap(uint256 actor,uint256 epoch,uint256 player,uint256 until)"
         "State(BuildingSnap[] buildings,FamilySnap[] families,MissionSnap[] missions,PlayerSnap[] players,SessionSnap[] sessions,TradeSnap[] trades,WarSnap[] wars)"
         "TradeSnap(uint256[] fields,uint256 id,uint256[] paid,uint256[] price,uint256[] returned)"
@@ -94,10 +94,12 @@ contract ScenariosTest is GameTestBase {
         uint256[] queueFinish;
         uint256[] queueIndex;
         uint256[] queueSeq;
+        uint256[] recovery; // parallel to controllers: 1 = a recovery code (B-15)
+        uint256[] removalAt; // parallel to controllers: when a scheduled removal is due, 0 = none
         uint256[] research;
         uint256 researchBuilding;
         // vacationUntil, suspendedUntil, premiumUntil, family, rank, sessionEpoch, vacationStart,
-        // debts, tradeLockUntil
+        // debts, tradeLockUntil, transferTo (actor id), transferAt
         uint256[] social;
     }
 
@@ -136,7 +138,7 @@ contract ScenariosTest is GameTestBase {
     // One test per group of scenarios: Foundry never frees memory within a test.
     // 0-15: random core scenarios; 16-23: bots (missions, battles, occupations); 24-27: bots with
     // hidden missions (B-22); 28: the scripted market default walk-through; 29-32: market bots
-    // (D-19, B-11).
+    // (D-19, B-11); 33: the scripted controllers walk-through (B-26).
     function test_random_00_03() public {
         _run(0, 4);
     }
@@ -221,10 +223,14 @@ contract ScenariosTest is GameTestBase {
         _run(32, 33);
     }
 
+    function test_controllers_33() public {
+        _run(33, 34);
+    }
+
     function test_allScenariosCovered() public view {
         assertEq(
             vm.parseJsonUint(vm.readFile(string.concat(DIR, "index.json")), ".count"),
-            33,
+            34,
             "update the test groups"
         );
     }
@@ -357,11 +363,15 @@ contract ScenariosTest is GameTestBase {
             return abi.encodeCall(Game.revokeSession, (address(uint160(0x1000 + a[0]))));
         }
         if (act == 35) {
-            return abi.encodeCall(Game.addController, (address(uint160(0x1000 + a[0]))));
+            return abi.encodeCall(Game.addController, (address(uint160(0x1000 + a[0])), a[1] == 1));
         }
         if (act == 36) {
             return abi.encodeCall(Game.removeController, (address(uint160(0x1000 + a[0]))));
         }
+        if (act == 40) {
+            return abi.encodeCall(Game.cancelRemoval, (address(uint160(0x1000 + a[0]))));
+        }
+        if (act == 41) return abi.encodeCall(Game.cancelTransfer, ());
         if (act == 18) return abi.encodeCall(Game.createFamily, (_name(a[0]), _name(a[1])));
         if (act == 19) return abi.encodeCall(Game.applyToFamily, (uint64(a[0])));
         if (act == 20) return abi.encodeCall(Game.withdrawApplication, (uint64(a[0])));
@@ -422,7 +432,7 @@ contract ScenariosTest is GameTestBase {
     }
 
     function _errorName(bytes4 sel) internal pure returns (string memory) {
-        string[52] memory names = [
+        string[56] memory names = [
             "AlreadyRegistered",
             "InvalidCoordinate",
             "SlotTaken",
@@ -474,7 +484,11 @@ contract ScenariosTest is GameTestBase {
             "InvalidCover",
             "InDebt",
             "TradeOpen",
-            "InvalidClaim"
+            "InvalidClaim",
+            "RemovalPending",
+            "NoRemoval",
+            "TransferPending",
+            "NoTransfer"
         ];
         for (uint256 i; i < names.length; ++i) {
             if (bytes4(keccak256(bytes(string.concat(names[i], "()")))) == sel) return names[i];
@@ -521,7 +535,7 @@ contract ScenariosTest is GameTestBase {
             if (!_sameQueue(p.researchQueue, e.queueIndex, e.queueSeq, e.queueFinish)) {
                 return false;
             }
-            if (!_sameSocial(game, p, e) || !_sameControllers(p.controllers, e.controllers)) {
+            if (!_sameSocial(game, p, e) || !_sameControllers(p, e)) {
                 return false;
             }
         }
@@ -529,14 +543,20 @@ contract ScenariosTest is GameTestBase {
             && _sameTrades(game, exp.trades) && _sameSessions(game, exp.sessions);
     }
 
-    function _sameControllers(address[] memory got, uint256[] memory exp)
+    function _sameControllers(Game.PlayerView memory p, PlayerSnap memory e)
         internal
         pure
         returns (bool)
     {
-        if (got.length != exp.length) return false;
-        for (uint256 i; i < got.length; ++i) {
-            if (got[i] != address(uint160(0x1000 + exp[i]))) return false;
+        if (
+            p.controllers.length != e.controllers.length || p.removalAt.length != e.removalAt.length
+                || p.recovery.length != e.recovery.length
+        ) return false;
+        for (uint256 i; i < p.controllers.length; ++i) {
+            if (
+                p.controllers[i] != address(uint160(0x1000 + e.controllers[i]))
+                    || p.removalAt[i] != e.removalAt[i] || (p.recovery[i] ? 1 : 0) != e.recovery[i]
+            ) return false;
         }
         return true;
     }
@@ -556,7 +576,7 @@ contract ScenariosTest is GameTestBase {
         view
         returns (bool)
     {
-        uint256[9] memory f = [
+        uint256[11] memory f = [
             uint256(p.vacationUntil),
             p.suspendedUntil,
             p.premiumUntil,
@@ -565,9 +585,11 @@ contract ScenariosTest is GameTestBase {
             p.sessionEpoch,
             p.vacationStart,
             p.debts,
-            p.tradeLockUntil
+            p.tradeLockUntil,
+            p.transferTo == address(0) ? 0 : uint256(uint160(p.transferTo)) - 0x1000,
+            p.transferAt
         ];
-        for (uint256 k; k < 9; ++k) {
+        for (uint256 k; k < 11; ++k) {
             if (f[k] != e.social[k]) return false;
         }
         for (uint256 c; c < e.owes.length; ++c) {
@@ -764,7 +786,16 @@ contract ScenariosTest is GameTestBase {
                     address(uint160(0x1000 + e.controllers[c])),
                     string.concat(w, " controller")
                 );
+                assertEq(p.removalAt[c], e.removalAt[c], string.concat(w, " removalAt"));
+                assertEq(p.recovery[c] ? 1 : 0, e.recovery[c], string.concat(w, " recovery"));
             }
+            assertEq(
+                p.transferTo == address(0) ? 0 : uint256(uint160(p.transferTo)) - 0x1000,
+                e.social[9],
+                string.concat(w, " transferTo")
+            );
+            assertEq(p.transferAt, e.social[10], string.concat(w, " transferAt"));
+            assertEq(p.sessionEpoch, e.social[5], string.concat(w, " sessionEpoch"));
             for (uint256 r; r < RESEARCH; ++r) {
                 assertEq(p.research[r], e.research[r], string.concat(w, " research"));
             }

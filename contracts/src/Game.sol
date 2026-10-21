@@ -23,6 +23,7 @@ import {
     War,
     Trade,
     CoreState,
+    ControllerInfo,
     Session,
     GameStorage
 } from "./core/GameStorage.sol";
@@ -155,17 +156,28 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
         Account.grantPremium(player, until);
     }
 
+    /// B-26: the first call schedules the transfer and, once due, the same call executes it.
     function transferPlayer(address to) external drained {
         Account.transfer(msg.sender, to);
     }
 
-    /// B-26: another device or recovery code manages the caller's player too.
-    function addController(address controller) external drained {
-        Account.addController(msg.sender, controller);
+    /// B-26: another device (or a recovery code, `recovery`) manages the caller's player too.
+    function addController(address controller, bool recovery) external drained {
+        Account.addController(msg.sender, controller, recovery);
     }
 
+    /// B-26: immediate on the caller itself; on another controller the first call schedules the
+    /// removal and, once due, the same call executes it.
     function removeController(address controller) external drained {
         Account.removeController(msg.sender, controller);
+    }
+
+    function cancelRemoval(address controller) external drained {
+        Account.cancelRemoval(msg.sender, controller);
+    }
+
+    function cancelTransfer() external drained {
+        Account.cancelTransfer(msg.sender);
     }
 
     /// B-15: let `session` (a per-device key) play for the caller's player until `until`.
@@ -297,6 +309,10 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
         uint40 vacationStart;
         uint32 debts;
         uint40 tradeLockUntil;
+        uint40[] removalAt; // parallel to controllers: scheduled removal, 0 = none (B-26)
+        bool[] recovery; // parallel to controllers: a recovery code rather than a device (B-15)
+        address transferTo; // pending transfer target, 0 = none (B-26)
+        uint40 transferAt;
     }
 
     function getBuilding(uint64 id) external view returns (BuildingView memory v) {
@@ -318,27 +334,35 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
     }
 
     function getPlayer(uint64 id) external view returns (PlayerView memory v) {
-        Player storage p = GameStorage.core().players[id];
-        v = PlayerView(
-            p.controllers,
-            p.researchBuilding,
-            p.buildings,
-            p.centipoints,
-            p.missions,
-            p.research,
-            p.researchQueue,
-            p.vacationUntil,
-            p.suspendedUntil,
-            p.premiumUntil,
-            p.family,
-            p.rank,
-            p.applications,
-            p.offers,
-            p.sessionEpoch,
-            p.vacationStart,
-            p.debts,
-            p.tradeLockUntil
-        );
+        CoreState storage s = GameStorage.core();
+        Player storage p = s.players[id];
+        v.controllers = p.controllers;
+        v.researchBuilding = p.researchBuilding;
+        v.buildings = p.buildings;
+        v.centipoints = p.centipoints;
+        v.missions = p.missions;
+        v.research = p.research;
+        v.researchQueue = p.researchQueue;
+        v.vacationUntil = p.vacationUntil;
+        v.suspendedUntil = p.suspendedUntil;
+        v.premiumUntil = p.premiumUntil;
+        v.family = p.family;
+        v.rank = p.rank;
+        v.applications = p.applications;
+        v.offers = p.offers;
+        v.sessionEpoch = p.sessionEpoch;
+        v.vacationStart = p.vacationStart;
+        v.debts = p.debts;
+        v.tradeLockUntil = p.tradeLockUntil;
+        v.removalAt = new uint40[](p.controllers.length);
+        v.recovery = new bool[](p.controllers.length);
+        for (uint256 i; i < p.controllers.length; ++i) {
+            ControllerInfo storage info = s.controllerInfo[p.controllers[i]];
+            v.removalAt[i] = info.removalAt;
+            v.recovery[i] = info.recovery;
+        }
+        v.transferTo = p.transferTo;
+        v.transferAt = p.transferAt;
     }
 
     /// Registered trade debts `debtor` still owes `creditor` (B-11).
