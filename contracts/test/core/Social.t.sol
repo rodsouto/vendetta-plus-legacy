@@ -506,9 +506,8 @@ contract SocialTest is GameTestBase {
         bytes32 salt = bytes32(uint256(7));
         bytes32 commit =
             keccak256(abi.encode(uint64(2), TRANSPORT, uint256(1), uint256(1), uint256(3), salt));
-        uint64 hidden = game.sendHiddenMission(
-            2, commit, 3, _rowdies(1), _only(WEAPONS, 5), hex"", type(uint40).max
-        );
+        uint64 hidden =
+            game.sendHiddenMission(2, commit, 3, _rowdies(1), _only(WEAPONS, 5), hex"", 0);
         vm.stopPrank();
         vm.warp(game.getMission(hidden).arrival);
         game.reveal(hidden, TRANSPORT, [uint256(1), 1, 3], salt);

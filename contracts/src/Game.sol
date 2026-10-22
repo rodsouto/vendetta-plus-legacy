@@ -104,8 +104,9 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
         return Missions.send(msg.sender, building, kind, target, troops, resources, trade);
     }
 
-    /// A mission whose kind and target stay secret until revealed (B-22). `deadline`: the latest
-    /// arrival the ciphertext's timelock allows (TooLate past it, so the client encrypts again).
+    /// A mission whose kind and target stay secret until revealed (B-22). `arrival`: the fixed
+    /// arrival the ciphertext's timelock was made for, 0 for the natural one (TooLate before the
+    /// natural arrival, so the client encrypts again; InvalidArrival past the slack).
     function sendHiddenMission(
         uint64 building,
         bytes32 commit,
@@ -113,10 +114,10 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
         uint256[TROOPS] calldata troops,
         uint256[RESOURCES] calldata resources,
         bytes calldata ciphertext,
-        uint40 deadline
+        uint40 arrival
     ) external drained returns (uint64) {
         return Missions.sendHidden(
-            msg.sender, building, commit, cover, troops, resources, ciphertext, deadline
+            msg.sender, building, commit, cover, troops, resources, ciphertext, arrival
         );
     }
 

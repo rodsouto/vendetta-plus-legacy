@@ -12,6 +12,8 @@ export interface Snapshot {
   world: sim.World;
   /** Chain time of the block the state was read at (seconds). */
   chainTime: bigint;
+  /** Wall clock when that block arrived (seconds), before the state was read. */
+  wallAt: number;
   block: bigint;
 }
 
@@ -27,6 +29,7 @@ export async function loadWorld(
   controller?: Address,
 ): Promise<Snapshot> {
   const block = await client.getBlock();
+  const wallAt = Math.floor(Date.now() / 1000);
   const read = <T>(functionName: string, args: unknown[] = []) =>
     client.readContract({
       address: game,
@@ -240,7 +243,18 @@ export async function loadWorld(
     });
   }
 
-  return { world: w, chainTime: block.timestamp, block: block.number };
+  return { world: w, chainTime: block.timestamp, wallAt, block: block.number };
+}
+
+/**
+ * Chain time − wall clock (seconds) after snapshot `s`, from `prev`. Measured when the snapshot's
+ * block arrived, so the clock never runs ahead of the chain. On a live chain the latest snapshot
+ * sets it (a device clock that is ahead, or that jumps, is corrected); an idle anvil's latest
+ * block lags, so on a local chain it only grows (time travel moves it forward).
+ */
+export function clockOffset(prev: number, s: Snapshot, live: boolean): number {
+  const measured = Number(s.chainTime) - s.wallAt;
+  return live ? measured : Math.max(prev, measured);
 }
 
 /** An invitation or a scheduled transfer addressed to an account that is not a controller yet. */

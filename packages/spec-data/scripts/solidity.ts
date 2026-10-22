@@ -91,6 +91,7 @@ interface GameConfig {
     hidden_reveal_grace_seconds: number;
     return_cooldown_seconds: number;
     hidden_order_window_seconds: number;
+    hidden_arrival_slack_seconds: number;
     invite_ttl_seconds: number;
   };
   vacation: { duration_days: number; cooldown_days: number };
@@ -305,6 +306,8 @@ library ${name} {
     /// Reveals go in arrival order: a parked hidden mission holds the ones behind it this long at
     /// most (B-22).
     uint256 internal constant HIDDEN_ORDER_WINDOW = ${config.onchain.hidden_order_window_seconds};
+    /// A hidden mission's fixed arrival may follow its natural one by this much at most (B-22).
+    uint256 internal constant HIDDEN_ARRIVAL_SLACK = ${config.onchain.hidden_arrival_slack_seconds};
     /// A controller or transfer invitation lasts this long (B-26).
     uint256 internal constant INVITE_TTL = ${config.onchain.invite_ttl_seconds};
     /// Honor power never drops below this percentage (D-27).

@@ -387,7 +387,7 @@ describe("sim: hidden missions (B-22): parking, reveal at the reveal time, forfe
   }
   const salt = 5n;
   const target = { ...at, slot: 2n };
-  const sendHidden = (w: sim.World, now: bigint, n = 5n) =>
+  const sendHidden = (w: sim.World, now: bigint, n = 5n, arrival = 0n) =>
     sim.sendHiddenMission(
       w,
       "alice",
@@ -396,9 +396,26 @@ describe("sim: hidden missions (B-22): parking, reveal at the reveal time, forfe
       3n,
       rowdies(n),
       none,
-      now + 10n ** 7n,
+      arrival,
       now,
     );
+
+  it("a fixed arrival goes from the natural one to the slack after it; the way back keeps the duration", () => {
+    const { w, now } = ready();
+    const natural = w.missions.get(sendHidden(w, now, 1n))!.arrival; // 0: the natural arrival
+    expect(() => sendHidden(w, now, 1n, natural - 1n)).toThrow("TooLate");
+    expect(() => sendHidden(w, now, 1n, natural + c.hiddenArrivalSlack + 1n)).toThrow(
+      "InvalidArrival",
+    );
+    const id = sendHidden(w, now, 1n, natural + c.hiddenArrivalSlack);
+    const m = () => w.missions.get(id)!;
+    const late = m().arrival;
+    expect(late).toBe(natural + c.hiddenArrivalSlack);
+    sim.reveal(w, id, sim.ATTACK, target, salt, now); // before the arrival: resolves at it
+    expect(sim.advance(w, 5, late)).toBe(2);
+    expect(m().returning).toBe(true);
+    expect(m().arrival).toBe(late + (natural - now));
+  });
 
   it("a due mission nobody revealed is parked: the queue goes on and every action works", () => {
     const { w, now } = ready();
@@ -1031,7 +1048,7 @@ describe("sim: market default (D-19 Default, B-11)", () => {
       3n,
       units(MOVER, 1n),
       [5n, 0n, 0n, 0n],
-      now + 10n ** 7n,
+      0n,
       now,
     );
     const h = w.missions.get(hidden)!;

@@ -522,8 +522,8 @@ tlock works from the browser and Node against drand quicknet (~0.5 s to encrypt,
 394-byte ciphertext, 60 kB gzip loaded on demand); EIP-2537 is live on Arbitrum One but its pairing
 precompile only returns a boolean, so decrypting tlock on-chain is not practical.
 
-- **Send.** `sendHiddenMission(building, commit, cover, troops, resources, ciphertext)`, with
-  `commit = keccak256(abi.encode(owner, kind, city, neighborhood, slot, salt))`: the kind is
+- **Send.** `sendHiddenMission(building, commit, cover, troops, resources, ciphertext, arrival)`,
+  with `commit = keccak256(abi.encode(owner, kind, city, neighborhood, slot, salt))`: the kind is
   hidden too. Everyone sees that a mission left, its troops, its cargo and its arrival time; nobody
   sees its kind or target until it is revealed. The client encrypts `(kind, target, salt)` with
   **drand timelock encryption** (tlock) for the drand round at the arrival time; the ciphertext is
@@ -536,7 +536,7 @@ precompile only returns a boolean, so decrypting tlock on-chain is not practical
   9 of 10 sends with 200 buildings, for ~5% more travel time and ~20% more salary. The salary
   difference is not refunded. `1 ≤ cover ≤` the distance from the origin to the farthest map
   corner, the longest trip that building can already make with a real target, so hiding never
-  allows a longer trip (fleet save) than today.
+  allows a longer trip (fleet save) than today, beyond the arrival slack (below).
 - **Reveal.** `reveal(id, kind, target, salt)`: anyone, until the grace ends (before the drand round
   only the sender knows the plaintext); past `arrival + hidden_reveal_grace_seconds` it does
   nothing. The contract checks the hash, that the kind and coordinate are valid and not the
@@ -553,11 +553,16 @@ precompile only returns a boolean, so decrypting tlock on-chain is not practical
   doubly linked list on-chain, so a reveal checks its predecessor only) and goes on with the
   next mission; nothing stalls: construction, research, training, trades and everyone's missions
   carry on. A parked mission keeps its troops and cargo and leaves the list by a reveal, a recall
-  or a forfeit. Clients reveal their own missions at the arrival when they are online, and the
-  keeper reveals every parked mission as soon as its round is out (others' plaintexts come from
-  decrypting the ciphertext). The defender cannot dodge more than with a public target: what it
-  knows at the arrival (origin, cover disk, troops, arrival time) it already knew when the mission
-  left.
+  or a forfeit. Clients reveal their own missions at the arrival when they are online (and put
+  their own due reveals in front of every send), and the keeper reveals every parked mission as
+  soon as its round is out (others' plaintexts come from decrypting the ciphertext). A client
+  never reveals others' missions: a parked one holds no action back, and the contract could not
+  make a client reveal them anyway, so paying for them would only cost the honest ones. Plaintexts
+  stay on the device that sent the mission: one sent from another device of the same player is
+  revealed by the keeper, and with the keeper down it stays parked until someone forfeits it or
+  its owner recalls it (it loses its outcome and the trip, and the salary). The defender cannot
+  dodge more than with a public target: what it knows at the arrival (origin,
+  cover disk, troops, arrival time) it already knew when the mission left.
 - **Forfeit.** Past `arrival + hidden_reveal_grace_seconds` (60 s), anyone calls `forfeit(id)` on
   a hidden mission nobody revealed: it turns back from that moment with all its troops and cargo
   (a recall by its owner does the same at any time). The keeper does
@@ -566,16 +571,17 @@ precompile only returns a boolean, so decrypting tlock on-chain is not practical
   garbage report. While parked it takes part in the order window below: that is all it can do
   to others.
   The grace stays short because it bounds how long a sender who is online can pick the moment of
-  its own reveal (~10 s in practice, until the keeper reveals), and because without it an
-  unrevealed mission would be a permanent fleet save whose attack lands whenever its owner chooses.
+  its own reveal (the 8 s head start in practice, until the keeper reveals), and because without
+  it an unrevealed mission would be a permanent fleet save whose attack lands whenever its owner
+  chooses.
 - **Order.** Reveals go in arrival order for `hidden_order_window_seconds` (15 s): a due hidden
   mission can be revealed only once every parked mission that arrived before it, by
   `(arrival, seq)`, is past its window; otherwise `OutOfOrder`. The keeper reveals each mission
-  as soon as its round is out (8–12 s after the arrival) and the sender's client at the arrival,
+  as soon as its round is out (8–11 s after the arrival) and the sender's client at the arrival,
   so hidden missions resolve in the order they arrived; one nobody can reveal (garbage) holds the
   ones behind it for the window at most, then they go on and may overtake it, which is all a
   garbage ciphertext can do to others. The window must exceed the keeper's latency, so it moves
-  with the 10 s round margin. Public missions (returns, trade transports) still resolve at their
+  with the head start (below). Public missions (returns, trade transports) still resolve at their
   arrival, so one can land before a parked hidden mission that arrived earlier: accepted, as the
   legacy cron resolved at minute granularity.
 - **Return cooldown.** A building that just took returning troops in cannot send a mission for
@@ -599,13 +605,39 @@ precompile only returns a boolean, so decrypting tlock on-chain is not practical
   (B-11).
 - `sendMission` stays public; the client uses it only for transports bound to a trade (D-19), whose
   counterparty is public anyway. Recall works the same on hidden missions.
-- **Timelock per network.** On Arbitrum One, tlock for the quicknet round at `arrival + 10 s`
-  (drand's `roundAt` floors to the round scheduled at most 10 s after the arrival, so the
-  ciphertext opens 8–10 s after it). Inclusion latency must not push the real arrival past that
-  round: `sendHiddenMission` takes a `deadline` and reverts `TooLate` when the arrival computed at
-  inclusion would be later; the client sets it to the round's time minus one second and encrypts
-  again on that error. On local chains the plaintext travels as is ("plain"): anvil's clock
-  jumps (time travel) and drand's does not.
+- **Fixed arrival.** The round must open after the arrival, by a **head start** that lets the
+  sender's reveal land while nobody else can read the target: a defender that decrypted first
+  could send its troops away before the reveal and the attack would hit an empty building. So the
+  sender fixes the arrival instead of taking the one its inclusion gives: `natural = inclusion time
+  + duration`, and the contract sets the mission's arrival to `arrival` when `natural ≤ arrival ≤
+  natural + hidden_arrival_slack_seconds` (30 s, [game_config.yaml](data/game_config.yaml)),
+  `TooLate` below (the send landed too late: sending again encrypts anew), `InvalidArrival` above.
+  `arrival = 0` takes the natural arrival. The way back keeps the duration. Whatever the inclusion
+  latency, the head start stays whole; the trip is a few seconds longer than a public one.
+- **Timelock per network.** On Arbitrum One, tlock for drand quicknet (a round every 3 s): the
+  client takes the first round at or after `now + duration + 10 s` (the inclusion margin) plus the
+  head start, encrypts for it and sends `arrival = round time − 8 s`, with `now` a fresh block's
+  time, not the device clock. Rounds are computed from quicknet's genesis and period, which are
+  part of its identity; the client checks the chain info drand serves against them before
+  encrypting, since another schedule could open the ciphertext early (or past the grace). The head
+  start (8 s) is a client constant per network: it must exceed the inclusion latency of the
+  sender's reveal (a chain with 5 s blocks would need ~10 s), and the order window and the return
+  cooldown follow it. On local chains the plaintext travels as is ("plain") with `arrival = 0`:
+  anvil's clock jumps (time travel) and drand's does not.
+- **No reveal before the arrival.** The contract accepts a reveal before the arrival (it resolves
+  at the arrival), but it would show the target in time to dodge, and a reverted one would too:
+  the transaction is public. So a client sends its reveals, at the arrival or in front of an
+  action, only once a fresh block's time has reached the arrival; until then it polls. Its clock
+  is measured against the chain when each snapshot's block arrives, so a device clock that runs
+  ahead never makes it act early.
+- **Clock alignment.** drand rounds follow UTC, arrivals follow chain time. With chain time
+  lagging UTC by `L` seconds, the head start is about `8 − L` seconds of real time, before polling
+  and inclusion delays. Arbitrum's sequencer stamps blocks with its wall clock, though the
+  protocol allows much wider bounds: an operating assumption, like the keeper's latency.
+- **Public mempools.** A reveal waiting for inclusion shows the target. Where pending transactions
+  are public and ordered by fee, a defender's bot can see it and get its own send in first, which
+  defeats the hidden target. Arbitrum's sequencer does not expose them; elsewhere the reveal needs
+  a private relay.
 - **Measured:** `sendHiddenMission` ~400k gas with a 400-byte ciphertext, `reveal` ~16k before
   the arrival and ~48k on a parked mission (it re-enters the queue; the order check reads its
   predecessor only, whatever the length of the parked list), plus whatever its drain processes;

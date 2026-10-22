@@ -43,6 +43,7 @@ import {
     InvalidTrade,
     InDebt,
     TooLate,
+    InvalidArrival,
     TooEarly,
     TroopsResting,
     OutOfOrder,
@@ -283,7 +284,7 @@ library Missions {
         Plan memory plan = _plan(p, b, troops);
         if (kind != TRANSPORT) delete resources;
         _charge(b, plan, Map.distance([uint256(b.city), b.neighborhood, b.slot], target), resources);
-        mid = _create(s, pid, id, troops, resources, plan.duration);
+        mid = _create(s, pid, id, troops, resources, plan.duration, block.timestamp + plan.duration);
         Mission storage m = s.missions[mid];
         (m.kind, m.city, m.neighborhood, m.slot) =
         (kind, uint8(target[0]), uint8(target[1]), uint8(target[2]));
@@ -294,7 +295,9 @@ library Missions {
 
     /// A mission whose kind and target stay secret until revealed (B-22). Duration and salary use
     /// the declared `cover` distance (grid units), at most the distance to the farthest map corner.
-    /// `deadline`: the latest arrival the ciphertext's timelock allows; a later one reverts TooLate.
+    /// `arrival`: the fixed arrival the ciphertext's timelock was made for, from the natural one
+    /// (now + duration) to HIDDEN_ARRIVAL_SLACK after it; 0 takes the natural one. The way back
+    /// keeps the duration.
     function sendHidden(
         address caller,
         uint64 id,
@@ -303,13 +306,11 @@ library Missions {
         uint256[TROOPS] memory troops,
         uint256[RESOURCES] memory resources,
         bytes calldata ciphertext,
-        uint40 deadline
+        uint40 arrival
     ) external returns (uint64 mid) {
         CoreState storage s = GameStorage.core();
-        mid = _createHidden(s, caller, id, cover, troops, resources);
+        mid = _createHidden(s, caller, id, cover, troops, resources, arrival);
         Mission storage m = s.missions[mid];
-        // The arrival must not pass the round the ciphertext was encrypted for (B-22).
-        if (m.arrival > deadline) revert TooLate();
         m.commit = commit;
         emit IGameEvents.MissionSent(mid, m.owner, id, 0, 0, 0, 0, m.arrival);
         emit IGameEvents.HiddenMissionSent(mid, commit, cover, ciphertext);
@@ -322,7 +323,8 @@ library Missions {
         uint64 id,
         uint32 cover,
         uint256[TROOPS] memory troops,
-        uint256[RESOURCES] memory resources
+        uint256[RESOURCES] memory resources,
+        uint256 arrival
     ) private returns (uint64 mid) {
         (uint64 pid, Player storage p, Building storage b) = Access.owned(s, caller, id);
         _checkCover(b, cover);
@@ -331,8 +333,13 @@ library Missions {
         _checkRested(b);
         Plan memory plan = _plan(p, b, troops);
         _charge(b, plan, uint256(cover) * Ruleset.DISTANCE_UNIT, resources);
+        // The round the ciphertext was made for opens a head start after `arrival` (B-22).
+        uint256 natural = block.timestamp + plan.duration;
+        if (arrival == 0) arrival = natural;
+        if (arrival < natural) revert TooLate();
+        if (arrival > natural + Ruleset.HIDDEN_ARRIVAL_SLACK) revert InvalidArrival();
         p.missions += 1;
-        mid = _create(s, pid, id, troops, resources, plan.duration);
+        mid = _create(s, pid, id, troops, resources, plan.duration, arrival);
         Mission storage m = s.missions[mid];
         m.hidden = true;
         m.cover = cover;
@@ -505,7 +512,8 @@ library Missions {
         uint64 origin,
         uint256[TROOPS] memory troops,
         uint256[RESOURCES] memory cargo,
-        uint256 duration
+        uint256 duration,
+        uint256 arrival
     ) private returns (uint64 mid) {
         mid = ++s.nextMission;
         Mission storage m = s.missions[mid];
@@ -520,7 +528,7 @@ library Missions {
             m.cargo[r] = uint64(cargo[r]);
         }
         (m.start, m.arrival, m.duration) =
-        (uint40(block.timestamp), uint40(block.timestamp + duration), uint40(duration));
+        (uint40(block.timestamp), uint40(arrival), uint40(duration));
         m.seq = s.seq++;
         s.activeMissions += 1;
         Heap.push(s, mid);

@@ -61,27 +61,21 @@ const advanceCall = (game: Address, n: number): Planned => ({
  * like an action (B-22): every candidate is tried on a copy of `world` after that budget, so one
  * held back by a parked mission ahead (OutOfOrder) or out of reach of the drain (Backlog) is left
  * out rather than making the whole batch revert. `backlog` says whether one was left out for the
- * latter: the operation needs more advances before it. `owner`: this player's missions only. An
- * unlimited budget projects the state after a full catch-up, not what one operation can do.
+ * latter: the operation needs more advances before it. An unlimited budget projects the state
+ * after a full catch-up, not what one operation can do. `known` holds the player's own plaintexts:
+ * others' missions are revealed by their owner or the keeper.
  */
 export function revealPlan(
   world: sim.World,
   known: ReadonlyMap<string, HiddenPlain>,
   game: Address,
   at: bigint,
-  { owner, budget = Infinity }: { owner?: bigint; budget?: number } = {},
+  { budget = Infinity }: { budget?: number } = {},
 ): { accepted: Planned[]; backlog: boolean } {
   const w = cloneWorld(world);
   sim.processDue(w, at, Math.min(budget, Number.MAX_SAFE_INTEGER));
   const due = [...w.missions.values()]
-    .filter(
-      (m) =>
-        m.hidden &&
-        !m.returning &&
-        m.arrival <= at &&
-        known.has(m.commit) &&
-        (owner === undefined || m.owner === owner),
-    )
+    .filter((m) => m.hidden && !m.returning && m.arrival <= at && known.has(m.commit))
     .sort(byArrival);
   const accepted: Planned[] = [];
   let backlog = false;
@@ -124,13 +118,13 @@ export function revealPlan(
  * `submit` sends one operation and throws a RevertedError on a revert; when it sent the calls one
  * by one (a dev account), `failed` says how many landed before the revert: those are applied to
  * the working copy of `world`, so the next plan starts from the chain as it is. An action that
- * landed before a later call reverted is never retried. `clock` is the chain time now.
+ * landed before a later call reverted is never retried. `clock` is the chain time now: a fresh
+ * block's on a live chain, so a reveal never leaves before its mission arrived on chain (B-22).
  */
 export async function sendBehindQueue({
   world,
   known,
   game,
-  owner,
   calls,
   submit,
   clock,
@@ -138,18 +132,17 @@ export async function sendBehindQueue({
   world: sim.World | undefined;
   known: ReadonlyMap<string, HiddenPlain>;
   game: Address;
-  owner?: bigint;
   calls: Call[];
   submit: (calls: Call[]) => Promise<void>;
-  clock: () => bigint;
+  clock: () => bigint | Promise<bigint>;
 }): Promise<bigint[]> {
   const w = world ? cloneWorld(world) : undefined;
   const advance = advanceCall(game, sim.MAX_MISSIONS_PER_TX);
   const one = advanceCall(game, 1);
   const plan = (at: bigint, budget: number) =>
-    w ? revealPlan(w, known, game, at, { owner, budget }) : { accepted: [], backlog: false };
+    w ? revealPlan(w, known, game, at, { budget }) : { accepted: [], backlog: false };
   for (let advances = 0, tries = 0; ; tries++) {
-    const at = clock();
+    const at = await clock();
     const { accepted, backlog } = plan(at, advances * sim.MAX_MISSIONS_PER_TX);
     const front = [...Array<Planned>(advances).fill(advance), ...accepted];
     try {
@@ -172,7 +165,7 @@ export async function sendBehindQueue({
       // One mission per operation until the queue is caught up, then the action alone.
       for (let i = 0; i < MAX_SINGLE_ADVANCES; i++) {
         await submit([one.call]);
-        if (w) one.apply(w, clock());
+        if (w) one.apply(w, await clock());
       }
       advances = 0;
     }

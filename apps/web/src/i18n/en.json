@@ -365,7 +365,8 @@
     "TradeOpen": "You cannot start a vacation while an accepted trade's window is open.",
     "InvalidClaim": "The claim does not fit: check what remains, the debtor's stock and your free capacity.",
     "NoInvite": "There is no valid invitation for this address.",
-    "TooLate": "The mission would land after its encryption opens: send it again.",
+    "TooLate": "The send took too long to land for the mission's fixed arrival: send it again.",
+    "InvalidArrival": "The mission's fixed arrival is too far off: send it again.",
     "TroopsResting": "The troops that just came home are resting: the building cannot send a mission yet.",
     "OutOfOrder": "A hidden mission that arrived before this one has to be revealed first: wait a few seconds.",
     "TooEarly": "Too early: the reveal grace of that mission has not passed yet."

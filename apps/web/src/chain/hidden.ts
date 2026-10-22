@@ -1,8 +1,9 @@
 // Hidden missions on the client (B-22): the timelock that keeps (kind, target, salt) secret until
-// the mission arrives, this device's own plaintexts, and the ciphertexts of everyone else's.
+// the mission arrives, this device's own plaintexts, and the ciphertexts the keeper opens.
 //
-// - drand: tlock for the drand quicknet round at the arrival (plus a margin, so nobody can decrypt
-//   before the mission lands). tlock-js loads on first use, like the passkey stack.
+// - drand: tlock for a drand quicknet round, and a fixed arrival a head start before it: the
+//   sender's reveal lands while nobody else can decrypt. The rounds are computed from quicknet's
+//   fixed parameters; tlock-js loads on first use, like the passkey stack.
 // - plain: local chains only. Anvil's clock jumps (the Workshop's time travel) and drand's does
 //   not, so the plaintext travels as is: anyone can read it, which is fine for development.
 import { fromHex, toHex, type Address, type Hex, type PublicClient } from "viem";
@@ -18,34 +19,63 @@ import type { Network } from "./networks.js";
  */
 export type Opened = { plain: HiddenPlain } | { locked: true } | { garbage: true };
 
-export interface Timelock {
-  /** Ciphertext nobody can open before `arrival` (chain time, seconds). */
-  encrypt(plain: HiddenPlain, arrival: bigint): Promise<Hex>;
-  /**
-   * The latest arrival the ciphertext made for `arrival` allows: a mission that lands later would
-   * open before it lands (B-22). `sendHiddenMission` takes it as its deadline.
-   */
-  deadline(arrival: bigint): Promise<bigint>;
-  /** Opens a ciphertext, or says why it cannot be opened (see Opened). */
-  open(ciphertext: Hex): Promise<Opened>;
-  /** The plaintext, or null while it is still locked or when it is garbage. */
-  decrypt(ciphertext: Hex): Promise<HiddenPlain | null>;
+/** A hidden send's fixed arrival (0: the natural one) and the round its ciphertext opens at. */
+export interface Prepared {
+  arrival: bigint;
+  round: bigint;
 }
 
-/** Seconds after the arrival that the drand round is picked for: covers inclusion latency. */
-const ROUND_MARGIN = 10n;
+export interface Timelock {
+  /** Whether the ciphertext hides the plaintext: a reveal must then wait for its arrival on chain. */
+  hides: boolean;
+  /** The fixed arrival for a mission whose natural one (now + duration) is `natural` (B-22). */
+  prepare(natural: bigint): Prepared;
+  /** Ciphertext nobody can open before the prepared round. */
+  encrypt(plain: HiddenPlain, prepared: Prepared): Promise<Hex>;
+  /** Opens a ciphertext, or says why it cannot be opened (see Opened). */
+  open(ciphertext: Hex): Promise<Opened>;
+}
 
-/** No timelock on local chains: the deadline is as late as the contract can store (uint40). */
-const NO_DEADLINE = 2n ** 40n - 1n;
+/**
+ * Seconds between the arrival and the round: the sender's reveal must land in them, before anyone
+ * else can open the ciphertext (B-22). More than the reveal's inclusion latency on this network.
+ */
+export const HEAD_START = 8n;
+
+/** Seconds the send may take to be included before its fixed arrival is too early (TooLate). */
+export const SEND_MARGIN = 10n;
+
+/** drand quicknet, tlock-js's mainnetClient: its genesis and period are part of its identity. */
+export const QUICKNET = {
+  hash: "52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971",
+  genesis: 1692803367n,
+  period: 3n,
+};
+
+/**
+ * The first quicknet round at or after `natural + SEND_MARGIN + HEAD_START`, and the arrival a
+ * head start before it: SEND_MARGIN to SEND_MARGIN + 2 s after the natural arrival. Round r opens
+ * at genesis + (r − 1) · period (drand counts from 1).
+ */
+export function quicknetPrepare(natural: bigint): Prepared {
+  const { genesis, period } = QUICKNET;
+  const at = natural + SEND_MARGIN + HEAD_START;
+  const round = (at - genesis + period - 1n) / period + 1n;
+  return { arrival: genesis + (round - 1n) * period - HEAD_START, round };
+}
+
+/** The chain info drand serves must be quicknet's: another round schedule could open too early. */
+export function checkQuicknet(info: { hash: string; genesis_time: number; period: number }): void {
+  if (
+    info.hash !== QUICKNET.hash ||
+    BigInt(info.genesis_time) !== QUICKNET.genesis ||
+    BigInt(info.period) !== QUICKNET.period
+  ) {
+    throw new Error(`drand chain ${info.hash} is not quicknet`);
+  }
+}
 
 const PLAIN = "plain:";
-
-const decryptOf =
-  (open: Timelock["open"]): Timelock["decrypt"] =>
-  async (c) => {
-    const o = await open(c);
-    return "plain" in o ? o.plain : null;
-  };
 
 const openPlain: Timelock["open"] = async (c) => {
   let text: string;
@@ -60,21 +90,13 @@ const openPlain: Timelock["open"] = async (c) => {
 };
 
 const plainTimelock: Timelock = {
+  hides: false,
+  prepare: () => ({ arrival: 0n, round: 0n }),
   encrypt: async (p) => toHex(PLAIN + encodeHiddenPlain(p)),
-  deadline: async () => NO_DEADLINE,
   open: openPlain,
-  decrypt: decryptOf(openPlain),
 };
 
 const tlock = () => import("tlock-js");
-const drandRound = async (arrival: bigint) => {
-  const { mainnetClient, roundAt, roundTime } = await tlock();
-  const client = mainnetClient();
-  const info = await client.chain().info();
-  const round = roundAt(Number(arrival + ROUND_MARGIN) * 1000, info);
-  return { client, round, opensAt: BigInt(Math.floor(roundTime(info, round) / 1000)) };
-};
-
 const openDrand: Timelock["open"] = async (c) => {
   const { mainnetClient, timelockDecrypt } = await tlock();
   let text: string;
@@ -100,18 +122,15 @@ const openDrand: Timelock["open"] = async (c) => {
 };
 
 const drandTimelock: Timelock = {
-  async encrypt(p, arrival) {
-    const { timelockEncrypt, Buffer } = await tlock();
-    const { client, round } = await drandRound(arrival);
-    return toHex(await timelockEncrypt(round, Buffer.from(encodeHiddenPlain(p)), client));
-  },
-  // drand's roundAt floors: the round picked for arrival + 10 s opens between 8 and 10 s after
-  // the arrival. The mission must land before that round opens.
-  async deadline(arrival) {
-    return (await drandRound(arrival)).opensAt - 1n;
+  hides: true,
+  prepare: quicknetPrepare,
+  async encrypt(p, { round }) {
+    const { mainnetClient, timelockEncrypt, Buffer } = await tlock();
+    const client = mainnetClient();
+    checkQuicknet(await client.chain().info()); // cached: timelockEncrypt reads the same info
+    return toHex(await timelockEncrypt(Number(round), Buffer.from(encodeHiddenPlain(p)), client));
   },
   open: openDrand,
-  decrypt: decryptOf(openDrand),
 };
 
 export const timelockFor = (network: Network): Timelock =>
@@ -142,7 +161,7 @@ export function storedPlains(game: Address, owner: string): Map<string, HiddenPl
       if (p) out.set(commit, p);
     }
   } catch {
-    /* private mode or corrupt: other clients and the keeper still reveal from the ciphertext */
+    /* private mode or corrupt: the keeper still reveals from the ciphertext */
   }
   return out;
 }
@@ -222,19 +241,4 @@ export class CiphertextIndex {
     if (!this.found.has(mission)) await this.catchUp();
     return this.found.get(mission) ?? null;
   }
-}
-
-const indexes = new Map<string, CiphertextIndex>();
-
-/** The ciphertext `HiddenMissionSent` carried for a mission, or null when it is not found. */
-export async function ciphertextOf(
-  client: PublicClient,
-  game: Address,
-  fromBlock: number,
-  mission: bigint,
-): Promise<Hex | null> {
-  const key = `${game.toLowerCase()}:${fromBlock}`;
-  let index = indexes.get(key);
-  if (!index) indexes.set(key, (index = new CiphertextIndex(client, game, fromBlock)));
-  return index.get(mission);
 }

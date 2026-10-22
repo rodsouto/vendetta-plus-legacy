@@ -313,6 +313,7 @@
     "hidden_reveal_grace_seconds": 60,
     "return_cooldown_seconds": 30,
     "hidden_order_window_seconds": 15,
+    "hidden_arrival_slack_seconds": 30,
     "invite_ttl_seconds": 604800
   },
   "premium": {

@@ -440,15 +440,15 @@ contract ScenariosTest is GameTestBase {
         for (uint256 r; r < RESOURCES; ++r) {
             res[r] = a[7 + TROOPS + r];
         }
-        uint40 deadline = uint40(a[7 + TROOPS + RESOURCES]);
+        uint40 arrival = uint40(a[7 + TROOPS + RESOURCES]);
         return abi.encodeCall(
             Game.sendHiddenMission,
-            (uint64(a[0]), commit, uint32(a[6]), troops, res, hex"c0ffee", deadline)
+            (uint64(a[0]), commit, uint32(a[6]), troops, res, hex"c0ffee", arrival)
         );
     }
 
     function _errorName(bytes4 sel) internal pure returns (string memory) {
-        string[60] memory names = [
+        string[61] memory names = [
             "AlreadyRegistered",
             "InvalidCoordinate",
             "SlotTaken",
@@ -506,6 +506,7 @@ contract ScenariosTest is GameTestBase {
             "NoTransfer",
             "NoInvite",
             "TooLate",
+            "InvalidArrival",
             "TooEarly",
             "TroopsResting",
             "OutOfOrder"

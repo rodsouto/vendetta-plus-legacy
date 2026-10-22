@@ -19,9 +19,10 @@ const DAY = 86400n;
 
 /**
  * Alice (player 1, building 1) is 475 ammunition short of one more rowdy. Thirteen hidden missions
- * are due at `at`, past their order windows and within their grace: twelve garbage ones (this
- * client has no plaintext) ahead of a transport to Alice carrying 900 ammunition, whose plaintext
- * it knows (900: five rowdies carry 1000 less their salary).
+ * are due at `at`, past their order windows and within their grace: twelve garbage ones (no
+ * plaintext) ahead of a transport to Alice carrying 900 ammunition, whose plaintext is given
+ * (900: five rowdies carry 1000 less their salary). The planner reveals whatever plaintexts it is
+ * given; the app gives it the player's own only (B-22).
  */
 function backlogWorld() {
   const w = sim.newWorld(rs);
@@ -56,7 +57,7 @@ function backlogWorld() {
       3n,
       rowdies(troops),
       cargo,
-      now + 10n ** 7n,
+      0n, // the natural arrival
       now,
     );
   // Same cover, so the same duration: all land in the same second, the transport last by seq.
@@ -168,7 +169,6 @@ describe("sendBehindQueue", () => {
         world: w,
         known,
         game: GAME,
-        owner: 4n,
         calls: [],
         submit,
         clock: () => at,
@@ -177,6 +177,28 @@ describe("sendBehindQueue", () => {
       expect(chain.missions.get(transport)!.hidden).toBe(false);
     });
   }
+
+  // `clock` is a fresh block's time on a live chain: before the arrival, no reveal leaves (B-22).
+  it("no reveal leaves before its mission arrived on chain, at arrival or in front of an action", async () => {
+    const { w, known, transport, at } = backlogWorld();
+    const { chain, submit, attempts } = chainOf(w, "plain", at);
+    const before = async () => w.missions.get(transport)!.arrival - 1n;
+    const ids = await sendBehindQueue({
+      world: w,
+      known,
+      game: GAME,
+      calls: [],
+      submit,
+      clock: before,
+    });
+    expect(ids).toEqual([]);
+    expect(attempts).toEqual([]); // nothing sent: the next tick tries again
+    await expect(
+      sendBehindQueue({ world: w, known, game: GAME, calls: [train], submit, clock: before }),
+    ).rejects.toMatchObject({ errorName: "CannotAfford" }); // the transport stays hidden
+    expect(attempts.flat()).not.toContain("reveal");
+    expect(chain.missions.get(transport)!.hidden).toBe(true);
+  });
 
   it("an action that landed before a later call reverted is not sent again (plain operations)", async () => {
     const { w, known, at } = backlogWorld();

@@ -14,6 +14,7 @@ import {
     InvalidMission,
     TooEarly,
     TooLate,
+    InvalidArrival,
     TroopsResting,
     OutOfOrder
 } from "../../src/core/GameErrors.sol";
@@ -22,13 +23,13 @@ import {GameTestBase} from "./GameTestBase.sol";
 import {console} from "forge-std/Test.sol";
 
 /// Hidden missions (B-22): commit, cover, reveal, parking (the world never stalls), the forfeit,
-/// the recall of a parked mission and the send deadline.
+/// the recall of a parked mission and the fixed arrival.
 contract HiddenMissionsTest is GameTestBase {
     uint256 internal constant S = Ruleset.STOCK_SCALE;
     uint256 internal constant BOOT_CAMP = 11;
     uint256 internal constant ROWDY = 0;
     uint256 internal constant DOLLAR = Ruleset.SALARY_RESOURCE;
-    uint40 internal constant NO_DEADLINE = type(uint40).max;
+    uint40 internal constant NATURAL = 0; // the arrival the inclusion gives
     bytes32 internal constant SALT = keccak256("salt");
 
     Game internal game;
@@ -75,7 +76,7 @@ contract HiddenMissionsTest is GameTestBase {
     {
         vm.prank(alice);
         return game.sendHiddenMission(
-            1, _commit(kind, slot, SALT), cover, _rowdies(n), _none(), hex"c0ffee", NO_DEADLINE
+            1, _commit(kind, slot, SALT), cover, _rowdies(n), _none(), hex"c0ffee", NATURAL
         );
     }
 
@@ -105,24 +106,35 @@ contract HiddenMissionsTest is GameTestBase {
     function test_coverChecks() public {
         vm.startPrank(alice);
         vm.expectRevert(InvalidCover.selector);
-        game.sendHiddenMission(1, bytes32(0), 0, _rowdies(1), _none(), "", NO_DEADLINE);
+        game.sendHiddenMission(1, bytes32(0), 0, _rowdies(1), _none(), "", NATURAL);
         vm.expectRevert(InvalidCover.selector); // beyond the farthest corner (~1,134 from 1:1:1)
-        game.sendHiddenMission(1, bytes32(0), 1200, _rowdies(1), _none(), "", NO_DEADLINE);
+        game.sendHiddenMission(1, bytes32(0), 1200, _rowdies(1), _none(), "", NATURAL);
         vm.stopPrank();
     }
 
-    /// The deadline is the latest arrival the timelock allows: a later one reverts TooLate.
-    function test_sendDeadline() public {
-        uint256 arrival = game.getMission(_sendHidden(ATTACK, 2, 3)).arrival;
+    /// A fixed arrival goes from the natural one to HIDDEN_ARRIVAL_SLACK after it: TooLate before,
+    /// InvalidArrival past. The way back keeps the duration.
+    function test_sendArrival() public {
+        Mission memory first = game.getMission(_sendHidden(ATTACK, 2, 3));
+        uint256 natural = first.arrival;
+        uint256 late = natural + Ruleset.HIDDEN_ARRIVAL_SLACK;
+        bytes32 commit = _commit(ATTACK, 2, SALT);
         vm.startPrank(alice);
         vm.expectRevert(TooLate.selector);
-        game.sendHiddenMission(
-            1, _commit(ATTACK, 2, SALT), 3, _rowdies(1), _none(), "", uint40(arrival - 1)
-        );
-        game.sendHiddenMission(
-            1, _commit(ATTACK, 2, SALT), 3, _rowdies(1), _none(), "", uint40(arrival)
-        );
+        game.sendHiddenMission(1, commit, 3, _rowdies(1), _none(), "", uint40(natural - 1));
+        vm.expectRevert(InvalidArrival.selector);
+        game.sendHiddenMission(1, commit, 3, _rowdies(1), _none(), "", uint40(late + 1));
+        uint64 id = game.sendHiddenMission(1, commit, 3, _rowdies(1), _none(), "", uint40(late));
         vm.stopPrank();
+        Mission memory m = game.getMission(id);
+        assertEq(m.arrival, late);
+        assertEq(m.duration, first.duration);
+        _reveal(id, ATTACK, 2, SALT); // before the arrival: resolves at it
+        vm.warp(late);
+        game.advance(5);
+        m = game.getMission(id);
+        assertTrue(m.returning);
+        assertEq(m.arrival, late + first.duration);
     }
 
     function test_revealChecks() public {
@@ -135,7 +147,7 @@ contract HiddenMissionsTest is GameTestBase {
         // Cover 1 is shorter than the distance to 1:1:40 (2 rows and 5 columns away).
         vm.prank(alice);
         uint64 far = game.sendHiddenMission(
-            1, _commit(ATTACK, 40, SALT), 1, _rowdies(1), _none(), "", NO_DEADLINE
+            1, _commit(ATTACK, 40, SALT), 1, _rowdies(1), _none(), "", NATURAL
         );
         vm.expectRevert(InvalidCover.selector);
         _reveal(far, ATTACK, 40, SALT);
@@ -144,9 +156,8 @@ contract HiddenMissionsTest is GameTestBase {
         uint256[RESOURCES] memory res;
         res[0] = 10;
         vm.prank(alice);
-        uint64 loaded = game.sendHiddenMission(
-            1, _commit(ATTACK, 2, SALT), 3, _rowdies(1), res, "", NO_DEADLINE
-        );
+        uint64 loaded =
+            game.sendHiddenMission(1, _commit(ATTACK, 2, SALT), 3, _rowdies(1), res, "", NATURAL);
         vm.expectRevert(InvalidMission.selector);
         _reveal(loaded, ATTACK, 2, SALT);
 
@@ -369,9 +380,7 @@ contract HiddenMissionsTest is GameTestBase {
         vm.expectRevert(TroopsResting.selector);
         game.sendMission(1, ATTACK, [uint256(1), 1, 2], _rowdies(5), _none(), 0);
         vm.expectRevert(TroopsResting.selector);
-        game.sendHiddenMission(
-            1, _commit(ATTACK, 2, SALT), 3, _rowdies(5), _none(), "", NO_DEADLINE
-        );
+        game.sendHiddenMission(1, _commit(ATTACK, 2, SALT), 3, _rowdies(5), _none(), "", NATURAL);
         vm.stopPrank();
         vm.prank(bob);
         game.queueRoom(2, BOOT_CAMP); // the world goes on; alice's troops stay home meanwhile
@@ -462,9 +471,7 @@ contract HiddenMissionsTest is GameTestBase {
         vm.warp(home + Ruleset.RETURN_COOLDOWN - 1);
         vm.prank(alice);
         vm.expectRevert(TroopsResting.selector);
-        game.sendHiddenMission(
-            1, _commit(ATTACK, 2, SALT), 3, _rowdies(2), _none(), "", NO_DEADLINE
-        );
+        game.sendHiddenMission(1, _commit(ATTACK, 2, SALT), 3, _rowdies(2), _none(), "", NATURAL);
         vm.warp(home + Ruleset.RETURN_COOLDOWN);
         _sendHiddenN(ATTACK, 2, 3, 2);
     }
@@ -503,8 +510,7 @@ contract HiddenMissionsTest is GameTestBase {
         bytes32 commit = _commit(ATTACK, 2, SALT);
         vm.prank(alice);
         uint256 g = gasleft();
-        uint64 id =
-            game.sendHiddenMission(1, commit, 3, _rowdies(5), _none(), ciphertext, NO_DEADLINE);
+        uint64 id = game.sendHiddenMission(1, commit, 3, _rowdies(5), _none(), ciphertext, NATURAL);
         console.log("sendHiddenMission (400-byte ciphertext):", g - gasleft());
         vm.prank(anyone);
         g = gasleft();

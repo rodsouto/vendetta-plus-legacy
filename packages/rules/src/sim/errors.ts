@@ -58,6 +58,7 @@ export type GameErrorName =
   | "NoTransfer"
   | "NoInvite"
   | "TooLate"
+  | "InvalidArrival"
   | "TooEarly"
   | "TroopsResting"
   | "OutOfOrder";

@@ -61,7 +61,7 @@ const ACTION = {
   revokeSession: 34, // [session (actor id)]
   inviteController: 35, // [controller (actor id), recovery 0/1]: invites; the address accepts (44)
   removeController: 36, // [controller (actor id)]: itself at once; another one schedules, then executes once due
-  sendHiddenMission: 37, // [building, kind, city, neighborhood, slot, salt, cover, troops × 21, resources × 4, deadline]
+  sendHiddenMission: 37, // [building, kind, city, neighborhood, slot, salt, cover, troops × 21, resources × 4, arrival]
   reveal: 38, // [mission, kind, city, neighborhood, slot, salt]
   claimTrade: 39, // [trade, fromBuilding, toBuilding, amount × 4]
   cancelRemoval: 40, // [controller (actor id)]
@@ -76,8 +76,8 @@ const ACTION = {
 
 /** Whoever forfeits a parked hidden mission (B-22): a bystander, the keeper in real life. */
 const ANYONE = 900;
-/** Hidden sends use this deadline unless they test TooLate (B-22). */
-const FAR = 4_000_000_000;
+/** Hidden sends take the natural arrival unless they test the fixed one (B-22). */
+const NATURAL = 0;
 
 /** Family tags and names by index, shared with Scenarios.t.sol (some invalid on purpose). */
 const NAMES = [
@@ -312,7 +312,7 @@ function run(w: sim.World, controller: string, a: Action, now: bigint): void {
       const commit = sim.hiddenCommit(playerFor(w, controller), Number(n[1]), target, n[5]!);
       const troops = n.slice(7, 7 + rs.troops.length);
       const res = n.slice(7 + rs.troops.length, 7 + rs.troops.length + rs.resources.length);
-      const deadline = n[7 + rs.troops.length + rs.resources.length]!;
+      const arrival = n[7 + rs.troops.length + rs.resources.length]!;
       return void sim.sendHiddenMission(
         w,
         controller,
@@ -321,7 +321,7 @@ function run(w: sim.World, controller: string, a: Action, now: bigint): void {
         n[6]!,
         troops,
         res,
-        deadline,
+        arrival,
         now,
       );
     }
@@ -562,7 +562,8 @@ function botCandidates(
     res = [0, 0, 0, 0],
     trade = 0,
   ): Action => {
-    if (hidden && trade === 0 && r() < 0.85) return hide(w, b, kind, to, troops, res, r);
+    if (hidden && trade === 0 && r() < 0.85)
+      return hide(w, controller, b, kind, to, troops, res, r, now);
     return {
       action: ACTION.sendMission,
       args: [
@@ -654,16 +655,20 @@ function botCandidates(
 
 /**
  * The same mission, hidden (B-22): usually an honest random cover, sometimes one that fails at send
- * (0, beyond the map) or at reveal (shorter than the distance), or cargo on a non-transport.
+ * (0, beyond the map) or at reveal (shorter than the distance), or cargo on a non-transport. Usually
+ * the natural arrival; sometimes a fixed one within the slack, before the natural one (TooLate) or
+ * past the slack (InvalidArrival).
  */
 function hide(
   w: sim.World,
+  controller: string,
   b: sim.Building,
   kind: number,
   to: sim.Building["coord"],
   troops: number[],
   res: number[],
   r: () => number,
+  now: bigint,
 ): Action {
   const d = Number(distance(rs, b.coord, to) / rs.config.distanceUnit);
   const k = r();
@@ -677,8 +682,17 @@ function hide(
           : d + Math.floor(r() * (Math.max(Math.ceil(d / 2), 20) + 1));
   const cargo = kind !== sim.TRANSPORT && r() < 0.03 ? [10, 0, 0, 0] : res;
   const salt = 1 + Math.floor(r() * 1_000_000_000);
-  // The timelock's round: usually far off; sometimes the mission would land after it (TooLate).
-  const deadline = r() < 0.04 ? num(w.seq) + Number(w.nextMission) : FAR;
+  const a = r();
+  const natural = a < 0.3 ? naturalArrival(w, controller, b, cover, troops, cargo, now) : 0;
+  const slack = Number(rs.config.hiddenArrivalSlack);
+  const arrival =
+    a < 0.04
+      ? natural - 1
+      : a < 0.08
+        ? natural + slack + 1
+        : a < 0.3
+          ? natural + Math.floor(r() * (slack + 1))
+          : NATURAL;
   return {
     action: ACTION.sendHiddenMission,
     args: [
@@ -691,9 +705,39 @@ function hide(
       cover,
       ...troops,
       ...cargo,
-      deadline,
+      arrival,
     ],
   };
+}
+
+/** The arrival the send would get at `now` (on a copy), or `now` when it would fail. */
+function naturalArrival(
+  w: sim.World,
+  controller: string,
+  b: sim.Building,
+  cover: number,
+  troops: number[],
+  cargo: number[],
+  now: bigint,
+): number {
+  const { rs: ruleset, ...rest } = w;
+  const c = Object.assign(structuredClone(rest), { rs: ruleset }) as sim.World;
+  try {
+    const id = sim.sendHiddenMission(
+      c,
+      controller,
+      b.id,
+      `0x${"0".repeat(64)}`,
+      BigInt(cover),
+      troops.map(BigInt),
+      cargo.map(BigInt),
+      0n,
+      now,
+    );
+    return num(c.missions.get(id)!.arrival);
+  } catch {
+    return num(now);
+  }
 }
 
 /**
@@ -1193,7 +1237,7 @@ function marketCandidates(
             d + Math.floor(r() * 10),
             ...troops,
             ...cargo,
-            FAR,
+            NATURAL,
           ],
           cover: "hidden-bounce",
         });
@@ -1701,7 +1745,19 @@ function scriptedMarketScenario(seed: number) {
     act(
       0,
       ACTION.sendHiddenMission,
-      [bid(0), sim.TRANSPORT, ...at(bld(2)), salt, cover, ...units("rowdy", 3), 10, 10, 0, 0, FAR],
+      [
+        bid(0),
+        sim.TRANSPORT,
+        ...at(bld(2)),
+        salt,
+        cover,
+        ...units("rowdy", 3),
+        10,
+        10,
+        0,
+        0,
+        NATURAL,
+      ],
       "hidden-bounce",
     ),
     "hidden transport in debt",
@@ -1973,7 +2029,7 @@ function scriptedHiddenScenario(seed: number) {
   ];
   const rowdies = (n: number) => rs.troops.map((t) => (t.id === "rowdy" ? n : 0));
   const COVER = 3; // enough for the neighbours' distance
-  const hidden = (actor: number, to: sim.Building, n: number, salt: number) =>
+  const hidden = (actor: number, to: sim.Building, n: number, salt: number, fixed = NATURAL) =>
     act(actor, ACTION.sendHiddenMission, [
       bid(actor),
       sim.ATTACK,
@@ -1985,7 +2041,7 @@ function scriptedHiddenScenario(seed: number) {
       0,
       0,
       0,
-      FAR,
+      fixed,
     ]);
   const reveal = (id: number, to: sim.Building, salt: number) =>
     act(ANYONE, ACTION.reveal, [id, sim.ATTACK, ...at(to), salt]);
@@ -2082,7 +2138,7 @@ function scriptedHiddenScenario(seed: number) {
         BigInt(COVER),
         rowdies(1).map(BigInt),
         [0n, 0n, 0n, 0n],
-        BigInt(FAR),
+        BigInt(NATURAL),
         now,
       ),
     )!.arrival - now;
@@ -2112,6 +2168,13 @@ function scriptedHiddenScenario(seed: number) {
   expect("TroopsResting", hidden(1, bld(0), 1, 41), "still resting (hidden send)");
   now = R + COOLDOWN;
   ok(hidden(1, bld(0), 1, 42), "the cooldown is over");
+  // A fixed arrival: from the natural one to the slack after it.
+  const natural = num(now + hiddenTrip);
+  const SLACK = num(rs.config.hiddenArrivalSlack);
+  expect("TooLate", hidden(0, bld(1), 1, 51, natural - 1), "before the natural arrival");
+  expect("InvalidArrival", hidden(0, bld(1), 1, 52, natural + SLACK + 1), "past the slack");
+  ok(hidden(0, bld(1), 1, 53, natural + SLACK), "at the end of the slack");
+  assume(arrival(last()) === BigInt(natural + SLACK), "it arrives when fixed");
   now = arrival(g3) + GRACE;
   ok(act(ANYONE, ACTION.forfeit, [g3]), "g3 forfeited");
   return { actors: 2, seed, steps };
@@ -2147,8 +2210,8 @@ writeFileSync(join(dir, "index.json"), JSON.stringify({ count: scenarios.length 
 const steps = scenarios.flatMap((s) => s.steps) as { action: number; error: string }[];
 const count = (a: number) => steps.filter((x) => x.action === a && x.error === "").length;
 const errors = (name: string) => steps.filter((x) => x.error === name).length;
-// The two B-22 timing rules must be exercised by the replay (recorded reverts, not candidates).
-for (const name of ["TroopsResting", "OutOfOrder"]) {
+// The B-22 timing rules must be exercised by the replay (recorded reverts, not candidates).
+for (const name of ["TroopsResting", "OutOfOrder", "TooLate", "InvalidArrival"]) {
   if (errors(name) === 0) throw new Error(`no scenario step reverts ${name}`);
 }
 console.log(

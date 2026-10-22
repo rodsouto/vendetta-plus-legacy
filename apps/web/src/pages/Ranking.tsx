@@ -13,8 +13,7 @@ export function Ranking() {
   const g = useGame();
   const { t } = useTranslation();
   const { snapshot, now } = g;
-  const at = now > snapshot.chainTime ? now : snapshot.chainTime;
-  const { players, families } = useMemo(() => ranking(snapshot.world, at), [snapshot, at]);
+  const { players, families } = useMemo(() => ranking(snapshot.world, now), [snapshot, now]);
   return (
     <>
       <header className="account-head">

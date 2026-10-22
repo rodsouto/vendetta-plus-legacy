@@ -60,6 +60,8 @@ library VendettaRuleset {
     /// Reveals go in arrival order: a parked hidden mission holds the ones behind it this long at
     /// most (B-22).
     uint256 internal constant HIDDEN_ORDER_WINDOW = 15;
+    /// A hidden mission's fixed arrival may follow its natural one by this much at most (B-22).
+    uint256 internal constant HIDDEN_ARRIVAL_SLACK = 30;
     /// A controller or transfer invitation lasts this long (B-26).
     uint256 internal constant INVITE_TTL = 604800;
     /// Honor power never drops below this percentage (D-27).

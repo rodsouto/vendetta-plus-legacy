@@ -454,6 +454,7 @@ function create(
   cargo: bigint[],
   duration: bigint,
   now: bigint,
+  arrival = now + duration,
 ): Mission {
   const m: Mission = {
     id: w.nextMission++,
@@ -463,7 +464,7 @@ function create(
     returning: false,
     target: { city: 0n, neighborhood: 0n, slot: 0n },
     start: now,
-    arrival: now + duration,
+    arrival,
     duration,
     seq: w.seq++,
     troops: [...troops],
@@ -496,7 +497,8 @@ export function hiddenCommit(owner: bigint, kind: number, target: Coord, salt: b
 /**
  * A mission whose kind and target stay secret until revealed (B-22). Duration and salary use the
  * declared `cover` distance (grid units), at most the distance to the farthest map corner.
- * `deadline`: the latest arrival the ciphertext's timelock allows; a later one fails with TooLate.
+ * `arrival`: the fixed arrival the ciphertext's timelock was made for, from the natural one (now +
+ * duration) to hiddenArrivalSlack after it; 0 takes the natural one. The way back keeps the duration.
  */
 export const sendHiddenMission = atomic(function sendHiddenMission(
   w: World,
@@ -506,7 +508,7 @@ export const sendHiddenMission = atomic(function sendHiddenMission(
   cover: bigint,
   troops: bigint[],
   resources: bigint[],
-  deadline: bigint,
+  arrival: bigint,
   now: bigint,
 ): bigint {
   drain(w, now);
@@ -518,9 +520,12 @@ export const sendHiddenMission = atomic(function sendHiddenMission(
   if (now < b.lastReturn + c.returnCooldown) fail("TroopsResting");
 
   const duration = charge(w, p, b, troops, resources, cover * c.distanceUnit);
-  // The arrival must not pass the round the ciphertext was encrypted for (B-22).
-  if (now + duration > deadline) fail("TooLate");
-  const m = create(w, p, b, troops, resources, duration, now);
+  // The round the ciphertext was made for opens a head start after `arrival` (B-22).
+  const natural = now + duration;
+  if (arrival === 0n) arrival = natural;
+  if (arrival < natural) fail("TooLate");
+  if (arrival > natural + c.hiddenArrivalSlack) fail("InvalidArrival");
+  const m = create(w, p, b, troops, resources, duration, now, arrival);
   m.hidden = true;
   m.cover = cover;
   m.commit = commit.toLowerCase();

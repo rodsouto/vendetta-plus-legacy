@@ -5,7 +5,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { sim, vendetta as rs } from "@vendetta/rules";
 import { gameAbi } from "../src/chain/abi.js";
 import { loadWorld, project } from "../src/chain/load.js";
-import { ciphertextOf, timelockFor } from "../src/chain/hidden.js";
+import { CiphertextIndex, timelockFor } from "../src/chain/hidden.js";
 import type { Network } from "../src/chain/networks.js";
 import { startChain } from "./anvil.js";
 import type { Clients } from "../src/chain/config.js";
@@ -98,7 +98,7 @@ describe.skipIf(!hasAnvil)("chain loader", () => {
     const plain = { kind: sim.ATTACK, target, salt: 12345n };
     const commit = sim.hiddenCommit(1n, sim.ATTACK, target, plain.salt);
     const troops = rs.troops.map((_, i) => (i === 0 ? 5n : 0n));
-    const ciphertext = await timelock.encrypt(plain, 0n);
+    const ciphertext = await timelock.encrypt(plain, timelock.prepare(0n));
     await send(1, "sendHiddenMission", [
       1n,
       commit,
@@ -106,14 +106,14 @@ describe.skipIf(!hasAnvil)("chain loader", () => {
       troops,
       [0n, 0n, 0n, 0n],
       ciphertext,
-      2n ** 40n - 1n,
+      0n, // the natural arrival
     ]);
 
     const snap = await loadWorld(clients.public, clients.deployment.game);
     const [m] = [...snap.world.missions.values()];
     expect(m).toMatchObject({ hidden: true, kind: 0, cover: 4n, commit });
-    const c = await ciphertextOf(clients.public, clients.deployment.game, 0, m!.id);
-    expect(await timelock.decrypt(c!)).toEqual(plain);
+    const c = await new CiphertextIndex(clients.public, clients.deployment.game, 0).get(m!.id);
+    expect(await timelock.open(c!)).toEqual({ plain });
 
     const at = m!.arrival + 1n;
     const unknown = project(snap.world, at);

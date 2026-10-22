@@ -1598,7 +1598,7 @@ export const gameAbi = [
         "internalType": "bytes"
       },
       {
-        "name": "deadline",
+        "name": "arrival",
         "type": "uint40",
         "internalType": "uint40"
       }
@@ -3427,6 +3427,11 @@ export const gameAbi = [
   {
     "type": "error",
     "name": "InDebt",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidArrival",
     "inputs": []
   },
   {

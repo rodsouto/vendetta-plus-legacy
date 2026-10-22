@@ -94,7 +94,7 @@ describe("ranking", () => {
       3n,
       rowdies(7n),
       none,
-      now + 10n ** 7n,
+      0n, // the natural arrival
       now,
     );
     const at = w.missions.get(id)!.arrival + 1n; // due, nobody revealed it yet: parked

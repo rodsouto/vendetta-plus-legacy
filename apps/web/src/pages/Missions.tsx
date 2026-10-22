@@ -123,6 +123,10 @@ function MissionsFor({ b, p }: { b: sim.Building; p: sim.Player }) {
     return !!dest && freeAt(dest).some((f, i) => m.cargo[i]! > f);
   };
 
+  // The arrival the send will take: a hidden mission's is fixed a little after its natural one,
+  // a head start before its round (B-22); 0 without a timelock means the natural one.
+  const arrivalOf = (natural: bigint) => (hidden && g.timelock.prepare(natural).arrival) || natural;
+
   const send = async () => {
     if (!target || targetError) return;
     if (!hidden) {
@@ -144,19 +148,21 @@ function MissionsFor({ b, p }: { b: sim.Building; p: sim.Player }) {
     }
     const plain = { kind, target, salt: randomSalt() };
     const commit = sim.hiddenCommit(p.id, kind, target, plain.salt);
-    const arrival = g.now + (plan && "secs" in plan && plan.secs !== undefined ? plan.secs : 0n);
-    const ciphertext = await g.timelock.encrypt(plain, arrival);
-    // The mission must land before the round the ciphertext was made for opens (B-22).
-    const deadline = await g.timelock.deadline(arrival);
+    // A fixed arrival, a head start before the round the ciphertext is made for (B-22), from a
+    // fresh block: the device clock may be off.
+    const secs = plan && "secs" in plan && plan.secs !== undefined ? plan.secs : 0n;
+    const prepared = g.timelock.prepare((await g.chainNow()) + secs);
+    const { arrival } = prepared;
+    const ciphertext = await g.timelock.encrypt(plain, prepared);
     g.rememberHidden(commit, plain);
     await g.act({
       done: t("missions.sent"),
       check: (w, c, n) => {
         sim.checkSendTarget(w, p.id, b.coord, kind, target, n);
-        return sim.sendHiddenMission(w, c, b.id, commit, cover, counts, res, deadline, n);
+        return sim.sendHiddenMission(w, c, b.id, commit, cover, counts, res, arrival, n);
       },
       functionName: "sendHiddenMission",
-      args: [b.id, commit, Number(cover), counts, res, ciphertext, deadline],
+      args: [b.id, commit, Number(cover), counts, res, ciphertext, arrival],
     });
   };
 
@@ -273,7 +279,8 @@ function MissionsFor({ b, p }: { b: sim.Building; p: sim.Player }) {
                   <tr>
                     <td>{t("missions.duration")}</td>
                     <td className="num">
-                      {duration(plan.secs)} · {t("missions.arrival")} {clock(g.now + plan.secs)}
+                      {duration(plan.secs)} · {t("missions.arrival")}{" "}
+                      {clock(arrivalOf(g.now + plan.secs))}
                     </td>
                   </tr>
                   <tr>

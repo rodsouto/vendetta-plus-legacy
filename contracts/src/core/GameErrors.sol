@@ -61,6 +61,7 @@ error TransferPending();
 error NoTransfer();
 error NoInvite();
 error TooLate();
+error InvalidArrival();
 error TooEarly();
 error TroopsResting();
 error OutOfOrder();

@@ -166,6 +166,8 @@ export interface Config {
   returnCooldown: bigint;
   /** Reveals go in arrival order: a parked hidden mission holds the ones behind it this long at most (B-22). */
   hiddenOrderWindow: bigint;
+  /** A hidden mission's fixed arrival may follow its natural one by this much at most (B-22). */
+  hiddenArrivalSlack: bigint;
   /** A controller or transfer invitation lasts this long (B-26). */
   inviteTtl: bigint;
   /** Honor power never drops below this percentage (D-27). */
@@ -337,6 +339,7 @@ export function loadRuleset(raw: RawRuleset, cfg: typeof gameConfig): Ruleset {
       hiddenRevealGrace: BigInt(cfg.onchain.hidden_reveal_grace_seconds),
       returnCooldown: BigInt(cfg.onchain.return_cooldown_seconds),
       hiddenOrderWindow: BigInt(cfg.onchain.hidden_order_window_seconds),
+      hiddenArrivalSlack: BigInt(cfg.onchain.hidden_arrival_slack_seconds),
       inviteTtl: BigInt(cfg.onchain.invite_ttl_seconds),
       honorMinPercent: BigInt(cfg.honor.min_power_percent),
       vacationSeconds: BigInt(cfg.vacation.duration_days) * 86400n,
