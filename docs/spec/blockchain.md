@@ -32,7 +32,7 @@ which network it runs on. Messaging, chat and moderation are off-chain (B-10).
 | B-04 | No tokens in v1 | New | Resources, troops and buildings live inside the contracts |
 | B-05 | Public state | Adapt | All state is visible to everyone except hidden mission targets (B-22); `spy` / `espionage` unchanged |
 | B-06 | Lazy settlement | Adapt | D-08 in two levels: local per building on touch, global mission queue; no keepers |
-| B-07 | Global mission order | New | All missions resolve in global arrival order (heap); local events stay per building; an unrevealed hidden mission blocks it for a short grace |
+| B-07 | Global mission order | New | All missions resolve in global arrival order (heap); local events stay per building; an unrevealed hidden mission is parked and re-enters at its reveal |
 | B-08 | Chunked settlement | New | Actions process ≤ 10 due missions, else revert `Backlog`; `advance(n)`; one event always fits in a block |
 | B-09 | Hard caps | Adapt | Queue, mission and offer limits, configurable |
 | B-10 | Off-chain social | Adapt | Messaging, chat, moderation off-chain |
@@ -47,7 +47,7 @@ which network it runs on. Messaging, chat and moderation are off-chain (B-10).
 | B-19 | Points on-chain | Adapt | D-24 points kept incrementally on-chain |
 | B-20 | Optimistic client | New | Client runs the same rules engine and projects results |
 | B-21 | Parity tests | New | Foundry against the test vectors with explicit tolerances |
-| B-22 | Hidden information | New | Hidden mission **kind and target** (v1), revealed by timelock encryption, with a random cover distance and a bond; hidden building state (FHE) only as research |
+| B-22 | Hidden information | New | Hidden mission **kind and target** (v1), revealed by timelock encryption, with a random cover distance; hidden building state (FHE) only as research |
 | B-23 | Arbitration | v2 | Kleros v2 as `arbiter`, under a written rulebook (pushing, bashing, bounties) |
 | B-24 | Tokenization | v2 | One ERC-721 per **account** wrapping B-26; no per-building or per-troop tokens |
 | B-25 | Premium | New | Longer queues; granted by the admin per player (paid off-chain) or to everyone |
@@ -180,8 +180,8 @@ Every mission in the world resolves in **global arrival order**, ties broken by 
   (B-08). Each one first settles its target building **locally** up to the arrival time, then
   resolves (combat, delivery, occupation, return). If a backlog remains, the action reverts and the
   client calls `advance` until the queue is caught up.
-- A due hidden mission that nobody revealed yet stops the queue for at most a short grace (B-22):
-  actions revert with `Unrevealed`, and the client reveals it first.
+- A due hidden mission that nobody revealed yet never stops the queue: it is **parked** out of it
+  and re-enters, as public, with its reveal time as arrival (B-22).
 - **Same-second order.** A building's own events (room, research, training) that finish at the
   arrival second are ordered against the mission by creation (`seq`, D-08): those created before
   the mission was created resolve before it, those created after resolve after it. A vacation that
@@ -537,39 +537,38 @@ precompile only returns a boolean, so decrypting tlock on-chain is not practical
   difference is not refunded. `1 ≤ cover ≤` the distance from the origin to the farthest map
   corner, the longest trip that building can already make with a real target, so hiding never
   allows a longer trip (fleet save) than today.
-- **Bond.** A hidden mission also pays the hidden mission bond in the salary resource: a parameter
-  the admin sets with `setHiddenBond` within [`hidden_mission_bond_min`, `hidden_mission_bond_max`],
-  starting at `hidden_mission_bond` ([game_config.yaml](data/game_config.yaml)); it is the price of
-  stalling the world, so it stays well above what a new account starts with, and the admin raises
-  it as the economy grows. It goes back to the origin building when the mission resolves after a
-  reveal that landed before `arrival + hidden_bond_refund_seconds` (30 s: an honest reveal lands
-  15–20 s after the arrival), or when it comes home after a recall. A later reveal still resolves
-  the mission but the bond is lost, and so it is on forfeit.
 - **Reveal.** `reveal(id, kind, target, salt)`: anyone, until the grace ends (before the drand round
   only the sender knows the plaintext); past `arrival + hidden_reveal_grace_seconds` it does
-  nothing, the mission is forfeited whoever reveals it. The contract checks the hash, that the kind and coordinate are
-  valid and not the origin, and that `distance(origin, target) ≤ cover`; otherwise it reverts, and
-  the mission is eventually forfeited. Revealing a mission that is no longer hidden does nothing, so
-  clients and the keeper can race. Reveal does not drain the queue: it touches no building, so it
-  can always go before the action it unblocks.
-- **Resolution.** The global queue (B-07) keeps its order. A due mission still hidden **blocks the
-  queue** until `arrival + hidden_reveal_grace_seconds`: actions revert with `Unrevealed`, and
-  `advance` stops there. The defender cannot dodge, because its own action has to reveal and
-  resolve the attack first. Clients therefore reveal any due hidden mission they can (their own
-  from local storage, others' by decrypting the ciphertext) in front of every action, and the
-  keeper reveals as soon as the round is out.
-- **Forfeit.** Once the grace has passed, the head is resolved in order as a forfeit: it turns
-  back from its arrival time with all its troops and cargo, and the bond is lost. Garbage
-  ciphertexts can stall the world for the grace at most, at the cost of a bond.
-- **Garbage report.** The contract cannot tell a valid ciphertext from garbage, so the grace is
-  the honest revealer's time budget and nobody can shorten it without trust. Our keeper (any
-  address the admin lists with `setKeeper`) may shorten it for one mission: from
-  `arrival + hidden_report_delay_seconds` (15 s, once the drand round is out) it calls
-  `reportGarbage(id)` when the ciphertext does not decrypt or does not reproduce the commitment,
-  never on a transient error; the mission is then forfeited unless someone reveals it within
-  `hidden_report_window_seconds` (15 s), which also cancels the report. A false report can only
-  forfeit a mission nobody revealed within 30 s, the bond refund deadline anyway; every report is
-  an event (`GarbageReported`). External keepers reveal but never report.
+  nothing. The contract checks the hash, that the kind and coordinate are valid and not the
+  origin, and that `distance(origin, target) ≤ cover`; otherwise it reverts. Revealing a mission
+  that is no longer hidden does nothing, so clients and the keeper can race. Reveal does not drain
+  the queue: it touches no building. A mission revealed before it arrives resolves at its arrival
+  like a public one; one revealed after its arrival (**parked**, below, or still at the head of
+  the queue because nothing drained it since) re-enters the queue with the reveal time as its
+  arrival and a fresh `seq`, so it resolves against the target's state at the second of the
+  reveal, with the same-second order of B-07 applied to that second.
+- **Parking.** The queue never waits for a reveal. When its head is a due hidden mission nobody
+  revealed yet, the queue takes it out to the parked list (`parkedMissions`) and goes on with the
+  next mission; nothing stalls: construction, research, training, trades and everyone's missions
+  carry on. A parked mission keeps its troops and cargo and leaves the list by a reveal, a recall
+  or a forfeit. Clients reveal their own missions at the arrival when they are online, and the
+  keeper reveals every parked mission as soon as its round is out (others' plaintexts come from
+  decrypting the ciphertext). The defender cannot dodge more than with a public target: what it
+  knows at the arrival (origin, cover disk, troops, arrival time) it already knew when the mission
+  left.
+- **Forfeit.** Past `arrival + hidden_reveal_grace_seconds` (60 s), anyone calls `forfeit(id)` on
+  a hidden mission nobody revealed: it turns back from that moment with all its troops and cargo
+  (a recall by its owner does the same at any time). The keeper does
+  it; the sender has every reason to do it first. A ciphertext that does not decrypt or does not
+  match the commitment harms nobody but its sender, so there is no bond and no garbage report.
+  The grace stays short because it bounds how long a sender who is online can pick the moment of
+  its own reveal (~10 s in practice, until the keeper reveals), and because without it an
+  unrevealed mission would be a permanent fleet save whose attack lands whenever its owner chooses.
+- **Order.** A hidden mission resolves at its reveal, not at its arrival: 8–10 s later with the
+  keeper, at the arrival when the sender's client is online. Two missions to the same target
+  seconds apart can therefore resolve in the opposite order to their arrivals. Accepted in v1, as
+  the legacy cron resolved at minute granularity. Revealing strictly in arrival order (only the
+  oldest parked mission can be revealed) is a possible later restriction on `reveal`.
 - **Arrival rules** are the usual ones (07-missions.md), plus D-18 checked at arrival: a hidden
   mission bounces if the target's owner was on vacation when it was sent (a vacation started later
   does not protect, a vacation started in the same second counts by creation order, B-07). A
@@ -584,7 +583,9 @@ precompile only returns a boolean, so decrypting tlock on-chain is not practical
   inclusion would be later; the client sets it to the round's time minus one second and encrypts
   again on that error. On local chains the plaintext travels as is ("plain"): anvil's clock
   jumps (time travel) and drand's does not.
-- **Measured:** `sendHiddenMission` ~400k gas with a 400-byte ciphertext, `reveal` ~13k
+- **Measured:** `sendHiddenMission` ~400k gas with a 400-byte ciphertext, `reveal` ~14k before
+  the arrival and ~42k on a parked mission (it re-enters the queue), parking ~30k inside the
+  drain that does it
   (`forge test --match-contract HiddenMissions -vv`).
 - **Accepted leaks:** the cover ring; the cargo (a mission carrying resources is a transport); the
   troops (an occupation needs its occupation troop).
@@ -671,7 +672,7 @@ controllers are recovery codes, so every device labels them right.
   player active: **not on vacation nor suspended** (B-14), so a sanction cannot be escaped by
   moving the account; cancelling works while locked. It is in v1. The v2 NFT (B-24) only wraps it.
 - `revokeSession`, `cancelRemoval`, `cancelTransfer` and `cancelInvite` do not drain the mission
-  queue (B-07): they touch no building, so a stalled queue never delays them. `recall` does.
+  queue (B-07): they touch no building, so a backlog never delays them. `recall` does.
 - Everything moves with the account: buildings, troops, missions in flight, queues, premium, family
   membership and role, market trades and debts. A player in debt (B-11) can transfer the account:
   the creditor collects from it just the same.

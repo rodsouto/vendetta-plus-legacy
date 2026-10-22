@@ -5,13 +5,12 @@ set -euo pipefail
 root="$(git rev-parse --show-toplevel)"
 rpc="http://127.0.0.1:8555"
 key0=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
-keeper=0xa0Ee7A142d267C1f36714E4a8F75612F20a79720 # anvil's account 9: listed as a keeper (B-22)
 indexer_sh="$root/packages/indexer/scripts/local.sh"
 anvil --host 0.0.0.0 --port 8555 --silent &
 trap 'kill %1 2>/dev/null || true' EXIT
 for _ in $(seq 1 50); do cast block-number --rpc-url "$rpc" >/dev/null 2>&1 && break; sleep 0.2; done
 cd "$root/contracts"
-KEEPER="$keeper" HIDDEN_BOND=1000 forge script script/Deploy.s.sol --rpc-url "$rpc" --private-key "$key0" --broadcast >/dev/null
+forge script script/Deploy.s.sol --rpc-url "$rpc" --private-key "$key0" --broadcast >/dev/null
 game="$(jq -r '[.transactions[] | select(.contractName == "ERC1967Proxy")][0].contractAddress' broadcast/Deploy.s.sol/31337/run-latest.json)"
 directory="$(jq -r '[.transactions[] | select(.contractName == "PasskeyDirectory")][0].contractAddress' broadcast/Deploy.s.sol/31337/run-latest.json)"
 # Stopped by e2e/teardown.ts.

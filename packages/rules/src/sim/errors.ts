@@ -14,7 +14,6 @@ export type GameErrorName =
   | "ResearchElsewhere"
   | "NothingToCancel"
   | "Backlog"
-  | "Unrevealed"
   | "BadReveal"
   | "InvalidCover"
   | "InvalidMission"
@@ -59,9 +58,7 @@ export type GameErrorName =
   | "NoTransfer"
   | "NoInvite"
   | "TooLate"
-  | "TooEarly"
-  | "NotKeeper"
-  | "InvalidBond";
+  | "TooEarly";
 
 export class GameError extends Error {
   constructor(readonly code: GameErrorName) {

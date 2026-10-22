@@ -13,8 +13,6 @@ All of it goes in `.env` at the repo root (`cp .env.example .env`; it is git-ign
 |----------|------|------------------|
 | `DEPLOYER_PRIVATE_KEY` | A fresh key used only to deploy, with ~0.005 ETH on Arbitrum One | Deploy script only |
 | `ADMIN` | Owner of the `Game`: upgrades, suspensions, premium. A Safe (B-17); empty = the deployer | On-chain |
-| `KEEPER` | Our keeper's address, listed so it may report garbage ciphertexts (B-22); empty = none. Listed at deploy only when `ADMIN` is the deployer; otherwise the admin calls `setKeeper` | On-chain |
-| `HIDDEN_BOND` | Starting hidden mission bond (B-22), within the configured bounds; empty = the configured default (10000). Applied only when `ADMIN` is the deployer; otherwise the admin calls `setHiddenBond` | On-chain |
 | `ARBITRUM_RPC_URL` | RPC to deploy through; empty = `https://arb1.arbitrum.io/rpc` | Deploy script only |
 | `ETHERSCAN_API_KEY` | Etherscan v2 key (covers Arbiscan) to verify the sources; optional | Deploy script only |
 | `VITE_PIMLICO_API_KEY` | Pimlico API key: bundler and paymaster | **Public** JS bundle |
@@ -94,11 +92,12 @@ to another domain loses access for existing passkeys, so pick the final domain f
 
 ## 5. Keeper
 
-Hidden missions (B-22) block the mission queue from their arrival until someone reveals them, for
-at most `hidden_reveal_grace_seconds` (60 s); after that they are forfeited. Clients reveal the due
-ones they can open in front of every action, but a keeper reveals each one as soon as its drand
-round is out, so nobody waits and no honest mission is forfeited. It also processes due missions.
-It holds no secret; anyone may run another.
+A hidden mission (B-22) resolves at its reveal: once due, it waits parked until someone reveals
+it, for at most `hidden_reveal_grace_seconds` (60 s); after that anyone may forfeit it. The
+sender's client reveals its own at the arrival when it is online; the keeper reveals every other
+one as soon as its drand round is out (8–10 s after the arrival) and forfeits the ones nobody
+revealed, so no honest mission is lost. It also processes due missions. It holds no secret; anyone
+may run another.
 
 It also keeps the ranking current (B-19): every `KEEPER_SETTLE_INTERVAL_MS` (default 10 minutes) it
 rebuilds the world from the views, finds the buildings whose settlement would change their owner's
@@ -111,9 +110,10 @@ KEEPER_PRIVATE_KEY=0x... RPC_URL=https://... KEEPER_SETTLE_INTERVAL_MS=600000 \
   pnpm --filter @vendetta/web keeper ../../deployments/arbitrum.json arbitrum
 ```
 
-Fund the key with a little ETH: a reveal costs ~13k gas, `advance` depends on what is due, a `poke`
-~33k–330k depending on what finished. Run it somewhere that stays up (any small VM or container);
-it needs outbound HTTPS to the RPC and to `api.drand.sh`.
+Fund the key with a little ETH: a reveal costs ~14k gas (~42k on a parked mission), a `forfeit`
+about as much, `advance` depends on what is due, a `poke` ~33k–330k depending on what finished.
+Run it somewhere that stays up (any small VM or container); it needs outbound HTTPS to the RPC
+and to `api.drand.sh`.
 
 ## Running costs
 

@@ -2,8 +2,9 @@
 // and the world projected to that clock (B-20), the player's selection, and act(): validate an
 // action in the simulator, then send it, wait for it and reload. With passkeys, act() first renews
 // this device's session when it has lapsed (one passkey prompt), so game actions never prompt.
-// Hidden missions (B-22): every send reveals first the due hidden missions this client can open
-// (its own, or others' once their timelock is out), since the contract blocks on them.
+// Hidden missions (B-22): a hidden mission resolves at its reveal, so this client reveals its own
+// as they arrive, and every send reveals first the due ones it can open (its own, or others' once
+// their timelock is out), so they resolve before the action rather than after it.
 import {
   createContext,
   useCallback,
@@ -349,13 +350,43 @@ export function GameProvider({
     [snapshot, known, game],
   );
 
+  // Reveals this client's own hidden missions as they arrive (B-22): a hidden mission resolves at
+  // its reveal, so the sender reveals at the arrival instead of waiting ~10 s for the keeper. One
+  // try per mission (a reveal that does not land goes in front of the next action); never during
+  // an action, and never with a lapsed passkey session, which would prompt out of the blue.
+  const revealedAtArrival = useRef(new Set<bigint>());
+  useEffect(() => {
+    if (!snapshot || !me || busy) return;
+    if (signer.mode === "passkey" && liveSession === 0n) return;
+    const own = [...snapshot.world.missions.values()].filter(
+      (m) =>
+        m.hidden &&
+        !m.returning &&
+        m.owner === me.id &&
+        m.arrival <= now &&
+        known.has(m.commit) &&
+        !revealedAtArrival.current.has(m.id),
+    );
+    if (own.length === 0) return;
+    for (const m of own) revealedAtArrival.current.add(m.id);
+    const calls = own.map((m) => {
+      const p = known.get(m.commit)!;
+      const { city, neighborhood, slot } = p.target;
+      const salt = `0x${p.salt.toString(16).padStart(64, "0")}`;
+      return gameCall(game, "reveal", [m.id, p.kind, [city, neighborhood, slot], salt]);
+    });
+    signer
+      .send(calls, "actor")
+      .then(refresh)
+      .catch((e) => console.warn("reveal at arrival", e));
+  }, [snapshot, me, now, known, busy, signer, liveSession, game, refresh]);
+
   /**
    * Sends the calls after the reveals they need; if due missions piled up, or more came due than
    * the gas allowed for (B-08), processes them first in the same operation and retries, with one
    * more advance() each time (processing arrivals can bring their returns due too). When that is
    * not enough (a heavy mission, a long backlog), missions are processed one per operation before
-   * the last try. A hidden mission that came due meanwhile (Unrevealed) is retried with the
-   * reveals of that moment.
+   * the last try.
    */
   const send = useCallback(
     async (calls: Call[], from: From) => {
@@ -368,21 +399,15 @@ export function GameProvider({
           await signer.send([...front, ...calls], from);
           return;
         } catch (e) {
-          const name = errorName(e);
-          if (!(name === "Backlog" || name === "Unrevealed")) throw e;
+          if (errorName(e) !== "Backlog") throw e;
           if (tries < MAX_BACKLOG_RETRIES) {
-            if (name === "Backlog") advances++;
+            advances++;
             continue;
           }
           if (tries > MAX_BACKLOG_RETRIES) throw e;
           // One mission per operation until the queue is caught up, then the action alone.
           for (let i = 0; i < MAX_SINGLE_ADVANCES; i++) {
-            try {
-              await signer.send([one], from);
-            } catch (e2) {
-              if (errorName(e2) === "Unrevealed") break;
-              throw e2;
-            }
+            await signer.send([one], from);
           }
           advances = 0;
         }

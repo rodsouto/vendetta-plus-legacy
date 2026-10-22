@@ -1,8 +1,8 @@
-// Keeper (B-22, B-08, B-19): reveals hidden missions as soon as their timelock opens, reports the
-// garbage ones when the admin listed it as a keeper, processes due missions, and settles the
+// Keeper (B-22, B-08, B-19): reveals hidden missions as soon as their timelock opens, forfeits the
+// ones nobody revealed once their grace is over, processes due missions, and settles the
 // buildings whose points lag behind their finished queues, so the global queue and the ranking
 // (B-18) do not wait for a player to act. It holds no secret: anyone may run one, and clients
-// reveal on their own when it is down. Only a listed keeper reports.
+// reveal on their own when it is down.
 //
 // Usage: tsx scripts/keeper.ts <deployment.json> [local|arbitrum]
 //   KEEPER_PRIVATE_KEY         the account that pays the gas (default: anvil's account 9, local only)
@@ -53,7 +53,6 @@ type M = {
   arrival: number;
   seq: bigint;
   commit: Hex;
-  reportedAt: number;
 };
 
 const read = <T>(functionName: string, args: unknown[] = []) =>
@@ -80,8 +79,8 @@ async function call(functionName: string, args: unknown[]): Promise<void> {
 
 /**
  * Missions whose ciphertext opened to something the contract rejects (a wrong plaintext): garbage
- * for good, so they are reported (when allowed) and never retried. A transient error never puts a
- * mission here: the next tick tries again.
+ * for good, never retried; they are forfeited once their grace is over. A transient error never
+ * puts a mission here: the next tick tries again.
  */
 const garbage = new Set<bigint>();
 
@@ -99,7 +98,7 @@ async function mapLimit<T, R>(items: T[], limit: number, fn: (x: T) => Promise<R
 
 type Verdict = { kind: "reveal"; args: unknown[] } | { kind: "garbage" } | { kind: "wait" };
 
-/** What to do with a due hidden mission: reveal it, report it, or wait. */
+/** What to do with a due hidden mission: reveal it, give it up as garbage, or wait. */
 async function judge(mid: bigint, m: M): Promise<Verdict> {
   if (garbage.has(mid)) return { kind: "garbage" };
   const c = await ciphertexts.get(mid);
@@ -121,16 +120,20 @@ async function judge(mid: bigint, m: M): Promise<Verdict> {
 async function tick(): Promise<void> {
   await ciphertexts.catchUp();
   const now = (await client.getBlock()).timestamp;
-  const ids = await read<readonly bigint[]>("pendingMissions");
+  const [queued, parked] = await Promise.all([
+    read<readonly bigint[]>("pendingMissions"),
+    read<readonly bigint[]>("parkedMissions"),
+  ]);
   const missions = await Promise.all(
-    ids.map(async (id) => [id, await read<M>("getMission", [id])] as const),
+    [...queued, ...parked].map(async (id) => [id, await read<M>("getMission", [id])] as const),
   );
-  // Due hidden missions, in the order the queue resolves them (arrival, then creation).
+  // Due hidden missions nobody revealed (parked, or still queued), oldest first.
   const due = missions
     .filter(([, m]) => m.hidden && !m.returning && BigInt(m.arrival) <= now)
     .sort(([, a], [, b]) => a.arrival - b.arrival || (a.seq < b.seq ? -1 : 1));
-  const listed = due.length > 0 && (await read<boolean>("isKeeper", [account.address]));
-  const verdicts = await mapLimit(due, DECRYPT_CONCURRENCY, async ([mid, m]) => {
+  const grace = rs.config.hiddenRevealGrace;
+  const live = due.filter(([, m]) => now < BigInt(m.arrival) + grace);
+  const verdicts = await mapLimit(live, DECRYPT_CONCURRENCY, async ([mid, m]) => {
     try {
       return await judge(mid, m);
     } catch (e) {
@@ -138,23 +141,20 @@ async function tick(): Promise<void> {
       return { kind: "wait" } as Verdict;
     }
   });
-  for (const [i, [mid, m]] of due.entries()) {
+  for (const [i, [mid]] of live.entries()) {
     const v = verdicts[i]!;
+    if (v.kind === "garbage") {
+      if (!garbage.has(mid)) console.warn(`mission ${mid} is garbage: forfeited after its grace`);
+      garbage.add(mid);
+      continue;
+    }
+    if (v.kind !== "reveal") continue;
     try {
-      if (v.kind === "reveal") {
-        await call("reveal", v.args);
-        console.log(`revealed mission ${mid}`);
-      } else if (v.kind === "garbage") {
-        garbage.add(mid);
-        const since = BigInt(m.arrival) + rs.config.hiddenReportDelay;
-        if (listed && m.reportedAt === 0 && now >= since) {
-          await call("reportGarbage", [mid]);
-          console.log(`reported mission ${mid} as garbage`);
-        }
-      }
+      await call("reveal", v.args);
+      console.log(`revealed mission ${mid}`);
     } catch (e) {
       const name = gameError(e);
-      if (v.kind === "reveal" && name && name !== "Unrevealed" && name !== "Backlog") {
+      if (name && name !== "Backlog") {
         // The contract rejects the plaintext (BadReveal, InvalidCover, InvalidMission): garbage.
         garbage.add(mid);
         console.warn(`mission ${mid} does not reveal: ${name}`);
@@ -163,21 +163,22 @@ async function tick(): Promise<void> {
       }
     }
   }
-  // Process what is due, unless the head still waits for its reveal within its grace.
-  const head = [...missions]
+  // Past the grace, nobody revealed: send them home (B-22). The sender may have done it already.
+  for (const [mid, m] of due) {
+    if (now < BigInt(m.arrival) + grace) continue;
+    try {
+      await call("forfeit", [mid]);
+      console.log(`forfeited mission ${mid}`);
+    } catch (e) {
+      console.warn(`forfeit ${mid} failed:`, (e as Error).message.split("\n")[0]);
+    }
+  }
+  // Process what is due (a mission revealed in this tick re-entered the queue at the reveal).
+  const head = missions
+    .filter(([id]) => queued.includes(id))
     .map(([, m]) => m)
     .sort((a, b) => a.arrival - b.arrival || (a.seq < b.seq ? -1 : 1))[0];
-  if (!head || BigInt(head.arrival) > now) return;
-  // A head revealed in this tick still reads as hidden here: it is processed on the next one.
-  if (head.hidden && !head.returning) {
-    let end = BigInt(head.arrival) + rs.config.hiddenRevealGrace;
-    if (head.reportedAt > 0) {
-      const reported = BigInt(head.reportedAt) + rs.config.hiddenReportWindow;
-      if (reported < end) end = reported;
-    }
-    if (now < end) return;
-  }
-  await advance();
+  if (head && BigInt(head.arrival) <= now) await advance();
 }
 
 /**
@@ -233,7 +234,7 @@ async function settleStale(): Promise<void> {
       await call("poke", [id]);
       sent++;
     } catch (e) {
-      // Backlog or Unrevealed: the mission job catches up and the next run retries.
+      // Backlog: the mission job catches up and the next run retries.
       console.warn(`poke ${id} failed:`, (e as Error).message.split("\n")[0]);
       break;
     }

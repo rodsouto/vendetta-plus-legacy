@@ -99,8 +99,6 @@ describe.skipIf(!hasAnvil)("chain loader", () => {
     const commit = sim.hiddenCommit(1n, sim.ATTACK, target, plain.salt);
     const troops = rs.troops.map((_, i) => (i === 0 ? 5n : 0n));
     const ciphertext = await timelock.encrypt(plain, 0n);
-    // A fresh deployment's bond is above a new account's dollars (B-22): the admin lowers it.
-    await send(0, "setHiddenBond", [rs.config.hiddenMissionBondMin]);
     await send(1, "sendHiddenMission", [
       1n,
       commit,
@@ -118,12 +116,19 @@ describe.skipIf(!hasAnvil)("chain loader", () => {
     expect(await timelock.decrypt(c!)).toEqual(plain);
 
     const at = m!.arrival + 1n;
-    expect(project(snap.world, at).missions.get(m!.id)!.returning).toBe(false); // blocked
+    const unknown = project(snap.world, at);
+    expect(unknown.missions.get(m!.id)!.returning).toBe(false); // parked, waiting for its reveal
+    expect(unknown.parked).toEqual([m!.id]);
     const known = new Map([[commit, plain]]);
     const projected = project(snap.world, at, known);
     expect(projected.missions.get(m!.id)!.returning).toBe(true);
 
+    // Revealed at `at`, after its arrival: it resolves at the reveal, as the projection did.
     const salt = `0x${plain.salt.toString(16).padStart(64, "0")}`;
+    await clients.public.request({
+      method: "evm_setNextBlockTimestamp" as never,
+      params: [Number(at)] as never,
+    });
     await send(3, "reveal", [m!.id, sim.ATTACK, [1n, 1n, 2n], salt]);
     for (const id of [1n, 2n]) {
       await clients.public.request({

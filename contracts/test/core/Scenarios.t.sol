@@ -34,7 +34,7 @@ contract ScenariosTest is GameTestBase {
         "FamilySnap(bool alive,uint256 id,uint256 members,string name,string tag)"
         "PlayerSnap(uint256[] applications,uint256 buildings,uint256 centipoints,uint256[] controllers,uint256 id,uint256 missions,uint256[] offers,uint256[] owes,uint256[] queue_finish,uint256[] queue_index,uint256[] queue_seq,uint256[] recovery,uint256[] removal_at,uint256[] research,uint256 research_building,uint256[] social)"
         "SessionSnap(uint256 actor,uint256 epoch,uint256 player,uint256 until)"
-        "State(BuildingSnap[] buildings,FamilySnap[] families,uint256 hidden_bond,InviteSnap[] invites,uint256[] keepers,MissionSnap[] missions,PlayerSnap[] players,SessionSnap[] sessions,TradeSnap[] trades,WarSnap[] wars)"
+        "State(BuildingSnap[] buildings,FamilySnap[] families,InviteSnap[] invites,MissionSnap[] missions,uint256[] parked,PlayerSnap[] players,SessionSnap[] sessions,TradeSnap[] trades,WarSnap[] wars)"
         "TradeSnap(uint256[] fields,uint256 id,uint256[] paid,uint256[] price,uint256[] returned)"
         "WarSnap(uint256[] fields,uint256 id)"
         "Step(uint256 action,uint256 actor,uint256[] args,string error,State state,uint256 time)";
@@ -57,7 +57,7 @@ contract ScenariosTest is GameTestBase {
     struct MissionSnap {
         uint256[] cargo;
         // owner, origin, kind, returning, city, neighborhood, slot, start, arrival, duration, seq,
-        // fromCity, fromNeighborhood, fromSlot, hidden, cover, bond, reportedAt
+        // fromCity, fromNeighborhood, fromSlot, hidden, cover
         uint256[] fields;
         uint256 id;
         uint256[] troops;
@@ -125,10 +125,9 @@ contract ScenariosTest is GameTestBase {
     struct State {
         BuildingSnap[] buildings;
         FamilySnap[] families;
-        uint256 hiddenBond;
         InviteSnap[] invites;
-        uint256[] keepers; // actor ids listed as keepers (B-22)
         MissionSnap[] missions;
+        uint256[] parked; // due hidden missions nobody revealed yet, in list order (B-22)
         PlayerSnap[] players;
         SessionSnap[] sessions;
         TradeSnap[] trades;
@@ -338,11 +337,7 @@ contract ScenariosTest is GameTestBase {
                 (uint64(a[0]), uint64(a[1]), uint64(a[2]), [a[3], a[4], a[5], a[6]])
             );
         } else if (act == 47) {
-            call = abi.encodeCall(Game.reportGarbage, (uint64(a[0])));
-        } else if (act == 48) {
-            call = abi.encodeCall(Game.setKeeper, (address(uint160(0x1000 + a[0])), a[1] == 1));
-        } else if (act == 49) {
-            call = abi.encodeCall(Game.setHiddenBond, (a[0]));
+            call = abi.encodeCall(Game.forfeit, (uint64(a[0])));
         } else if (act == 50) {
             call = abi.encodeCall(Game.registerDebt, (uint64(a[0])));
         } else {
@@ -465,7 +460,7 @@ contract ScenariosTest is GameTestBase {
     }
 
     function _errorName(bytes4 sel) internal pure returns (string memory) {
-        string[61] memory names = [
+        string[60] memory names = [
             "AlreadyRegistered",
             "InvalidCoordinate",
             "SlotTaken",
@@ -512,7 +507,6 @@ contract ScenariosTest is GameTestBase {
             "SessionTooLong",
             "TooManyControllers",
             "LastController",
-            "Unrevealed",
             "BadReveal",
             "InvalidCover",
             "InDebt",
@@ -579,8 +573,7 @@ contract ScenariosTest is GameTestBase {
         }
         return _sameFamilies(game, exp.families) && _sameWars(game, exp.wars)
             && _sameTrades(game, exp.trades) && _sameSessions(game, exp.sessions)
-            && _sameInvites(game, exp.invites) && _sameKeepers(game, exp.keepers)
-            && game.hiddenBond() == exp.hiddenBond;
+            && _sameInvites(game, exp.invites) && _sameParked(game, exp.parked);
     }
 
     function _sameInvites(Game game, InviteSnap[] memory exp) internal view returns (bool) {
@@ -596,11 +589,12 @@ contract ScenariosTest is GameTestBase {
     }
 
     /// Every actor ever listed stays in the snapshot; a delisted one must read false on-chain.
-    function _sameKeepers(Game game, uint256[] memory exp) internal view returns (bool) {
+    /// The parked list in order: the simulator mirrors the on-chain swap-remove (B-22).
+    function _sameParked(Game game, uint256[] memory exp) internal view returns (bool) {
+        uint64[] memory parked = game.parkedMissions();
+        if (parked.length != exp.length) return false;
         for (uint256 i; i < exp.length; ++i) {
-            uint256 actor = exp[i] >> 1;
-            bool allowed = exp[i] & 1 == 1;
-            if (game.isKeeper(address(uint160(0x1000 + actor))) != allowed) return false;
+            if (parked[i] != exp[i]) return false;
         }
         return true;
     }
@@ -750,11 +744,13 @@ contract ScenariosTest is GameTestBase {
 
     function _sameMissions(Game game, MissionSnap[] memory exp) internal view returns (bool) {
         (,,,, uint64 active,) = game.counters();
-        if (active != exp.length || game.pendingMissions().length != exp.length) return false;
+        // Every live mission is queued or parked (B-22).
+        uint256 live = game.pendingMissions().length + game.parkedMissions().length;
+        if (active != exp.length || live != exp.length) return false;
         for (uint256 i; i < exp.length; ++i) {
             MissionSnap memory e = exp[i];
             Mission memory m = game.getMission(uint64(e.id));
-            uint256[18] memory f = [
+            uint256[16] memory f = [
                 uint256(m.owner),
                 m.origin,
                 m.kind,
@@ -770,11 +766,9 @@ contract ScenariosTest is GameTestBase {
                 m.fromNeighborhood,
                 m.fromSlot,
                 m.hidden ? 1 : 0,
-                m.cover,
-                m.bond,
-                m.reportedAt
+                m.cover
             ];
-            for (uint256 k; k < 18; ++k) {
+            for (uint256 k; k < 16; ++k) {
                 if (f[k] != e.fields[k]) return false;
             }
             for (uint256 t; t < TROOPS; ++t) {

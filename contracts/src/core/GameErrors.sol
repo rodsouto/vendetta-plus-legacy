@@ -17,7 +17,6 @@ error TimingRoomRequired();
 error ResearchElsewhere();
 error NothingToCancel();
 error Backlog();
-error Unrevealed();
 error BadReveal();
 error InvalidCover();
 error InvalidMission();
@@ -63,8 +62,6 @@ error NoTransfer();
 error NoInvite();
 error TooLate();
 error TooEarly();
-error NotKeeper();
-error InvalidBond();
 
 struct BattleReport {
     uint64[TROOPS] attacker;
@@ -113,9 +110,9 @@ interface IGameEvents {
     event MissionRevealed(
         uint64 indexed mission, uint8 kind, uint8 city, uint8 neighborhood, uint8 slot
     );
+    /// A due hidden mission nobody revealed yet left the queue for the parked list (B-22).
+    event MissionParked(uint64 indexed mission);
     event MissionForfeited(uint64 indexed mission);
-    /// A listed keeper reported the ciphertext as garbage: forfeited unless revealed in time (B-22).
-    event GarbageReported(uint64 indexed mission, address keeper);
     event MissionRecalled(uint64 indexed mission, uint40 arrival);
     event MissionReturning(uint64 indexed mission, uint40 arrival);
     event MissionEnded(uint64 indexed mission);
@@ -147,8 +144,6 @@ interface IGameEvents {
     event ControllerRemovalCancelled(uint64 indexed player, address indexed controller);
     event PlayerTransferScheduled(uint64 indexed player, address to, uint40 at);
     event PlayerTransferCancelled(uint64 indexed player);
-    event HiddenBondSet(uint64 bond);
-    event KeeperSet(address indexed keeper, bool allowed);
     event FamilyCreated(uint64 indexed family, uint64 indexed capo, string tag, string name);
     event FamilyChanged(uint64 indexed family, uint64 indexed player, uint8 rank); // rank 0 = left
     event FamilyDissolved(uint64 indexed family);

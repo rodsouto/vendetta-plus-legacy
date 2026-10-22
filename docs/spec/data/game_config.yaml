@@ -111,13 +111,7 @@ onchain:
   max_session_seconds: 2592000          # longest session key authorization: 30 days (B-15)
   max_controllers_per_player: 5         # devices (passkeys) and recovery codes that manage an account (B-26)
   controller_removal_delay_seconds: 259200 # removing another controller or transferring the account completes after 3 days; any controller can cancel meanwhile (B-26)
-  hidden_mission_bond: 10000            # starting bond per hidden mission (salary resource); the admin tunes it within the bounds below (B-22)
-  hidden_mission_bond_min: 1000
-  hidden_mission_bond_max: 100000
-  hidden_reveal_grace_seconds: 60       # a due hidden mission blocks the queue this long before it is forfeited (B-22)
-  hidden_bond_refund_seconds: 30        # the bond comes back only when the reveal lands this soon after the arrival (B-22)
-  hidden_report_delay_seconds: 15       # a listed keeper may report a garbage ciphertext from here on (B-22)
-  hidden_report_window_seconds: 15      # a reported mission is forfeited unless revealed within this window (B-22)
+  hidden_reveal_grace_seconds: 60       # a parked hidden mission (nobody revealed it) can be forfeited from here on (B-22)
   invite_ttl_seconds: 604800            # a controller or transfer invitation lasts 7 days (B-26)
 
 premium:

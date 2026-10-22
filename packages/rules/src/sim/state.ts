@@ -38,9 +38,7 @@ export interface Mission {
   // Hidden missions (B-22): kind and target stay 0 until revealed; public missions have cover 0.
   hidden: boolean; // kind and target not revealed yet
   cover: bigint; // declared distance in grid units (≥ the real one) that duration and salary used
-  bond: bigint; // salary resource held until the mission resolves or returns; lost on forfeit
   commit: string; // keccak256(abi.encode(owner, kind, city, neighborhood, slot, salt)), 0x-hex
-  reportedAt: bigint; // a listed keeper reported the ciphertext as garbage then (B-22), 0 = none
 }
 
 export const CAPO = 1;
@@ -167,7 +165,8 @@ export interface World {
   nextMission: bigint;
   missions: Map<bigint, Mission>;
   /** The global mission queue (B-07): ids ordered by (arrival, seq). */
-  pending: bigint[];
+  pending: bigint[]; // the global queue (B-07), in (arrival, seq) order
+  parked: bigint[]; // due hidden missions nobody revealed yet, out of the queue (B-22); any order
   nextFamily: bigint;
   families: Map<bigint, Family>;
   familyNames: Map<string, bigint>; // "tag:<lowercase>" / "name:<lowercase>" → family
@@ -179,8 +178,6 @@ export interface World {
   owes: Map<string, number>; // "debtor:creditor" → registered unpaid debts between them (B-11)
   sessions: Map<string, Session>; // session address → authorization
   invites: Map<string, Invite>; // inviteKey(address, player) → invitation (B-15, B-26)
-  keepers: Set<string>; // addresses that may report garbage ciphertexts (B-22)
-  hiddenBond: bigint; // the hidden mission bond in force, set by the admin within the bounds (B-22)
 }
 
 /** Units per resource: 3600 s × rate denominator (B-27). */
@@ -200,6 +197,7 @@ export function newWorld(rs: Ruleset): World {
     nextMission: 1n,
     missions: new Map(),
     pending: [],
+    parked: [],
     nextFamily: 1n,
     families: new Map(),
     familyNames: new Map(),
@@ -211,8 +209,6 @@ export function newWorld(rs: Ruleset): World {
     owes: new Map(),
     sessions: new Map(),
     invites: new Map(),
-    keepers: new Set(),
-    hiddenBond: rs.config.hiddenMissionBond,
   };
 }
 

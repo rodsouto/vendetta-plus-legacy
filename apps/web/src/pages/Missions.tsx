@@ -282,14 +282,6 @@ function MissionsFor({ b, p }: { b: sim.Building; p: sim.Player }) {
                       <Icon name="dollar" /> {amount(plan.salary!)}
                     </td>
                   </tr>
-                  {hidden && (
-                    <tr>
-                      <td>{t("missions.bond")}</td>
-                      <td className="num">
-                        <Icon name="dollar" /> {amount(g.world.hiddenBond)}
-                      </td>
-                    </tr>
-                  )}
                   <tr className="total">
                     <td>{t("missions.capacity")}</td>
                     <td className={`num${plan.free! < 0n ? " red" : ""}`}>{amount(plan.free!)}</td>

@@ -157,10 +157,9 @@
     "hidden": "Oculta",
     "hiddenTarget": "destino oculto",
     "mayBeYou": "puede ser para vos",
-    "bond": "Fianza (vuelve si se revela a tiempo)",
     "hiddenNote": "El tipo y el destino quedan ocultos hasta la llegada. El viaje y el salario se calculan sobre una distancia de cobertura al azar, para que no delaten el destino.",
     "publicNote": "Los transportes de una orden del mercado viajan a la vista.",
-    "revealing": "revelándose",
+    "revealing": "llegó, esperando el reveal",
     "noRoom": "Al destino no le cabe: {{list}}. Lo que no quepa se pierde: tener lugar es responsabilidad de quien recibe.",
     "incomingOverflow": "no te cabe todo: hacé lugar antes de que llegue"
   },
@@ -361,7 +360,6 @@
     "TransferPending": "La transferencia todavía no se puede completar: esperá a la fecha indicada.",
     "NoTransfer": "No hay ninguna transferencia pendiente.",
     "invalidCode": "Ese código no corresponde a ninguna cuenta.",
-    "Unrevealed": "Una misión oculta acaba de llegar y todavía no se reveló. Esperá unos segundos y reintentá.",
     "BadReveal": "El destino revelado no coincide con el de la misión.",
     "InvalidCover": "La distancia de cobertura no es válida para ese destino.",
     "InDebt": "Tenés una deuda registrada en el mercado: saldala primero.",
@@ -369,9 +367,7 @@
     "InvalidClaim": "El reclamo no cabe: revisá lo que falta, el stock del deudor y tu capacidad libre.",
     "NoInvite": "No hay una invitación vigente para esta dirección.",
     "TooLate": "La misión llegaría después de que se abra su cifrado: volvé a enviarla.",
-    "TooEarly": "Todavía no se puede reportar: esperá a que salga la ronda.",
-    "NotKeeper": "Solo un keeper autorizado puede reportar.",
-    "InvalidBond": "La fianza tiene que estar entre los límites configurados."
+    "TooEarly": "Todavía no: no pasó la gracia de reveal de esa misión."
   },
   "theme": {
     "label": "Tema",

@@ -60,8 +60,6 @@ contract SocialTest is GameTestBase {
     function setUp() public {
         vm.warp(T0);
         game = deployGame();
-        vm.prank(admin);
-        game.setHiddenBond(Ruleset.HIDDEN_MISSION_BOND_MIN); // affordable by a new account
         vm.prank(alice);
         game.register(1, 1, 1);
         vm.prank(bob);

@@ -440,6 +440,19 @@ export const gameAbi = [
   },
   {
     "type": "function",
+    "name": "forfeit",
+    "inputs": [
+      {
+        "name": "mission",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "getBuilding",
     "inputs": [
       {
@@ -779,19 +792,9 @@ export const gameAbi = [
             "internalType": "uint32"
           },
           {
-            "name": "bond",
-            "type": "uint64",
-            "internalType": "uint64"
-          },
-          {
             "name": "commit",
             "type": "bytes32",
             "internalType": "bytes32"
-          },
-          {
-            "name": "reportedAt",
-            "type": "uint40",
-            "internalType": "uint40"
           }
         ]
       }
@@ -1162,19 +1165,6 @@ export const gameAbi = [
   },
   {
     "type": "function",
-    "name": "hiddenBond",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint64",
-        "internalType": "uint64"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "initialize",
     "inputs": [
       {
@@ -1203,25 +1193,6 @@ export const gameAbi = [
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "isKeeper",
-    "inputs": [
-      {
-        "name": "keeper",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool",
-        "internalType": "bool"
-      }
-    ],
-    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -1328,6 +1299,19 @@ export const gameAbi = [
         "name": "",
         "type": "address",
         "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "parkedMissions",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint64[]",
+        "internalType": "uint64[]"
       }
     ],
     "stateMutability": "view"
@@ -1535,19 +1519,6 @@ export const gameAbi = [
   },
   {
     "type": "function",
-    "name": "reportGarbage",
-    "inputs": [
-      {
-        "name": "mission",
-        "type": "uint64",
-        "internalType": "uint64"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
     "name": "reveal",
     "inputs": [
       {
@@ -1688,37 +1659,6 @@ export const gameAbi = [
         "name": "until",
         "type": "uint256",
         "internalType": "uint256"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "setHiddenBond",
-    "inputs": [
-      {
-        "name": "bond",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "setKeeper",
-    "inputs": [
-      {
-        "name": "keeper",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "allowed",
-        "type": "bool",
-        "internalType": "bool"
       }
     ],
     "outputs": [],
@@ -2275,25 +2215,6 @@ export const gameAbi = [
   },
   {
     "type": "event",
-    "name": "GarbageReported",
-    "inputs": [
-      {
-        "name": "mission",
-        "type": "uint64",
-        "indexed": true,
-        "internalType": "uint64"
-      },
-      {
-        "name": "keeper",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
     "name": "GlobalPremiumSet",
     "inputs": [
       {
@@ -2301,19 +2222,6 @@ export const gameAbi = [
         "type": "uint40",
         "indexed": false,
         "internalType": "uint40"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "HiddenBondSet",
-    "inputs": [
-      {
-        "name": "bond",
-        "type": "uint64",
-        "indexed": false,
-        "internalType": "uint64"
       }
     ],
     "anonymous": false
@@ -2383,25 +2291,6 @@ export const gameAbi = [
   },
   {
     "type": "event",
-    "name": "KeeperSet",
-    "inputs": [
-      {
-        "name": "keeper",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "allowed",
-        "type": "bool",
-        "indexed": false,
-        "internalType": "bool"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
     "name": "MissionEnded",
     "inputs": [
       {
@@ -2416,6 +2305,19 @@ export const gameAbi = [
   {
     "type": "event",
     "name": "MissionForfeited",
+    "inputs": [
+      {
+        "name": "mission",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "MissionParked",
     "inputs": [
       {
         "name": "mission",
@@ -3458,11 +3360,6 @@ export const gameAbi = [
   },
   {
     "type": "error",
-    "name": "InvalidBond",
-    "inputs": []
-  },
-  {
-    "type": "error",
     "name": "InvalidCoordinate",
     "inputs": []
   },
@@ -3573,11 +3470,6 @@ export const gameAbi = [
   },
   {
     "type": "error",
-    "name": "NotKeeper",
-    "inputs": []
-  },
-  {
-    "type": "error",
     "name": "NotRecallable",
     "inputs": []
   },
@@ -3604,11 +3496,6 @@ export const gameAbi = [
   {
     "type": "error",
     "name": "TooManyMissions",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "Unrevealed",
     "inputs": []
   },
   {

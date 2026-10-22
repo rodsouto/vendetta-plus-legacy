@@ -157,10 +157,9 @@
     "hidden": "Hidden",
     "hiddenTarget": "hidden target",
     "mayBeYou": "may be for you",
-    "bond": "Bond (back if revealed in time)",
     "hiddenNote": "The kind and target stay hidden until arrival. Travel time and salary use a random cover distance, so they do not give the target away.",
     "publicNote": "Transports for a market order travel in the open.",
-    "revealing": "revealing",
+    "revealing": "arrived, waiting for its reveal",
     "noRoom": "The destination cannot store: {{list}}. What does not fit is lost: having room is the receiver's responsibility.",
     "incomingOverflow": "not everything fits: make room before it lands"
   },
@@ -361,7 +360,6 @@
     "TransferPending": "The transfer cannot be completed yet: wait for the date shown.",
     "NoTransfer": "There is no pending transfer.",
     "invalidCode": "That code does not belong to any account.",
-    "Unrevealed": "A hidden mission just arrived and is not revealed yet. Wait a few seconds and retry.",
     "BadReveal": "The revealed target does not match the mission.",
     "InvalidCover": "The cover distance is not valid for that target.",
     "InDebt": "You have a registered market debt: pay it first.",
@@ -369,9 +367,7 @@
     "InvalidClaim": "The claim does not fit: check what remains, the debtor's stock and your free capacity.",
     "NoInvite": "There is no valid invitation for this address.",
     "TooLate": "The mission would land after its encryption opens: send it again.",
-    "TooEarly": "Too early to report: wait for the round to come out.",
-    "NotKeeper": "Only a listed keeper can report.",
-    "InvalidBond": "The bond must be within the configured bounds."
+    "TooEarly": "Too early: the reveal grace of that mission has not passed yet."
   },
   "theme": {
     "label": "Theme",

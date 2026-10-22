@@ -147,53 +147,22 @@ function battle(w: World, m: Mission, b: Building, t: bigint): void {
   sendBack(w, m, t);
 }
 
-/** A revealed hidden mission gives its bond back to the origin building, if still its own. */
-function refundBond(w: World, m: Mission, t: bigint): void {
-  const origin = w.buildings.get(m.origin);
-  if (origin && origin.owner === m.owner) {
-    settle(w, origin, t, m.seq);
-    const sr = w.rs.roles.salaryResource;
-    credit(
-      w,
-      origin,
-      Object.fromEntries(w.rs.resources.map((r, i) => [r, i === sr ? m.bond : 0n])),
-    );
-  }
-  m.bond = 0n;
+/** A due hidden mission nobody revealed yet leaves the queue for the parked list (B-22). */
+function park(w: World, m: Mission): void {
+  w.parked.push(m.id);
 }
 
-/**
- * A due hidden mission still within its reveal grace stops the queue (B-22); a garbage report by a
- * listed keeper shortens the grace to its window.
- */
-function awaitingReveal(w: World, m: Mission, now: bigint): boolean {
-  if (!m.hidden || m.returning) return false;
-  let end = m.arrival + w.rs.config.hiddenRevealGrace;
-  if (m.reportedAt !== 0n) {
-    const reported = m.reportedAt + w.rs.config.hiddenReportWindow;
-    if (reported < end) end = reported;
+/** Takes a mission out of the queue or the parked list, wherever it is (swap-remove, as on-chain). */
+function dequeue(w: World, m: Mission): void {
+  const i = w.pending.indexOf(m.id);
+  if (i >= 0) {
+    w.pending.splice(i, 1);
+    return;
   }
-  return now < end;
+  const j = w.parked.indexOf(m.id);
+  w.parked[j] = w.parked[w.parked.length - 1]!;
+  w.parked.pop();
 }
-
-/**
- * A listed keeper reports a ciphertext that does not decrypt or does not reproduce the commitment,
- * once the drand round is out (B-22): the mission is forfeited unless somebody reveals it within
- * the report window. A second report, or one on a mission no longer hidden, does nothing.
- */
-export const reportGarbage = atomic(function reportGarbage(
-  w: World,
-  keeper: string,
-  missionId: bigint,
-  now: bigint,
-): void {
-  if (!w.keepers.has(keeper)) fail("NotKeeper");
-  const m = w.missions.get(missionId);
-  if (!m || !m.hidden || m.returning || m.reportedAt !== 0n) return;
-  if (now >= m.arrival + w.rs.config.hiddenRevealGrace) return;
-  if (now < m.arrival + w.rs.config.hiddenReportDelay) fail("TooEarly");
-  m.reportedAt = now;
-});
 
 /**
  * D-18 at arrival: the target's owner was on vacation when the mission was sent. A vacation started
@@ -212,22 +181,17 @@ function process(w: World, m: Mission): void {
     if (origin && origin.owner === m.owner) {
       settle(w, origin, t, m.seq);
       origin.troops = origin.troops.map((n, i) => n + m.troops[i]!);
-      const back = m.cargo.map((n, i) => n + (i === w.rs.roles.salaryResource ? m.bond : 0n));
-      credit(w, origin, Object.fromEntries(w.rs.resources.map((r, i) => [r, back[i]!])));
+      credit(w, origin, Object.fromEntries(w.rs.resources.map((r, i) => [r, m.cargo[i]!])));
     } else {
       p.centipoints -= troopCentipoints(w, m.troops); // the building was abandoned: troops are lost
     }
     return finish(w, m);
   }
-  if (m.hidden) {
-    m.bond = 0n; // forfeit: nobody revealed it within the grace (B-22)
-    return sendBack(w, m, t);
-  }
   const targetId = w.buildingAt.get(coordKey(m.target));
   const target = targetId === undefined ? undefined : w.buildings.get(targetId)!;
-  if (m.cover > 0n) {
-    refundBond(w, m, t);
-    if (target && sentDuringVacation(w.players.get(target.owner)!, m)) return sendBack(w, m, t);
+  // D-18 for a hidden mission, checked when it resolves (B-22).
+  if (m.cover > 0n && target && sentDuringVacation(w.players.get(target.owner)!, m)) {
+    return sendBack(w, m, t);
   }
   if (m.kind === ATTACK) {
     if (!target || target.owner === m.owner) return sendBack(w, m, t);
@@ -272,14 +236,19 @@ function process(w: World, m: Mission): void {
   sendBack(w, m, t);
 }
 
-/** Process missions that arrived by `now`, at most `max`; returns how many were processed. */
+/**
+ * Process missions that arrived by `now`, at most `max`; returns how many were taken out of the
+ * queue. A due hidden mission nobody revealed yet is parked instead of processed (B-22); it counts
+ * as one.
+ */
 export function processDue(w: World, now: bigint, max: number): number {
   let n = 0;
   while (n < max && w.pending.length > 0) {
     const m = w.missions.get(w.pending[0]!)!;
-    if (m.arrival > now || awaitingReveal(w, m, now)) break;
+    if (m.arrival > now) break;
     w.pending.shift();
-    process(w, m);
+    if (m.hidden && !m.returning) park(w, m);
+    else process(w, m);
     n++;
   }
   return n;
@@ -293,9 +262,7 @@ export function processDue(w: World, now: bigint, max: number): number {
 export function drain(w: World, now: bigint): void {
   processDue(w, now, MAX_MISSIONS_PER_TX);
   const head = w.pending[0];
-  if (head === undefined) return;
-  const m = w.missions.get(head)!;
-  if (m.arrival <= now) fail(awaitingReveal(w, m, now) ? "Unrevealed" : "Backlog");
+  if (head !== undefined && w.missions.get(head)!.arrival <= now) fail("Backlog");
 }
 
 /** Anyone can process up to `max` due missions; never reverts on a remaining backlog. */
@@ -423,7 +390,7 @@ export const sendMission = atomic(function sendMission(
   settleForAction(w, p, b, now);
 
   const cargo = kind === TRANSPORT ? resources : w.rs.resources.map(() => 0n);
-  const duration = charge(w, p, b, troops, cargo, distance(w.rs, b.coord, target), 0n);
+  const duration = charge(w, p, b, troops, cargo, distance(w.rs, b.coord, target));
   const m = create(w, p, b, troops, cargo, duration, now);
   m.kind = kind;
   m.target = { ...target };
@@ -433,7 +400,7 @@ export const sendMission = atomic(function sendMission(
 
 /**
  * Only attack troops present in the building; speed = slowest, capacity and salary summed. Pays
- * cargo + salary (+ bond) and takes the troops out; returns the one-way travel time over `dist`.
+ * cargo + salary and takes the troops out; returns the one-way travel time over `dist`.
  */
 function charge(
   w: World,
@@ -442,7 +409,6 @@ function charge(
   troops: bigint[],
   cargo: bigint[],
   dist: bigint,
-  bond: bigint,
 ): bigint {
   if (troops.length !== w.rs.troops.length) fail("InvalidTroops");
   let units = 0n;
@@ -468,7 +434,7 @@ function charge(
   if (carried > 0n && carried + salary > capacity) fail("CargoExceeded");
   const sr = w.rs.roles.salaryResource;
   const cost = Object.fromEntries(
-    w.rs.resources.map((r, i) => [r, cargo[i]! + (i === sr ? salary + bond : 0n)]),
+    w.rs.resources.map((r, i) => [r, cargo[i]! + (i === sr ? salary : 0n)]),
   );
   if (!affordable(w, b, cost)) fail("CannotAfford");
   pay(w, b, cost);
@@ -502,9 +468,7 @@ function create(
     from: { ...b.coord },
     hidden: false,
     cover: 0n,
-    bond: 0n,
     commit: ZERO_COMMIT,
-    reportedAt: 0n,
   };
   w.missions.set(m.id, m);
   p.missions += 1n;
@@ -548,14 +512,12 @@ export const sendHiddenMission = atomic(function sendHiddenMission(
   if (p.missions >= BigInt(c.maxOutgoingMissions)) fail("TooManyMissions");
   settleForAction(w, p, b, now);
 
-  const bond = w.hiddenBond;
-  const duration = charge(w, p, b, troops, resources, cover * c.distanceUnit, bond);
+  const duration = charge(w, p, b, troops, resources, cover * c.distanceUnit);
   // The arrival must not pass the round the ciphertext was encrypted for (B-22).
   if (now + duration > deadline) fail("TooLate");
   const m = create(w, p, b, troops, resources, duration, now);
   m.hidden = true;
   m.cover = cover;
-  m.bond = bond;
   m.commit = commit.toLowerCase();
   return m.id;
 });
@@ -563,8 +525,9 @@ export const sendHiddenMission = atomic(function sendHiddenMission(
 /**
  * Anyone may reveal a hidden mission until its grace ends: it checks the commitment and the target
  * only, and touches no building, so it never drains the queue. An invalid reveal fails; past the
- * grace it does nothing and the mission is forfeited. A reveal that lands late (after the bond
- * refund deadline) still resolves the mission, but the bond is lost (B-22).
+ * grace it does nothing (the mission is forfeited instead). A mission revealed after its arrival
+ * (parked, or still queued because nothing drained it since) gets the reveal time as its arrival
+ * and a fresh seq: it resolves against the target's state at this second (B-22).
  */
 export const reveal = atomic(function reveal(
   w: World,
@@ -576,16 +539,33 @@ export const reveal = atomic(function reveal(
 ): void {
   const m = w.missions.get(missionId);
   if (!m || !m.hidden || m.returning) return; // already revealed, recalled or resolved: clients race
-  if (now >= m.arrival + w.rs.config.hiddenRevealGrace) return;
+  if (now >= m.arrival + w.rs.config.hiddenRevealGrace) return; // forfeit instead
   if (hiddenCommit(m.owner, kind, target, salt) !== m.commit) fail("BadReveal");
   checkTarget(w, kind, target, m.from);
   if (distance(w.rs, m.from, target) > m.cover * w.rs.config.distanceUnit) fail("InvalidCover");
   if (kind !== TRANSPORT && m.cargo.some((r) => r > 0n)) fail("InvalidMission");
   m.hidden = false;
-  m.reportedAt = 0n; // a valid reveal answers a garbage report
-  if (now >= m.arrival + w.rs.config.hiddenBondRefund) m.bond = 0n;
   m.kind = kind;
   m.target = { ...target };
+  if (m.arrival <= now) {
+    dequeue(w, m);
+    m.arrival = now;
+    m.seq = w.seq++;
+    enqueue(w, m);
+  }
+});
+
+/**
+ * Past the grace, anyone sends a hidden mission nobody revealed back home: it turns back from now
+ * with all its troops and cargo (B-22). It touches no building, so it never drains the queue; the
+ * keeper and the sender race, so a mission no longer hidden is ignored.
+ */
+export const forfeit = atomic(function forfeit(w: World, missionId: bigint, now: bigint): void {
+  const m = w.missions.get(missionId);
+  if (!m || !m.hidden || m.returning) return;
+  if (now < m.arrival + w.rs.config.hiddenRevealGrace) fail("TooEarly");
+  dequeue(w, m);
+  sendBack(w, m, now);
 });
 
 /** A mission not yet returning turns back, arriving after the time already travelled. */
@@ -599,7 +579,7 @@ export const recall = atomic(function recall(
   const pid = active(w, controller, now).id;
   const m = w.missions.get(missionId);
   if (!m || m.owner !== pid || m.returning) fail("NotRecallable");
-  w.pending.splice(w.pending.indexOf(m.id), 1);
+  dequeue(w, m);
   m.returning = true;
   m.arrival = now + (now - m.start);
   m.start = now;

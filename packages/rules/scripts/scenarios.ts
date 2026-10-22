@@ -70,15 +70,12 @@ const ACTION = {
   acceptController: 44, // [player], by the invited address
   cancelInvite: 45, // [invited (actor id)]
   acceptTransfer: 46, // [player], by the transfer's target
-  reportGarbage: 47, // [mission], by a listed keeper
-  setKeeper: 48, // [keeper (actor id), allowed 0/1], by the admin
-  setHiddenBond: 49, // [bond], by the admin
+  forfeit: 47, // [mission], by anyone past the grace
   registerDebt: 50, // [trade]
 } as const;
 
-/** Keepers in the scenarios (B-22): actor 900 is listed, 901 never is. */
-const KEEPER = 900;
-const NOT_KEEPER = 901;
+/** Whoever forfeits a parked hidden mission (B-22): a bystander, the keeper in real life. */
+const ANYONE = 900;
 /** Hidden sends use this deadline unless they test TooLate (B-22). */
 const FAR = 4_000_000_000;
 
@@ -98,13 +95,7 @@ const NAMES = [
 ];
 
 /** Admin actions run as the owner in Scenarios.t.sol. */
-const ADMIN_ACTIONS: number[] = [
-  ACTION.setGlobalPremium,
-  ACTION.suspend,
-  ACTION.grantPremium,
-  ACTION.setKeeper,
-  ACTION.setHiddenBond,
-];
+const ADMIN_ACTIONS: number[] = [ACTION.setGlobalPremium, ACTION.suspend, ACTION.grantPremium];
 
 /** `cover`: what a market action is meant to exercise, if it works out (MARKET_COVERAGE). */
 type Action = { action: number; args: number[]; cover?: string };
@@ -140,9 +131,6 @@ const SESSIONS = new Set<string>();
 /** Every (invited actor, player) pair ever invited, so consumed or dead ones are checked too. */
 const INVITED = new Set<string>();
 
-/** Every actor ever listed or delisted as a keeper. */
-const KEEPERS = new Set<number>();
-
 /** Plaintext of the hidden missions sent in the current scenario, by mission id: [kind, city, neighborhood, slot, salt]. */
 const SECRETS = new Map<number, number[]>();
 
@@ -152,7 +140,6 @@ const playerFor = (w: sim.World, controller: string) =>
 
 function snapshot(w: sim.World) {
   return {
-    hidden_bond: num(w.hiddenBond),
     invites: [...INVITED].map((k) => {
       const [actor, player] = k.split(":") as [string, string];
       const inv = w.invites.get(sim.inviteKey(actor, BigInt(player)));
@@ -165,8 +152,6 @@ function snapshot(w: sim.World) {
         until: inv ? num(inv.until) : 0,
       };
     }),
-    // actor id and whether it is listed, packed as actor × 2 + allowed.
-    keepers: [...KEEPERS].map((a) => a * 2 + (w.keepers.has(String(a)) ? 1 : 0)),
     sessions: [...SESSIONS].map((k) => {
       const s = w.sessions.get(k);
       return {
@@ -207,12 +192,11 @@ function snapshot(w: sim.World) {
         m.from.slot,
         m.hidden ? 1n : 0n,
         m.cover,
-        m.bond,
-        m.reportedAt,
       ].map(num),
       id: num(m.id),
       troops: m.troops.map(num),
     })),
+    parked: w.parked.map(num),
     players: [...w.players.values()].map((p) => ({
       buildings: num(p.buildings),
       centipoints: num(p.centipoints),
@@ -413,12 +397,8 @@ function run(w: sim.World, controller: string, a: Action, now: bigint): void {
       return sim.cancelInvite(w, controller, String(n[0]), now);
     case ACTION.acceptTransfer:
       return sim.acceptTransfer(w, controller, n[0]!, now);
-    case ACTION.reportGarbage:
-      return sim.reportGarbage(w, controller, n[0]!, now);
-    case ACTION.setKeeper:
-      return sim.setKeeper(w, String(n[0]), n[1] === 1n);
-    case ACTION.setHiddenBond:
-      return sim.setHiddenBond(w, n[0]!);
+    case ACTION.forfeit:
+      return sim.forfeit(w, n[0]!, now);
     case ACTION.registerDebt:
       return sim.registerDebt(w, controller, n[0]!, now);
     case ACTION.removeController:
@@ -458,7 +438,6 @@ const reqsMet = (
 function randomScenario(seed: number) {
   SESSIONS.clear();
   INVITED.clear();
-  KEEPERS.clear();
   const r = rng(seed);
   const pick = <T>(xs: T[]) => xs[Math.floor(r() * xs.length)]!;
   const w = sim.newWorld(rs);
@@ -717,17 +696,16 @@ function hide(
 }
 
 /**
- * Garbage reports (B-22) for the due hidden missions: by the listed keeper (sometimes too early),
- * now and then by an address that is no keeper. Returns [actor, action] pairs.
+ * Forfeits (B-22) of the due hidden missions nobody revealed: mostly past the grace, sometimes too
+ * early (TooEarly), now and then on one that is no longer hidden (a no-op).
  */
-function reportCandidates(w: sim.World, r: () => number, now: bigint): [number, Action][] {
-  const out: [number, Action][] = [];
+function forfeitCandidates(w: sim.World, r: () => number, now: bigint): Action[] {
+  const out: Action[] = [];
   for (const m of w.missions.values()) {
-    if (!m.hidden || m.returning || m.arrival > now || m.reportedAt !== 0n) continue;
-    if (r() < 0.5) {
-      const actor = r() < 0.1 ? NOT_KEEPER : KEEPER;
-      out.push([actor, { action: ACTION.reportGarbage, args: [num(m.id)] }]);
-    }
+    if (m.returning) continue;
+    const due = m.hidden && m.arrival <= now;
+    if (!due && r() > 0.02) continue;
+    if (r() < 0.5) out.push({ action: ACTION.forfeit, args: [num(m.id)] });
   }
   return out;
 }
@@ -1302,7 +1280,6 @@ function botScenario(seed: number, mode: Mode = "bots") {
   const market = mode === "market";
   SESSIONS.clear();
   INVITED.clear();
-  KEEPERS.clear();
   SECRETS.clear();
   const r = rng(seed);
   const w = sim.newWorld(rs);
@@ -1319,15 +1296,9 @@ function botScenario(seed: number, mode: Mode = "bots") {
       time: num(now),
     });
 
-  // Premium for everybody (long queues), then the players register next to each other. The bond
-  // comes down to what a new account can pay (B-22), and a keeper is listed.
+  // Premium for everybody (long queues), then the players register next to each other.
   const premium = { action: ACTION.setGlobalPremium, args: [Number(T0) + 100_000_000] };
   record(0, premium, attempt(w, "admin", premium, now));
-  const bond = { action: ACTION.setHiddenBond, args: [num(rs.config.hiddenMissionBondMin)] };
-  record(0, bond, attempt(w, "admin", bond, now));
-  KEEPERS.add(KEEPER);
-  const keeper = { action: ACTION.setKeeper, args: [KEEPER, 1] };
-  record(0, keeper, attempt(w, "admin", keeper, now));
   for (let i = 0; i < actors; i++) {
     const reg = { action: ACTION.register, args: [1, 1, 1 + i * 7] };
     record(i, reg, attempt(w, String(i), reg, now));
@@ -1359,8 +1330,9 @@ function botScenario(seed: number, mode: Mode = "bots") {
       if (due) now = before + BigInt(1 + Math.floor(r() * 600));
     }
     if ((hidden || market) && r() < (hidden ? 0.4 : 0.5)) {
-      // Land right after the next hidden arrival, often within its reveal grace (market bots:
-      // always within it, so the debtor's hidden transports get revealed and bounce).
+      // Land right after the next hidden arrival, often within its reveal grace, so reveals,
+      // forfeits and actions interleave with parked missions (market bots: always within it, so
+      // the debtor's hidden transports get revealed and bounce).
       const next = [...w.missions.values()]
         .filter((m) => m.hidden && !m.returning && m.arrival > before)
         .filter((m) => !market || BOUNCERS.has(num(m.id)))
@@ -1368,8 +1340,7 @@ function botScenario(seed: number, mode: Mode = "bots") {
       if (next) now = next.arrival + BigInt(Math.floor(r() * (market ? 50 : 90)));
     }
     if (r() < 0.035) {
-      // The admin suspends, lifts or grants premium to a random player, retunes the bond (within
-      // or outside the bounds) or lists / delists a keeper.
+      // The admin suspends, lifts or grants premium to a random player.
       const player = 1 + Math.floor(r() * actors);
       const k = r();
       let a: Action;
@@ -1377,28 +1348,21 @@ function botScenario(seed: number, mode: Mode = "bots") {
         a = { action: ACTION.suspend, args: [player, Number(now) + Math.floor(r() * 200_000)] };
       } else if (k < 0.45) {
         a = { action: ACTION.suspend, args: [player, 0] };
-      } else if (k < 0.75) {
+      } else {
         a = {
           action: ACTION.grantPremium,
           args: [player, Number(now) + Math.floor(r() * 3_000_000)],
         };
-      } else if (k < 0.9) {
-        const bonds = [500, 1000, 1500, 2000, 150_000];
-        a = { action: ACTION.setHiddenBond, args: [bonds[Math.floor(r() * bonds.length)]!] };
-      } else {
-        const who = r() < 0.7 ? KEEPER : NOT_KEEPER;
-        KEEPERS.add(who);
-        a = { action: ACTION.setKeeper, args: [who, r() < 0.8 ? 1 : 0] };
       }
       record(0, a, attempt(w, "admin", a, now));
       continue;
     }
     if ((hidden || market) && r() < 0.2) {
-      // The keeper (or somebody who is none) reports a due hidden mission as garbage.
-      const reports = reportCandidates(w, r, now);
-      if (reports.length > 0) {
-        const [who, a] = reports[Math.floor(r() * reports.length)]!;
-        record(who, a, attempt(w, String(who), a, now));
+      // A bystander forfeits a parked hidden mission (B-22).
+      const forfeits = forfeitCandidates(w, r, now);
+      if (forfeits.length > 0) {
+        const a = forfeits[Math.floor(r() * forfeits.length)]!;
+        record(ANYONE, a, attempt(w, String(ANYONE), a, now));
         continue;
       }
     }
@@ -1536,7 +1500,6 @@ function botScenario(seed: number, mode: Mode = "bots") {
 function scriptedMarketScenario(seed: number) {
   SESSIONS.clear();
   INVITED.clear();
-  KEEPERS.clear();
   SECRETS.clear();
   const w = sim.newWorld(rs);
   let now = T0;
@@ -1616,7 +1579,6 @@ function scriptedMarketScenario(seed: number) {
   // Premium on; three players next to each other; a boot camp each; movers (10000 of cargo) for
   // Alice and Bob, rowdies for everyone. Carol buys no mover yet: her dollars stay near the cap.
   ok(act(-1, ACTION.setGlobalPremium, [Number(T0) + 100_000_000]), "premium");
-  ok(act(-1, ACTION.setHiddenBond, [num(rs.config.hiddenMissionBondMin)]), "bond");
   for (let i = 0; i < 3; i++) ok(act(i, ACTION.register, [1, 1, 1 + i * 7]), "register");
   for (let i = 0; i < 3; i++) ok(act(i, ACTION.queueRoom, [bid(i), room("boot_camp")]), "camp");
   jump(3 * 86400);
@@ -1808,7 +1770,6 @@ function scriptedMarketScenario(seed: number) {
 function scriptedControllersScenario(seed: number) {
   SESSIONS.clear();
   INVITED.clear();
-  KEEPERS.clear();
   SECRETS.clear();
   const w = sim.newWorld(rs);
   let now = T0;
@@ -1995,13 +1956,12 @@ console.log(
   `packages/rules/generated/scenarios/vendetta/: ${scenarios.length} scenarios, ${steps.length} steps, ` +
     `${steps.filter((x) => x.error).length} expected reverts; ok: ${count(ACTION.train)} train, ` +
     `${count(ACTION.sendMission)} missions, ${count(ACTION.sendHiddenMission)} hidden, ` +
-    `${count(ACTION.reveal)} reveals, ${steps.filter((x) => x.error === "Unrevealed").length} unrevealed, ` +
+    `${count(ACTION.reveal)} reveals, ${count(ACTION.forfeit)} forfeits, ` +
     `${count(ACTION.recall)} recalls, ${count(ACTION.abandon)} abandons, ` +
     `${count(ACTION.authorizeSession)} sessions (${count(ACTION.acceptSession)} accepted), ` +
     `${count(ACTION.inviteController)} invited + ${count(ACTION.acceptController)} joined - ` +
     `${count(ACTION.removeController)} controllers (${EXECUTED.removals} executed, ` +
     `${count(ACTION.cancelRemoval)} cancelled), ${EXECUTED.transfers} transfers executed, ` +
     `${count(ACTION.claimTrade)} claims, ${count(ACTION.registerDebt)} registrations, ` +
-    `${count(ACTION.reportGarbage)} reports, ` +
     `${steps.filter((x) => x.error === "InDebt").length} InDebt`,
 );

@@ -174,23 +174,6 @@ export const setGlobalPremium = atomic(function setGlobalPremium(w: World, until
   w.globalPremiumUntil = until;
 });
 
-/** Admin only: the hidden mission bond in force, within the configured bounds (B-22). */
-export const setHiddenBond = atomic(function setHiddenBond(w: World, bond: bigint): void {
-  const c = w.rs.config;
-  if (bond < c.hiddenMissionBondMin || bond > c.hiddenMissionBondMax) fail("InvalidBond");
-  w.hiddenBond = bond;
-});
-
-/** Admin only: an address that may report garbage ciphertexts (B-22). */
-export const setKeeper = atomic(function setKeeper(
-  w: World,
-  keeper: string,
-  allowed: boolean,
-): void {
-  if (allowed) w.keepers.add(keeper);
-  else w.keepers.delete(keeper);
-});
-
 /** Anyone can bring a building up to date. */
 export const poke = atomic(function poke(w: World, buildingId: bigint, now: bigint): void {
   drain(w, now);

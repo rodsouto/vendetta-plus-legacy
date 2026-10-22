@@ -160,18 +160,8 @@ export interface Config {
   occupationTroopsConsumed: bigint;
   /** Missions a player can have in flight (B-09). */
   maxOutgoingMissions: number;
-  /** Starting hidden mission bond (salary resource); the admin tunes it within the bounds (B-22). */
-  hiddenMissionBond: bigint;
-  hiddenMissionBondMin: bigint;
-  hiddenMissionBondMax: bigint;
-  /** How long a due hidden mission blocks the queue before it is forfeited (B-22). */
+  /** A parked hidden mission (nobody revealed it) can be forfeited from here on (B-22). */
   hiddenRevealGrace: bigint;
-  /** The bond comes back only when the reveal lands this soon after the arrival (B-22). */
-  hiddenBondRefund: bigint;
-  /** A listed keeper may report a garbage ciphertext from here on (B-22). */
-  hiddenReportDelay: bigint;
-  /** A reported mission is forfeited unless revealed within this window (B-22). */
-  hiddenReportWindow: bigint;
   /** A controller or transfer invitation lasts this long (B-26). */
   inviteTtl: bigint;
   /** Honor power never drops below this percentage (D-27). */
@@ -340,13 +330,7 @@ export function loadRuleset(raw: RawRuleset, cfg: typeof gameConfig): Ruleset {
       occupationBuildSpeedLevel: BigInt(cfg.occupation.starting_build_speed_room_level),
       occupationTroopsConsumed: BigInt(cfg.occupation.occupation_troops_consumed),
       maxOutgoingMissions: cfg.onchain.max_outgoing_missions_per_player,
-      hiddenMissionBond: BigInt(cfg.onchain.hidden_mission_bond),
-      hiddenMissionBondMin: BigInt(cfg.onchain.hidden_mission_bond_min),
-      hiddenMissionBondMax: BigInt(cfg.onchain.hidden_mission_bond_max),
       hiddenRevealGrace: BigInt(cfg.onchain.hidden_reveal_grace_seconds),
-      hiddenBondRefund: BigInt(cfg.onchain.hidden_bond_refund_seconds),
-      hiddenReportDelay: BigInt(cfg.onchain.hidden_report_delay_seconds),
-      hiddenReportWindow: BigInt(cfg.onchain.hidden_report_window_seconds),
       inviteTtl: BigInt(cfg.onchain.invite_ttl_seconds),
       honorMinPercent: BigInt(cfg.honor.min_power_percent),
       vacationSeconds: BigInt(cfg.vacation.duration_days) * 86400n,

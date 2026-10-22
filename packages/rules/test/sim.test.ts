@@ -366,7 +366,7 @@ describe("sim: families and wars (D-20, B-31)", () => {
   });
 });
 
-describe("sim: hidden missions (B-22): bond, refund deadline, garbage report", () => {
+describe("sim: hidden missions (B-22): parking, reveal at the reveal time, forfeit", () => {
   const ROWDY = rs.troops.findIndex((t) => t.id === "rowdy");
   const rowdies = (n: bigint) => rs.troops.map((_, i) => (i === ROWDY ? n : 0n));
   const none = [0n, 0n, 0n, 0n];
@@ -376,8 +376,6 @@ describe("sim: hidden missions (B-22): bond, refund deadline, garbage report", (
     const w = sim.newWorld(rs);
     let now = 1_700_000_000n;
     sim.setGlobalPremium(w, now + 3650n * 86400n);
-    sim.setHiddenBond(w, c.hiddenMissionBondMin);
-    sim.setKeeper(w, "keeper", true);
     sim.register(w, "alice", at, now);
     sim.register(w, "bob", { ...at, slot: 2n }, now);
     sim.queueRoom(w, "alice", 1n, room("boot_camp"), now);
@@ -402,72 +400,95 @@ describe("sim: hidden missions (B-22): bond, refund deadline, garbage report", (
       now,
     );
 
-  it("the admin sets the bond within the bounds; a new deployment starts at the configured one", () => {
-    const w = sim.newWorld(rs);
-    expect(w.hiddenBond).toBe(c.hiddenMissionBond);
-    expect(() => sim.setHiddenBond(w, c.hiddenMissionBondMin - 1n)).toThrow("InvalidBond");
-    expect(() => sim.setHiddenBond(w, c.hiddenMissionBondMax + 1n)).toThrow("InvalidBond");
-    sim.setHiddenBond(w, 2000n);
-    expect(w.hiddenBond).toBe(2000n);
-  });
-
-  it("a late reveal keeps the stall it caused: the bond is lost; past the grace it does nothing", () => {
-    const { w, now } = ready();
-    const id = sendHidden(w, now);
-    const m = w.missions.get(id)!;
-    const S = sim.stockScale(rs);
-    sim.reveal(w, id, sim.ATTACK, target, salt, m.arrival + c.hiddenBondRefund - 1n);
-    expect(m.bond).toBe(c.hiddenMissionBondMin);
-    sim.advance(w, 1, m.arrival + c.hiddenBondRefund);
-    expect(m.returning).toBe(true);
-    const late = sendHidden(w, m.arrival + c.hiddenBondRefund, 2n);
-    const l = w.missions.get(late)!;
-    const before = w.buildings.get(1n)!.stock[3]!;
-    sim.reveal(w, late, sim.ATTACK, target, salt, l.arrival + c.hiddenBondRefund);
-    expect(l.bond).toBe(0n);
-    sim.advance(w, 10, l.arrival + c.hiddenBondRefund);
-    expect(l.returning).toBe(true);
-    expect(l.cargo[0]).toBeGreaterThan(0n);
-    expect(w.buildings.get(1n)!.stock[3]! - before).toBeLessThan(c.hiddenMissionBondMin * S);
-    const gone = sendHidden(w, l.arrival + c.hiddenBondRefund, 1n);
-    const g = w.missions.get(gone)!;
-    sim.reveal(w, gone, sim.ATTACK, target, salt, g.arrival + c.hiddenRevealGrace);
-    expect(g.hidden).toBe(true); // a no-op: forfeited when processed
-  });
-
-  it("a listed keeper's report shortens the grace unless somebody reveals in time", () => {
+  it("a due mission nobody revealed is parked: the queue goes on and every action works", () => {
     const { w, now } = ready();
     const id = sendHidden(w, now);
     // A failed action restores the world from a copy (atomic): look the mission up again.
     const m = () => w.missions.get(id)!;
     const arrival = m().arrival;
-    expect(() => sim.reportGarbage(w, "anyone", id, arrival + c.hiddenReportDelay)).toThrow(
-      "NotKeeper",
-    );
-    expect(() => sim.reportGarbage(w, "keeper", id, arrival + c.hiddenReportDelay - 1n)).toThrow(
-      "TooEarly",
-    );
-    sim.reportGarbage(w, "keeper", id, arrival + c.hiddenReportDelay);
-    const reported = m().reportedAt;
-    expect(reported).toBe(arrival + c.hiddenReportDelay);
-    sim.reportGarbage(w, "keeper", id, reported + 1n); // a second report does nothing
-    expect(m().reportedAt).toBe(reported);
-    expect(() => sim.poke(w, 2n, reported + c.hiddenReportWindow - 1n)).toThrow("Unrevealed");
-    sim.poke(w, 2n, reported + c.hiddenReportWindow); // forfeited, inside the grace
+    sim.poke(w, 2n, arrival); // bob moves first: the attack waits for its reveal, parked
+    expect(w.parked).toEqual([id]);
+    expect(w.pending).toEqual([]);
+    expect(sim.advance(w, 5, arrival)).toBe(0);
+    sim.queueRoom(w, "bob", 2n, room("boot_camp"), arrival); // the world does not stall
+    sim.reveal(w, id, sim.ATTACK, target, salt, arrival + 10n);
+    expect(w.parked).toEqual([]);
+    expect(w.pending).toEqual([id]);
+    expect(m().hidden).toBe(false);
+    expect(m().arrival).toBe(arrival + 10n); // arrives at the reveal
+    expect(sim.advance(w, 1, arrival + 10n)).toBe(1);
     expect(m().returning).toBe(true);
-    expect(m().bond).toBe(0n);
-    // A reveal inside the window answers the report.
-    const other = sendHidden(w, reported + c.hiddenReportWindow, 2n);
+    expect(m().cargo[0]).toBeGreaterThan(0n); // an attack against bob's state at the reveal
+    expect(m().start).toBe(arrival + 10n);
+  });
+
+  it("a reveal after the arrival moves it to the reveal even when nothing drained the queue", () => {
+    const { w, now } = ready();
+    const id = sendHidden(w, now);
+    const m = w.missions.get(id)!;
+    const arrival = m.arrival;
+    sim.reveal(w, id, sim.ATTACK, target, salt, arrival + 5n);
+    expect(m.arrival).toBe(arrival + 5n);
+    expect(w.pending).toEqual([id]);
+    sim.advance(w, 1, arrival + 5n);
+    expect(m.cargo[0]).toBeGreaterThan(0n);
+  });
+
+  it("the parked list is a swap-remove list, as on-chain", () => {
+    const { w, now } = ready();
+    const a = sendHidden(w, now, 3n);
+    const b = sendHidden(w, now, 2n);
+    const d = sendHidden(w, now, 1n);
+    const arrival = w.missions.get(d)!.arrival;
+    sim.poke(w, 1n, arrival);
+    expect(w.parked).toEqual([a, b, d]);
+    sim.reveal(w, a, sim.ATTACK, target, salt, arrival);
+    expect(w.parked).toEqual([d, b]);
+    sim.reveal(w, b, sim.ATTACK, target, salt, arrival);
+    expect(w.parked).toEqual([d]);
+  });
+
+  it("past the grace anyone forfeits a parked mission: it turns back from then; a reveal does nothing", () => {
+    const { w, now } = ready();
+    const id = sendHidden(w, now);
+    const m = () => w.missions.get(id)!;
+    const arrival = m().arrival;
+    sim.poke(w, 2n, arrival);
+    expect(() => sim.forfeit(w, id, arrival + c.hiddenRevealGrace - 1n)).toThrow("TooEarly");
+    sim.reveal(w, id, sim.ATTACK, target, salt, arrival + c.hiddenRevealGrace); // a no-op
+    expect(m().hidden).toBe(true);
+    const when = arrival + c.hiddenRevealGrace + 7n;
+    sim.forfeit(w, id, when);
+    expect(m().returning).toBe(true);
+    expect(m().hidden).toBe(true); // never revealed
+    expect(m().troops[ROWDY]).toBe(5n);
+    expect(m().cargo[0]).toBe(0n); // bob untouched
+    expect(m().start).toBe(when); // turned back from now
+    expect(m().arrival).toBe(when + m().duration);
+    expect(w.parked).toEqual([]);
+    sim.forfeit(w, id, when); // no longer parked: a no-op, the keeper and the sender race
+    sim.advance(w, 1, m().arrival);
+    expect(w.buildings.get(1n)!.troops[ROWDY]).toBe(7n);
+  });
+
+  it("a due mission still queued can be forfeited, and a parked one recalled", () => {
+    const { w, now } = ready();
+    const id = sendHidden(w, now, 2n);
+    const arrival = w.missions.get(id)!.arrival;
+    sim.forfeit(w, id, arrival + c.hiddenRevealGrace);
+    expect(w.missions.get(id)!.returning).toBe(true);
+    expect(w.pending).toEqual([id]);
+    const other = sendHidden(w, arrival + c.hiddenRevealGrace, 3n);
     const o = () => w.missions.get(other)!;
     const arrival2 = o().arrival;
-    sim.reportGarbage(w, "keeper", other, arrival2 + c.hiddenReportDelay);
-    sim.reveal(w, other, sim.ATTACK, target, salt, arrival2 + c.hiddenReportDelay + 5n);
-    expect(o().reportedAt).toBe(0n);
-    expect(o().bond).toBe(c.hiddenMissionBondMin);
-    sim.setKeeper(w, "keeper", false);
-    expect(() => sim.reportGarbage(w, "keeper", other, arrival2 + c.hiddenReportDelay)).toThrow(
-      "NotKeeper",
-    );
+    sim.advance(w, 10, arrival2); // the first one is home, the other one parked
+    expect(w.parked).toEqual([other]);
+    sim.recall(w, "alice", other, arrival2 + 10n);
+    expect(w.parked).toEqual([]);
+    expect(o().returning).toBe(true);
+    expect(o().start).toBe(arrival2 + 10n);
+    sim.advance(w, 10, o().arrival);
+    expect(w.buildings.get(1n)!.troops[ROWDY]).toBe(7n);
   });
 
   it("a vacation started in the send second, after the send, does not protect (B-07)", () => {
@@ -886,7 +907,6 @@ describe("sim: market default (D-19 Default, B-11)", () => {
     // Hidden transports leave unchecked and bounce on arrival (B-22, B-11).
     const salt = 7n;
     const commit = sim.hiddenCommit(2n, sim.TRANSPORT, carol, salt);
-    sim.setHiddenBond(w, rs.config.hiddenMissionBondMin); // affordable by a new account
     expect(() =>
       sim.sendHiddenMission(w, "bob", 2n, commit, 3n, units(MOVER, 1n), [5n, 0n, 0n, 0n], now, now),
     ).toThrow("TooLate"); // the timelock's round would open before the arrival
@@ -902,7 +922,6 @@ describe("sim: market default (D-19 Default, B-11)", () => {
       now,
     );
     const h = w.missions.get(hidden)!;
-    expect(h.bond).toBe(rs.config.hiddenMissionBondMin);
     sim.reveal(w, hidden, sim.TRANSPORT, carol, salt, now);
     // Carol's stock as of the arrival: the bounce must not add to it.
     sim.settle(w, w.buildings.get(3n)!, h.arrival);

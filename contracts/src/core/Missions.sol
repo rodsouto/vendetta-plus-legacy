@@ -27,7 +27,6 @@ import {Battle} from "./Battle.sol";
 import {MarketRules} from "./Market.sol";
 import {
     Backlog,
-    Unrevealed,
     BadReveal,
     InvalidCover,
     InvalidMission,
@@ -45,7 +44,6 @@ import {
     InDebt,
     TooLate,
     TooEarly,
-    NotKeeper,
     IGameEvents
 } from "./GameErrors.sol";
 
@@ -69,9 +67,7 @@ library Missions {
         CoreState storage s = GameStorage.core();
         _processDue(s, MAX_MISSIONS_PER_TX);
         uint64 head = Heap.head(s);
-        if (head == 0 || s.missions[head].arrival > block.timestamp) return;
-        if (_awaitingReveal(s.missions[head])) revert Unrevealed();
-        revert Backlog();
+        if (head != 0 && s.missions[head].arrival <= block.timestamp) revert Backlog();
     }
 
     /// Anyone can process up to `max` due missions; never reverts on a remaining backlog (only when
@@ -80,56 +76,43 @@ library Missions {
         return _processDue(GameStorage.core(), max);
     }
 
+    /// Takes due missions out of the queue, at most `max`: a due hidden mission nobody revealed
+    /// yet is parked instead of processed (B-22) and counts as one.
     function _processDue(CoreState storage s, uint256 max) private returns (uint256 n) {
         while (n < max) {
             uint64 id = Heap.head(s);
             if (id == 0) break;
             Mission storage m = s.missions[id];
-            if (m.arrival > block.timestamp || _awaitingReveal(m)) break;
+            if (m.arrival > block.timestamp) break;
             if (gasleft() < MISSION_GAS_RESERVE) revert Backlog();
             Heap.remove(s, id);
-            _process(s, id);
+            if (m.hidden && !m.returning) _park(s, id);
+            else _process(s, id);
             ++n;
         }
     }
 
-    /// A due hidden mission still within its reveal grace stops the queue (B-22); a garbage report
-    /// by a listed keeper shortens the grace to its window.
-    function _awaitingReveal(Mission storage m) private view returns (bool) {
-        if (!m.hidden || m.returning) return false;
-        uint256 end = uint256(m.arrival) + Ruleset.HIDDEN_REVEAL_GRACE;
-        if (m.reportedAt != 0) {
-            uint256 reported = uint256(m.reportedAt) + Ruleset.HIDDEN_REPORT_WINDOW;
-            if (reported < end) end = reported;
-        }
-        return block.timestamp < end;
+    /// A due hidden mission nobody revealed yet leaves the queue for the parked list (B-22).
+    function _park(CoreState storage s, uint64 id) private {
+        s.parked.push(id);
+        s.parkedPos[id] = s.parked.length;
+        emit IGameEvents.MissionParked(id);
     }
 
-    /// A listed keeper reports a ciphertext that does not decrypt or does not reproduce the
-    /// commitment, once the drand round is out (B-22): the mission is forfeited unless somebody
-    /// reveals it within the report window. A second report, or one on a mission that is no
-    /// longer hidden, does nothing: keepers race.
-    function reportGarbage(address caller, uint64 missionId) external {
-        CoreState storage s = GameStorage.core();
-        if (!s.keepers[caller]) revert NotKeeper();
-        Mission storage m = s.missions[missionId];
-        if (!m.hidden || m.returning || m.reportedAt != 0) return;
-        if (block.timestamp >= uint256(m.arrival) + Ruleset.HIDDEN_REVEAL_GRACE) return;
-        if (block.timestamp < uint256(m.arrival) + Ruleset.HIDDEN_REPORT_DELAY) revert TooEarly();
-        m.reportedAt = uint40(block.timestamp);
-        emit IGameEvents.GarbageReported(missionId, caller);
+    /// Swap-remove from the parked list (mirrored by the simulator, so the lists match).
+    function _unpark(CoreState storage s, uint64 id) private {
+        uint256 i = s.parkedPos[id] - 1;
+        uint64 last = s.parked[s.parked.length - 1];
+        s.parked[i] = last;
+        s.parkedPos[last] = i + 1;
+        s.parked.pop();
+        delete s.parkedPos[id];
     }
 
-    /// A revealed hidden mission gives its bond back to the origin building, if still its own.
-    function _refundBond(CoreState storage s, Mission storage m, uint256 t) private {
-        Building storage origin = s.buildings[m.origin];
-        if (origin.owner == m.owner) {
-            SettleLib.settleBefore(m.origin, t, m.seq);
-            uint256[RESOURCES] memory bond;
-            bond[Ruleset.SALARY_RESOURCE] = m.bond;
-            Settlement.credit(origin, bond);
-        }
-        m.bond = 0;
+    /// Takes a mission out of the queue or the parked list, wherever it is.
+    function _dequeue(CoreState storage s, uint64 id) private {
+        if (s.heapPos[id] != 0) Heap.remove(s, id);
+        else _unpark(s, id);
     }
 
     function _finish(CoreState storage s, uint64 id) private {
@@ -170,18 +153,11 @@ library Missions {
         Mission storage m = s.missions[id];
         uint256 t = m.arrival;
         if (m.returning) return _arriveHome(s, id, t);
-        if (m.hidden) {
-            m.bond = 0; // forfeit: nobody revealed it within the grace (B-22)
-            emit IGameEvents.MissionForfeited(id);
-            return _sendBack(s, id, t);
-        }
         uint64 target = s.buildingAt[GameStorage.coordKey(m.city, m.neighborhood, m.slot)];
         uint64 targetOwner = target == 0 ? 0 : s.buildings[target].owner;
-        if (m.cover > 0) {
-            _refundBond(s, m, t);
-            if (target != 0 && _sentDuringVacation(s.players[targetOwner], m)) {
-                return _sendBack(s, id, t);
-            }
+        // D-18 for a hidden mission, checked when it resolves (B-22).
+        if (m.cover > 0 && target != 0 && _sentDuringVacation(s.players[targetOwner], m)) {
+            return _sendBack(s, id, t);
         }
         uint8 kind = m.kind;
         if (kind == ATTACK) {
@@ -249,9 +225,7 @@ library Missions {
             for (uint256 i; i < TROOPS; ++i) {
                 origin.troops[i] += m.troops[i];
             }
-            uint256[RESOURCES] memory back = _cargo(m);
-            back[Ruleset.SALARY_RESOURCE] += m.bond;
-            Settlement.credit(origin, back);
+            Settlement.credit(origin, _cargo(m));
         } else {
             // The building was abandoned: troops are lost.
             Player storage p = s.players[m.owner];
@@ -295,9 +269,7 @@ library Missions {
 
         Plan memory plan = _plan(p, b, troops);
         if (kind != TRANSPORT) delete resources;
-        _charge(
-            b, plan, Map.distance([uint256(b.city), b.neighborhood, b.slot], target), resources, 0
-        );
+        _charge(b, plan, Map.distance([uint256(b.city), b.neighborhood, b.slot], target), resources);
         mid = _create(s, pid, id, troops, resources, plan.duration);
         Mission storage m = s.missions[mid];
         (m.kind, m.city, m.neighborhood, m.slot) =
@@ -330,7 +302,7 @@ library Missions {
         emit IGameEvents.HiddenMissionSent(mid, commit, cover, ciphertext);
     }
 
-    /// Checks, charges (salary over the cover, cargo and the bond in force) and creates the mission.
+    /// Checks, charges (salary over the cover and the cargo) and creates the mission.
     function _createHidden(
         CoreState storage s,
         address caller,
@@ -344,10 +316,12 @@ library Missions {
         if (p.missions >= Ruleset.MAX_OUTGOING_MISSIONS) revert TooManyMissions();
         Access.settleForAction(s, p, id);
         Plan memory plan = _plan(p, b, troops);
-        _charge(b, plan, uint256(cover) * Ruleset.DISTANCE_UNIT, resources, s.hiddenBond);
+        _charge(b, plan, uint256(cover) * Ruleset.DISTANCE_UNIT, resources);
         p.missions += 1;
         mid = _create(s, pid, id, troops, resources, plan.duration);
-        _markHidden(s.missions[mid], cover, s.hiddenBond);
+        Mission storage m = s.missions[mid];
+        m.hidden = true;
+        m.cover = cover;
     }
 
     /// `1 ≤ cover ≤` the distance from the origin to the farthest map corner (B-22).
@@ -358,20 +332,17 @@ library Missions {
         }
     }
 
-    function _markHidden(Mission storage m, uint32 cover, uint64 bond) private {
-        m.hidden = true;
-        m.cover = cover;
-        m.bond = bond;
-    }
-
     /// Anyone may reveal a hidden mission until its grace ends: it checks the commitment and the
     /// target only, and touches no building, so it never drains the queue. An invalid reveal
-    /// reverts; past the grace it does nothing and the mission is forfeited. A reveal that lands
-    /// late (after HIDDEN_BOND_REFUND) still resolves the mission, but the bond is lost (B-22).
+    /// reverts; past the grace it does nothing (the mission is forfeited instead). A mission
+    /// revealed after its arrival (parked, or still queued because nothing drained it since) gets
+    /// the reveal time as its arrival and a fresh seq: it resolves against the target's state at
+    /// this second (B-22).
     function reveal(uint64 missionId, uint8 kind, uint256[3] memory target, bytes32 salt) external {
-        Mission storage m = GameStorage.core().missions[missionId];
+        CoreState storage s = GameStorage.core();
+        Mission storage m = s.missions[missionId];
         if (!m.hidden || m.returning) return; // already revealed, recalled or resolved: clients race
-        if (block.timestamp >= uint256(m.arrival) + Ruleset.HIDDEN_REVEAL_GRACE) return;
+        if (block.timestamp >= uint256(m.arrival) + Ruleset.HIDDEN_REVEAL_GRACE) return; // forfeit
         if (keccak256(abi.encode(m.owner, kind, target[0], target[1], target[2], salt)) != m.commit)
         {
             revert BadReveal();
@@ -387,11 +358,28 @@ library Missions {
             }
         }
         m.hidden = false;
-        m.reportedAt = 0; // a valid reveal answers a garbage report
-        if (block.timestamp >= uint256(m.arrival) + Ruleset.HIDDEN_BOND_REFUND) m.bond = 0;
         (m.kind, m.city, m.neighborhood, m.slot) =
         (kind, uint8(target[0]), uint8(target[1]), uint8(target[2]));
+        if (m.arrival <= block.timestamp) {
+            _dequeue(s, missionId);
+            m.arrival = uint40(block.timestamp);
+            m.seq = s.seq++;
+            Heap.push(s, missionId);
+        }
         emit IGameEvents.MissionRevealed(missionId, kind, m.city, m.neighborhood, m.slot);
+    }
+
+    /// Past the grace, anyone sends a hidden mission nobody revealed back home: it turns back from
+    /// now with all its troops and cargo (B-22). It touches no building, so it never drains the
+    /// queue; the keeper and the sender race, so a mission no longer hidden is ignored.
+    function forfeit(uint64 missionId) external {
+        CoreState storage s = GameStorage.core();
+        Mission storage m = s.missions[missionId];
+        if (!m.hidden || m.returning) return;
+        if (block.timestamp < uint256(m.arrival) + Ruleset.HIDDEN_REVEAL_GRACE) revert TooEarly();
+        _dequeue(s, missionId);
+        emit IGameEvents.MissionForfeited(missionId);
+        _sendBack(s, missionId, block.timestamp);
     }
 
     /// A valid kind and coordinate, other than the origin.
@@ -454,14 +442,12 @@ library Missions {
         }
     }
 
-    /// Travel time, salary, cargo limit over `dist`; pays resources + salary (+ bond) from the
-    /// building.
+    /// Travel time, salary, cargo limit over `dist`; pays resources + salary from the building.
     function _charge(
         Building storage b,
         Plan memory plan,
         uint256 dist,
-        uint256[RESOURCES] memory resources,
-        uint256 bond
+        uint256[RESOURCES] memory resources
     ) private {
         plan.duration = Map.travelSeconds(dist, plan.speed);
         plan.salary = Map.salary(dist, plan.salaryUnits);
@@ -474,7 +460,7 @@ library Missions {
         for (uint256 r; r < RESOURCES; ++r) {
             cost[r] = resources[r];
         }
-        cost[Ruleset.SALARY_RESOURCE] += plan.salary + bond;
+        cost[Ruleset.SALARY_RESOURCE] += plan.salary;
         if (!Settlement.affordable(b, cost)) revert CannotAfford();
         Settlement.pay(b, cost);
     }
@@ -536,7 +522,7 @@ library Missions {
         (uint64 pid,) = Access.active(s, caller);
         Mission storage m = s.missions[missionId];
         if (m.owner != pid || m.returning) revert NotRecallable();
-        Heap.remove(s, missionId);
+        _dequeue(s, missionId);
         m.returning = true;
         m.arrival = uint40(block.timestamp + (block.timestamp - m.start));
         m.start = uint40(block.timestamp);

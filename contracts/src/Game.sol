@@ -48,7 +48,6 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
 
     function initialize(address admin) external initializer {
         __Ownable_init(admin);
-        Core.setHiddenBond(Ruleset.HIDDEN_MISSION_BOND);
     }
 
     function _authorizeUpgrade(address) internal override onlyOwner {}
@@ -126,10 +125,10 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
         Missions.reveal(mission, kind, target, salt);
     }
 
-    /// A listed keeper reports a garbage ciphertext (B-22): the mission is forfeited unless revealed
-    /// within the report window. Never drains the queue.
-    function reportGarbage(uint64 mission) external {
-        Missions.reportGarbage(msg.sender, mission);
+    /// Anyone, past the grace, on a hidden mission nobody revealed (B-22): it turns back from now.
+    /// Never drains the queue: it touches no building.
+    function forfeit(uint64 mission) external {
+        Missions.forfeit(mission);
     }
 
     function recall(uint64 mission) external drained {
@@ -147,16 +146,6 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
 
     function setGlobalPremium(uint256 until) external onlyOwner {
         Core.setGlobalPremium(until);
-    }
-
-    /// Admin: the hidden mission bond in force, within the configured bounds (B-22).
-    function setHiddenBond(uint256 bond) external onlyOwner {
-        Core.setHiddenBond(bond);
-    }
-
-    /// Admin: an address that may report garbage ciphertexts (B-22), our keeper.
-    function setKeeper(address keeper, bool allowed) external onlyOwner {
-        Core.setKeeper(keeper, allowed);
     }
 
     function poke(uint64 building) external drained {
@@ -461,6 +450,11 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
         return GameStorage.core().heap;
     }
 
+    /// Due hidden missions nobody revealed yet, out of the queue (B-22); any order.
+    function parkedMissions() external view returns (uint64[] memory) {
+        return GameStorage.core().parked;
+    }
+
     function playerOf(address controller) external view returns (uint64) {
         return GameStorage.core().playerOf[controller];
     }
@@ -472,15 +466,6 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
     /// The invitation `invited` holds from `player` (kind 0 = none), B-15 / B-26.
     function getInvite(address invited, uint64 player) external view returns (Invite memory) {
         return GameStorage.core().invites[invited][player];
-    }
-
-    /// The hidden mission bond in force (B-22).
-    function hiddenBond() external view returns (uint64) {
-        return GameStorage.core().hiddenBond;
-    }
-
-    function isKeeper(address keeper) external view returns (bool) {
-        return GameStorage.core().keepers[keeper];
     }
 
     /// The player `caller` plays for: as controller or through a live session, 0 if none.

@@ -40,11 +40,10 @@ export async function loadWorld(
   const [seq, players, buildings, missions, , globalPremiumUntil] =
     await read<readonly [bigint, bigint, bigint, bigint, bigint, number]>("counters");
   const [families, wars, trades] = await read<readonly [bigint, bigint, bigint]>("socialCounters");
-  const hiddenBond = await read<bigint>("hiddenBond");
+  const parked = await read<readonly bigint[]>("parkedMissions");
 
   const w = sim.newWorld(rs);
   w.seq = seq;
-  w.hiddenBond = hiddenBond;
   w.globalPremiumUntil = big(globalPremiumUntil);
   w.nextPlayer = players + 1n;
   w.nextBuilding = buildings + 1n;
@@ -150,12 +149,14 @@ export async function loadWorld(
       },
       hidden: m.hidden,
       cover: big(m.cover),
-      bond: m.bond,
       commit: (m.commit as string).toLowerCase(),
-      reportedAt: big(m.reportedAt),
     });
   });
+  // The parked list in its on-chain order (B-22); the queue is every other mission.
+  w.parked = [...parked];
+  const parkedSet = new Set(parked);
   w.pending = [...w.missions.values()]
+    .filter((m) => !parkedSet.has(m.id))
     .sort((a, b) =>
       a.arrival !== b.arrival ? (a.arrival < b.arrival ? -1 : 1) : a.seq < b.seq ? -1 : 1,
     )
@@ -343,8 +344,7 @@ export function revealKnown(
 /**
  * The world as the contract would compute it at `now`: due missions processed in global order,
  * every building settled (B-06, B-07). Hidden missions the client knows are revealed first (B-22);
- * an unknown one blocks the queue, as on chain. Used for the live view; the chain state is not
- * changed.
+ * an unknown one is parked, as on chain. Used for the live view; the chain state is not changed.
  */
 export function project(
   w: sim.World,

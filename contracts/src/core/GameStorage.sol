@@ -44,9 +44,7 @@ struct Mission {
     // Hidden missions (B-22): kind and target stay 0 until revealed; public missions have cover 0.
     bool hidden; // kind and target not revealed yet
     uint32 cover; // declared distance in grid units (≥ the real one) that duration and salary used
-    uint64 bond; // salary resource held until the mission resolves or returns; lost on forfeit
     bytes32 commit; // keccak256(abi.encode(owner, kind, city, neighborhood, slot, salt))
-    uint40 reportedAt; // a listed keeper reported the ciphertext as garbage then (B-22), 0 = none
 }
 
 uint8 constant CAPO = 1;
@@ -169,6 +167,8 @@ struct CoreState {
     mapping(uint64 => Mission) missions;
     uint64[] heap; // the global mission queue (B-07), see Heap.sol
     mapping(uint64 => uint256) heapPos; // 1-based position in `heap`, 0 = not queued
+    uint64[] parked; // due hidden missions nobody revealed yet, out of the queue (B-22); any order
+    mapping(uint64 => uint256) parkedPos; // 1-based position in `parked`, 0 = not parked
     uint64 nextFamily;
     mapping(uint64 => Family) families;
     mapping(bytes32 => uint64) familyNames; // normalized tag / name → family (B-31)
@@ -181,8 +181,6 @@ struct CoreState {
     mapping(uint64 => mapping(uint64 => uint32)) owes; // debtor → creditor → registered unpaid debts (B-11)
     mapping(address => ControllerInfo) controllerInfo; // B-26
     mapping(address => mapping(uint64 => Invite)) invites; // invited address → player → invitation
-    mapping(address => bool) keepers; // addresses that may report garbage ciphertexts (B-22)
-    uint64 hiddenBond; // the hidden mission bond in force, set by the admin within the bounds (B-22)
 }
 
 library GameStorage {
