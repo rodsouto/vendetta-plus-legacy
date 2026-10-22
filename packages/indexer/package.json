@@ -2,7 +2,7 @@
   "name": "@vendetta/indexer",
   "version": "0.0.0",
   "private": true,
-  "description": "Subgraph for the ranking (B-18) and the market history (B-11). Runs on Goldsky in production and on a local graph-node in Docker for development and e2e.",
+  "description": "Subgraph for the market history (B-11, B-18). Runs on Goldsky in production and on a local graph-node in Docker for development.",
   "scripts": {
     "build": "bash scripts/manifest.sh arbitrum-one 0x0000000000000000000000000000000000000000 0 && graph codegen && graph build",
     "local": "bash scripts/local.sh",

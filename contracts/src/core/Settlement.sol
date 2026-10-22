@@ -161,7 +161,6 @@ library Settlement {
         Building storage b = s.buildings[id];
         uint64 pid = b.owner;
         Player storage p = s.players[pid];
-        uint128 points = p.centipoints;
         while (true) {
             (uint256 kind, uint256 at, uint64 evSeq) = _nextEvent(b, p, id);
             if (kind == NONE || at > t || (at == t && evSeq > seq)) break;
@@ -194,7 +193,6 @@ library Settlement {
             }
         }
         integrate(b, t);
-        if (p.centipoints != points) emit IGameEvents.PointsChanged(pid, p.centipoints);
     }
 
     function _nextEvent(Building storage b, Player storage p, uint64 id)

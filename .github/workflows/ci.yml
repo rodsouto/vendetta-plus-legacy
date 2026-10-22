@@ -42,16 +42,6 @@ jobs:
       - name: Indexer build
         run: pnpm --filter @vendetta/indexer build
 
-      # The e2e run starts a local graph-node (packages/indexer/docker-compose.yml); pull it first
-      # so the download does not eat the web server's start timeout.
-      - name: Pull the graph-node images
-        run: docker compose -f packages/indexer/docker-compose.yml pull --quiet
-        env:
-          GRAPH_PORT: 0
-          ADMIN_PORT: 0
-          IPFS_PORT: 0
-          RPC_PORT: 0
-
       - name: End-to-end (local chain + app)
         run: |
           pnpm --filter @vendetta/web exec playwright install --with-deps chromium

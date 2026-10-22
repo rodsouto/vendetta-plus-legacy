@@ -15,7 +15,7 @@ bash scripts/manifest.sh arbitrum-one "$(jq -r .game "$deployment")" "$(jq -r .f
 pnpm exec graph codegen
 pnpm exec graph build
 goldsky subgraph deploy "vendetta/$version" --path build
-# A tag keeps the URL fixed across versions, so the web app needs no rebuild.
+# A tag keeps the URL fixed across versions.
 goldsky subgraph tag create "vendetta/$version" --tag prod
 echo
-echo "VITE_INDEXER_URL is the GraphQL endpoint of vendetta/prod (goldsky subgraph list)."
+echo "The market history is served at the GraphQL endpoint of vendetta/prod (goldsky subgraph list)."

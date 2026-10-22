@@ -288,8 +288,7 @@
     "title": "Ranking",
     "players": "Jugadores",
     "families": "Familias",
-    "buildings": "Edificios",
-    "unavailable": "El ranking no está disponible ahora."
+    "buildings": "Edificios"
   },
   "dev": {
     "title": "Taller (solo local)",

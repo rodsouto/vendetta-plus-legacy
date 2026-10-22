@@ -82,8 +82,6 @@ library Battle {
         if (_apply(m, b, attacker, defender, report)) {
             report.loot = _loot(m, b, attacker, r.attackerRemaining);
         }
-        emit IGameEvents.PointsChanged(m.owner, attacker.centipoints);
-        emit IGameEvents.PointsChanged(b.owner, defender.centipoints);
     }
 
     /// Writes survivors and removes lost troop points; true if the defender has no troops left.

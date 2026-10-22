@@ -1,5 +1,5 @@
 // Reads the on-chain state with Game's views and rebuilds the TypeScript simulator's World from it
-// (B-20). Local worlds are small, so every entity is loaded by id; the indexer replaces this in 4c.
+// (B-20). Every entity is loaded by id; the ranking (B-18) is computed from this world too.
 import type { Address, PublicClient } from "viem";
 import { sim, vendetta as rs, type HiddenPlain } from "@vendetta/rules";
 import { gameAbi } from "./abi.js";
@@ -363,6 +363,9 @@ export function project(
   sim.processDue(p, now, Number.MAX_SAFE_INTEGER); // parks the due hidden ones
   revealKnown(p, known, now); // each one re-enters the queue at `now`
   sim.processDue(p, now, Number.MAX_SAFE_INTEGER);
-  for (const b of p.buildings.values()) if (b.lastUpdate < now) sim.settle(p, b, now);
+  // Every building, even one already integrated to `now`: a mission that arrived this second
+  // settled its target only up to its own seq (B-07), so an event created later that finishes
+  // this second may still be pending.
+  for (const b of p.buildings.values()) sim.settle(p, b, now);
   return p;
 }

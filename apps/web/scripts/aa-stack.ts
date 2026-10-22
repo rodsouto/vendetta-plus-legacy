@@ -5,12 +5,11 @@
 // web app, pointed at it. No fork: public RPCs drop old state within minutes, and this way it runs
 // offline and in CI.
 //
-//   tsx scripts/aa-stack.ts [--base 8545] [--vite 5173] [--public] [--indexer 8500]
+//   tsx scripts/aa-stack.ts [--base 8545] [--vite 5173] [--public]
 //
 // Ports: anvil = base, bundler = base + 1, paymaster = base + 2. --public writes
 // public/deployment.local.json (pnpm dev:aa); otherwise the deployment goes to Vite through
-// VITE_DEPLOYMENT (isolated e2e runs). --indexer also starts the subgraph on a local graph-node
-// (Docker, packages/indexer/scripts/local.sh) with its GraphQL on that port.
+// VITE_DEPLOYMENT (isolated e2e runs).
 import { execFileSync, spawn, type ChildProcess } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -28,7 +27,6 @@ const { values } = parseArgs({
     base: { type: "string", default: "8545" },
     vite: { type: "string", default: "5173" },
     public: { type: "boolean", default: false },
-    indexer: { type: "string" },
   },
 });
 const base = Number(values.base);
@@ -41,7 +39,6 @@ const anvilRpc = `http://127.0.0.1:${base}`;
 const bundlerRpc = `http://127.0.0.1:${base + 1}`;
 const paymasterRpc = `http://127.0.0.1:${base + 2}`;
 
-const indexerSh = join(web, "../../packages/indexer/scripts/local.sh");
 const children: ChildProcess[] = [];
 const stop = () => {
   for (const c of children) c.kill();
@@ -49,10 +46,7 @@ const stop = () => {
 };
 process.on("SIGINT", stop);
 process.on("SIGTERM", stop);
-process.on("exit", () => {
-  children.forEach((c) => c.kill());
-  if (values.indexer) execFileSync("bash", [indexerSh, "down", values.indexer]);
-});
+process.on("exit", () => children.forEach((c) => c.kill()));
 
 const run = (cmd: string, args: string[], env: NodeJS.ProcessEnv = {}, quiet = true) => {
   const child = spawn(cmd, args, {
@@ -89,13 +83,7 @@ const rpcUp = (url: string, method: string) => () =>
     body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params: [] }),
   }).then((r) => r.ok);
 
-// On 0.0.0.0 when graph-node (in a container) has to reach it.
-run("anvil", [
-  ...(values.indexer ? ["--host", "0.0.0.0"] : []),
-  "--port",
-  String(base),
-  "--silent",
-]);
+run("anvil", ["--port", String(base), "--silent"]);
 await until("anvil", rpcUp(anvilRpc, "eth_chainId"));
 
 const client = createPublicClient({ transport: http(anvilRpc) });
@@ -172,15 +160,6 @@ const deployment: Deployment = {
 };
 console.log(`Game ${deployment.game} on anvil (chain ${chainId}) (${anvilRpc})`);
 console.log(`bundler ${bundlerRpc}, paymaster ${paymasterRpc}`);
-if (values.indexer) {
-  const out = execFileSync(
-    "bash",
-    [indexerSh, "up", values.indexer, String(base), deployment.game, String(deployment.fromBlock)],
-    { encoding: "utf8" },
-  );
-  deployment.indexer = out.trim().split("\n").at(-1);
-  console.log(`indexer ${deployment.indexer}`);
-}
 
 const env: NodeJS.ProcessEnv = {};
 if (values.public)

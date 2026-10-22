@@ -63,7 +63,6 @@ library Core {
         p.centipoints = cp;
         s.playerOf[caller] = pid;
         emit IGameEvents.PlayerRegistered(pid, caller, bid);
-        emit IGameEvents.PointsChanged(pid, cp);
     }
 
     function queueRoom(address caller, uint64 id, uint256 room) external {

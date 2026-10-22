@@ -43,7 +43,7 @@ which network it runs on. Messaging, chat and moderation are off-chain (B-10).
 | B-15 | Accounts | New | Kernel smart account, one passkey per device, passkey directory, recovery, native session keys |
 | B-16 | Gas | New | Low sponsored allowance; above it the player pays via credits |
 | B-17 | Upgradeability | New | Proxy, no timelock, admin in a Safe; later frozen, one immutable deploy per world |
-| B-18 | Events and indexer | New | Reports and notices as events (reports read from the RPC); ranking in the indexer |
+| B-18 | Events and indexer | New | Reports and notices as events (reports read from the RPC); market history in the indexer; ranking from the loaded world |
 | B-19 | Points on-chain | Adapt | D-24 points kept incrementally on-chain |
 | B-20 | Optimistic client | New | Client runs the same rules engine and projects results |
 | B-21 | Parity tests | New | Foundry against the test vectors with explicit tolerances |
@@ -168,8 +168,8 @@ is implemented in two levels:
   returns with loot, transports, occupations that change the building count used by honor).
 - **No keepers are required for correctness.** If nobody touches a building, its events wait. The
   result is the same whenever they are processed. Keepers (or the client) may advance state for
-  convenience only. Our keeper also settles the buildings whose points would change, so the ranking
-  (B-18) stays current; the state is the same either way.
+  convenience only. Readers that need the current value (the ranking, B-18) settle a copy of the
+  state off-chain with the simulator (B-20) instead of touching the building.
 
 ## B-07 — Global mission order — New
 
@@ -459,26 +459,26 @@ Until the freeze, the "trustless rules" goal (Goals) is only partly met. This is
 - **Reports are read straight from the RPC**, only the recent ones: public RPCs cap the block range of
   a log query (Arbitrum One's: 10M blocks, about a month), and the client asks for the last 5M blocks.
   Losing older reports is accepted; they are not worth an index.
-- An **indexer** serves the **ranking**: sorting players on-chain is too expensive. It is a
-  **Goldsky Subgraph** (The Graph format, `packages/indexer`), queried by the client over GraphQL.
-  It ranks on `PointsChanged` (B-19) and keeps family membership from the family events. Because the
-  format is The Graph's and the events are on-chain, anyone can deploy the same subgraph elsewhere.
-  Locally (dev and e2e) it runs on a graph-node in Docker.
-- The client reads live state from the contracts and the ranking from the indexer.
-- The ranking shows stored points (B-19). Our keeper pokes the buildings whose settlement would
-  change them, so the ranking lags at most the keeper's interval; without it, a player ranks with
-  the points of its last settlement.
+- An **indexer** keeps the **market history** (B-11): every offer, acceptance, delivery, claim and
+  debt, cancelled offers included (the contract deletes those). It is a **Goldsky Subgraph** (The
+  Graph format, `packages/indexer`), queried over GraphQL. Because the format is The Graph's and the
+  events are on-chain, anyone can deploy the same subgraph elsewhere. Locally it runs on a
+  graph-node in Docker.
+- The **ranking** (08-progression.md#ranking) is computed by the client from the world it already
+  loads through the views (B-20), not by the indexer: it sorts the players, and the families by the
+  sum of their members, on the points of the world projected to the current time. The projection
+  settles every building (B-06), so the ranking shows current points even for a player who has not
+  acted since its queues finished, with no keeper and no transaction. Sorting on-chain would be too
+  expensive; sorting a world the client holds anyway costs nothing.
 
 ## B-19 — Points on-chain — Adapt
 
 Points (D-24) are kept on-chain because they drive rules (honor, [06-combat.md](06-combat.md#honor)).
 They are updated **incrementally** on every change that affects them, and must always equal the value
 derived from state. A view function recomputes them from scratch, used by tests to check this
-invariant. Every change emits `PointsChanged(player, centipoints)` with the new total (once per
-settlement, not per finished item), so the indexer ranks on the stored value (B-18); the
-differential scenarios check that the last event of each player equals its stored points. Lazy
-settlement (B-06) leaves stored points behind finished queues until a building is touched; the
-keeper settles such buildings for the ranking only.
+invariant. Points emit no event: the stored value is read through `getPlayer` / `getBuilding`, and
+lazy settlement (B-06) leaves it behind finished queues until a building is touched, so the ranking
+(B-18) reads the projected value instead.
 
 ## B-20 — Optimistic client — New
 
@@ -769,8 +769,8 @@ flowchart LR
         World --> Player
         World --> Sanctions
     end
-    Contracts -->|events| Indexer
-    Indexer --> Client
+    Contracts -->|views| Client
+    Contracts -->|events| Indexer[Indexer: market history]
     Safe[Admin Safe] -->|upgrade, arbiter v1| Contracts
 ```
 

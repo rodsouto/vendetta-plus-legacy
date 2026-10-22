@@ -1,5 +1,5 @@
-// The ranking follows players who do not act: the keeper settles the buildings whose points lag
-// behind their finished queues (B-06, B-19) and the indexer picks up PointsChanged (B-18).
+// The ranking follows players who do not act: it is computed from the world projected to now
+// (B-18), which settles the buildings whose queues finished (B-06) with no transaction.
 import { expect, test, type Page } from "@playwright/test";
 
 const stamp = (page: Page) => page.locator(".stamp-toast");
@@ -27,7 +27,7 @@ async function ensureRegistered(page: Page, slot: number) {
   await expect(stamp(page)).toContainText("Cuenta abierta");
 }
 
-test("the ranking rises without the player acting: the keeper settles stale points", async ({
+test("the ranking rises without the player acting: the projection settles finished queues", async ({
   page,
 }) => {
   await page.addInitScript(() => localStorage.setItem("lang", "es"));
@@ -43,14 +43,13 @@ test("the ranking rises without the player acting: the keeper settles stale poin
   // The player's own row (bold) and its points before the room finishes.
   await page.goto("/#/ranking");
   const mine = page.locator("tbody tr[style*='font-weight']").first();
-  await expect(mine).toBeVisible({ timeout: 30_000 });
+  await expect(mine).toBeVisible();
   const pts = async () =>
     Number((await mine.locator("td").nth(3).textContent())!.replace(/\D/g, ""));
   const before = await pts();
 
-  // A day later the room is done. Nobody touches the building: the keeper pokes it, the contract
-  // emits PointsChanged and the indexer serves the new total.
+  // A day later the room is done. Nobody touches the building: the projection counts it.
   await warp(page, "+1 d");
   await page.goto("/#/ranking");
-  await expect.poll(pts, { timeout: 60_000 }).toBeGreaterThan(before);
+  await expect.poll(pts).toBeGreaterThan(before);
 });

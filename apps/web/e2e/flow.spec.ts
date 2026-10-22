@@ -1,5 +1,5 @@
 // Main flow on a local chain: two players register, one builds, trains, attacks the other (a hidden
-// mission, B-22) and reads the battle report and the ranking (from the indexer). Also captures the
+// mission, B-22) and reads the battle report and the ranking. Also captures the
 // review screenshots (desktop and mobile).
 import { expect, test, type Page } from "@playwright/test";
 
@@ -80,10 +80,10 @@ test("register, build, train, attack and read the report", async ({ page }) => {
   await expect(page.getByText("Sobrevivientes")).toBeVisible();
   expect(passkeyStack).toEqual([]);
 
-  // The ranking comes from the subgraph on the local graph-node (e2e/serve.sh).
+  // The ranking is computed from the loaded world (B-18): both players are listed right away.
   await page.goto("/#/ranking");
   const ranked = page.locator("table.ledger").first().locator("tbody tr");
-  await expect(ranked.nth(1)).toBeVisible({ timeout: 30_000 });
+  await expect(ranked.nth(1)).toBeVisible();
 
   // Review captures.
   const shots: [string, string][] = [

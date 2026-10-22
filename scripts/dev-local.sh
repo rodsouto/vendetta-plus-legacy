@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Local development: anvil + deploy + indexer (graph-node in Docker, B-18) + keeper (B-22) + web app.
 # Usage: pnpm dev:local. Anvil's well-known development keys are used; account 0 deploys and is the
-# admin. Without Docker the app runs without the indexer (the ranking says it is unavailable).
+# admin. The indexer only serves the market history over GraphQL (the app does not read it); without
+# Docker it is skipped.
 set -euo pipefail
 
 root="$(git rev-parse --show-toplevel)"
@@ -29,21 +30,19 @@ directory="$(jq -r '[.transactions[] | select(.contractName == "PasskeyDirectory
   broadcast/Deploy.s.sol/31337/run-latest.json)"
 block="$(cast block-number --rpc-url "$rpc")"
 echo "Game deployed at $game (anvil $rpc)"
-indexer=""
 if docker info >/dev/null 2>&1; then
   indexer="$(bash "$indexer_sh" up "$indexer_port" "$port" "$game" "$block" | tail -n 1)"
-  echo "Indexer at $indexer"
+  echo "Indexer (market history) at $indexer"
 else
   echo "Docker is not available: running without the indexer"
 fi
 cat > "$root/apps/web/public/deployment.local.json" <<JSON
-{ "chainId": 31337, "rpc": "$rpc", "game": "$game", "directory": "$directory", "fromBlock": $block, "indexer": "$indexer" }
+{ "chainId": 31337, "rpc": "$rpc", "game": "$game", "directory": "$directory", "fromBlock": $block }
 JSON
 
 cd "$root"
-# Reveals hidden missions when they arrive, processes due ones (B-22) and settles stale points for
-# the ranking (B-19); account 9 pays.
-KEEPER_SETTLE_INTERVAL_MS=5000 pnpm --filter @vendetta/web keeper public/deployment.local.json local &
+# Reveals hidden missions when they arrive and processes due ones (B-22); account 9 pays.
+pnpm --filter @vendetta/web keeper public/deployment.local.json local &
 keeper_pid=$!
 trap 'kill $anvil_pid $keeper_pid 2>/dev/null || true; bash "$indexer_sh" down "$indexer_port"' EXIT
 pnpm --filter @vendetta/web dev

@@ -1,4 +1,4 @@
-# Local graph-node for development and e2e (scripts/local.sh). State lives in tmpfs: every run
+# Local graph-node for development (scripts/local.sh, pnpm dev:local). State lives in tmpfs: every run
 # starts empty, like the anvil it indexes.
 services:
   graph-node:

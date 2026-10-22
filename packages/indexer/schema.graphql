@@ -1,14 +1,10 @@
-# Ranking (08-progression.md#ranking, B-18) and market history (B-11). Points are the stored
-# on-chain value (B-19), announced by PointsChanged after every change. Trades keep every offer,
-# acceptance, delivery, claim and debt, cancelled ones included (the contract deletes those).
+# Market history (B-11, B-18): trades keep every offer, acceptance, delivery, claim and debt,
+# cancelled ones included (the contract deletes those). The ranking is not here: the client computes
+# it from the world it loads (B-18).
 
 type Player @entity(immutable: false) {
   "Player id (decimal)"
   id: ID!
-  centipoints: BigInt!
-  buildings: Int!
-  "Family the player belongs to, if any (null after leaving or when it is dissolved)"
-  family: Family
   "Accepted trades fully delivered and fully paid, as seller or buyer"
   completedTrades: Int!
   "Debts registered against this player (a creditor claimed), ever (B-11)"
@@ -17,17 +13,6 @@ type Player @entity(immutable: false) {
   openDebts: Int!
   tradesAsSeller: [Trade!]! @derivedFrom(field: "seller")
   tradesAsBuyer: [Trade!]! @derivedFrom(field: "buyer")
-}
-
-type Family @entity(immutable: false) {
-  "Family id (decimal)"
-  id: ID!
-  tag: String!
-  name: String!
-  alive: Boolean!
-  members: Int!
-  "Sum of the members' points"
-  centipoints: BigInt!
 }
 
 enum TradeStatus {

@@ -24,8 +24,6 @@ export interface Deployment {
   paymaster?: string;
   /** Pimlico sponsorship policy that sets the limits (B-16); without it, the project's defaults. */
   sponsorshipPolicy?: string;
-  /** GraphQL endpoint of the subgraph (B-18); without it there is no ranking. */
-  indexer?: string;
 }
 
 /** How players sign: anvil's development keys, or passkey accounts with per-device sessions. */
@@ -69,7 +67,6 @@ export async function loadNetwork(): Promise<Network | ConnectProblem> {
       paymaster: pimlico,
       sponsorshipPolicy:
         (import.meta.env.VITE_PIMLICO_POLICY_ID as string | undefined) || undefined,
-      indexer: (import.meta.env.VITE_INDEXER_URL as string | undefined) || base.indexer,
     };
     return { id, chain: arbitrum, deployment, accounts: "passkey" };
   }

@@ -1,7 +1,7 @@
 # Deploying to Arbitrum One
 
 How to put the game on Arbitrum One (B-01) with passkey accounts and sponsored gas (B-15, B-16),
-and its indexer on Goldsky (B-18).
+and its market-history indexer on Goldsky (B-18).
 There is no testnet stage: the local 4337 stack (`pnpm dev:aa`, `pnpm --filter @vendetta/web e2e:aa`)
 covers testing, and everything here spends real money.
 
@@ -18,7 +18,6 @@ All of it goes in `.env` at the repo root (`cp .env.example .env`; it is git-ign
 | `VITE_PIMLICO_API_KEY` | Pimlico API key: bundler and paymaster | **Public** JS bundle |
 | `VITE_PIMLICO_POLICY_ID` | Sponsorship policy (`sp_...`) that caps spending | **Public** JS bundle |
 | `VITE_RPC_URL` | RPC for reads; empty = the public one in `deployments/arbitrum.json` | **Public** JS bundle |
-| `VITE_INDEXER_URL` | GraphQL endpoint of the subgraph on Goldsky (step 3); empty = no ranking | **Public** JS bundle |
 
 Only `VITE_*` variables reach the browser; the deployer key never does.
 
@@ -65,8 +64,9 @@ if `ADMIN` was empty, transfer ownership to a Safe as soon as possible.
 
 ## 3. Indexer on Goldsky
 
-The ranking comes from a subgraph (`packages/indexer`, The Graph format) hosted on
-[Goldsky](https://goldsky.com) (B-18). Create an account and an API key, install the CLI and log in:
+The market history (B-11: every offer, delivery, claim and debt) is a subgraph (`packages/indexer`,
+The Graph format) hosted on [Goldsky](https://goldsky.com) (B-18). The web app does not read it:
+the ranking is computed in the client from the world it loads, so the game works without this step. Create an account and an API key, install the CLI and log in:
 
 ```bash
 curl https://goldsky.com | sh
@@ -75,10 +75,10 @@ pnpm --filter @vendetta/indexer deploy:goldsky 1.0.0
 ```
 
 The script fills in the `Game` address and first block from `deployments/arbitrum.json`, builds the
-subgraph, deploys it as `vendetta/1.0.0` and points the `prod` tag at it. Put the tag's GraphQL
-endpoint (`goldsky subgraph list`) in `VITE_INDEXER_URL`. A later version (after an upgrade that
-changes the events) gets a new number and the same tag, so the web app keeps its URL; the tag moves
-right away, and the ranking is incomplete until the new version has synced from the first block.
+subgraph, deploys it as `vendetta/1.0.0` and points the `prod` tag at it; its GraphQL endpoint is in
+`goldsky subgraph list`. A later version (after an upgrade that changes the events) gets a new number
+and the same tag, so the URL stays; the tag moves right away, and the history is incomplete until the
+new version has synced from the first block.
 
 ## 4. Build and host the web app
 
@@ -99,20 +99,13 @@ one, in arrival order, as soon as its drand round is out (8–10 s after the arr
 the ones nobody revealed, so no honest mission is lost. It also processes due missions. It holds no secret; anyone
 may run another.
 
-It also keeps the ranking current (B-19): every `KEEPER_SETTLE_INTERVAL_MS` (default 10 minutes) it
-rebuilds the world from the views, finds the buildings whose settlement would change their owner's
-points (queues that finished since the last settlement) and calls `poke(building)` for each, at
-most 25 per run. `poke` is permissionless and changes nothing a player action would not; a revert
-on a mission backlog is retried once the mission job catches up.
-
 ```bash
-KEEPER_PRIVATE_KEY=0x... RPC_URL=https://... KEEPER_SETTLE_INTERVAL_MS=600000 \
+KEEPER_PRIVATE_KEY=0x... RPC_URL=https://... \
   pnpm --filter @vendetta/web keeper ../../deployments/arbitrum.json arbitrum
 ```
 
 Fund the key with a little ETH: a reveal costs ~16k gas (~48k on a parked mission, plus what its
-drain processes), a `forfeit` about as much, `advance` depends on what is due, a `poke`
-~33k–330k depending on what finished.
+drain processes), a `forfeit` about as much, `advance` depends on what is due.
 Run it somewhere that stays up (any small VM or container); it needs outbound HTTPS to the RPC
 and to `api.drand.sh`.
 
@@ -126,11 +119,8 @@ roughly a cent per action, plus Pimlico's surcharge.
 
 - The Reports page reads `Battle` events straight from the RPC, only the last 5M blocks (about two
   weeks; the public RPC allows 10M per query). Older reports are not shown.
-- The ranking shows stored points (B-19). The keeper settles the buildings whose points changed, so
-  it lags at most its settle interval; without a keeper, a player whose queues finished but who has
-  not acted since (lazy settlement, B-06) ranks with the points of their last settlement.
-- The keeper rebuilds the whole world with one call per entity (`loadWorld`), and missions are
-  never pruned, so each settle run grows with the world. Fine for v1; a loader on the indexer later.
+- The client rebuilds the whole world with one call per entity (`loadWorld`), and the ranking is
+  sorted from it, so the first load grows with the world. Fine for v1; a batched view later.
 - Hidden missions are encrypted to drand quicknet (League of Entropy). If drand stopped, nobody but
   the sender could reveal them and they would be forfeited after the grace (troops come home).
 - `PasskeyDirectory` has no owner and no upgrades: a new version means a new deploy and a new
