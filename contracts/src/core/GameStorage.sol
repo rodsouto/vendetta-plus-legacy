@@ -94,12 +94,15 @@ struct Building {
     uint8 neighborhood;
     uint8 slot;
     uint40 lastUpdate;
-    uint128 centipoints;
+    uint128 centipoints; // fills the first slot with the fields above: every settle touches it
     uint16[ROOMS] levels;
     uint128[RESOURCES] stock; // units of 1/STOCK_SCALE (B-27)
     QueueItem[] roomQueue;
     uint64[TROOPS] troops; // units at home
     TrainingItem[][2] training; // attack and defense training rooms
+    // Returning troops came home then; sends wait RETURN_COOLDOWN (B-22). Last, so it has a slot
+    // of its own touched by sends and returns only, and appended for upgrade hygiene.
+    uint40 lastReturn;
 }
 
 struct Player {
@@ -167,8 +170,13 @@ struct CoreState {
     mapping(uint64 => Mission) missions;
     uint64[] heap; // the global mission queue (B-07), see Heap.sol
     mapping(uint64 => uint256) heapPos; // 1-based position in `heap`, 0 = not queued
-    uint64[] parked; // due hidden missions nobody revealed yet, out of the queue (B-22); any order
-    mapping(uint64 => uint256) parkedPos; // 1-based position in `parked`, 0 = not parked
+    // The parked list (B-22): due hidden missions nobody revealed yet, out of the queue, as a doubly
+    // linked list in (arrival, seq) order (the drain parks them in queue order, so appending keeps
+    // it sorted). A reveal checks its predecessor only.
+    uint64 parkedHead;
+    uint64 parkedTail;
+    mapping(uint64 => uint64) parkedPrev; // 0 at the head
+    mapping(uint64 => uint64) parkedNext; // 0 at the tail
     uint64 nextFamily;
     mapping(uint64 => Family) families;
     mapping(bytes32 => uint64) familyNames; // normalized tag / name → family (B-31)

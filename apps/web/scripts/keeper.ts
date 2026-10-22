@@ -1,4 +1,5 @@
-// Keeper (B-22, B-08, B-19): reveals hidden missions as soon as their timelock opens, forfeits the
+// Keeper (B-22, B-08, B-19): reveals hidden missions in arrival order as soon as their timelock
+// opens, forfeits the
 // ones nobody revealed once their grace is over, processes due missions, and settles the
 // buildings whose points lag behind their finished queues, so the global queue and the ranking
 // (B-18) do not wait for a player to act. It holds no secret: anyone may run one, and clients
@@ -141,26 +142,40 @@ async function tick(): Promise<void> {
       return { kind: "wait" } as Verdict;
     }
   });
-  for (const [i, [mid]] of live.entries()) {
+  // Reveals go in arrival order (B-22): a mission that stays parked (its round not out, garbage,
+  // a failed reveal) holds the ones behind it until its order window ends; those would revert
+  // OutOfOrder, so they wait for the next tick instead.
+  const window = rs.config.hiddenOrderWindow;
+  let holdUntil = 0n;
+  for (const [i, [mid, m]] of live.entries()) {
     const v = verdicts[i]!;
+    const windowEnd = BigInt(m.arrival) + window;
+    const hold = () => {
+      if (windowEnd > holdUntil) holdUntil = windowEnd;
+    };
     if (v.kind === "garbage") {
       if (!garbage.has(mid)) console.warn(`mission ${mid} is garbage: forfeited after its grace`);
       garbage.add(mid);
+      hold();
       continue;
     }
-    if (v.kind !== "reveal") continue;
+    if (v.kind !== "reveal" || now < holdUntil) {
+      hold();
+      continue;
+    }
     try {
       await call("reveal", v.args);
       console.log(`revealed mission ${mid}`);
     } catch (e) {
       const name = gameError(e);
-      if (name && name !== "Backlog") {
+      if (name && name !== "Backlog" && name !== "OutOfOrder") {
         // The contract rejects the plaintext (BadReveal, InvalidCover, InvalidMission): garbage.
         garbage.add(mid);
         console.warn(`mission ${mid} does not reveal: ${name}`);
       } else {
         console.warn(`mission ${mid}: ${(e as Error).message.split("\n")[0]}`); // next tick
       }
+      hold();
     }
   }
   // Past the grace, nobody revealed: send them home (B-22). The sender may have done it already.

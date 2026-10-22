@@ -117,6 +117,7 @@ export async function loadWorld(
       levels: b.levels.map(big),
       stock: [...b.stock],
       lastUpdate: big(b.lastUpdate),
+      lastReturn: big(b.lastReturn),
       roomQueue: queue(b.roomQueue),
       centipoints: b.centipoints,
       troops: [...b.troops],
@@ -318,9 +319,14 @@ export function cloneWorld(w: sim.World): sim.World {
   return Object.assign(structuredClone(rest), { rs: ruleset }) as sim.World;
 }
 
+/** Missions in the order the queue resolves them: arrival, then creation (B-07). */
+export const byArrival = (a: sim.Mission, b: sim.Mission) =>
+  a.arrival !== b.arrival ? (a.arrival < b.arrival ? -1 : 1) : a.seq < b.seq ? -1 : 1;
+
 /**
- * Applies the reveals the client can make (`known` plaintexts, by commitment) to hidden missions;
- * returns the ids revealed. A plaintext that does not reveal (a wrong one) is skipped.
+ * Applies the reveals the client can make (`known` plaintexts, by commitment) to hidden missions,
+ * in arrival order (reveals go in order for a window, B-22); returns the ids revealed. A plaintext
+ * that does not reveal (a wrong one, or one held back by a parked mission ahead) is skipped.
  */
 export function revealKnown(
   w: sim.World,
@@ -328,9 +334,11 @@ export function revealKnown(
   now: bigint,
 ): bigint[] {
   const out: bigint[] = [];
-  for (const m of w.missions.values()) {
-    const p = m.hidden && !m.returning ? known.get(m.commit) : undefined;
-    if (!p) continue;
+  const candidates = [...w.missions.values()]
+    .filter((m) => m.hidden && !m.returning && known.has(m.commit))
+    .sort(byArrival);
+  for (const m of candidates) {
+    const p = known.get(m.commit)!;
     try {
       sim.reveal(w, m.id, p.kind, p.target, p.salt, now);
       out.push(m.id);
@@ -352,7 +360,8 @@ export function project(
   known: ReadonlyMap<string, HiddenPlain> = new Map(),
 ): sim.World {
   const p = cloneWorld(w);
-  revealKnown(p, known, now);
+  sim.processDue(p, now, Number.MAX_SAFE_INTEGER); // parks the due hidden ones
+  revealKnown(p, known, now); // each one re-enters the queue at `now`
   sim.processDue(p, now, Number.MAX_SAFE_INTEGER);
   for (const b of p.buildings.values()) if (b.lastUpdate < now) sim.settle(p, b, now);
   return p;

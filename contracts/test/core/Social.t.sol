@@ -114,10 +114,14 @@ contract SocialTest is GameTestBase {
     }
 
     /// Every mission home.
+    /// Every mission home, then past the return cooldown so the next send is not TroopsResting.
     function _allHome() internal {
         for (;;) {
             uint64[] memory ids = game.pendingMissions();
-            if (ids.length == 0) return;
+            if (ids.length == 0) {
+                vm.warp(block.timestamp + Ruleset.RETURN_COOLDOWN);
+                return;
+            }
             uint256 next = type(uint256).max;
             for (uint256 i; i < ids.length; ++i) {
                 uint256 a = game.getMission(ids[i]).arrival;

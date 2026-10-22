@@ -92,6 +92,7 @@ export interface Building {
   levels: bigint[];
   stock: bigint[]; // per resource, in units of 1/STOCK_SCALE
   lastUpdate: bigint;
+  lastReturn: bigint; // returning troops came home then; sends wait returnCooldown (B-22)
   roomQueue: QueueItem[];
   centipoints: bigint; // rooms only (per-building ranking)
   troops: bigint[]; // units at home
@@ -166,7 +167,7 @@ export interface World {
   missions: Map<bigint, Mission>;
   /** The global mission queue (B-07): ids ordered by (arrival, seq). */
   pending: bigint[]; // the global queue (B-07), in (arrival, seq) order
-  parked: bigint[]; // due hidden missions nobody revealed yet, out of the queue (B-22); any order
+  parked: bigint[]; // due hidden missions nobody revealed yet, out of the queue (B-22), in (arrival, seq) order
   nextFamily: bigint;
   families: Map<bigint, Family>;
   familyNames: Map<string, bigint>; // "tag:<lowercase>" / "name:<lowercase>" → family

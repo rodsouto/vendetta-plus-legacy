@@ -367,6 +367,8 @@
     "InvalidClaim": "El reclamo no cabe: revisá lo que falta, el stock del deudor y tu capacidad libre.",
     "NoInvite": "No hay una invitación vigente para esta dirección.",
     "TooLate": "La misión llegaría después de que se abra su cifrado: volvé a enviarla.",
+    "TroopsResting": "Las tropas que acaban de volver descansan: el edificio todavía no puede enviar misiones.",
+    "OutOfOrder": "Otra misión oculta llegó antes y tiene que revelarse primero: esperá unos segundos.",
     "TooEarly": "Todavía no: no pasó la gracia de reveal de esa misión."
   },
   "theme": {

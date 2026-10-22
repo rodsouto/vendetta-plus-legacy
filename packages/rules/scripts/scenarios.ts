@@ -164,6 +164,7 @@ function snapshot(w: sim.World) {
     buildings: [...w.buildings.values()].map((b) => ({
       centipoints: num(b.centipoints),
       id: num(b.id),
+      last_return: num(b.lastReturn),
       last_update: num(b.lastUpdate),
       levels: b.levels.map(num),
       owner: num(b.owner),
@@ -1543,13 +1544,17 @@ function scriptedMarketScenario(seed: number) {
     if (m.arrival > now) now = m.arrival;
     ok(act(1, ACTION.advance, [10]), "advance to arrival");
   };
-  /** Every mission home (none hidden): time moves to each arrival in turn. */
+  /**
+   * Every mission home (none hidden): time moves to each arrival in turn, then past the return
+   * cooldown, so the next send is not TroopsResting (B-22).
+   */
   const allHome = () => {
     while (w.pending.length > 0) {
       const next = w.missions.get(w.pending[0]!)!;
       if (next.arrival > now) now = next.arrival;
       ok(act(1, ACTION.advance, [10]), "advance until home");
     }
+    now += rs.config.returnCooldown;
   };
   const transport = (
     actor: number,
@@ -1924,6 +1929,194 @@ function scriptedControllersScenario(seed: number) {
   return { actors: 2, seed, steps };
 }
 
+/**
+ * Scripted walk-through of the reveal order window and the return cooldown (B-22): the second of
+ * two hidden missions waits for the first (parked or still queued), garbage ahead holds it for the
+ * window only, and an attack timed after the enemy's return still catches the troops although a
+ * garbage mission parked in between delays its reveal past the window.
+ */
+function scriptedHiddenScenario(seed: number) {
+  SESSIONS.clear();
+  INVITED.clear();
+  SECRETS.clear();
+  const w = sim.newWorld(rs);
+  let now = T0;
+  const steps: unknown[] = [];
+  const act = (actor: number, action: number, args: number[]): string => {
+    const a: Action = { action, args };
+    const error = attempt(w, actor < 0 ? "admin" : String(actor), a, now);
+    steps.push({
+      action,
+      actor: Math.max(actor, 0),
+      args,
+      error,
+      state: snapshot(w),
+      time: num(now),
+    });
+    return error;
+  };
+  const expect = (want: string, got: string, what: string) => {
+    if (got !== want) throw new Error(`scripted hidden: ${what}: expected "${want}", got "${got}"`);
+  };
+  const assume = (ok: boolean, what: string) => {
+    if (!ok) throw new Error(`scripted hidden: ${what}`);
+  };
+  const ok = (got: string, what: string) => expect("", got, what);
+  const jump = (seconds: number) => (now += BigInt(seconds));
+  const bld = (actor: number) =>
+    [...w.buildings.values()].find((b) => b.owner === BigInt(actor + 1))!;
+  const bid = (actor: number) => num(bld(actor).id);
+  const at = (b: sim.Building) => [
+    Number(b.coord.city),
+    Number(b.coord.neighborhood),
+    Number(b.coord.slot),
+  ];
+  const rowdies = (n: number) => rs.troops.map((t) => (t.id === "rowdy" ? n : 0));
+  const COVER = 3; // enough for the neighbours' distance
+  const hidden = (actor: number, to: sim.Building, n: number, salt: number) =>
+    act(actor, ACTION.sendHiddenMission, [
+      bid(actor),
+      sim.ATTACK,
+      ...at(to),
+      salt,
+      COVER,
+      ...rowdies(n),
+      0,
+      0,
+      0,
+      0,
+      FAR,
+    ]);
+  const reveal = (id: number, to: sim.Building, salt: number) =>
+    act(ANYONE, ACTION.reveal, [id, sim.ATTACK, ...at(to), salt]);
+  const transport = (actor: number, to: sim.Building, n: number) =>
+    act(actor, ACTION.sendMission, [
+      bid(actor),
+      sim.TRANSPORT,
+      ...at(to),
+      ...rowdies(n),
+      0,
+      0,
+      0,
+      0,
+      0,
+    ]);
+  const last = () => num(w.nextMission) - 1;
+  const arrival = (id: number) => w.missions.get(BigInt(id))!.arrival;
+  const ROWDY = troop("rowdy");
+  const WINDOW = rs.config.hiddenOrderWindow;
+  const COOLDOWN = rs.config.returnCooldown;
+  const GRACE = rs.config.hiddenRevealGrace;
+
+  // Premium on; Alice (0) and Bob (1) next to each other, with rowdies.
+  ok(act(-1, ACTION.setGlobalPremium, [Number(T0) + 100_000_000]), "premium");
+  ok(act(0, ACTION.register, [1, 1, 1]), "Alice registers");
+  ok(act(1, ACTION.register, [1, 1, 2]), "Bob registers");
+  ok(act(0, ACTION.queueRoom, [bid(0), room("boot_camp")]), "Alice's camp");
+  ok(act(1, ACTION.queueRoom, [bid(1), room("boot_camp")]), "Bob's camp");
+  jump(3 * 86400);
+  ok(act(0, ACTION.train, [bid(0), ROWDY, 7]), "Alice's rowdies"); // the stock cap: 7 at once
+  ok(act(1, ACTION.train, [bid(1), ROWDY, 7]), "Bob's rowdies");
+  jump(86400);
+
+  // 1. Garbage ahead: two hidden missions a second apart, nobody reveals the first. The second
+  // waits for the first's window, parked.
+  ok(hidden(0, bld(1), 1, 11), "garbage g1");
+  const g1 = last();
+  jump(1);
+  ok(hidden(0, bld(1), 1, 12), "h1");
+  const h1 = last();
+  assume(arrival(h1) === arrival(g1) + 1n, "a second apart");
+  now = arrival(h1);
+  ok(act(1, ACTION.advance, [10]), "both parked");
+  assume(w.parked.length === 2, "both parked");
+  now = arrival(g1) + WINDOW - 1n;
+  expect("OutOfOrder", reveal(h1, bld(1), 12), "held by g1 within its window (parked)");
+  now = arrival(g1) + WINDOW;
+  ok(reveal(h1, bld(1), 12), "the window passed: h1 overtakes g1");
+  ok(act(1, ACTION.advance, [10]), "h1 resolves");
+  now = arrival(g1) + GRACE;
+  ok(act(ANYONE, ACTION.forfeit, [g1]), "g1 forfeited");
+
+  // 2. Both revealable, still queued: the later waits for the earlier, which frees it.
+  jump(86400);
+  ok(hidden(0, bld(1), 1, 21), "a2");
+  const a2 = last();
+  jump(1);
+  ok(hidden(0, bld(1), 1, 22), "b2");
+  const b2 = last();
+  now = arrival(b2) + 2n;
+  expect("OutOfOrder", reveal(b2, bld(1), 22), "the reveal drains, parks both: b2 is held");
+  assume(w.parked.length === 0, "the failed reveal left nothing parked");
+  ok(reveal(a2, bld(1), 21), "a2 revealed");
+  ok(reveal(b2, bld(1), 22), "a2 on its way frees b2");
+  ok(act(1, ACTION.advance, [10]), "both resolve");
+
+  // 3. The interception: Bob's troops come home at R; his own garbage lands at R+1 and Alice's
+  // attack at R+2. The garbage holds the attack's reveal until R+16; Bob's troops rest until R+30.
+  jump(86400);
+  const copy = (() => {
+    const { rs: r, ...rest } = w;
+    return { ...structuredClone(rest), rs: r } as sim.World;
+  })();
+  const probe = sim.sendMission(
+    copy,
+    "1",
+    bld(1).id,
+    sim.TRANSPORT,
+    bld(0).coord,
+    rowdies(5).map(BigInt),
+    [0n, 0n, 0n, 0n],
+    0n,
+    now,
+  );
+  sim.advance(copy, 10, copy.missions.get(probe)!.arrival);
+  const roundTrip = copy.missions.get(probe)!.arrival - now;
+  const hiddenTrip =
+    copy.missions.get(
+      sim.sendHiddenMission(
+        copy,
+        "0",
+        bld(0).id,
+        sim.hiddenCommit(1n, sim.ATTACK, bld(1).coord, 1n),
+        BigInt(COVER),
+        rowdies(1).map(BigInt),
+        [0n, 0n, 0n, 0n],
+        BigInt(FAR),
+        now,
+      ),
+    )!.arrival - now;
+  ok(transport(1, bld(0), 5), "Bob's troops go out and come back");
+  const R = now + roundTrip;
+  now = R + 1n - hiddenTrip;
+  ok(hidden(1, bld(0), 1, 31), "Bob's garbage g3 (no second account needed)");
+  const g3 = last();
+  now = R + 2n - hiddenTrip;
+  ok(hidden(0, bld(1), 3, 32), "the attack");
+  const a3 = last();
+  assume(arrival(g3) === R + 1n && arrival(a3) === R + 2n, "timed after the return");
+  now = R;
+  ok(act(1, ACTION.advance, [10]), "Bob's troops are home");
+  assume(bld(1).troops[ROWDY] === 6n && bld(1).lastReturn === R, "home at R");
+  now = R + 10n;
+  expect("OutOfOrder", reveal(a3, bld(1), 32), "the keeper's reveal is held by g3");
+  now = R + 15n;
+  expect("TroopsResting", transport(1, bld(0), 5), "Bob cannot slip away (public send)");
+  now = R + 16n;
+  ok(reveal(a3, bld(1), 32), "g3's window passed");
+  assume(w.parked.length === 1 && w.parked[0] === BigInt(g3), "g3 stays parked");
+  ok(act(1, ACTION.advance, [10]), "the battle, 3 rowdies against 6 at home");
+  const a3m = w.missions.get(BigInt(a3));
+  assume(a3m === undefined || a3m.troops[ROWDY]! < 3n, "the attack met the defenders");
+  now = R + COOLDOWN - 1n;
+  expect("TroopsResting", hidden(1, bld(0), 1, 41), "still resting (hidden send)");
+  now = R + COOLDOWN;
+  ok(hidden(1, bld(0), 1, 42), "the cooldown is over");
+  now = arrival(g3) + GRACE;
+  ok(act(ANYONE, ACTION.forfeit, [g3]), "g3 forfeited");
+  return { actors: 2, seed, steps };
+}
+
 const here = dirname(fileURLToPath(import.meta.url));
 const dir = join(here, "../generated/scenarios/vendetta");
 rmSync(join(here, "../generated/scenarios"), { recursive: true, force: true });
@@ -1935,6 +2128,7 @@ const scenarios = [
   scriptedMarketScenario(20291014),
   ...Array.from({ length: MARKET.count }, (_, i) => botScenario(20291015 + i, "market")),
   scriptedControllersScenario(20301014),
+  scriptedHiddenScenario(20311014),
 ];
 const uncovered = MARKET_COVERAGE.filter((c) => !COVERED.has(c));
 if (uncovered.length > 0) {
@@ -1952,6 +2146,11 @@ scenarios.forEach((sc, i) =>
 writeFileSync(join(dir, "index.json"), JSON.stringify({ count: scenarios.length }) + "\n");
 const steps = scenarios.flatMap((s) => s.steps) as { action: number; error: string }[];
 const count = (a: number) => steps.filter((x) => x.action === a && x.error === "").length;
+const errors = (name: string) => steps.filter((x) => x.error === name).length;
+// The two B-22 timing rules must be exercised by the replay (recorded reverts, not candidates).
+for (const name of ["TroopsResting", "OutOfOrder"]) {
+  if (errors(name) === 0) throw new Error(`no scenario step reverts ${name}`);
+}
 console.log(
   `packages/rules/generated/scenarios/vendetta/: ${scenarios.length} scenarios, ${steps.length} steps, ` +
     `${steps.filter((x) => x.error).length} expected reverts; ok: ${count(ACTION.train)} train, ` +
@@ -1963,5 +2162,6 @@ console.log(
     `${count(ACTION.removeController)} controllers (${EXECUTED.removals} executed, ` +
     `${count(ACTION.cancelRemoval)} cancelled), ${EXECUTED.transfers} transfers executed, ` +
     `${count(ACTION.claimTrade)} claims, ${count(ACTION.registerDebt)} registrations, ` +
-    `${steps.filter((x) => x.error === "InDebt").length} InDebt`,
+    `${errors("InDebt")} InDebt, ${errors("TroopsResting")} TroopsResting, ` +
+    `${errors("OutOfOrder")} OutOfOrder`,
 );

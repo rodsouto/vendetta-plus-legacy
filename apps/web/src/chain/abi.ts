@@ -493,6 +493,11 @@ export const gameAbi = [
             "internalType": "uint40"
           },
           {
+            "name": "lastReturn",
+            "type": "uint40",
+            "internalType": "uint40"
+          },
+          {
             "name": "centipoints",
             "type": "uint128",
             "internalType": "uint128"
@@ -1309,7 +1314,7 @@ export const gameAbi = [
     "inputs": [],
     "outputs": [
       {
-        "name": "",
+        "name": "out",
         "type": "uint64[]",
         "internalType": "uint64[]"
       }
@@ -3475,6 +3480,11 @@ export const gameAbi = [
   },
   {
     "type": "error",
+    "name": "OutOfOrder",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "OwnTarget",
     "inputs": []
   },
@@ -3496,6 +3506,11 @@ export const gameAbi = [
   {
     "type": "error",
     "name": "TooManyMissions",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TroopsResting",
     "inputs": []
   },
   {

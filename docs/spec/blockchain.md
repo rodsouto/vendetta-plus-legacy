@@ -541,14 +541,16 @@ precompile only returns a boolean, so decrypting tlock on-chain is not practical
   only the sender knows the plaintext); past `arrival + hidden_reveal_grace_seconds` it does
   nothing. The contract checks the hash, that the kind and coordinate are valid and not the
   origin, and that `distance(origin, target) ≤ cover`; otherwise it reverts. Revealing a mission
-  that is no longer hidden does nothing, so clients and the keeper can race. Reveal does not drain
-  the queue: it touches no building. A mission revealed before it arrives resolves at its arrival
-  like a public one; one revealed after its arrival (**parked**, below, or still at the head of
-  the queue because nothing drained it since) re-enters the queue with the reveal time as its
-  arrival and a fresh `seq`, so it resolves against the target's state at the second of the
-  reveal, with the same-second order of B-07 applied to that second.
+  that is no longer hidden does nothing, so clients and the keeper can race. Reveal drains the
+  queue like any action (B-07), so every due mission ahead of it is processed or parked first;
+  with a backlog it reverts `Backlog` and the client advances first. A mission revealed before it
+  arrives resolves at its arrival like a public one; one revealed after its arrival (**parked**,
+  below) re-enters the queue with the reveal time as its arrival and a fresh `seq`, so it
+  resolves against the target's state at the second of the reveal, with the same-second order of
+  B-07 applied to that second.
 - **Parking.** The queue never waits for a reveal. When its head is a due hidden mission nobody
-  revealed yet, the queue takes it out to the parked list (`parkedMissions`) and goes on with the
+  revealed yet, the queue takes it out to the parked list (`parkedMissions`, in arrival order: a
+  doubly linked list on-chain, so a reveal checks its predecessor only) and goes on with the
   next mission; nothing stalls: construction, research, training, trades and everyone's missions
   carry on. A parked mission keeps its troops and cargo and leaves the list by a reveal, a recall
   or a forfeit. Clients reveal their own missions at the arrival when they are online, and the
@@ -560,15 +562,36 @@ precompile only returns a boolean, so decrypting tlock on-chain is not practical
   a hidden mission nobody revealed: it turns back from that moment with all its troops and cargo
   (a recall by its owner does the same at any time). The keeper does
   it; the sender has every reason to do it first. A ciphertext that does not decrypt or does not
-  match the commitment harms nobody but its sender, so there is no bond and no garbage report.
+  match the commitment is forfeitable after the grace like any other; there is no bond and no
+  garbage report. While parked it takes part in the order window below: that is all it can do
+  to others.
   The grace stays short because it bounds how long a sender who is online can pick the moment of
   its own reveal (~10 s in practice, until the keeper reveals), and because without it an
   unrevealed mission would be a permanent fleet save whose attack lands whenever its owner chooses.
-- **Order.** A hidden mission resolves at its reveal, not at its arrival: 8–10 s later with the
-  keeper, at the arrival when the sender's client is online. Two missions to the same target
-  seconds apart can therefore resolve in the opposite order to their arrivals. Accepted in v1, as
-  the legacy cron resolved at minute granularity. Revealing strictly in arrival order (only the
-  oldest parked mission can be revealed) is a possible later restriction on `reveal`.
+- **Order.** Reveals go in arrival order for `hidden_order_window_seconds` (15 s): a due hidden
+  mission can be revealed only once every parked mission that arrived before it, by
+  `(arrival, seq)`, is past its window; otherwise `OutOfOrder`. The keeper reveals each mission
+  as soon as its round is out (8–12 s after the arrival) and the sender's client at the arrival,
+  so hidden missions resolve in the order they arrived; one nobody can reveal (garbage) holds the
+  ones behind it for the window at most, then they go on and may overtake it, which is all a
+  garbage ciphertext can do to others. The window must exceed the keeper's latency, so it moves
+  with the 10 s round margin. Public missions (returns, trade transports) still resolve at their
+  arrival, so one can land before a parked hidden mission that arrived earlier: accepted, as the
+  legacy cron resolved at minute granularity.
+- **Return cooldown.** A building that just took returning troops in cannot send a mission for
+  `return_cooldown_seconds` (30 s, [game_config.yaml](data/game_config.yaml)): `TroopsResting`.
+  It keeps the legacy interception alive: an attack timed to land right after the enemy's troops
+  come home catches them. Without it the defender's own send in the seconds between the arrival
+  and the reveal of the parked attack would park the attack and let the troops leave again; the
+  legacy cron resolved the return and the attack in the same minute. The cooldown has to outlast
+  the attack's reveal: `arrival gap + hidden_order_window + reveal latency`, with the gap the
+  ~3 s an attacker can aim at after the return, the window because a parked mission ahead (a
+  garbage one, even the defender's own) holds the attack's reveal until `attack arrival +
+  window` at the latest, and ~5 s for the keeper's tick and the inclusion once the reveal is
+  allowed. `30 > 3 + 15 + 5` leaves slack. An operating assumption, not a guarantee: no finite
+  cooldown covers a keeper outage or a backlog that delays the reveal past it. The sender's own
+  client reveals at the arrival, so it may land anywhere in the window, even a little before
+  the return and be revealed right after it. Not legacy.
 - **Arrival rules** are the usual ones (07-missions.md), plus D-18 checked at arrival: a hidden
   mission bounces if the target's owner was on vacation when it was sent (a vacation started later
   does not protect, a vacation started in the same second counts by creation order, B-07). A
@@ -583,10 +606,10 @@ precompile only returns a boolean, so decrypting tlock on-chain is not practical
   inclusion would be later; the client sets it to the round's time minus one second and encrypts
   again on that error. On local chains the plaintext travels as is ("plain"): anvil's clock
   jumps (time travel) and drand's does not.
-- **Measured:** `sendHiddenMission` ~400k gas with a 400-byte ciphertext, `reveal` ~14k before
-  the arrival and ~42k on a parked mission (it re-enters the queue), parking ~30k inside the
-  drain that does it
-  (`forge test --match-contract HiddenMissions -vv`).
+- **Measured:** `sendHiddenMission` ~400k gas with a 400-byte ciphertext, `reveal` ~16k before
+  the arrival and ~48k on a parked mission (it re-enters the queue; the order check reads its
+  predecessor only, whatever the length of the parked list), plus whatever its drain processes;
+  parking ~30k inside the drain that does it (`forge test --match-contract HiddenMissions -vv`).
 - **Accepted leaks:** the cover ring; the cargo (a mission carrying resources is a transport); the
   troops (an occupation needs its occupation troop).
 

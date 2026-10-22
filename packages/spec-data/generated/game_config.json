@@ -311,6 +311,8 @@
     "max_controllers_per_player": 5,
     "controller_removal_delay_seconds": 259200,
     "hidden_reveal_grace_seconds": 60,
+    "return_cooldown_seconds": 30,
+    "hidden_order_window_seconds": 15,
     "invite_ttl_seconds": 604800
   },
   "premium": {

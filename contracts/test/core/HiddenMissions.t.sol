@@ -13,7 +13,9 @@ import {
     InvalidCover,
     InvalidMission,
     TooEarly,
-    TooLate
+    TooLate,
+    TroopsResting,
+    OutOfOrder
 } from "../../src/core/GameErrors.sol";
 import {IGameEvents} from "../../src/core/GameErrors.sol";
 import {GameTestBase} from "./GameTestBase.sol";
@@ -216,7 +218,8 @@ contract HiddenMissionsTest is GameTestBase {
         assertEq(game.getMission(id).cargo[0], 250, "looted");
     }
 
-    /// The parked list is a swap-remove list, as the simulator mirrors it.
+    /// The parked list keeps its arrival order when a mission leaves it (a linked list on-chain;
+    /// the simulator mirrors the order): head, middle and tail removals.
     function test_parkedListOrder() public {
         uint64 a = _sendHiddenN(ATTACK, 2, 3, 3);
         uint64 b = _sendHiddenN(ATTACK, 2, 3, 2);
@@ -227,13 +230,62 @@ contract HiddenMissionsTest is GameTestBase {
         assertEq(_parked()[0], a);
         assertEq(_parked()[1], b);
         assertEq(_parked()[2], c);
-        _reveal(a, ATTACK, 2, SALT);
+        vm.warp(block.timestamp + Ruleset.HIDDEN_ORDER_WINDOW); // every window over: any order
+        _reveal(b, ATTACK, 2, SALT); // the middle
         assertEq(_parked().length, 2);
-        assertEq(_parked()[0], c, "the last one took the slot of the revealed one");
-        assertEq(_parked()[1], b);
-        _reveal(b, ATTACK, 2, SALT);
+        assertEq(_parked()[0], a);
+        assertEq(_parked()[1], c);
+        _reveal(a, ATTACK, 2, SALT); // the head
         assertEq(_parked().length, 1);
         assertEq(_parked()[0], c);
+        uint64 d = _sendHiddenN(ATTACK, 2, 3, 1);
+        vm.warp(game.getMission(d).arrival);
+        game.advance(10);
+        assertEq(_parked().length, 2);
+        assertEq(_parked()[1], d, "appended at the tail");
+        vm.prank(alice);
+        game.recall(d); // the tail
+        assertEq(_parked().length, 1);
+        assertEq(_parked()[0], c);
+        vm.warp(block.timestamp + Ruleset.HIDDEN_REVEAL_GRACE);
+        game.forfeit(c); // the only one
+        assertEq(_parked().length, 0);
+        uint64 e = _sendHiddenN(ATTACK, 2, 3, 1);
+        vm.warp(game.getMission(e).arrival);
+        game.advance(10);
+        assertEq(_parked().length, 1, "a fresh head after the list emptied");
+        assertEq(_parked()[0], e);
+    }
+
+    /// Reveals go in arrival order for HIDDEN_ORDER_WINDOW: the second of two parked missions
+    /// waits for the first, or for the first's window to pass when nobody reveals it (B-22).
+    function test_revealsGoInArrivalOrderForTheWindow() public {
+        uint64 a = _sendHiddenN(ATTACK, 2, 3, 2);
+        uint64 b = _sendHiddenN(ATTACK, 2, 3, 2);
+        uint256 arrival = game.getMission(b).arrival;
+        vm.warp(arrival + 5);
+        // Nothing drained yet: the reveal drains first, parks both, and b is out of order.
+        vm.expectRevert(OutOfOrder.selector);
+        _reveal(b, ATTACK, 2, SALT);
+        assertEq(game.pendingMissions().length, 2, "reverted: nothing parked");
+        _reveal(a, ATTACK, 2, SALT);
+        assertEq(_parked().length, 1);
+        assertEq(_parked()[0], b);
+        _reveal(b, ATTACK, 2, SALT); // a is on its way: b may follow
+        assertEq(_parked().length, 0);
+        game.advance(10);
+
+        // Garbage ahead holds the ones behind for the window only.
+        uint64 c = _sendHiddenN(ATTACK, 2, 3, 1); // never revealed
+        uint64 d = _sendHiddenN(ATTACK, 2, 3, 1);
+        arrival = game.getMission(d).arrival;
+        vm.warp(arrival + Ruleset.HIDDEN_ORDER_WINDOW - 1);
+        vm.expectRevert(OutOfOrder.selector);
+        _reveal(d, ATTACK, 2, SALT);
+        vm.warp(arrival + Ruleset.HIDDEN_ORDER_WINDOW);
+        _reveal(d, ATTACK, 2, SALT);
+        assertEq(_parked().length, 1);
+        assertEq(_parked()[0], c, "c waits for its forfeit");
     }
 
     /// Past the grace, anyone forfeits a parked mission: it turns back from that moment.
@@ -296,6 +348,125 @@ contract HiddenMissionsTest is GameTestBase {
         vm.warp(m.arrival);
         game.advance(1);
         assertEq(game.getBuilding(1).troops[ROWDY], 7);
+    }
+
+    /// Troops that just came home rest: the building cannot send for RETURN_COOLDOWN (B-22), so
+    /// an attack timed to land right after an enemy's return still catches them (the defender's
+    /// send in the gap before the reveal would otherwise park the attack and move them out).
+    function test_returnCooldown() public {
+        vm.prank(alice);
+        uint64 id = game.sendMission(1, ATTACK, [uint256(1), 1, 2], _rowdies(5), _none(), 0);
+        vm.warp(game.getMission(id).arrival);
+        game.advance(1); // resolves against bob and turns back
+        uint256 home = game.getMission(id).arrival;
+        vm.warp(home);
+        game.advance(1);
+        assertEq(game.getBuilding(1).troops[ROWDY], 7);
+        assertEq(game.getBuilding(1).lastReturn, home);
+
+        vm.warp(home + Ruleset.RETURN_COOLDOWN - 1);
+        vm.startPrank(alice);
+        vm.expectRevert(TroopsResting.selector);
+        game.sendMission(1, ATTACK, [uint256(1), 1, 2], _rowdies(5), _none(), 0);
+        vm.expectRevert(TroopsResting.selector);
+        game.sendHiddenMission(
+            1, _commit(ATTACK, 2, SALT), 3, _rowdies(5), _none(), "", NO_DEADLINE
+        );
+        vm.stopPrank();
+        vm.prank(bob);
+        game.queueRoom(2, BOOT_CAMP); // the world goes on; alice's troops stay home meanwhile
+        assertEq(game.getBuilding(1).troops[ROWDY], 7);
+
+        vm.warp(home + Ruleset.RETURN_COOLDOWN);
+        vm.prank(alice);
+        game.sendMission(1, ATTACK, [uint256(1), 1, 2], _rowdies(5), _none(), 0);
+        assertEq(game.getBuilding(1).troops[ROWDY], 2);
+    }
+
+    /// The return cooldown outlasts the order window (B-22): a parked mission that arrived just
+    /// after the defender's return (even the defender's own garbage) holds the attack's reveal
+    /// until `attack arrival + window`, and the defender's troops must still be home by then.
+    function test_interceptionSurvivesGarbageParkedAhead() public {
+        vm.prank(bob);
+        game.queueRoom(2, BOOT_CAMP);
+        vm.warp(block.timestamp + 1 days);
+        vm.prank(bob);
+        game.train(2, ROWDY, 5);
+        vm.warp(block.timestamp + 1 days);
+        game.poke(2);
+        uint256 start = block.timestamp;
+        uint256[3] memory alicesHome = [uint256(1), 1, 1];
+
+        // Measured on a snapshot: alice's hidden trip to bob's, bob's round trip to alice's.
+        uint256 snap = vm.snapshotState();
+        uint256 hiddenTrip = game.getMission(_sendHiddenN(ATTACK, 2, 3, 1)).arrival - start;
+        vm.prank(bob);
+        uint64 trip = game.sendMission(2, TRANSPORT, alicesHome, _rowdies(5), _none(), 0);
+        vm.warp(game.getMission(trip).arrival);
+        game.advance(10);
+        uint256 roundTrip = game.getMission(trip).arrival - start;
+        vm.revertToState(snap);
+        vm.warp(start);
+
+        vm.prank(bob);
+        game.sendMission(2, TRANSPORT, alicesHome, _rowdies(5), _none(), 0);
+        uint256 home = start + roundTrip; // bob's troops are home again
+        vm.warp(home + 1 - hiddenTrip);
+        uint64 garbage = _sendHiddenN(ATTACK, 2, 3, 1); // never revealed
+        vm.warp(home + 2 - hiddenTrip);
+        uint64 attack = _sendHiddenN(ATTACK, 2, 3, 5);
+        assertEq(game.getMission(garbage).arrival, home + 1);
+        assertEq(game.getMission(attack).arrival, home + 2);
+        vm.warp(home);
+        game.advance(10);
+        assertEq(game.getBuilding(2).troops[ROWDY], 5);
+        assertEq(game.getBuilding(2).lastReturn, home);
+
+        // The keeper's reveal at home+10 is held by the garbage until home+16.
+        vm.warp(home + 10);
+        vm.expectRevert(OutOfOrder.selector);
+        _reveal(attack, ATTACK, 2, SALT);
+        assertEq(_parked().length, 0, "reverted: nothing parked");
+        // With a 15 s cooldown bob would leave here, and the attack would find an empty building.
+        vm.warp(home + 15);
+        vm.prank(bob);
+        vm.expectRevert(TroopsResting.selector);
+        game.sendMission(2, TRANSPORT, alicesHome, _rowdies(5), _none(), 0);
+        vm.warp(home + 16);
+        _reveal(attack, ATTACK, 2, SALT);
+        assertEq(_parked().length, 1);
+        assertEq(_parked()[0], garbage);
+        game.advance(10); // the battle: 5 rowdies against 5 at home
+        assertEq(game.getBuilding(2).troops[ROWDY], 1);
+        assertEq(game.getMission(attack).troops[ROWDY], 1);
+        // The rest still rests until the cooldown is over (checked before the troops).
+        vm.warp(home + Ruleset.RETURN_COOLDOWN - 1);
+        vm.startPrank(bob);
+        vm.expectRevert(TroopsResting.selector);
+        game.sendMission(2, TRANSPORT, alicesHome, _rowdies(1), _none(), 0);
+        vm.warp(home + Ruleset.RETURN_COOLDOWN);
+        game.sendMission(2, TRANSPORT, alicesHome, _rowdies(1), _none(), 0);
+        vm.stopPrank();
+    }
+
+    /// A forfeited mission's return starts the cooldown like any other return (B-22).
+    function test_forfeitedReturnStartsTheCooldown() public {
+        uint64 id = _sendHiddenN(ATTACK, 2, 3, 2);
+        vm.warp(game.getMission(id).arrival + Ruleset.HIDDEN_REVEAL_GRACE);
+        game.forfeit(id); // nobody revealed it: it turns back
+        uint256 home = game.getMission(id).arrival;
+        vm.warp(home);
+        game.advance(10);
+        assertEq(game.getBuilding(1).troops[ROWDY], 7);
+        assertEq(game.getBuilding(1).lastReturn, home);
+        vm.warp(home + Ruleset.RETURN_COOLDOWN - 1);
+        vm.prank(alice);
+        vm.expectRevert(TroopsResting.selector);
+        game.sendHiddenMission(
+            1, _commit(ATTACK, 2, SALT), 3, _rowdies(2), _none(), "", NO_DEADLINE
+        );
+        vm.warp(home + Ruleset.RETURN_COOLDOWN);
+        _sendHiddenN(ATTACK, 2, 3, 2);
     }
 
     /// D-18 at arrival: sent while bob was on vacation, it bounces even if bob is back by then.

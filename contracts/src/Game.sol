@@ -120,8 +120,12 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
         );
     }
 
-    /// Anyone, until the grace ends, and without draining the queue: it touches no building (B-22).
-    function reveal(uint64 mission, uint8 kind, uint256[3] calldata target, bytes32 salt) external {
+    /// Anyone, until the grace ends. Drains the queue first, so the due missions ahead are processed
+    /// or parked and reveals go in arrival order (B-22).
+    function reveal(uint64 mission, uint8 kind, uint256[3] calldata target, bytes32 salt)
+        external
+        drained
+    {
         Missions.reveal(mission, kind, target, salt);
     }
 
@@ -327,6 +331,7 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
         uint8 neighborhood;
         uint8 slot;
         uint40 lastUpdate;
+        uint40 lastReturn;
         uint128 centipoints;
         uint16[ROOMS] levels;
         uint128[RESOURCES] stock;
@@ -370,6 +375,7 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
             b.neighborhood,
             b.slot,
             b.lastUpdate,
+            b.lastReturn,
             b.centipoints,
             b.levels,
             b.stock,
@@ -450,9 +456,18 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
         return GameStorage.core().heap;
     }
 
-    /// Due hidden missions nobody revealed yet, out of the queue (B-22); any order.
-    function parkedMissions() external view returns (uint64[] memory) {
-        return GameStorage.core().parked;
+    /// Due hidden missions nobody revealed yet, out of the queue, in arrival order (B-22).
+    function parkedMissions() external view returns (uint64[] memory out) {
+        CoreState storage s = GameStorage.core();
+        uint256 n;
+        for (uint64 id = s.parkedHead; id != 0; id = s.parkedNext[id]) {
+            ++n;
+        }
+        out = new uint64[](n);
+        uint256 i;
+        for (uint64 id = s.parkedHead; id != 0; id = s.parkedNext[id]) {
+            out[i++] = id;
+        }
     }
 
     function playerOf(address controller) external view returns (uint64) {

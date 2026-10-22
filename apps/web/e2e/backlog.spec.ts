@@ -32,6 +32,11 @@ async function train(page: Page, quantity: number, timeout = 5_000) {
 
 test("an action retries with advance() when missions piled up", async ({ page }) => {
   test.setTimeout(240_000);
+  // What the app complains about, for a failure's log.
+  page.on("console", (m) => {
+    if (m.type() === "warning" || m.type() === "error") console.log(`[browser] ${m.text()}`);
+  });
+  page.on("pageerror", (e) => console.log(`[pageerror] ${e.stack ?? e.message}`));
   await page.addInitScript(() => localStorage.setItem("lang", "es"));
   // Above MAX_MISSIONS_PER_TX (4), so drain() alone cannot catch up.
   const missions = 11;

@@ -3,7 +3,7 @@
 // - PasskeySigner: the passkey's Kernel account for account management and this device's session
 //   account for every game action, both as sponsored ERC-4337 operations (B-15, B-16). The passkey
 //   stack (stack.ts: permissionless, ox) loads on its first use, not with the app.
-import { BaseError, decodeErrorResult, RawContractError } from "viem";
+import { decodeErrorResult } from "viem";
 import type { Abi, Address, Hex, PublicClient } from "viem";
 import type { Clients } from "../chain/config.js";
 import { devAccount } from "../chain/config.js";
@@ -62,11 +62,32 @@ export class NoAccountError extends Error {
   }
 }
 
-/** A call that reverted on chain; `errorName` is the contract's custom error when it is known. */
+/**
+ * A call that reverted on chain; `errorName` is the contract's custom error when it is known.
+ * `failed` is the index of the call that reverted when the calls went one by one (a dev account):
+ * the ones before it landed. Undefined for an operation that reverts as a whole.
+ */
 export class RevertedError extends Error {
-  constructor(readonly errorName?: string) {
+  constructor(
+    readonly errorName?: string,
+    readonly failed?: number,
+  ) {
     super(errorName ?? "reverted");
   }
+}
+
+/**
+ * The revert data in a viem error, wherever the chain of causes keeps it: a RawContractError on a
+ * simulation, or the RPC error itself (`data: "0x…"`) when a mined transaction is replayed with
+ * `call` (CallExecutionError → ExecutionRevertedError → RpcRequestError). Undefined without one.
+ */
+export function revertData(e: unknown): Hex | undefined {
+  for (let x: unknown = e; x; x = (x as { cause?: unknown }).cause) {
+    const data = (x as { data?: unknown }).data;
+    const hex = typeof data === "string" ? data : (data as { data?: unknown } | undefined)?.data;
+    if (typeof hex === "string" && hex.startsWith("0x") && hex !== "0x") return hex as Hex;
+  }
+  return undefined;
 }
 
 /**
@@ -75,7 +96,7 @@ export class RevertedError extends Error {
  * between the gas estimate and the block makes a drained action revert with Backlog (B-08), and
  * the client retries with advance() only when it can name the error.
  */
-async function revertName(clients: Clients, hash: Hex, block: bigint, abi: Abi) {
+export async function revertName(clients: Clients, hash: Hex, block: bigint, abi: Abi) {
   try {
     const tx = await clients.public.getTransaction({ hash });
     await clients.public.call({
@@ -86,10 +107,8 @@ async function revertName(clients: Clients, hash: Hex, block: bigint, abi: Abi) 
       blockNumber: block,
     });
   } catch (e) {
-    const raw = e instanceof BaseError ? e.walk((x) => x instanceof RawContractError) : null;
-    const data = raw instanceof RawContractError ? raw.data : undefined;
-    const hex = typeof data === "string" ? data : data?.data;
-    if (hex && hex !== "0x") {
+    const hex = revertData(e);
+    if (hex) {
       try {
         return decodeErrorResult({ abi, data: hex }).errorName;
       } catch {
@@ -103,7 +122,7 @@ async function revertName(clients: Clients, hash: Hex, block: bigint, abi: Abi) 
 /** Sends the calls one by one as plain transactions from a development account (local only). */
 async function sendPlain(clients: Clients, account: number, calls: Call[]) {
   const wallet = clients.wallet(account);
-  for (const c of calls) {
+  for (const [i, c] of calls.entries()) {
     const hash = await wallet.writeContract({
       ...c,
       address: c.to,
@@ -112,7 +131,7 @@ async function sendPlain(clients: Clients, account: number, calls: Call[]) {
     } as never);
     const receipt = await clients.public.waitForTransactionReceipt({ hash });
     if (receipt.status !== "success") {
-      throw new RevertedError(await revertName(clients, hash, receipt.blockNumber, c.abi));
+      throw new RevertedError(await revertName(clients, hash, receipt.blockNumber, c.abi), i);
     }
   }
 }

@@ -147,21 +147,23 @@ function battle(w: World, m: Mission, b: Building, t: bigint): void {
   sendBack(w, m, t);
 }
 
-/** A due hidden mission nobody revealed yet leaves the queue for the parked list (B-22). */
+/**
+ * A due hidden mission nobody revealed yet leaves the queue for the parked list (B-22): appended,
+ * which keeps the list in (arrival, seq) order since the drain parks missions in queue order and a
+ * parked one never comes back as hidden (on-chain: a doubly linked list).
+ */
 function park(w: World, m: Mission): void {
   w.parked.push(m.id);
 }
 
-/** Takes a mission out of the queue or the parked list, wherever it is (swap-remove, as on-chain). */
+/** Takes a mission out of the queue or the parked list, wherever it is, keeping the order. */
 function dequeue(w: World, m: Mission): void {
   const i = w.pending.indexOf(m.id);
   if (i >= 0) {
     w.pending.splice(i, 1);
     return;
   }
-  const j = w.parked.indexOf(m.id);
-  w.parked[j] = w.parked[w.parked.length - 1]!;
-  w.parked.pop();
+  w.parked.splice(w.parked.indexOf(m.id), 1);
 }
 
 /**
@@ -181,6 +183,7 @@ function process(w: World, m: Mission): void {
     if (origin && origin.owner === m.owner) {
       settle(w, origin, t, m.seq);
       origin.troops = origin.troops.map((n, i) => n + m.troops[i]!);
+      origin.lastReturn = t; // the troops rest before they can leave again (B-22)
       credit(w, origin, Object.fromEntries(w.rs.resources.map((r, i) => [r, m.cargo[i]!])));
     } else {
       p.centipoints -= troopCentipoints(w, m.troops); // the building was abandoned: troops are lost
@@ -388,6 +391,7 @@ export const sendMission = atomic(function sendMission(
     fail("InvalidTrade");
   if (p.missions >= BigInt(c.maxOutgoingMissions)) fail("TooManyMissions");
   settleForAction(w, p, b, now);
+  if (now < b.lastReturn + c.returnCooldown) fail("TroopsResting");
 
   const cargo = kind === TRANSPORT ? resources : w.rs.resources.map(() => 0n);
   const duration = charge(w, p, b, troops, cargo, distance(w.rs, b.coord, target));
@@ -511,6 +515,7 @@ export const sendHiddenMission = atomic(function sendHiddenMission(
   if (cover < 1n || cover * c.distanceUnit > maxDistanceFrom(w.rs, b.coord)) fail("InvalidCover");
   if (p.missions >= BigInt(c.maxOutgoingMissions)) fail("TooManyMissions");
   settleForAction(w, p, b, now);
+  if (now < b.lastReturn + c.returnCooldown) fail("TroopsResting");
 
   const duration = charge(w, p, b, troops, resources, cover * c.distanceUnit);
   // The arrival must not pass the round the ciphertext was encrypted for (B-22).
@@ -523,11 +528,25 @@ export const sendHiddenMission = atomic(function sendHiddenMission(
 });
 
 /**
- * Anyone may reveal a hidden mission until its grace ends: it checks the commitment and the target
- * only, and touches no building, so it never drains the queue. An invalid reveal fails; past the
- * grace it does nothing (the mission is forfeited instead). A mission revealed after its arrival
- * (parked, or still queued because nothing drained it since) gets the reveal time as its arrival
- * and a fresh seq: it resolves against the target's state at this second (B-22).
+ * Reveals go in arrival order for hiddenOrderWindow: a parked mission that arrived before `m` and
+ * is still within its window must be revealed first (B-22). The parked list is in (arrival, seq)
+ * order and `m` is parked (the drain parked every due mission), so the predecessor decides: past
+ * its window, every earlier one is past its own too.
+ */
+function checkOrder(w: World, m: Mission, now: bigint): void {
+  const i = w.parked.indexOf(m.id);
+  if (i <= 0) return;
+  const prev = w.missions.get(w.parked[i - 1]!)!;
+  if (now < prev.arrival + w.rs.config.hiddenOrderWindow) fail("OutOfOrder");
+}
+
+/**
+ * Anyone may reveal a hidden mission until its grace ends: it drains the queue like any action
+ * (so the due missions ahead are processed or parked), then checks the commitment and the target.
+ * An invalid reveal fails; past the grace it does nothing (the mission is forfeited instead). A
+ * mission revealed after its arrival (parked by that drain) gets the reveal time as its arrival
+ * and a fresh seq, so it resolves against the target's state at this second; reveals go in
+ * arrival order for a window (B-22).
  */
 export const reveal = atomic(function reveal(
   w: World,
@@ -537,6 +556,7 @@ export const reveal = atomic(function reveal(
   salt: bigint,
   now: bigint,
 ): void {
+  drain(w, now);
   const m = w.missions.get(missionId);
   if (!m || !m.hidden || m.returning) return; // already revealed, recalled or resolved: clients race
   if (now >= m.arrival + w.rs.config.hiddenRevealGrace) return; // forfeit instead
@@ -548,6 +568,7 @@ export const reveal = atomic(function reveal(
   m.kind = kind;
   m.target = { ...target };
   if (m.arrival <= now) {
+    checkOrder(w, m, now);
     dequeue(w, m);
     m.arrival = now;
     m.seq = w.seq++;

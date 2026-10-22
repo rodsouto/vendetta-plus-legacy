@@ -62,6 +62,8 @@ error NoTransfer();
 error NoInvite();
 error TooLate();
 error TooEarly();
+error TroopsResting();
+error OutOfOrder();
 
 struct BattleReport {
     uint64[TROOPS] attacker;

@@ -162,6 +162,10 @@ export interface Config {
   maxOutgoingMissions: number;
   /** A parked hidden mission (nobody revealed it) can be forfeited from here on (B-22). */
   hiddenRevealGrace: bigint;
+  /** A building that just took returning troops in cannot send a mission this long (B-22). */
+  returnCooldown: bigint;
+  /** Reveals go in arrival order: a parked hidden mission holds the ones behind it this long at most (B-22). */
+  hiddenOrderWindow: bigint;
   /** A controller or transfer invitation lasts this long (B-26). */
   inviteTtl: bigint;
   /** Honor power never drops below this percentage (D-27). */
@@ -331,6 +335,8 @@ export function loadRuleset(raw: RawRuleset, cfg: typeof gameConfig): Ruleset {
       occupationTroopsConsumed: BigInt(cfg.occupation.occupation_troops_consumed),
       maxOutgoingMissions: cfg.onchain.max_outgoing_missions_per_player,
       hiddenRevealGrace: BigInt(cfg.onchain.hidden_reveal_grace_seconds),
+      returnCooldown: BigInt(cfg.onchain.return_cooldown_seconds),
+      hiddenOrderWindow: BigInt(cfg.onchain.hidden_order_window_seconds),
       inviteTtl: BigInt(cfg.onchain.invite_ttl_seconds),
       honorMinPercent: BigInt(cfg.honor.min_power_percent),
       vacationSeconds: BigInt(cfg.vacation.duration_days) * 86400n,

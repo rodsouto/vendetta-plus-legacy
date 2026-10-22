@@ -95,8 +95,8 @@ to another domain loses access for existing passkeys, so pick the final domain f
 A hidden mission (B-22) resolves at its reveal: once due, it waits parked until someone reveals
 it, for at most `hidden_reveal_grace_seconds` (60 s); after that anyone may forfeit it. The
 sender's client reveals its own at the arrival when it is online; the keeper reveals every other
-one as soon as its drand round is out (8–10 s after the arrival) and forfeits the ones nobody
-revealed, so no honest mission is lost. It also processes due missions. It holds no secret; anyone
+one, in arrival order, as soon as its drand round is out (8–10 s after the arrival) and forfeits
+the ones nobody revealed, so no honest mission is lost. It also processes due missions. It holds no secret; anyone
 may run another.
 
 It also keeps the ranking current (B-19): every `KEEPER_SETTLE_INTERVAL_MS` (default 10 minutes) it
@@ -110,8 +110,9 @@ KEEPER_PRIVATE_KEY=0x... RPC_URL=https://... KEEPER_SETTLE_INTERVAL_MS=600000 \
   pnpm --filter @vendetta/web keeper ../../deployments/arbitrum.json arbitrum
 ```
 
-Fund the key with a little ETH: a reveal costs ~14k gas (~42k on a parked mission), a `forfeit`
-about as much, `advance` depends on what is due, a `poke` ~33k–330k depending on what finished.
+Fund the key with a little ETH: a reveal costs ~16k gas (~48k on a parked mission, plus what its
+drain processes), a `forfeit` about as much, `advance` depends on what is due, a `poke`
+~33k–330k depending on what finished.
 Run it somewhere that stays up (any small VM or container); it needs outbound HTTPS to the RPC
 and to `api.drand.sh`.
 
@@ -131,7 +132,6 @@ roughly a cent per action, plus Pimlico's surcharge.
 - The keeper rebuilds the whole world with one call per entity (`loadWorld`), and missions are
   never pruned, so each settle run grows with the world. Fine for v1; a loader on the indexer later.
 - Hidden missions are encrypted to drand quicknet (League of Entropy). If drand stopped, nobody but
-  the sender could reveal them and they would be forfeited after the grace (troops come home, the
-  bond is lost).
+  the sender could reveal them and they would be forfeited after the grace (troops come home).
 - `PasskeyDirectory` has no owner and no upgrades: a new version means a new deploy and a new
   address in `deployments/arbitrum.json`. Existing entries would not carry over.

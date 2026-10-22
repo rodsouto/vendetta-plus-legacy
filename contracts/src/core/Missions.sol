@@ -44,6 +44,8 @@ import {
     InDebt,
     TooLate,
     TooEarly,
+    TroopsResting,
+    OutOfOrder,
     IGameEvents
 } from "./GameErrors.sol";
 
@@ -92,21 +94,32 @@ library Missions {
         }
     }
 
-    /// A due hidden mission nobody revealed yet leaves the queue for the parked list (B-22).
+    /// A due hidden mission nobody revealed yet leaves the queue for the parked list (B-22):
+    /// appended at the tail, which keeps the list in (arrival, seq) order since the drain parks
+    /// missions in queue order and a parked one never comes back as hidden.
     function _park(CoreState storage s, uint64 id) private {
-        s.parked.push(id);
-        s.parkedPos[id] = s.parked.length;
+        uint64 tail = s.parkedTail;
+        if (tail == 0) {
+            s.parkedHead = id;
+        } else {
+            s.parkedNext[tail] = id;
+            s.parkedPrev[id] = tail;
+        }
+        s.parkedTail = id;
         emit IGameEvents.MissionParked(id);
     }
 
-    /// Swap-remove from the parked list (mirrored by the simulator, so the lists match).
+    /// Unlinks a mission from the parked list, wherever it is (mirrored by the simulator, so the
+    /// lists match).
     function _unpark(CoreState storage s, uint64 id) private {
-        uint256 i = s.parkedPos[id] - 1;
-        uint64 last = s.parked[s.parked.length - 1];
-        s.parked[i] = last;
-        s.parkedPos[last] = i + 1;
-        s.parked.pop();
-        delete s.parkedPos[id];
+        uint64 prev = s.parkedPrev[id];
+        uint64 next = s.parkedNext[id];
+        if (prev == 0) s.parkedHead = next;
+        else s.parkedNext[prev] = next;
+        if (next == 0) s.parkedTail = prev;
+        else s.parkedPrev[next] = prev;
+        delete s.parkedPrev[id];
+        delete s.parkedNext[id];
     }
 
     /// Takes a mission out of the queue or the parked list, wherever it is.
@@ -225,6 +238,7 @@ library Missions {
             for (uint256 i; i < TROOPS; ++i) {
                 origin.troops[i] += m.troops[i];
             }
+            origin.lastReturn = uint40(t); // the troops rest before they can leave again (B-22)
             Settlement.credit(origin, _cargo(m));
         } else {
             // The building was abandoned: troops are lost.
@@ -266,6 +280,7 @@ library Missions {
         _checkSend(s, pid, p, b, kind, target, trade);
         if (p.missions >= Ruleset.MAX_OUTGOING_MISSIONS) revert TooManyMissions();
         Access.settleForAction(s, p, id);
+        _checkRested(b);
 
         Plan memory plan = _plan(p, b, troops);
         if (kind != TRANSPORT) delete resources;
@@ -315,6 +330,7 @@ library Missions {
         _checkCover(b, cover);
         if (p.missions >= Ruleset.MAX_OUTGOING_MISSIONS) revert TooManyMissions();
         Access.settleForAction(s, p, id);
+        _checkRested(b);
         Plan memory plan = _plan(p, b, troops);
         _charge(b, plan, uint256(cover) * Ruleset.DISTANCE_UNIT, resources);
         p.missions += 1;
@@ -322,6 +338,13 @@ library Missions {
         Mission storage m = s.missions[mid];
         m.hidden = true;
         m.cover = cover;
+    }
+
+    /// A building that just took returning troops in cannot send for RETURN_COOLDOWN (B-22).
+    function _checkRested(Building storage b) private view {
+        if (block.timestamp < uint256(b.lastReturn) + Ruleset.RETURN_COOLDOWN) {
+            revert TroopsResting();
+        }
     }
 
     /// `1 ≤ cover ≤` the distance from the origin to the farthest map corner (B-22).
@@ -332,12 +355,24 @@ library Missions {
         }
     }
 
-    /// Anyone may reveal a hidden mission until its grace ends: it checks the commitment and the
-    /// target only, and touches no building, so it never drains the queue. An invalid reveal
-    /// reverts; past the grace it does nothing (the mission is forfeited instead). A mission
-    /// revealed after its arrival (parked, or still queued because nothing drained it since) gets
-    /// the reveal time as its arrival and a fresh seq: it resolves against the target's state at
-    /// this second (B-22).
+    /// Reveals go in arrival order for HIDDEN_ORDER_WINDOW: a parked mission that arrived before
+    /// `id` and is still within its window must be revealed first (B-22). The parked list is in
+    /// (arrival, seq) order and `id` is parked (the drain parked every due mission), so the
+    /// predecessor decides: past its window, every earlier one is past its own too.
+    function _checkOrder(CoreState storage s, uint64 id) private view {
+        uint64 prev = s.parkedPrev[id];
+        if (prev == 0) return;
+        if (block.timestamp < uint256(s.missions[prev].arrival) + Ruleset.HIDDEN_ORDER_WINDOW) {
+            revert OutOfOrder();
+        }
+    }
+
+    /// Anyone may reveal a hidden mission until its grace ends. Game drains the queue first, like
+    /// for any action, so the due missions ahead are processed or parked; then the commitment and
+    /// the target are checked. An invalid reveal reverts; past the grace it does nothing (the
+    /// mission is forfeited instead). A mission revealed after its arrival (parked by that drain)
+    /// gets the reveal time as its arrival and a fresh seq, so it resolves against the target's
+    /// state at this second; reveals go in arrival order for a window (B-22).
     function reveal(uint64 missionId, uint8 kind, uint256[3] memory target, bytes32 salt) external {
         CoreState storage s = GameStorage.core();
         Mission storage m = s.missions[missionId];
@@ -361,6 +396,7 @@ library Missions {
         (m.kind, m.city, m.neighborhood, m.slot) =
         (kind, uint8(target[0]), uint8(target[1]), uint8(target[2]));
         if (m.arrival <= block.timestamp) {
+            _checkOrder(s, missionId);
             _dequeue(s, missionId);
             m.arrival = uint40(block.timestamp);
             m.seq = s.seq++;
