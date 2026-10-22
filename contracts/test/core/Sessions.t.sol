@@ -3,10 +3,12 @@ pragma solidity 0.8.28;
 
 import {Game} from "../../src/Game.sol";
 import {VendettaRuleset as Ruleset} from "../../src/generated/VendettaRuleset.sol";
+import {INVITE_SESSION} from "../../src/core/GameStorage.sol";
 import {
     AlreadyRegistered,
     ControllerTaken,
     InvalidSession,
+    NoInvite,
     NotAllowed,
     NotController,
     NotRegistered,
@@ -15,10 +17,12 @@ import {
     SessionTooLong,
     Suspended
 } from "../../src/core/GameErrors.sol";
+import {IGameEvents} from "../../src/core/GameErrors.sol";
 import {GameTestBase} from "./GameTestBase.sol";
 
-/// Session keys (blockchain.md B-15): a per-device address plays for a player until it expires,
-/// is revoked or the account changes hands; it never manages the account.
+/// Session keys (blockchain.md B-15): a per-device address plays for a player until it expires, is
+/// revoked or the account changes hands; it never manages the account. The controller invites it,
+/// the session binds itself by accepting.
 contract SessionsTest is GameTestBase {
     uint256 internal constant DAY = 86_400;
 
@@ -36,9 +40,16 @@ contract SessionsTest is GameTestBase {
         game.register(1, 1, 2);
     }
 
-    function _authorize(address controller, address session, uint256 until) internal {
+    function _invite(address controller, address session, uint256 until) internal {
         vm.prank(controller);
         game.authorizeSession(session, until);
+    }
+
+    function _authorize(address controller, address session, uint256 until) internal {
+        uint64 pid = game.playerOf(controller);
+        _invite(controller, session, until);
+        vm.prank(session);
+        game.acceptSession(pid);
     }
 
     function test_sessionPlaysForThePlayer() public {
@@ -52,6 +63,25 @@ contract SessionsTest is GameTestBase {
         vm.prank(key);
         vm.expectRevert(NotOwner.selector);
         game.queueRoom(2, 0);
+    }
+
+    function test_invitationAloneBindsNothing() public {
+        vm.expectEmit(address(game));
+        emit IGameEvents.SessionInvited(1, key, uint40(T0 + DAY));
+        _invite(alice, key, T0 + DAY);
+        assertEq(game.playerFor(key), 0);
+        assertEq(game.getInvite(key, 1).kind, INVITE_SESSION);
+        vm.prank(key);
+        vm.expectRevert(NotRegistered.selector);
+        game.queueRoom(1, 0);
+        // the invited address can still register a player of its own instead
+        assertEq(game.getSession(key).player, 0);
+        vm.expectEmit(address(game));
+        emit IGameEvents.SessionAuthorized(1, key, uint40(T0 + DAY));
+        vm.prank(key);
+        game.acceptSession(1);
+        assertEq(game.playerFor(key), 1);
+        assertEq(game.getInvite(key, 1).kind, 0);
     }
 
     function test_sessionExpires() public {
@@ -74,9 +104,11 @@ contract SessionsTest is GameTestBase {
         vm.expectRevert(ControllerTaken.selector);
         game.authorizeSession(address(0), T0 + DAY);
         game.authorizeSession(key, T0 + Ruleset.MAX_SESSION_SECONDS);
-        // renewing is just authorizing again
-        game.authorizeSession(key, T0 + DAY);
         vm.stopPrank();
+        vm.prank(key);
+        game.acceptSession(1);
+        // renewing is inviting again, accepted again
+        _authorize(alice, key, T0 + DAY);
         assertEq(game.getSession(key).until, T0 + DAY);
         // a live session of another player is taken
         vm.prank(bob);
@@ -86,6 +118,38 @@ contract SessionsTest is GameTestBase {
         vm.prank(makeAddr("eve"));
         vm.expectRevert(NotRegistered.selector);
         game.authorizeSession(makeAddr("other"), T0 + DAY);
+    }
+
+    function test_acceptChecks() public {
+        vm.prank(key);
+        vm.expectRevert(NoInvite.selector);
+        game.acceptSession(1); // never invited
+        // an invitation lasts until its deadline
+        _invite(alice, key, T0 + DAY);
+        vm.warp(T0 + DAY);
+        vm.prank(key);
+        vm.expectRevert(NoInvite.selector);
+        game.acceptSession(1);
+        // two players may invite the same free address; accepting one makes it taken for the other
+        _invite(alice, key, block.timestamp + DAY);
+        _invite(bob, key, block.timestamp + DAY);
+        vm.prank(key);
+        game.acceptSession(1);
+        vm.prank(key);
+        vm.expectRevert(ControllerTaken.selector);
+        game.acceptSession(2);
+        // an invitation dies with the player's epoch
+        address laptop = makeAddr("laptop");
+        vm.prank(alice);
+        game.inviteController(laptop, false);
+        vm.prank(laptop);
+        game.acceptController(1);
+        _invite(alice, makeAddr("phone"), block.timestamp + DAY);
+        vm.prank(alice);
+        game.removeController(laptop); // scheduled: the epoch bumps
+        vm.prank(makeAddr("phone"));
+        vm.expectRevert(NoInvite.selector);
+        game.acceptSession(1);
     }
 
     function test_sessionCannotManageTheAccount() public {
@@ -100,7 +164,9 @@ contract SessionsTest is GameTestBase {
         vm.expectRevert(NotController.selector);
         game.cancelTransfer();
         vm.expectRevert(NotController.selector);
-        game.addController(makeAddr("other"), false);
+        game.inviteController(makeAddr("other"), false);
+        vm.expectRevert(NotController.selector);
+        game.cancelInvite(makeAddr("other"));
         vm.expectRevert(NotController.selector);
         game.removeController(alice);
         vm.expectRevert(NotController.selector);
@@ -112,6 +178,9 @@ contract SessionsTest is GameTestBase {
         vm.prank(bob);
         vm.expectRevert(ControllerTaken.selector);
         game.transferPlayer(key);
+        vm.prank(bob);
+        vm.expectRevert(ControllerTaken.selector);
+        game.inviteController(key, false);
     }
 
     function test_revoke() public {
@@ -135,14 +204,14 @@ contract SessionsTest is GameTestBase {
         assertEq(game.getPlayer(1).sessionEpoch, 0);
         assertEq(game.playerFor(key), 1);
         vm.warp(T0 + Ruleset.CONTROLLER_REMOVAL_DELAY);
-        vm.prank(alice);
-        game.transferPlayer(carol); // executed
+        vm.prank(carol);
+        game.acceptTransfer(1);
         assertEq(game.getPlayer(1).sessionEpoch, 1);
         assertEq(game.playerFor(key), 0);
         vm.prank(key);
         vm.expectRevert(NotRegistered.selector);
         game.queueRoom(1, 0);
-        // the new owner can authorize the same device again
+        // the new owner can invite the same device again
         _authorize(carol, key, block.timestamp + DAY);
         assertEq(game.playerFor(key), 1);
     }

@@ -15,3 +15,7 @@ apps/web/.impeccable/questions/
 .env
 .env.*
 !.env.example
+
+# Audit reports (solidity-auditor, x-ray)
+.solidity-auditor/
+contracts/x-ray/

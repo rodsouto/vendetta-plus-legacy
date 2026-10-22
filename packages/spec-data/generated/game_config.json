@@ -47,6 +47,7 @@
     "min_buildings_for_penalty": 5,
     "max_honor_level": 8,
     "table_max_buildings": 100,
+    "min_power_percent": 1,
     "table": {
       "5": [
         99,
@@ -309,8 +310,14 @@
     "max_session_seconds": 2592000,
     "max_controllers_per_player": 5,
     "controller_removal_delay_seconds": 259200,
-    "hidden_mission_bond": 500,
-    "hidden_reveal_grace_seconds": 60
+    "hidden_mission_bond": 10000,
+    "hidden_mission_bond_min": 1000,
+    "hidden_mission_bond_max": 100000,
+    "hidden_reveal_grace_seconds": 60,
+    "hidden_bond_refund_seconds": 30,
+    "hidden_report_delay_seconds": 15,
+    "hidden_report_window_seconds": 15,
+    "invite_ttl_seconds": 604800
   },
   "premium": {
     "duration_days": 30,

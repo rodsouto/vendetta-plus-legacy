@@ -49,14 +49,24 @@ library MarketRules {
     }
 
     /// B-11: a player with a registered debt only transports to its own buildings and its
-    /// creditors'; an empty slot (`targetOwner` 0) is not allowed either.
-    function transportAllowed(CoreState storage s, uint64 pid, Player storage p, uint64 targetOwner)
-        internal
-        view
-        returns (bool)
-    {
+    /// creditors': those registered, or the creditor of the defaulted trade the transport names,
+    /// registered or not. An empty slot (`targetOwner` 0) is not allowed either.
+    function transportAllowed(
+        CoreState storage s,
+        uint64 pid,
+        Player storage p,
+        uint64 targetOwner,
+        uint64 trade,
+        uint256 at
+    ) internal view returns (bool) {
         if (p.debts == 0) return true;
-        return targetOwner != 0 && (targetOwner == pid || s.owes[pid][targetOwner] > 0);
+        if (targetOwner == 0) return false;
+        if (targetOwner == pid || s.owes[pid][targetOwner] > 0) return true;
+        if (trade == 0) return false;
+        Trade storage t = s.trades[trade];
+        if (!t.accepted || at <= window(t)) return false;
+        Debt memory d = debt(t);
+        return inDefault(d) && d.debtor == pid && d.creditor == targetOwner;
     }
 
     /// A pure function of `delivered`, `paid`, the rate the price matched and the penalty, minus
@@ -108,30 +118,38 @@ library MarketRules {
         return false;
     }
 
-    /// Can `player` send a transport naming this trade now? Inside the window, either party;
-    /// after it, the debtor while something remains (voluntary payment).
-    function openFor(CoreState storage s, uint64 id, uint64 player) internal view returns (bool) {
+    /// Can `player` send a transport naming this trade to a building of `targetOwner` now? Inside
+    /// the window, each party to the other; after it, the debtor to the creditor while something
+    /// remains (voluntary payment). The counterparty is checked here, at send (D-26).
+    function openFor(CoreState storage s, uint64 id, uint64 player, uint64 targetOwner)
+        internal
+        view
+        returns (bool)
+    {
         Trade storage t = s.trades[id];
         if (!t.accepted) return false;
-        if (block.timestamp <= window(t)) return player == t.seller || player == t.buyer;
+        if (block.timestamp <= window(t)) {
+            return (player == t.seller && targetOwner == t.buyer)
+                || (player == t.buyer && targetOwner == t.seller);
+        }
         Debt memory d = debt(t);
-        return inDefault(d) && player == d.debtor;
+        return inDefault(d) && player == d.debtor && targetOwner == d.creditor;
     }
 
-    /// A transport naming a trade arrived at a building of `to` at `at` (resources already
-    /// credited). The cargo counts per resource and up to what remains; the rest was a plain
-    /// transport. Inside the window: seller → buyer adds to `delivered`, buyer → seller to `paid`.
-    /// After it: debtor → creditor adds to `returned`.
-    function settle(CoreState storage s, Mission storage m, uint64 to, uint256 at) internal {
+    /// A transport naming a trade reached the coordinate chosen at send, at `at` (D-26): the cargo
+    /// counts per resource and up to what remains, whatever happened to the building; the rest was
+    /// a plain transport. Inside the window: the seller's adds to `delivered`, the buyer's to `paid`.
+    /// After it: the debtor's adds to `returned`.
+    function settle(CoreState storage s, Mission storage m, uint256 at) internal {
         Trade storage t = s.trades[m.trade];
         if (!t.accepted) return;
         if (at <= window(t)) {
             bool any;
-            if (m.owner == t.seller && to == t.buyer) {
+            if (m.owner == t.seller) {
                 uint64 x = _min(m.cargo[t.sold], t.quantity - t.delivered);
                 t.delivered += x;
                 any = x > 0;
-            } else if (m.owner == t.buyer && to == t.seller) {
+            } else if (m.owner == t.buyer) {
                 for (uint256 r; r < RESOURCES; ++r) {
                     uint64 x = _min(m.cargo[r], t.price[r] - t.paid[r]);
                     t.paid[r] += x;
@@ -142,7 +160,7 @@ library MarketRules {
             return;
         }
         Debt memory d = debt(t);
-        if (!inDefault(d) || m.owner != d.debtor || to != d.creditor) return;
+        if (!inDefault(d) || m.owner != d.debtor) return;
         uint256[RESOURCES] memory amount;
         for (uint256 r; r < RESOURCES; ++r) {
             amount[r] = d.remaining[r] < m.cargo[r] ? d.remaining[r] : m.cargo[r];
@@ -175,6 +193,15 @@ library MarketRules {
         }
     }
 
+    /// Registers the debt of a defaulted trade (B-11): the debtor's restrictions start. Idempotent.
+    function register(CoreState storage s, uint64 id, Trade storage t, Debt memory d) internal {
+        if (t.registered) return;
+        t.registered = true;
+        s.players[d.debtor].debts += 1;
+        s.owes[d.debtor][d.creditor] += 1;
+        emit IGameEvents.DebtRegistered(id, d.debtor, d.creditor);
+    }
+
     function _min(uint64 a, uint64 b) private pure returns (uint64) {
         return a < b ? a : b;
     }
@@ -189,12 +216,13 @@ library MarketRules {
 /// claimed by the creditor. Linked external library.
 library Market {
     /// quantity / rate[sold] = Σ price[r] / rate[r], over the common denominator Π rate. Returns
-    /// the index of the rate matched, or MARKET_RATES.
+    /// the index of the single rate matched; MARKET_RATES when none or more than one match (B-11).
     function _match(uint256 sold, uint256 quantity, uint256[RESOURCES] memory price)
         private
         pure
-        returns (uint256)
+        returns (uint256 found)
     {
+        found = MARKET_RATES;
         uint256[RESOURCES][MARKET_RATES] memory rates = Ruleset.marketRates();
         for (uint256 k; k < MARKET_RATES; ++k) {
             uint256[RESOURCES] memory rate = rates[k];
@@ -213,9 +241,11 @@ library Market {
                 }
                 value += price[r] * den / rate[r];
             }
-            if (ok && quantity * den / rate[sold] == value) return k;
+            if (ok && quantity * den / rate[sold] == value) {
+                if (found != MARKET_RATES) return MARKET_RATES; // ambiguous
+                found = k;
+            }
         }
-        return MARKET_RATES;
     }
 
     function offer(
@@ -231,8 +261,11 @@ library Market {
         uint256 alc = Ruleset.CONVERTED_RESOURCE;
         if (s.players[buyer].controllers.length == 0 || buyer == pid) revert InvalidOffer();
         if (sold >= RESOURCES || sold == alc) revert InvalidOffer();
-        if (quantity < 1) revert InvalidOffer();
+        if (quantity < 1 || quantity > type(uint64).max) revert InvalidOffer();
         if (price[alc] != 0 || price[sold] != 0) revert InvalidOffer();
+        for (uint256 r; r < RESOURCES; ++r) {
+            if (price[r] > type(uint64).max) revert InvalidOffer(); // stored as uint64
+        }
         uint256 rate = _match(sold, quantity, price);
         if (rate == MARKET_RATES) revert InvalidOffer();
         // Drop offers that are no longer open, keeping the order.
@@ -277,19 +310,38 @@ library Market {
     }
 
     /// The buyer accepts: the 10-day delivery window starts, and neither party can start a
-    /// vacation until it closes (D-18).
+    /// vacation until it closes (D-18). The seller is checked again, as when it offered: active
+    /// and free of registered debt.
     function accept(address caller, uint64 id) external {
         CoreState storage s = GameStorage.core();
         (uint64 pid, Player storage p) = Access.active(s, caller);
         if (p.debts > 0) revert InDebt();
         Trade storage t = s.trades[id];
         if (t.seller == 0 || t.accepted || pid != t.buyer) revert InvalidTrade();
+        Player storage seller = s.players[t.seller];
+        if (
+            seller.vacationUntil > block.timestamp || seller.suspendedUntil > block.timestamp
+                || seller.debts > 0
+        ) revert InvalidTrade();
         (t.accepted, t.acceptedAt) = (true, uint40(block.timestamp));
         uint40 lock = uint40(MarketRules.window(t));
-        Player storage seller = s.players[t.seller];
         if (lock > seller.tradeLockUntil) seller.tradeLockUntil = lock;
         if (lock > p.tradeLockUntil) p.tradeLockUntil = lock;
         emit IGameEvents.TradeAccepted(id);
+    }
+
+    /// The creditor registers the debt of a defaulted trade without collecting anything (B-11),
+    /// so the debtor's restrictions start even while nothing can be claimed. Idempotent.
+    function registerDebt(address caller, uint64 id) external {
+        CoreState storage s = GameStorage.core();
+        (uint64 pid,) = Access.active(s, caller);
+        Trade storage t = s.trades[id];
+        if (t.seller == 0 || !t.accepted || block.timestamp <= MarketRules.window(t)) {
+            revert InvalidTrade();
+        }
+        MarketRules.Debt memory d = MarketRules.debt(t);
+        if (!MarketRules.inDefault(d) || d.creditor != pid) revert InvalidTrade();
+        MarketRules.register(s, id, t, d);
     }
 
     /// The creditor collects part of a debt directly from a building of the debtor into one of
@@ -312,12 +364,7 @@ library Market {
         MarketRules.Debt memory d = MarketRules.debt(t);
         if (!MarketRules.inDefault(d) || d.creditor != pid) revert InvalidTrade();
         _collect(s, d, fromId, toId, amount);
-        if (!t.registered) {
-            t.registered = true;
-            s.players[d.debtor].debts += 1;
-            s.owes[d.debtor][d.creditor] += 1;
-            emit IGameEvents.DebtRegistered(id, d.debtor, d.creditor);
-        }
+        MarketRules.register(s, id, t, d);
         MarketRules.addReturned(s, id, t, d, amount);
         uint64[RESOURCES] memory moved;
         for (uint256 r; r < RESOURCES; ++r) {

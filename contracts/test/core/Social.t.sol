@@ -14,7 +14,8 @@ import {
     ATTACK,
     TRANSPORT,
     SUBCAPO,
-    OFFER_SURRENDER
+    OFFER_SURRENDER,
+    OFFER_DRAW
 } from "../../src/core/GameStorage.sol";
 import {
     OnVacation,
@@ -36,6 +37,7 @@ import {
     ControllerTaken,
     NotRegistered,
     QueueFull,
+    NoOffer,
     IGameEvents
 } from "../../src/core/GameErrors.sol";
 import {GameTestBase} from "./GameTestBase.sol";
@@ -58,6 +60,8 @@ contract SocialTest is GameTestBase {
     function setUp() public {
         vm.warp(T0);
         game = deployGame();
+        vm.prank(admin);
+        game.setHiddenBond(Ruleset.HIDDEN_MISSION_BOND_MIN); // affordable by a new account
         vm.prank(alice);
         game.register(1, 1, 1);
         vm.prank(bob);
@@ -218,8 +222,8 @@ contract SocialTest is GameTestBase {
         vm.prank(alice);
         game.transferPlayer(dave); // scheduled (B-26)
         skip(Ruleset.CONTROLLER_REMOVAL_DELAY);
-        vm.prank(alice);
-        game.transferPlayer(dave); // executed
+        vm.prank(dave);
+        game.acceptTransfer(1); // the target takes it
         assertEq(game.playerOf(dave), 1);
         assertEq(game.playerOf(alice), 0);
         vm.prank(alice);
@@ -298,11 +302,46 @@ contract SocialTest is GameTestBase {
         assertEq(w.lostA % 600, 0); // rowdies are worth 6 points
         vm.prank(bob);
         game.offerPeace(war, OFFER_SURRENDER);
+        vm.prank(bob);
+        game.offerPeace(war, OFFER_DRAW); // replaced before alice answers
         vm.prank(alice);
-        game.answerPeace(war, true);
+        vm.expectRevert(NoOffer.selector); // the surrender she saw is gone
+        game.answerPeace(war, OFFER_SURRENDER, true);
+        vm.prank(alice);
+        game.answerPeace(war, OFFER_DRAW, false); // declined: the war goes on
+        vm.prank(bob);
+        game.offerPeace(war, OFFER_SURRENDER);
+        (bool ended, uint64 winner) = game.warResult(war);
+        assertFalse(ended);
+        vm.prank(alice);
+        game.answerPeace(war, OFFER_SURRENDER, true);
         w = game.getWar(war);
         assertTrue(w.ended);
         assertEq(w.winner, fa);
+        (ended, winner) = game.warResult(war);
+        assertTrue(ended);
+        assertEq(winner, fa);
+    }
+
+    /// B-31: a family that dissolves loses its running wars; the result view says so.
+    function test_warLostByDissolution() public {
+        vm.prank(alice);
+        uint64 fa = game.createFamily("AAA", "Alpha");
+        vm.prank(bob);
+        uint64 fb = game.createFamily("BBB", "Beta");
+        vm.prank(alice);
+        uint64 war = game.declareWar(fb);
+        (bool ended, uint64 winner) = game.warResult(war);
+        assertFalse(ended);
+        assertEq(winner, 0);
+        vm.prank(bob);
+        game.dissolveFamily();
+        assertFalse(game.getWar(war).ended); // the stored record is lazy
+        (ended, winner) = game.warResult(war);
+        assertTrue(ended);
+        assertEq(winner, fa);
+        (ended, winner) = game.warResult(99);
+        assertFalse(ended);
     }
 
     // ------------------------------------------------------------------ market
@@ -465,7 +504,9 @@ contract SocialTest is GameTestBase {
         bytes32 salt = bytes32(uint256(7));
         bytes32 commit =
             keccak256(abi.encode(uint64(2), TRANSPORT, uint256(1), uint256(1), uint256(3), salt));
-        uint64 hidden = game.sendHiddenMission(2, commit, 3, _rowdies(1), _only(WEAPONS, 5), hex"");
+        uint64 hidden = game.sendHiddenMission(
+            2, commit, 3, _rowdies(1), _only(WEAPONS, 5), hex"", type(uint40).max
+        );
         vm.stopPrank();
         vm.warp(game.getMission(hidden).arrival);
         game.reveal(hidden, TRANSPORT, [uint256(1), 1, 3], salt);
@@ -548,5 +589,144 @@ contract SocialGasTest is GameTestBase {
         g = gasleft();
         game.startVacation();
         console.log("startVacation:", g - gasleft());
+    }
+}
+
+contract MarketRulesTest is SocialTest {
+    uint256 internal constant AMMUNITION = 1;
+
+    /// What the debtor still owes of the sold resource, from the stored trade (D-19).
+    function sim_remaining(uint64 id) internal view returns (uint256) {
+        Trade memory x = game.getTrade(id);
+        // buyer in debt, nothing paid: owed = delivered × 1.1, rounded up
+        return (uint256(x.delivered) * 110 + 99) / 100 - x.returned[x.sold];
+    }
+
+    /// D-26: the shipment counts at the coordinate chosen at send, whatever the building holds;
+    /// what does not fit is lost (D-10). A trade transport must leave towards the counterparty.
+    function test_marketShipmentCountsAtTheDoor() public {
+        vm.prank(alice);
+        uint64 t = game.offerTrade(2, WEAPONS, 300, _only(DOLLAR, 100));
+        _armyFor(alice, 1, 3);
+        vm.prank(bob);
+        game.acceptTrade(t);
+        // bob's weapons sit at the level-0 cap (10,000): nothing fits, the delivery counts in full
+        assertEq(_weapons(2), 10_000);
+        _ship(alice, 1, [uint256(1), 1, 2], 3, _only(WEAPONS, 200), t);
+        assertEq(_weapons(2), 10_000);
+        assertEq(game.getTrade(t).delivered, 200);
+        _allHome();
+        vm.startPrank(alice);
+        vm.expectRevert(InvalidTrade.selector); // a third party's building
+        game.sendMission(1, TRANSPORT, [uint256(1), 1, 3], _rowdies(1), _only(WEAPONS, 10), t);
+        vm.expectRevert(InvalidTrade.selector); // an empty slot
+        game.sendMission(1, TRANSPORT, [uint256(1), 1, 9], _rowdies(1), _only(WEAPONS, 10), t);
+        vm.stopPrank();
+        // the buyer pays the seller the same way: only towards the seller's building
+        _armyFor(bob, 2, 3);
+        vm.prank(bob);
+        vm.expectRevert(InvalidTrade.selector);
+        game.sendMission(2, TRANSPORT, [uint256(1), 1, 3], _rowdies(1), _only(DOLLAR, 10), t);
+        _ship(bob, 2, [uint256(1), 1, 1], 3, _only(DOLLAR, 100), t);
+        assertEq(game.getTrade(t).paid[DOLLAR], 100);
+    }
+
+    /// B-11: a price that matches more than one rate is rejected, so the stored rate is never
+    /// ambiguous; quantities and prices must fit in 64 bits.
+    function test_marketOfferChecks() public {
+        uint256[RESOURCES] memory price;
+        price[WEAPONS] = 3;
+        price[DOLLAR] = 1; // 10 ammunition for 3 weapons and 1 dollar fits both 3-5-1 and 2-4-1
+        vm.startPrank(alice);
+        vm.expectRevert(InvalidOffer.selector);
+        game.offerTrade(2, AMMUNITION, 10, price);
+        game.offerTrade(2, AMMUNITION, 10, _only(DOLLAR, 2)); // 3-5-1 only
+        vm.expectRevert(InvalidOffer.selector);
+        game.offerTrade(2, WEAPONS, 3 * (uint256(1) << 64), _only(DOLLAR, uint256(1) << 64));
+        vm.expectRevert(InvalidOffer.selector);
+        game.offerTrade(2, WEAPONS, uint256(1) << 64, _only(DOLLAR, (uint256(1) << 64) / 3));
+        vm.stopPrank();
+    }
+
+    /// B-11: accepting checks the seller again: active and without a registered debt.
+    function test_marketAcceptChecksTheSeller() public {
+        vm.prank(alice);
+        uint64 t = game.offerTrade(2, WEAPONS, 300, _only(DOLLAR, 100));
+        vm.prank(admin);
+        game.suspend(1, block.timestamp + 10 days);
+        vm.prank(bob);
+        vm.expectRevert(InvalidTrade.selector);
+        game.acceptTrade(t);
+        vm.prank(admin);
+        game.suspend(1, 0);
+        vm.prank(alice);
+        game.startVacation();
+        vm.prank(bob);
+        vm.expectRevert(InvalidTrade.selector);
+        game.acceptTrade(t);
+        vm.prank(alice);
+        game.endVacation();
+        vm.prank(bob);
+        game.acceptTrade(t);
+        assertTrue(game.getTrade(t).accepted);
+    }
+
+    /// B-11: the creditor registers the debt without collecting; idempotent.
+    function test_marketRegisterDebt() public {
+        uint64 t = _defaulted(0); // Bob owes 330 weapons
+        vm.prank(alice);
+        vm.expectRevert(InvalidTrade.selector); // the window is open
+        game.registerDebt(t);
+        _afterWindow(t);
+        vm.prank(bob);
+        vm.expectRevert(InvalidTrade.selector); // the debtor
+        game.registerDebt(t);
+        vm.prank(carol);
+        vm.expectRevert(InvalidTrade.selector); // a third party
+        game.registerDebt(t);
+        uint256 before = _weapons(1);
+        vm.expectEmit(address(game));
+        emit IGameEvents.DebtRegistered(t, 2, 1);
+        vm.prank(alice);
+        game.registerDebt(t);
+        assertEq(_weapons(1), before, "nothing moved");
+        assertTrue(game.getTrade(t).registered);
+        assertEq(game.getPlayer(2).debts, 1);
+        assertEq(game.owes(2, 1), 1);
+        vm.prank(alice);
+        game.registerDebt(t); // again: nothing changes
+        assertEq(game.getPlayer(2).debts, 1);
+        vm.prank(bob);
+        vm.expectRevert(InDebt.selector); // the restrictions started without a claim
+        game.offerTrade(3, AMMUNITION, 500, _only(DOLLAR, 100));
+    }
+
+    /// B-11: a registered debtor can always pay a trade's creditor, registered or not.
+    function test_marketDebtorPaysUnregisteredCreditor() public {
+        uint64 first = _defaulted(0); // Bob owes Alice 330 weapons
+        // Carol sells Bob 500 ammunition for 100 dollars and delivers; Bob pays nothing, so after
+        // the window he owes the ammunition back, plus the penalty (D-19).
+        _armyFor(carol, 3, 3);
+        vm.prank(carol);
+        uint64 second = game.offerTrade(2, AMMUNITION, 500, _only(DOLLAR, 100));
+        vm.prank(bob);
+        game.acceptTrade(second);
+        _ship(carol, 3, [uint256(1), 1, 2], 3, _only(AMMUNITION, 500), second);
+        _allHome();
+        _afterWindow(second);
+        vm.prank(alice);
+        game.registerDebt(first); // Alice registers, Carol does not
+        assertEq(game.owes(2, 1), 1);
+        assertEq(game.owes(2, 3), 0);
+        vm.prank(bob);
+        vm.expectRevert(InDebt.selector); // a plain transport to Carol is still blocked
+        game.sendMission(2, TRANSPORT, [uint256(1), 1, 3], _rowdies(1), _only(DOLLAR, 1), 0);
+        vm.prank(bob);
+        vm.expectRevert(InvalidTrade.selector); // naming the trade, but not to the creditor
+        game.sendMission(2, TRANSPORT, [uint256(1), 1, 1], _rowdies(1), _only(DOLLAR, 1), second);
+        assertEq(sim_remaining(second), 550);
+        _ship(bob, 2, [uint256(1), 1, 3], 3, _only(AMMUNITION, 400), second); // the restitution leaves
+        assertEq(game.getTrade(second).returned[AMMUNITION], 400);
+        assertEq(game.getPlayer(2).debts, 1, "Alice's debt stands");
     }
 }

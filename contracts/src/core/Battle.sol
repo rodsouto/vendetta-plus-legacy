@@ -20,8 +20,8 @@ import {FamilyRules} from "./Families.sol";
 /// An attack mission against another player's building, at its arrival time (06-combat.md). Linked
 /// external library, called by Missions. Mirrors `battle` in packages/rules/src/sim/missions.ts.
 library Battle {
-    function _settleResearch(Player storage p, uint256 t) private {
-        if (p.researchBuilding != 0) SettleLib.settle(p.researchBuilding, t);
+    function _settleResearch(Player storage p, uint256 t, uint64 seq) private {
+        if (p.researchBuilding != 0) SettleLib.settleBefore(p.researchBuilding, t, seq);
     }
 
     function _pct(Player storage p) private view returns (uint256) {
@@ -47,10 +47,11 @@ library Battle {
     /// Resolves the battle: survivors, troop points, loot into the mission cargo.
     function attack(uint64 missionId, uint64 buildingId, uint256 t) external {
         CoreState storage s = GameStorage.core();
+        uint64 seq = s.missions[missionId].seq;
         Player storage attacker = s.players[s.missions[missionId].owner];
-        _settleResearch(attacker, t);
+        _settleResearch(attacker, t, seq);
         Player storage defender = s.players[s.buildings[buildingId].owner];
-        if (defender.researchBuilding != buildingId) _settleResearch(defender, t);
+        if (defender.researchBuilding != buildingId) _settleResearch(defender, t, seq);
         BattleReport memory report = _fight(s, missionId, buildingId);
         emit IGameEvents.Battle(
             missionId,

@@ -40,6 +40,7 @@ export interface Mission {
   cover: bigint; // declared distance in grid units (≥ the real one) that duration and salary used
   bond: bigint; // salary resource held until the mission resolves or returns; lost on forfeit
   commit: string; // keccak256(abi.encode(owner, kind, city, neighborhood, slot, salt)), 0x-hex
+  reportedAt: bigint; // a listed keeper reported the ciphertext as garbage then (B-22), 0 = none
 }
 
 export const CAPO = 1;
@@ -125,7 +126,8 @@ export interface Player {
   /** Controllers that are recovery codes rather than devices (B-15). */
   recovery: Set<string>;
   transferTo: string; // pending transfer target (B-26), "" = none
-  transferAt: bigint; // when the pending transfer can be executed
+  transferAt: bigint; // when the pending transfer can be accepted
+  vacationSeq: bigint; // creation order of the last vacation start: same-second sends (B-07, B-22)
 }
 
 /** A session key: an address allowed to play for a player until `until` (B-15). */
@@ -134,6 +136,23 @@ export interface Session {
   until: bigint;
   epoch: bigint;
 }
+
+export const INVITE_SESSION = 1;
+export const INVITE_CONTROLLER = 2;
+
+/**
+ * An invitation to play for a player as a session, or to manage it as a controller (B-15, B-26):
+ * the invited address binds itself by accepting, nobody binds it. Dies with the player's epoch.
+ */
+export interface Invite {
+  kind: number; // INVITE_*
+  recovery: boolean; // controller invitations: a recovery code rather than a device
+  until: bigint; // sessions: the authorization's end; controllers: when the invitation expires
+  epoch: bigint; // the player's sessionEpoch when invited
+}
+
+/** Key of `World.invites`: the invited address and the player. */
+export const inviteKey = (invited: string, player: bigint) => `${invited}:${player}`;
 
 export interface World {
   rs: Ruleset;
@@ -159,6 +178,9 @@ export interface World {
   trades: Map<bigint, Trade>;
   owes: Map<string, number>; // "debtor:creditor" → registered unpaid debts between them (B-11)
   sessions: Map<string, Session>; // session address → authorization
+  invites: Map<string, Invite>; // inviteKey(address, player) → invitation (B-15, B-26)
+  keepers: Set<string>; // addresses that may report garbage ciphertexts (B-22)
+  hiddenBond: bigint; // the hidden mission bond in force, set by the admin within the bounds (B-22)
 }
 
 /** Units per resource: 3600 s × rate denominator (B-27). */
@@ -188,6 +210,9 @@ export function newWorld(rs: Ruleset): World {
     trades: new Map(),
     owes: new Map(),
     sessions: new Map(),
+    invites: new Map(),
+    keepers: new Set(),
+    hiddenBond: rs.config.hiddenMissionBond,
   };
 }
 

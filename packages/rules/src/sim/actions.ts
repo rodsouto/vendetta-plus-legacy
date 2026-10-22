@@ -71,6 +71,7 @@ export const register = atomic(function register(
     recovery: new Set(),
     transferTo: "",
     transferAt: 0n,
+    vacationSeq: 0n,
   });
   w.playerOf.set(controller, pid);
   return pid;
@@ -171,6 +172,23 @@ export const cancelResearch = atomic(function cancelResearch(
 /** Admin only: premium for every player until `until` (B-25). */
 export const setGlobalPremium = atomic(function setGlobalPremium(w: World, until: bigint): void {
   w.globalPremiumUntil = until;
+});
+
+/** Admin only: the hidden mission bond in force, within the configured bounds (B-22). */
+export const setHiddenBond = atomic(function setHiddenBond(w: World, bond: bigint): void {
+  const c = w.rs.config;
+  if (bond < c.hiddenMissionBondMin || bond > c.hiddenMissionBondMax) fail("InvalidBond");
+  w.hiddenBond = bond;
+});
+
+/** Admin only: an address that may report garbage ciphertexts (B-22). */
+export const setKeeper = atomic(function setKeeper(
+  w: World,
+  keeper: string,
+  allowed: boolean,
+): void {
+  if (allowed) w.keepers.add(keeper);
+  else w.keepers.delete(keeper);
 });
 
 /** Anyone can bring a building up to date. */

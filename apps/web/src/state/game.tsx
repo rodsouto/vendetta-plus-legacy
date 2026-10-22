@@ -22,8 +22,17 @@ import { sim, vendetta as rs, type HiddenPlain } from "@vendetta/rules";
 import { gameAbi } from "../chain/abi.js";
 import { makeClients, type Clients } from "../chain/config.js";
 import { loadNetwork, type Network } from "../chain/networks.js";
-import { controllerKey, loadWorld, project, cloneWorld, type Snapshot } from "../chain/load.js";
 import {
+  controllerKey,
+  loadWorld,
+  pendingFor,
+  project,
+  cloneWorld,
+  type Pending,
+  type Snapshot,
+} from "../chain/load.js";
+import {
+  allStoredPlains,
   ciphertextOf,
   storePlain,
   storedPlains,
@@ -99,12 +108,18 @@ interface Game {
   renewSession: () => Promise<boolean>;
   /** Revokes this device's session on chain and signs out. */
   revokeSession: () => Promise<boolean>;
-  /** Passkeys: this device has a passkey made to join an account and waits to be added. */
+  /** Passkeys: this device has a passkey made to join an account and waits to be invited. */
   joining: boolean;
-  /** A new passkey on this device to join an account another device adds it to (B-26). */
+  /** A new passkey on this device to join an account another device invites it to (B-26). */
   prepareDevice: () => Promise<boolean>;
-  /** Another device's account (or a recovery code's, `recovery`) manages this player too. */
-  addController: (a: Address, recovery?: boolean) => Promise<boolean>;
+  /** Invites another device's account (or a recovery code's, `recovery`) to manage this player. */
+  inviteController: (a: Address, recovery?: boolean) => Promise<boolean>;
+  /** Drops an invitation this player made (sim key). */
+  cancelInvite: (key: string) => Promise<boolean>;
+  /** Invitations and due transfers waiting for this device's account to accept (B-26). */
+  pending: Pending[];
+  /** Accepts one of them from this device's account (a passkey prompt). */
+  acceptPending: (p: Pending) => Promise<boolean>;
   /**
    * Removes a controller (sim key): this device leaves at once (and signs out); another one is
    * scheduled by the first call and removed by the same call once due (B-26).
@@ -152,6 +167,9 @@ const errorName = (e: unknown): string => {
 /** advance() calls an action takes in front at most before it gives up on a backlog (B-08). */
 const MAX_BACKLOG_RETRIES = 3;
 
+/** Then, missions processed one per operation before the last try (a heavy mission, B-08). */
+const MAX_SINGLE_ADVANCES = 8;
+
 /** Seconds between two attempts to open the timelock of the same hidden mission. */
 const DECRYPT_RETRY = 4;
 
@@ -189,6 +207,7 @@ export function GameProvider({
         clients.public,
         clients.deployment.game,
         signer.mode === "passkey" && actor ? [actor] : [],
+        signer.mode === "passkey" ? (signer.controller ?? undefined) : undefined,
       ),
     refetchInterval: 6000,
   });
@@ -231,7 +250,9 @@ export function GameProvider({
     [snapshot, now, known],
   );
 
-  // Opens the timelock of every due hidden mission this client cannot reveal yet (B-22).
+  // Opens the timelock of every due hidden mission this client cannot reveal yet (B-22). A
+  // plaintext is kept only when it reproduces the commitment: a wrong one would make every batch
+  // revert BadReveal. Garbage is never tried again.
   const tried = useRef(new Map<bigint, number>());
   useEffect(() => {
     if (!snapshot) return;
@@ -241,8 +262,16 @@ export function GameProvider({
       tried.current.set(m.id, wall);
       const { deployment } = clients;
       void ciphertextOf(clients.public, game, deployment.fromBlock, m.id)
-        .then((c) => (c ? timelock.decrypt(c) : null))
-        .then((p) => p && setKnown((k) => new Map(k).set(m.commit, p)))
+        .then(async (c) => {
+          const opened = c ? await timelock.open(c) : ({ garbage: true } as const);
+          if ("locked" in opened) return;
+          if ("garbage" in opened) return tried.current.set(m.id, Infinity);
+          const { kind, target, salt } = opened.plain;
+          if (sim.hiddenCommit(m.owner, kind, target, salt) !== m.commit) {
+            return tried.current.set(m.id, Infinity);
+          }
+          setKnown((k) => new Map(k).set(m.commit, opened.plain));
+        })
         .catch((e) => console.warn("hidden mission", m.id, e));
     }
   }, [snapshot, now, wall, known, clients, game, timelock]);
@@ -255,6 +284,38 @@ export function GameProvider({
     signer.mode === "passkey" && world && me && sim.sessionPlayer(world, controller, now) === me.id
       ? world.sessions.get(controller)!.until
       : 0n;
+  // An invitation this player made to this device's session, not accepted yet (B-15): the next
+  // action accepts it in front, without a prompt.
+  const sessionInvite =
+    signer.mode === "passkey" && world && me && liveSession === 0n
+      ? world.invites.get(sim.inviteKey(controller, me.id))
+      : undefined;
+  const invitedSession =
+    !!sessionInvite &&
+    sessionInvite.kind === sim.INVITE_SESSION &&
+    sessionInvite.until > now &&
+    sessionInvite.epoch === me!.sessionEpoch;
+  // What the player sees: this device plays without a prompt until then, accepted or still invited.
+  const sessionUntil = liveSession > 0n ? liveSession : invitedSession ? sessionInvite.until : 0n;
+
+  // What waits for this device's account when it has no player: invitations, due transfers.
+  const pendingQuery = useQuery({
+    // Query keys are hashed as JSON: no bigint in them.
+    queryKey: ["pending", game, address, Number(snapshot?.block ?? 0n)],
+    queryFn: () =>
+      address && snapshot
+        ? pendingFor(
+            clients.public,
+            game,
+            clients.deployment.fromBlock,
+            address,
+            snapshot.world,
+            now,
+          )
+        : Promise.resolve([] as Pending[]),
+    enabled: !!address && !!snapshot && !me,
+  });
+  const pending = useMemo(() => (me ? [] : (pendingQuery.data ?? [])), [me, pendingQuery.data]);
   const myBuildings =
     world && me ? [...world.buildings.values()].filter((b) => b.owner === me.id) : [];
   const building = myBuildings.find((b) => b.id === selected) ?? myBuildings[0];
@@ -291,12 +352,15 @@ export function GameProvider({
   /**
    * Sends the calls after the reveals they need; if due missions piled up, or more came due than
    * the gas allowed for (B-08), processes them first in the same operation and retries, with one
-   * more advance() each time (processing arrivals can bring their returns due too). A hidden
-   * mission that came due meanwhile (Unrevealed) is retried with the reveals of that moment.
+   * more advance() each time (processing arrivals can bring their returns due too). When that is
+   * not enough (a heavy mission, a long backlog), missions are processed one per operation before
+   * the last try. A hidden mission that came due meanwhile (Unrevealed) is retried with the
+   * reveals of that moment.
    */
   const send = useCallback(
     async (calls: Call[], from: From) => {
       const advance = gameCall(game, "advance", [BigInt(sim.MAX_MISSIONS_PER_TX)]);
+      const one = gameCall(game, "advance", [1n]);
       for (let advances = 0, tries = 0; ; tries++) {
         const at = BigInt(Math.floor(Date.now() / 1000) + offset.current);
         try {
@@ -305,9 +369,22 @@ export function GameProvider({
           return;
         } catch (e) {
           const name = errorName(e);
-          if (!(name === "Backlog" || name === "Unrevealed") || tries === MAX_BACKLOG_RETRIES)
-            throw e;
-          if (name === "Backlog") advances++;
+          if (!(name === "Backlog" || name === "Unrevealed")) throw e;
+          if (tries < MAX_BACKLOG_RETRIES) {
+            if (name === "Backlog") advances++;
+            continue;
+          }
+          if (tries > MAX_BACKLOG_RETRIES) throw e;
+          // One mission per operation until the queue is caught up, then the action alone.
+          for (let i = 0; i < MAX_SINGLE_ADVANCES; i++) {
+            try {
+              await signer.send([one], from);
+            } catch (e2) {
+              if (errorName(e2) === "Unrevealed") break;
+              throw e2;
+            }
+          }
+          advances = 0;
         }
       }
     },
@@ -386,19 +463,25 @@ export function GameProvider({
     async (r: ActRequest) => {
       const from = r.from ?? "actor";
       const caller = from === "controller" ? owner : controller;
+      // A lapsed session is invited again by the controller (a prompt) unless an invitation is
+      // already waiting; either way the session accepts in front of the action (B-15).
       const lapsed = signer.mode === "passkey" && from === "actor" && me && liveSession === 0n;
-      const renew = lapsed ? await renewal() : undefined;
+      const renew = lapsed && !invitedSession ? await renewal() : undefined;
+      const accept: Call[] = lapsed ? [gameCall(game, "acceptSession", [me.id])] : [];
       const ok = await run({
         done: r.done,
-        check: r.check && ((w, n) => r.check!(w, caller, n)),
-        calls: [gameCall(game, r.functionName, r.args)],
+        check: (w, n) => {
+          if (lapsed) sim.acceptSession(w, controller, me.id, n);
+          r.check?.(w, caller, n);
+        },
+        calls: [...accept, gameCall(game, r.functionName, r.args)],
         from,
         renew,
       });
       if (ok && renew && signer instanceof PasskeySigner) signer.settled();
       return ok;
     },
-    [signer, owner, controller, me, liveSession, run, renewal, game],
+    [signer, owner, controller, me, liveSession, invitedSession, run, renewal, game],
   );
 
   const createAccount = useCallback(
@@ -475,15 +558,18 @@ export function GameProvider({
   const revokeSession = useCallback(async () => {
     if (!actor) return false;
     const key = controller;
+    // A session still invited, not accepted (B-15), is dropped by cancelling the invitation.
+    const invited = liveSession === 0n;
     const ok = await run({
       done: t("session.revoked"),
-      check: (w, n) => sim.revokeSession(w, owner, key, n),
-      calls: [gameCall(game, "revokeSession", [actor])],
+      check: (w, n) =>
+        invited ? sim.cancelInvite(w, owner, key, n) : sim.revokeSession(w, owner, key, n),
+      calls: [gameCall(game, invited ? "cancelInvite" : "revokeSession", [actor])],
       from: "controller",
     });
     if (ok) signOut();
     return ok;
-  }, [actor, controller, owner, game, run, signOut, t]);
+  }, [actor, controller, owner, liveSession, game, run, signOut, t]);
 
   const prepareDevice = useCallback(async () => {
     if (!(signer instanceof PasskeySigner)) return false;
@@ -498,16 +584,83 @@ export function GameProvider({
     }
   }, [signer, fail]);
 
-  const addController = useCallback(
-    (a: Address, recovery = false, done = t("devices.added")) =>
+  const inviteController = useCallback(
+    (a: Address, recovery = false, done = t("devices.invited")) =>
       act({
         done,
-        check: (w, c, n) => sim.addController(w, c, controllerKey(a), recovery, n),
-        functionName: "addController",
+        check: (w, c, n) => sim.inviteController(w, c, controllerKey(a), recovery, n),
+        functionName: "inviteController",
         args: [a, recovery],
         from: "controller",
       }),
     [act, t],
+  );
+
+  const cancelInvite = useCallback(
+    (key: string) =>
+      act({
+        done: t("devices.uninvited"),
+        check: (w, c, n) => sim.cancelInvite(w, c, key, n),
+        functionName: "cancelInvite",
+        args: [key],
+        from: "controller",
+      }),
+    [act, t],
+  );
+
+  /**
+   * This device's account accepts an invitation or a due transfer (B-26) and, with passkeys,
+   * publishes its passkey if needed and invites this device's session in the same operation.
+   */
+  const acceptPending = useCallback(
+    async (p: Pending) => {
+      if (!address || !snapshot) return false;
+      const calls: Call[] = [];
+      const own = controllerKey(address);
+      const until = sessionDeadline(now);
+      const session = signer instanceof PasskeySigner ? signer.session?.address : undefined;
+      setBusy(true);
+      try {
+        if (signer instanceof PasskeySigner && signer.identity && !signer.identity.published) {
+          const { isPublished, publishCall } = await passkeys();
+          if (await isPublished(clients.public, signer.directory, signer.identity))
+            signer.settled();
+          else calls.push(publishCall(signer.directory, signer.identity));
+        }
+      } catch (e) {
+        return fail(e);
+      } finally {
+        setBusy(false);
+      }
+      calls.push(
+        p.kind === "transfer"
+          ? gameCall(game, "acceptTransfer", [p.player])
+          : gameCall(game, "acceptController", [p.player]),
+      );
+      if (session) calls.push(gameCall(game, "authorizeSession", [session, until]));
+      const ok = await run({
+        done: t(p.kind === "transfer" ? "account.transferred" : "devices.joined"),
+        check: (w, n) => {
+          if (p.kind === "transfer") sim.acceptTransfer(w, own, p.player, n);
+          else {
+            // The loaded world carries only this device's session invitations: add the one found.
+            w.invites.set(sim.inviteKey(own, p.player), {
+              kind: sim.INVITE_CONTROLLER,
+              recovery: p.recovery,
+              until: p.at,
+              epoch: w.players.get(p.player)!.sessionEpoch,
+            });
+            sim.acceptController(w, own, p.player, n);
+          }
+          if (session) sim.authorizeSession(w, own, controllerKey(session), until, n);
+        },
+        calls,
+        from: "controller",
+      });
+      if (ok && signer instanceof PasskeySigner) signer.settled();
+      return ok;
+    },
+    [address, snapshot, now, signer, clients, game, run, fail, t],
   );
 
   const removeController = useCallback(
@@ -529,6 +682,8 @@ export function GameProvider({
       const at = me?.removalAt.get(key);
       const executes = at !== undefined && now >= at;
       const until = sessionDeadline(now);
+      // Both steps kill every session: this device invites its own again in the same operation
+      // and accepts it with its next action.
       const calls = [gameCall(game, "removeController", [key])];
       if (actor) calls.push(gameCall(game, "authorizeSession", [actor, until]));
       return run({
@@ -556,18 +711,41 @@ export function GameProvider({
     [act, t],
   );
 
+  /**
+   * Activates a recovery code: the player invites the code's account (a prompt), and the code's
+   * account accepts at once (sponsored, no prompt: this device holds the key right now).
+   */
   const addRecoveryCode = useCallback(
     async (code: string) => {
       const bytes = parseRecoveryCode(code);
-      if (!bytes) {
+      if (!bytes || !me) {
         toast(t("errors.invalidCode"), true);
         return false;
       }
       const { sessionAccount } = await sessions();
-      const a = (await sessionAccount(clients.public, recoveryKey(bytes))).address;
-      return addController(a, true, t("devices.activated"));
+      const key = recoveryKey(bytes);
+      const a = (await sessionAccount(clients.public, key)).address;
+      const invited = await inviteController(a, true, t("devices.invited"));
+      if (!invited) return false;
+      const pid = me.id;
+      const ok = await run({
+        done: t("devices.activated"),
+        // The loaded world carries no invitation for the code's account: it was just made on chain.
+        check: (w, n) => {
+          w.invites.set(sim.inviteKey(controllerKey(a), pid), {
+            kind: sim.INVITE_CONTROLLER,
+            recovery: true,
+            until: n + rs.config.inviteTtl,
+            epoch: w.players.get(pid)!.sessionEpoch,
+          });
+          sim.acceptController(w, controllerKey(a), pid, n);
+        },
+        calls: [gameCall(game, "acceptController", [pid])],
+        from: signer.mode === "passkey" ? { key } : "controller",
+      });
+      return ok;
     },
-    [clients, addController, toast, t],
+    [clients, me, signer, game, inviteController, run, toast, t],
   );
 
   const recover = useCallback(
@@ -591,16 +769,21 @@ export function GameProvider({
         const session = signer.session!.address;
         const until = sessionDeadline(now);
         const w = cloneWorld(project(snapshot.world, now, known));
-        sim.addController(w, rec, kernel, false, now);
+        sim.inviteController(w, rec, kernel, false, now);
+        sim.acceptController(w, kernel, pid, now);
         sim.authorizeSession(w, kernel, controllerKey(session), until, now);
-        await send([gameCall(game, "addController", [id.address, false])], { key });
-        // The new account publishes its passkey and opens this device's session (a prompt). If
-        // that is cancelled, the first action does it.
+        // The code's account invites the new one (no prompt); the new account accepts, publishes
+        // its passkey and invites this device's session (a prompt). If that is cancelled, the
+        // invitation waits on the entry screen.
+        await send([gameCall(game, "inviteController", [id.address, false])], { key });
         const calls: Call[] = [];
         const { isPublished, publishCall } = await passkeys();
         if (!(await isPublished(clients.public, signer.directory, id)))
           calls.push(publishCall(signer.directory, id));
-        calls.push(gameCall(game, "authorizeSession", [session, until]));
+        calls.push(
+          gameCall(game, "acceptController", [pid]),
+          gameCall(game, "authorizeSession", [session, until]),
+        );
         await send(calls, "controller");
         signer.settled();
         rememberUsedRecovery(clients.deployment.chainId, rec); // the list suggests replacing it
@@ -620,17 +803,56 @@ export function GameProvider({
     [signer, snapshot, clients, now, known, game, send, toast, t, fail, refresh],
   );
 
+  /**
+   * Dev only. A jump in one go would carry every due hidden mission past its grace and forfeit
+   * it (B-22), so the jump stops at the arrival of each mission this browser can reveal (any
+   * account's plaintext it stored) and reveals it there, as the keeper would in real time.
+   */
   const warp = useCallback(
     async (seconds: number) => {
-      await clients.public.request({
-        method: "evm_increaseTime" as never,
-        params: [seconds] as never,
-      });
-      await clients.public.request({ method: "evm_mine" as never });
-      offset.current += seconds;
+      const increase = async (s: number) => {
+        await clients.public.request({
+          method: "evm_increaseTime" as never,
+          params: [s] as never,
+        });
+        await clients.public.request({ method: "evm_mine" as never });
+        offset.current += s;
+      };
+      const start = BigInt(Math.floor(Date.now() / 1000) + offset.current);
+      const target = start + BigInt(seconds);
+      const plains = allStoredPlains(game);
+      const landing = [...(snapshot?.world.missions.values() ?? [])]
+        .filter(
+          (m) =>
+            m.hidden &&
+            !m.returning &&
+            plains.has(m.commit) &&
+            m.arrival > start &&
+            m.arrival <= target,
+        )
+        .sort((a, b) => (a.arrival < b.arrival ? -1 : 1));
+      let at = start;
+      for (const m of landing) {
+        if (m.arrival > at) {
+          await increase(Number(m.arrival - at));
+          at = m.arrival;
+        }
+        const p = plains.get(m.commit)!;
+        const { city, neighborhood, slot } = p.target;
+        const salt = `0x${p.salt.toString(16).padStart(64, "0")}`;
+        try {
+          await signer.send(
+            [gameCall(game, "reveal", [m.id, p.kind, [city, neighborhood, slot], salt])],
+            "admin",
+          );
+        } catch (e) {
+          console.warn("reveal during warp", m.id, e);
+        }
+      }
+      if (target > at) await increase(Number(target - at));
       await refresh();
     },
-    [clients, refresh],
+    [clients, refresh, snapshot, game, signer],
   );
 
   if (!snapshot || !world) return <>{children(false)}</>;
@@ -641,7 +863,7 @@ export function GameProvider({
     address,
     controller,
     owner,
-    sessionUntil: liveSession,
+    sessionUntil,
     snapshot,
     now,
     world,
@@ -663,7 +885,10 @@ export function GameProvider({
     revokeSession,
     joining: signer instanceof PasskeySigner && !!signer.identity?.joining && !me,
     prepareDevice,
-    addController,
+    inviteController,
+    cancelInvite,
+    pending,
+    acceptPending,
     removeController,
     cancelRemoval,
     addRecoveryCode,

@@ -121,24 +121,6 @@ export function Account() {
           </p>
           <div className="form-row">
             <button
-              className="btn primary"
-              disabled={g.busy || g.now < p.transferAt}
-              onClick={
-                () =>
-                  void g
-                    .act({
-                      done: t("account.transferred"),
-                      check: (w, c, n) => sim.transferPlayer(w, c, p.transferTo, n),
-                      functionName: "transferPlayer",
-                      args: [p.transferTo as Address],
-                      from: "controller",
-                    })
-                    .then((ok) => ok && g.signOut()) // this device no longer manages the account
-              }
-            >
-              {t("account.transferNow")}
-            </button>
-            <button
               className="btn quiet"
               disabled={g.busy}
               onClick={() =>

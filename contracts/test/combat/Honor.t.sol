@@ -14,6 +14,15 @@ contract HonorTest is Test {
         }
     }
 
+    /// D-27: never below 1 % of power, however many buildings.
+    function test_honorFloor() public pure {
+        assertEq(Honor.pct(200, 0), 1);
+        assertEq(Honor.pct(201, 0), 1);
+        assertEq(Honor.pct(201, 1), 1);
+        assertEq(Honor.pct(100_000, 0), 1);
+        assertGt(Honor.pct(201, 8), 1);
+    }
+
     /// D-17: honor is capped at 8 before every branch, including more than 100 buildings.
     function test_honorCappedAboveMaxLevel() public pure {
         assertEq(Honor.pct(150, 12), Honor.pct(150, 8));

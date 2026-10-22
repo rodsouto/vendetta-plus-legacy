@@ -56,7 +56,12 @@ export type GameErrorName =
   | "RemovalPending"
   | "NoRemoval"
   | "TransferPending"
-  | "NoTransfer";
+  | "NoTransfer"
+  | "NoInvite"
+  | "TooLate"
+  | "TooEarly"
+  | "NotKeeper"
+  | "InvalidBond";
 
 export class GameError extends Error {
   constructor(readonly code: GameErrorName) {

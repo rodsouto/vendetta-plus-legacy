@@ -13,6 +13,8 @@ All of it goes in `.env` at the repo root (`cp .env.example .env`; it is git-ign
 |----------|------|------------------|
 | `DEPLOYER_PRIVATE_KEY` | A fresh key used only to deploy, with ~0.005 ETH on Arbitrum One | Deploy script only |
 | `ADMIN` | Owner of the `Game`: upgrades, suspensions, premium. A Safe (B-17); empty = the deployer | On-chain |
+| `KEEPER` | Our keeper's address, listed so it may report garbage ciphertexts (B-22); empty = none. Listed at deploy only when `ADMIN` is the deployer; otherwise the admin calls `setKeeper` | On-chain |
+| `HIDDEN_BOND` | Starting hidden mission bond (B-22), within the configured bounds; empty = the configured default (10000). Applied only when `ADMIN` is the deployer; otherwise the admin calls `setHiddenBond` | On-chain |
 | `ARBITRUM_RPC_URL` | RPC to deploy through; empty = `https://arb1.arbitrum.io/rpc` | Deploy script only |
 | `ETHERSCAN_API_KEY` | Etherscan v2 key (covers Arbiscan) to verify the sources; optional | Deploy script only |
 | `VITE_PIMLICO_API_KEY` | Pimlico API key: bundler and paymaster | **Public** JS bundle |

@@ -33,8 +33,34 @@ export const gameAbi = [
   },
   {
     "type": "function",
+    "name": "acceptController",
+    "inputs": [
+      {
+        "name": "player",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "acceptOwnership",
     "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "acceptSession",
+    "inputs": [
+      {
+        "name": "player",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
     "outputs": [],
     "stateMutability": "nonpayable"
   },
@@ -53,17 +79,12 @@ export const gameAbi = [
   },
   {
     "type": "function",
-    "name": "addController",
+    "name": "acceptTransfer",
     "inputs": [
       {
-        "name": "controller",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "recovery",
-        "type": "bool",
-        "internalType": "bool"
+        "name": "player",
+        "type": "uint64",
+        "internalType": "uint64"
       }
     ],
     "outputs": [],
@@ -114,6 +135,11 @@ export const gameAbi = [
         "name": "war",
         "type": "uint64",
         "internalType": "uint64"
+      },
+      {
+        "name": "kind",
+        "type": "uint8",
+        "internalType": "uint8"
       },
       {
         "name": "accept",
@@ -183,6 +209,19 @@ export const gameAbi = [
       }
     ],
     "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "cancelInvite",
+    "inputs": [
+      {
+        "name": "invited",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
@@ -584,6 +623,52 @@ export const gameAbi = [
   },
   {
     "type": "function",
+    "name": "getInvite",
+    "inputs": [
+      {
+        "name": "invited",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "player",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct Invite",
+        "components": [
+          {
+            "name": "kind",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "recovery",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "until",
+            "type": "uint40",
+            "internalType": "uint40"
+          },
+          {
+            "name": "epoch",
+            "type": "uint32",
+            "internalType": "uint32"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "getMission",
     "inputs": [
       {
@@ -702,6 +787,11 @@ export const gameAbi = [
             "name": "commit",
             "type": "bytes32",
             "internalType": "bytes32"
+          },
+          {
+            "name": "reportedAt",
+            "type": "uint40",
+            "internalType": "uint40"
           }
         ]
       }
@@ -850,6 +940,11 @@ export const gameAbi = [
             "name": "transferAt",
             "type": "uint40",
             "internalType": "uint40"
+          },
+          {
+            "name": "vacationSeq",
+            "type": "uint64",
+            "internalType": "uint64"
           }
         ]
       }
@@ -1067,6 +1162,19 @@ export const gameAbi = [
   },
   {
     "type": "function",
+    "name": "hiddenBond",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "initialize",
     "inputs": [
       {
@@ -1077,6 +1185,43 @@ export const gameAbi = [
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "inviteController",
+    "inputs": [
+      {
+        "name": "controller",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "recovery",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "isKeeper",
+    "inputs": [
+      {
+        "name": "keeper",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -1357,6 +1502,19 @@ export const gameAbi = [
   },
   {
     "type": "function",
+    "name": "registerDebt",
+    "inputs": [
+      {
+        "name": "trade",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "removeController",
     "inputs": [
       {
@@ -1372,6 +1530,19 @@ export const gameAbi = [
     "type": "function",
     "name": "renounceOwnership",
     "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "reportGarbage",
+    "inputs": [
+      {
+        "name": "mission",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
     "outputs": [],
     "stateMutability": "nonpayable"
   },
@@ -1449,6 +1620,11 @@ export const gameAbi = [
         "name": "ciphertext",
         "type": "bytes",
         "internalType": "bytes"
+      },
+      {
+        "name": "deadline",
+        "type": "uint40",
+        "internalType": "uint40"
       }
     ],
     "outputs": [
@@ -1512,6 +1688,37 @@ export const gameAbi = [
         "name": "until",
         "type": "uint256",
         "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setHiddenBond",
+    "inputs": [
+      {
+        "name": "bond",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setKeeper",
+    "inputs": [
+      {
+        "name": "keeper",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "allowed",
+        "type": "bool",
+        "internalType": "bool"
       }
     ],
     "outputs": [],
@@ -1649,6 +1856,30 @@ export const gameAbi = [
     ],
     "outputs": [],
     "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "warResult",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "ended",
+        "type": "bool",
+        "internalType": "bool"
+      },
+      {
+        "name": "winner",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -1843,6 +2074,37 @@ export const gameAbi = [
   },
   {
     "type": "event",
+    "name": "ControllerInvited",
+    "inputs": [
+      {
+        "name": "player",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      },
+      {
+        "name": "controller",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "recovery",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      },
+      {
+        "name": "until",
+        "type": "uint40",
+        "indexed": false,
+        "internalType": "uint40"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "ControllerRemovalCancelled",
     "inputs": [
       {
@@ -2013,6 +2275,25 @@ export const gameAbi = [
   },
   {
     "type": "event",
+    "name": "GarbageReported",
+    "inputs": [
+      {
+        "name": "mission",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      },
+      {
+        "name": "keeper",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "GlobalPremiumSet",
     "inputs": [
       {
@@ -2020,6 +2301,19 @@ export const gameAbi = [
         "type": "uint40",
         "indexed": false,
         "internalType": "uint40"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "HiddenBondSet",
+    "inputs": [
+      {
+        "name": "bond",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
       }
     ],
     "anonymous": false
@@ -2064,6 +2358,44 @@ export const gameAbi = [
         "type": "uint64",
         "indexed": false,
         "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "InviteCancelled",
+    "inputs": [
+      {
+        "name": "player",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      },
+      {
+        "name": "invited",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "KeeperSet",
+    "inputs": [
+      {
+        "name": "keeper",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "allowed",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
       }
     ],
     "anonymous": false
@@ -2380,12 +2712,6 @@ export const gameAbi = [
         "internalType": "uint64"
       },
       {
-        "name": "from",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
-      },
-      {
         "name": "to",
         "type": "address",
         "indexed": false,
@@ -2679,6 +3005,31 @@ export const gameAbi = [
   {
     "type": "event",
     "name": "SessionAuthorized",
+    "inputs": [
+      {
+        "name": "player",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      },
+      {
+        "name": "session",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "until",
+        "type": "uint40",
+        "indexed": false,
+        "internalType": "uint40"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "SessionInvited",
     "inputs": [
       {
         "name": "player",
@@ -3107,6 +3458,11 @@ export const gameAbi = [
   },
   {
     "type": "error",
+    "name": "InvalidBond",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "InvalidCoordinate",
     "inputs": []
   },
@@ -3217,6 +3573,11 @@ export const gameAbi = [
   },
   {
     "type": "error",
+    "name": "NotKeeper",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "NotRecallable",
     "inputs": []
   },
@@ -3228,6 +3589,16 @@ export const gameAbi = [
   {
     "type": "error",
     "name": "TargetOnVacation",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TooEarly",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TooLate",
     "inputs": []
   },
   {
@@ -3258,6 +3629,11 @@ export const gameAbi = [
   {
     "type": "error",
     "name": "MissionsInFlight",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NoInvite",
     "inputs": []
   },
   {

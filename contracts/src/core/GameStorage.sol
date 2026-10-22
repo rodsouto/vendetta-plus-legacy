@@ -46,6 +46,7 @@ struct Mission {
     uint32 cover; // declared distance in grid units (≥ the real one) that duration and salary used
     uint64 bond; // salary resource held until the mission resolves or returns; lost on forfeit
     bytes32 commit; // keccak256(abi.encode(owner, kind, city, neighborhood, slot, salt))
+    uint40 reportedAt; // a listed keeper reported the ciphertext as garbage then (B-22), 0 = none
 }
 
 uint8 constant CAPO = 1;
@@ -123,7 +124,8 @@ struct Player {
     uint32 debts; // registered trade debts not yet paid (B-11): restricts market, vacation, transports
     uint40 tradeLockUntil; // latest window end of an accepted trade: no vacation while now ≤ it (D-18)
     address transferTo; // pending transfer target (B-26), 0 = none
-    uint40 transferAt; // when the pending transfer can be executed
+    uint40 transferAt; // when the pending transfer can be accepted
+    uint64 vacationSeq; // creation order of the last vacation start: same-second sends (B-07, B-22)
 }
 
 /// A session key: an address allowed to play for a player until `until` (B-15).
@@ -131,6 +133,18 @@ struct Session {
     uint64 player;
     uint40 until;
     uint32 epoch;
+}
+
+uint8 constant INVITE_SESSION = 1;
+uint8 constant INVITE_CONTROLLER = 2;
+
+/// An invitation to play for a player as a session, or to manage it as a controller (B-15, B-26):
+/// the invited address binds itself by accepting, nobody binds it. Dies with the player's epoch.
+struct Invite {
+    uint8 kind; // INVITE_*, 0 = none
+    bool recovery; // controller invitations: a recovery code rather than a device
+    uint40 until; // sessions: the authorization's end; controllers: when the invitation expires
+    uint32 epoch; // the player's sessionEpoch when invited
 }
 
 /// Per-controller data (B-26), keyed by address: a controller manages one player at a time and its
@@ -166,6 +180,9 @@ struct CoreState {
     mapping(address => Session) sessions; // session address → authorization
     mapping(uint64 => mapping(uint64 => uint32)) owes; // debtor → creditor → registered unpaid debts (B-11)
     mapping(address => ControllerInfo) controllerInfo; // B-26
+    mapping(address => mapping(uint64 => Invite)) invites; // invited address → player → invitation
+    mapping(address => bool) keepers; // addresses that may report garbage ciphertexts (B-22)
+    uint64 hiddenBond; // the hidden mission bond in force, set by the admin within the bounds (B-22)
 }
 
 library GameStorage {

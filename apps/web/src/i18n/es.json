@@ -157,10 +157,12 @@
     "hidden": "Oculta",
     "hiddenTarget": "destino oculto",
     "mayBeYou": "puede ser para vos",
-    "bond": "Fianza (vuelve al resolverse)",
+    "bond": "Fianza (vuelve si se revela a tiempo)",
     "hiddenNote": "El tipo y el destino quedan ocultos hasta la llegada. El viaje y el salario se calculan sobre una distancia de cobertura al azar, para que no delaten el destino.",
     "publicNote": "Los transportes de una orden del mercado viajan a la vista.",
-    "revealing": "revelándose"
+    "revealing": "revelándose",
+    "noRoom": "Al destino no le cabe: {{list}}. Lo que no quepa se pierde: tener lugar es responsabilidad de quien recibe.",
+    "incomingOverflow": "no te cabe todo: hacé lugar antes de que llegue"
   },
   "reports": {
     "title": "Informes de batalla",
@@ -253,7 +255,10 @@
     "inDebt": "Tenés {{count}} deuda(s) registrada(s). Hasta saldarlas no podés ofrecer ni aceptar órdenes, irte de vacaciones ni enviar transportes salvo a tus edificios y a los de tus acreedores.",
     "creditors": "Acreedores",
     "vacationLocked": "Sin vacaciones mientras una orden aceptada tenga la ventana abierta:",
-    "debtorLocked": "El deudor no puede irse de vacaciones ni comerciar hasta saldar la deuda."
+    "debtorLocked": "El deudor no puede irse de vacaciones ni comerciar hasta saldar la deuda.",
+    "register": "Registrar la deuda",
+    "registered": "Deuda registrada",
+    "registerNote": "Registrá la deuda para que el deudor quede restringido aunque todavía no puedas cobrar nada:"
   },
   "account": {
     "title": "Cuenta",
@@ -267,16 +272,16 @@
     "suspended": "Suspendida hasta",
     "transfer": "Transferir la cuenta",
     "to": "Dirección de destino",
-    "transferNote": "La cuenta entera (edificios, tropas, familia, órdenes) pasa a esa dirección. Tarda {{days}} días; mientras tanto, cualquier dispositivo de la cuenta puede cancelarla.",
+    "transferNote": "La cuenta entera (edificios, tropas, familia, órdenes) pasa a esa dirección. Tarda {{days}} días y después la dirección de destino tiene que aceptarla; mientras tanto, cualquier dispositivo de la cuenta puede cancelarla.",
     "transferred": "Cuenta transferida",
     "transferSubmit": "Pedir la transferencia",
     "transferScheduled": "Transferencia pedida: se completa en {{days}} días",
     "transferPending": "Transferencia pendiente a",
-    "transferFrom": "se puede completar desde",
+    "transferFrom": "la puede aceptar desde",
     "transferNow": "Completar la transferencia",
     "transferCancel": "Cancelar la transferencia",
     "transferCancelled": "Transferencia cancelada",
-    "transferPendingBanner": "Hay una transferencia de la cuenta pendiente a {{to}}: se puede completar el {{when}}.",
+    "transferPendingBanner": "Hay una transferencia de la cuenta pendiente a {{to}}: la puede aceptar desde el {{when}}.",
     "state": "Estado",
     "active": "Activa"
   },
@@ -361,7 +366,12 @@
     "InvalidCover": "La distancia de cobertura no es válida para ese destino.",
     "InDebt": "Tenés una deuda registrada en el mercado: saldala primero.",
     "TradeOpen": "No podés irte de vacaciones mientras una orden aceptada tenga la ventana abierta.",
-    "InvalidClaim": "El reclamo no cabe: revisá lo que falta, el stock del deudor y tu capacidad libre."
+    "InvalidClaim": "El reclamo no cabe: revisá lo que falta, el stock del deudor y tu capacidad libre.",
+    "NoInvite": "No hay una invitación vigente para esta dirección.",
+    "TooLate": "La misión llegaría después de que se abra su cifrado: volvé a enviarla.",
+    "TooEarly": "Todavía no se puede reportar: esperá a que salga la ronda.",
+    "NotKeeper": "Solo un keeper autorizado puede reportar.",
+    "InvalidBond": "La fianza tiene que estar entre los límites configurados."
   },
   "theme": {
     "label": "Tema",
@@ -371,11 +381,13 @@
   },
   "joining": {
     "title": "Sumá este dispositivo",
-    "body": "Escaneá este código (o abrí el enlace) en un dispositivo donde ya tengas la cuenta, y aprobalo con su passkey. Esta pantalla sigue sola cuando esté listo.",
+    "body": "Escaneá este código (o abrí el enlace) en un dispositivo donde ya tengas la cuenta, y aprobalo con su passkey. Cuando te invite, acá aparece el botón para aceptar.",
     "copy": "Copiar enlace",
     "copied": "Enlace copiado",
     "cancel": "Cancelar",
-    "waiting": "Esperando la aprobación…"
+    "waiting": "Esperando la aprobación…",
+    "invited": "La cuenta #{{player}} te invitó. Aceptá para sumarte (pide tu passkey una vez).",
+    "accept": "Aceptar la invitación"
   },
   "devices": {
     "title": "Dispositivos y recuperación",
@@ -396,12 +408,12 @@
     "usedHere": "usado para recuperar en este dispositivo",
     "usedNote": "Ese código ya se usó para recuperar la cuenta: generá uno nuevo y quitá el usado.",
     "add": "Agregar un dispositivo",
-    "addNote": "En el dispositivo nuevo elegí «Sumar este dispositivo a mi cuenta»: muestra un código QR. Escanealo con este dispositivo, o pegá acá su enlace.",
+    "addNote": "En el dispositivo nuevo elegí «Sumar este dispositivo a mi cuenta»: muestra un código QR. Escanealo con este dispositivo, o pegá acá su enlace; después, en el dispositivo nuevo, aceptá la invitación.",
     "link": "Enlace o dirección del dispositivo nuevo",
     "addSubmit": "Agregar",
     "added": "Dispositivo agregado",
     "approve": "Un dispositivo pide sumarse a tu cuenta",
-    "approveNote": "Aprobalo solo si lo estás configurando vos: va a poder manejar la cuenta entera.",
+    "approveNote": "Lo invita a manejar la cuenta entera: en el dispositivo nuevo hay que aceptar la invitación. Invitalo solo si lo estás configurando vos.",
     "approveSubmit": "Aprobar dispositivo",
     "reject": "No es mío",
     "recovery": "Código de recuperación",
@@ -410,7 +422,18 @@
     "saved": "Ya lo guardé",
     "activate": "Activar el código",
     "activated": "Código activado",
-    "discard": "Descartar"
+    "discard": "Descartar",
+    "invited": "Dispositivo invitado: tiene que aceptar desde su pantalla",
+    "uninvited": "Invitación cancelada",
+    "joined": "Dispositivo sumado a la cuenta",
+    "invitedList": "Invitaciones pendientes desde este dispositivo",
+    "cancelInvite": "Cancelar la invitación",
+    "pendingForMe": "Esperando tu aceptación",
+    "pendingNote": "Nadie puede sumar esta dirección a una cuenta sin que la aceptes acá. Aceptar pide tu passkey una vez.",
+    "acceptInvite": "Sumarme a la cuenta #{{player}}",
+    "acceptTransfer": "Aceptar la cuenta #{{player}}",
+    "pendingUntil": "vigente hasta",
+    "pendingSince": "se puede aceptar desde"
   },
   "recovery": {
     "done": "Cuenta recuperada"

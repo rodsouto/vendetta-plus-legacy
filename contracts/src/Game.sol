@@ -6,7 +6,13 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 import {
     Ownable2StepUpgradeable
 } from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
-import {ROOMS, RESEARCH, RESOURCES, TROOPS} from "./generated/VendettaRuleset.sol";
+import {
+    ROOMS,
+    RESEARCH,
+    RESOURCES,
+    TROOPS,
+    VendettaRuleset as Ruleset
+} from "./generated/VendettaRuleset.sol";
 import {Core} from "./core/Core.sol";
 import {Training} from "./core/Training.sol";
 import {Missions} from "./core/Missions.sol";
@@ -25,9 +31,11 @@ import {
     CoreState,
     ControllerInfo,
     Session,
+    Invite,
     GameStorage
 } from "./core/GameStorage.sol";
 import {Access} from "./core/Access.sol";
+import {FamilyRules} from "./core/Families.sol";
 import {IGameEvents} from "./core/GameErrors.sol";
 
 /// The game: one UUPS proxy (B-17) whose logic lives in linked libraries (blockchain.md,
@@ -40,6 +48,7 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
 
     function initialize(address admin) external initializer {
         __Ownable_init(admin);
+        Core.setHiddenBond(Ruleset.HIDDEN_MISSION_BOND);
     }
 
     function _authorizeUpgrade(address) internal override onlyOwner {}
@@ -96,23 +105,31 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
         return Missions.send(msg.sender, building, kind, target, troops, resources, trade);
     }
 
-    /// A mission whose kind and target stay secret until revealed (B-22).
+    /// A mission whose kind and target stay secret until revealed (B-22). `deadline`: the latest
+    /// arrival the ciphertext's timelock allows (TooLate past it, so the client encrypts again).
     function sendHiddenMission(
         uint64 building,
         bytes32 commit,
         uint32 cover,
         uint256[TROOPS] calldata troops,
         uint256[RESOURCES] calldata resources,
-        bytes calldata ciphertext
+        bytes calldata ciphertext,
+        uint40 deadline
     ) external drained returns (uint64) {
         return Missions.sendHidden(
-            msg.sender, building, commit, cover, troops, resources, ciphertext
+            msg.sender, building, commit, cover, troops, resources, ciphertext, deadline
         );
     }
 
-    /// Anyone, any time, and without draining the queue: it touches no building (B-22).
+    /// Anyone, until the grace ends, and without draining the queue: it touches no building (B-22).
     function reveal(uint64 mission, uint8 kind, uint256[3] calldata target, bytes32 salt) external {
         Missions.reveal(mission, kind, target, salt);
+    }
+
+    /// A listed keeper reports a garbage ciphertext (B-22): the mission is forfeited unless revealed
+    /// within the report window. Never drains the queue.
+    function reportGarbage(uint64 mission) external {
+        Missions.reportGarbage(msg.sender, mission);
     }
 
     function recall(uint64 mission) external drained {
@@ -130,6 +147,16 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
 
     function setGlobalPremium(uint256 until) external onlyOwner {
         Core.setGlobalPremium(until);
+    }
+
+    /// Admin: the hidden mission bond in force, within the configured bounds (B-22).
+    function setHiddenBond(uint256 bond) external onlyOwner {
+        Core.setHiddenBond(bond);
+    }
+
+    /// Admin: an address that may report garbage ciphertexts (B-22), our keeper.
+    function setKeeper(address keeper, bool allowed) external onlyOwner {
+        Core.setKeeper(keeper, allowed);
     }
 
     function poke(uint64 building) external drained {
@@ -156,14 +183,30 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
         Account.grantPremium(player, until);
     }
 
-    /// B-26: the first call schedules the transfer and, once due, the same call executes it.
+    /// B-26: schedules giving the account to `to`; once due, `to` accepts with acceptTransfer.
     function transferPlayer(address to) external drained {
         Account.transfer(msg.sender, to);
     }
 
-    /// B-26: another device (or a recovery code, `recovery`) manages the caller's player too.
-    function addController(address controller, bool recovery) external drained {
-        Account.addController(msg.sender, controller, recovery);
+    /// B-26: the target of a due transfer takes the account.
+    function acceptTransfer(uint64 player) external drained {
+        Account.acceptTransfer(msg.sender, player);
+    }
+
+    /// B-26: invites another device's account (or a recovery code's, `recovery`) to manage the
+    /// caller's player; it joins when it accepts.
+    function inviteController(address controller, bool recovery) external drained {
+        Account.inviteController(msg.sender, controller, recovery);
+    }
+
+    /// B-26: the invited address joins the player as a controller.
+    function acceptController(uint64 player) external drained {
+        Account.acceptController(msg.sender, player);
+    }
+
+    /// B-26: drops an invitation (session or controller). Never drains the queue.
+    function cancelInvite(address invited) external {
+        Account.cancelInvite(msg.sender, invited);
     }
 
     /// B-26: immediate on the caller itself; on another controller the first call schedules the
@@ -172,20 +215,28 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
         Account.removeController(msg.sender, controller);
     }
 
-    function cancelRemoval(address controller) external drained {
+    // The protective calls never drain the queue (B-26): a stalled queue must not delay them.
+
+    function cancelRemoval(address controller) external {
         Account.cancelRemoval(msg.sender, controller);
     }
 
-    function cancelTransfer() external drained {
+    function cancelTransfer() external {
         Account.cancelTransfer(msg.sender);
     }
 
-    /// B-15: let `session` (a per-device key) play for the caller's player until `until`.
+    /// B-15: invites `session` (a per-device key) to play for the caller's player until `until`;
+    /// the session binds when it accepts.
     function authorizeSession(address session, uint256 until) external drained {
         Account.authorizeSession(msg.sender, session, until);
     }
 
-    function revokeSession(address session) external drained {
+    /// B-15: the invited session starts playing for the player.
+    function acceptSession(uint64 player) external drained {
+        Account.acceptSession(msg.sender, player);
+    }
+
+    function revokeSession(address session) external {
         Account.revokeSession(msg.sender, session);
     }
 
@@ -239,8 +290,9 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
         Families.offerPeace(msg.sender, war, kind);
     }
 
-    function answerPeace(uint64 war, bool accept) external drained {
-        Families.answerPeace(msg.sender, war, accept);
+    /// `kind`: the offer the answer is for, so a replaced offer is never accepted by mistake.
+    function answerPeace(uint64 war, uint8 kind, bool accept) external drained {
+        Families.answerPeace(msg.sender, war, kind, accept);
     }
 
     // ------------------------------------------------------------------ market (D-19, B-11)
@@ -260,6 +312,11 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
 
     function acceptTrade(uint64 trade) external drained {
         Market.accept(msg.sender, trade);
+    }
+
+    /// The creditor of a defaulted trade registers the debt without collecting (B-11).
+    function registerDebt(uint64 trade) external drained {
+        Market.registerDebt(msg.sender, trade);
     }
 
     /// The creditor of a defaulted trade collects `amount` of each owed resource from a building
@@ -313,6 +370,7 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
         bool[] recovery; // parallel to controllers: a recovery code rather than a device (B-15)
         address transferTo; // pending transfer target, 0 = none (B-26)
         uint40 transferAt;
+        uint64 vacationSeq; // creation order of the last vacation start (B-07)
     }
 
     function getBuilding(uint64 id) external view returns (BuildingView memory v) {
@@ -363,6 +421,7 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
         }
         v.transferTo = p.transferTo;
         v.transferAt = p.transferAt;
+        v.vacationSeq = p.vacationSeq;
     }
 
     /// Registered trade debts `debtor` still owes `creditor` (B-11).
@@ -376,6 +435,11 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
 
     function getWar(uint64 id) external view returns (War memory) {
         return GameStorage.core().wars[id];
+    }
+
+    /// The effective result of a war (B-31): ended by agreement, or because a family dissolved.
+    function warResult(uint64 id) external view returns (bool ended, uint64 winner) {
+        return FamilyRules.outcome(GameStorage.core(), id);
     }
 
     function getTrade(uint64 id) external view returns (Trade memory) {
@@ -403,6 +467,20 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
 
     function getSession(address session) external view returns (Session memory) {
         return GameStorage.core().sessions[session];
+    }
+
+    /// The invitation `invited` holds from `player` (kind 0 = none), B-15 / B-26.
+    function getInvite(address invited, uint64 player) external view returns (Invite memory) {
+        return GameStorage.core().invites[invited][player];
+    }
+
+    /// The hidden mission bond in force (B-22).
+    function hiddenBond() external view returns (uint64) {
+        return GameStorage.core().hiddenBond;
+    }
+
+    function isKeeper(address keeper) external view returns (bool) {
+        return GameStorage.core().keepers[keeper];
     }
 
     /// The player `caller` plays for: as controller or through a live session, 0 if none.

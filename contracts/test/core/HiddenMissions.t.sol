@@ -8,29 +8,45 @@ import {
     VendettaRuleset as Ruleset
 } from "../../src/generated/VendettaRuleset.sol";
 import {Mission, ATTACK, TRANSPORT} from "../../src/core/GameStorage.sol";
-import {Unrevealed, BadReveal, InvalidCover, InvalidMission} from "../../src/core/GameErrors.sol";
+import {
+    Unrevealed,
+    BadReveal,
+    InvalidCover,
+    InvalidMission,
+    InvalidBond,
+    NotKeeper,
+    TooEarly,
+    TooLate
+} from "../../src/core/GameErrors.sol";
 import {IGameEvents} from "../../src/core/GameErrors.sol";
 import {GameTestBase} from "./GameTestBase.sol";
 import {console} from "forge-std/Test.sol";
 
-/// Hidden missions (B-22): commit, cover, bond, reveal, the blocking grace and the forfeit.
+/// Hidden missions (B-22): commit, cover, bond, reveal, the blocking grace, the forfeit, the bond
+/// refund deadline, the keeper's garbage report and the send deadline.
 contract HiddenMissionsTest is GameTestBase {
     uint256 internal constant S = Ruleset.STOCK_SCALE;
     uint256 internal constant BOOT_CAMP = 11;
     uint256 internal constant ROWDY = 0;
     uint256 internal constant DOLLAR = Ruleset.SALARY_RESOURCE;
+    uint40 internal constant NO_DEADLINE = type(uint40).max;
     bytes32 internal constant SALT = keccak256("salt");
 
     Game internal game;
     address internal alice = makeAddr("alice");
     address internal bob = makeAddr("bob");
     address internal anyone = makeAddr("anyone");
+    address internal keeper = makeAddr("keeper");
 
     function setUp() public {
         vm.warp(T0);
         game = deployGame();
-        vm.prank(admin);
+        vm.startPrank(admin);
         game.setGlobalPremium(T0 + 3650 days);
+        // The starting bond is above what a new account holds: a smaller one for the tests.
+        game.setHiddenBond(Ruleset.HIDDEN_MISSION_BOND_MIN);
+        game.setKeeper(keeper, true);
+        vm.stopPrank();
         vm.prank(alice);
         game.register(1, 1, 1);
         vm.prank(bob);
@@ -56,9 +72,16 @@ contract HiddenMissionsTest is GameTestBase {
 
     /// alice (player 1, slot 1:1:1) sends 5 rowdies to 1:1:`slot` hidden, with `cover`.
     function _sendHidden(uint8 kind, uint256 slot, uint32 cover) internal returns (uint64) {
+        return _sendHiddenN(kind, slot, cover, 5);
+    }
+
+    function _sendHiddenN(uint8 kind, uint256 slot, uint32 cover, uint256 n)
+        internal
+        returns (uint64)
+    {
         vm.prank(alice);
         return game.sendHiddenMission(
-            1, _commit(kind, slot, SALT), cover, _rowdies(5), _none(), hex"c0ffee"
+            1, _commit(kind, slot, SALT), cover, _rowdies(n), _none(), hex"c0ffee", NO_DEADLINE
         );
     }
 
@@ -68,6 +91,8 @@ contract HiddenMissionsTest is GameTestBase {
     }
 
     function test_sendHidesKindAndTarget() public {
+        uint256 bond = game.hiddenBond();
+        assertEq(bond, Ruleset.HIDDEN_MISSION_BOND_MIN);
         uint256 before = game.getBuilding(1).stock[DOLLAR];
         uint64 id = _sendHidden(ATTACK, 2, 3);
         Mission memory m = game.getMission(id);
@@ -75,18 +100,53 @@ contract HiddenMissionsTest is GameTestBase {
         assertEq(m.kind, 0);
         assertEq(m.city, 0);
         assertEq(m.cover, 3);
-        assertEq(m.bond, Ruleset.HIDDEN_MISSION_BOND);
+        assertEq(m.bond, bond);
         assertEq(m.fromSlot, 1);
+        assertEq(m.reportedAt, 0);
         // The bond (plus the salary over the cover) left the building.
-        assertGe(before - game.getBuilding(1).stock[DOLLAR], Ruleset.HIDDEN_MISSION_BOND * S);
+        assertGe(before - game.getBuilding(1).stock[DOLLAR], bond * S);
+    }
+
+    function test_bondIsSetByTheAdminWithinBounds() public {
+        vm.startPrank(admin);
+        vm.expectRevert(InvalidBond.selector);
+        game.setHiddenBond(Ruleset.HIDDEN_MISSION_BOND_MIN - 1);
+        vm.expectRevert(InvalidBond.selector);
+        game.setHiddenBond(Ruleset.HIDDEN_MISSION_BOND_MAX + 1);
+        vm.expectEmit(address(game));
+        emit IGameEvents.HiddenBondSet(2000);
+        game.setHiddenBond(2000);
+        vm.stopPrank();
+        assertEq(game.hiddenBond(), 2000);
+        assertEq(game.getMission(_sendHidden(ATTACK, 2, 3)).bond, 2000);
+        vm.prank(alice);
+        vm.expectRevert();
+        game.setHiddenBond(2000); // the admin only
+        // A fresh deployment starts at the configured bond, above a new account's dollars.
+        Game fresh = deployGame();
+        assertEq(fresh.hiddenBond(), Ruleset.HIDDEN_MISSION_BOND);
     }
 
     function test_coverChecks() public {
         vm.startPrank(alice);
         vm.expectRevert(InvalidCover.selector);
-        game.sendHiddenMission(1, bytes32(0), 0, _rowdies(1), _none(), "");
+        game.sendHiddenMission(1, bytes32(0), 0, _rowdies(1), _none(), "", NO_DEADLINE);
         vm.expectRevert(InvalidCover.selector); // beyond the farthest corner (~1,134 from 1:1:1)
-        game.sendHiddenMission(1, bytes32(0), 1200, _rowdies(1), _none(), "");
+        game.sendHiddenMission(1, bytes32(0), 1200, _rowdies(1), _none(), "", NO_DEADLINE);
+        vm.stopPrank();
+    }
+
+    /// The deadline is the latest arrival the timelock allows: a later one reverts TooLate.
+    function test_sendDeadline() public {
+        uint256 arrival = game.getMission(_sendHidden(ATTACK, 2, 3)).arrival;
+        vm.startPrank(alice);
+        vm.expectRevert(TooLate.selector);
+        game.sendHiddenMission(
+            1, _commit(ATTACK, 2, SALT), 3, _rowdies(1), _none(), "", uint40(arrival - 1)
+        );
+        game.sendHiddenMission(
+            1, _commit(ATTACK, 2, SALT), 3, _rowdies(1), _none(), "", uint40(arrival)
+        );
         vm.stopPrank();
     }
 
@@ -99,8 +159,9 @@ contract HiddenMissionsTest is GameTestBase {
 
         // Cover 1 is shorter than the distance to 1:1:40 (2 rows and 5 columns away).
         vm.prank(alice);
-        uint64 far =
-            game.sendHiddenMission(1, _commit(ATTACK, 40, SALT), 1, _rowdies(1), _none(), "");
+        uint64 far = game.sendHiddenMission(
+            1, _commit(ATTACK, 40, SALT), 1, _rowdies(1), _none(), "", NO_DEADLINE
+        );
         vm.expectRevert(InvalidCover.selector);
         _reveal(far, ATTACK, 40, SALT);
 
@@ -108,7 +169,9 @@ contract HiddenMissionsTest is GameTestBase {
         uint256[RESOURCES] memory res;
         res[0] = 10;
         vm.prank(alice);
-        uint64 loaded = game.sendHiddenMission(1, _commit(ATTACK, 2, SALT), 3, _rowdies(1), res, "");
+        uint64 loaded = game.sendHiddenMission(
+            1, _commit(ATTACK, 2, SALT), 3, _rowdies(1), res, "", NO_DEADLINE
+        );
         vm.expectRevert(InvalidMission.selector);
         _reveal(loaded, ATTACK, 2, SALT);
 
@@ -132,9 +195,36 @@ contract HiddenMissionsTest is GameTestBase {
         assertTrue(m.returning);
         assertEq(m.bond, 0);
         assertEq(m.cargo[0], 250); // bob was undefended: looted as a public attack would
+        uint256 bond = game.hiddenBond();
         uint256 gained = game.getBuilding(1).stock[DOLLAR] - before; // bond + 1 s of production
-        assertGe(gained, Ruleset.HIDDEN_MISSION_BOND * S);
-        assertLt(gained, (Ruleset.HIDDEN_MISSION_BOND + 1) * S);
+        assertGe(gained, bond * S);
+        assertLt(gained, (bond + 1) * S);
+    }
+
+    /// A reveal that lands before the refund deadline keeps the bond; a later one still resolves
+    /// the mission but the bond is lost (B-22).
+    function test_lateRevealLosesTheBond() public {
+        uint64 inTime = _sendHidden(ATTACK, 2, 3);
+        uint256 arrival = game.getMission(inTime).arrival;
+        vm.warp(arrival + Ruleset.HIDDEN_BOND_REFUND - 1);
+        _reveal(inTime, ATTACK, 2, SALT);
+        assertEq(game.getMission(inTime).bond, game.hiddenBond());
+        game.advance(1);
+        assertTrue(game.getMission(inTime).returning);
+
+        uint64 late = _sendHiddenN(ATTACK, 2, 3, 2); // the other five are still away
+        arrival = game.getMission(late).arrival;
+        vm.warp(arrival + Ruleset.HIDDEN_BOND_REFUND);
+        uint256 before = game.getBuilding(1).stock[DOLLAR]; // as stored: the queue is blocked
+        _reveal(late, ATTACK, 2, SALT);
+        Mission memory m = game.getMission(late);
+        assertFalse(m.hidden);
+        assertEq(m.bond, 0);
+        game.advance(10); // the first mission's return (250 looted dollars) and this one
+        m = game.getMission(late);
+        assertTrue(m.returning);
+        assertGt(m.cargo[0], 0, "resolved as an attack");
+        assertLt(game.getBuilding(1).stock[DOLLAR] - before, game.hiddenBond() * S, "no bond back");
     }
 
     function test_unrevealedBlocksThenForfeits() public {
@@ -151,6 +241,8 @@ contract HiddenMissionsTest is GameTestBase {
         game.poke(2);
 
         vm.warp(arrival + Ruleset.HIDDEN_REVEAL_GRACE);
+        _reveal(id, ATTACK, 2, SALT); // past the grace a reveal does nothing: forfeit anyway
+        assertTrue(game.getMission(id).hidden);
         vm.expectEmit(true, false, false, false, address(game));
         emit IGameEvents.MissionForfeited(id);
         game.advance(1);
@@ -172,6 +264,67 @@ contract HiddenMissionsTest is GameTestBase {
         assertTrue(game.getMission(id).returning);
     }
 
+    /// A listed keeper reports garbage once the round is out; the mission is forfeited unless
+    /// somebody reveals it within the report window (B-22).
+    function test_keeperReportShortensTheGrace() public {
+        uint64 id = _sendHidden(ATTACK, 2, 3);
+        uint256 arrival = game.getMission(id).arrival;
+        vm.warp(arrival + Ruleset.HIDDEN_REPORT_DELAY);
+        vm.prank(anyone);
+        vm.expectRevert(NotKeeper.selector);
+        game.reportGarbage(id);
+        vm.warp(arrival + Ruleset.HIDDEN_REPORT_DELAY - 1);
+        vm.prank(keeper);
+        vm.expectRevert(TooEarly.selector);
+        game.reportGarbage(id);
+        vm.warp(arrival + Ruleset.HIDDEN_REPORT_DELAY);
+        vm.expectEmit(address(game));
+        emit IGameEvents.GarbageReported(id, keeper);
+        vm.prank(keeper);
+        game.reportGarbage(id);
+        uint256 reported = block.timestamp;
+        assertEq(game.getMission(id).reportedAt, reported);
+        vm.prank(keeper);
+        game.reportGarbage(id); // a second report does nothing
+        assertEq(game.getMission(id).reportedAt, reported);
+
+        vm.warp(reported + Ruleset.HIDDEN_REPORT_WINDOW - 1);
+        vm.expectRevert(Unrevealed.selector);
+        game.poke(2);
+        vm.warp(reported + Ruleset.HIDDEN_REPORT_WINDOW);
+        assertLt(block.timestamp, arrival + Ruleset.HIDDEN_REVEAL_GRACE);
+        vm.expectEmit(true, false, false, false, address(game));
+        emit IGameEvents.MissionForfeited(id);
+        game.poke(2);
+        assertTrue(game.getMission(id).returning);
+    }
+
+    /// A reveal inside the report window answers the report: the mission resolves normally.
+    function test_revealAnswersTheReport() public {
+        uint64 id = _sendHidden(ATTACK, 2, 3);
+        uint256 arrival = game.getMission(id).arrival;
+        vm.warp(arrival + Ruleset.HIDDEN_REPORT_DELAY);
+        vm.prank(keeper);
+        game.reportGarbage(id);
+        vm.warp(block.timestamp + 5);
+        _reveal(id, ATTACK, 2, SALT);
+        Mission memory m = game.getMission(id);
+        assertFalse(m.hidden);
+        assertEq(m.reportedAt, 0);
+        assertEq(m.bond, game.hiddenBond(), "within the refund deadline");
+        game.advance(1);
+        assertEq(game.getMission(id).cargo[0], 250, "resolved as an attack");
+        // the keeper can be delisted
+        vm.prank(admin);
+        game.setKeeper(keeper, false);
+        assertFalse(game.isKeeper(keeper));
+        uint64 other = _sendHiddenN(ATTACK, 2, 3, 2); // the other five are still away
+        vm.warp(game.getMission(other).arrival + Ruleset.HIDDEN_REPORT_DELAY);
+        vm.prank(keeper);
+        vm.expectRevert(NotKeeper.selector);
+        game.reportGarbage(other);
+    }
+
     function test_recallKeepsTheBond() public {
         uint64 id = _sendHidden(ATTACK, 2, 3);
         vm.warp(block.timestamp + 10);
@@ -183,7 +336,7 @@ contract HiddenMissionsTest is GameTestBase {
         uint256 before = game.getBuilding(1).stock[DOLLAR];
         vm.warp(arrival);
         game.advance(1);
-        assertGe(game.getBuilding(1).stock[DOLLAR] - before, Ruleset.HIDDEN_MISSION_BOND * S);
+        assertGe(game.getBuilding(1).stock[DOLLAR] - before, game.hiddenBond() * S);
         assertEq(game.getBuilding(1).troops[ROWDY], 7);
     }
 
@@ -203,12 +356,13 @@ contract HiddenMissionsTest is GameTestBase {
         assertEq(m.cargo[0], 0, "no battle");
     }
 
-    /// A vacation started after the mission left does not protect.
+    /// A vacation started after the mission left does not protect, not even in the same second
+    /// (B-07: ordered by creation).
     function test_vacationAfterSendDoesNotProtect() public {
         uint64 id = _sendHidden(ATTACK, 2, 3);
-        vm.warp(block.timestamp + 1);
         vm.prank(bob);
-        game.startVacation();
+        game.startVacation(); // same second, after the send
+        assertEq(game.getPlayer(2).vacationStart, game.getMission(id).start);
         _reveal(id, ATTACK, 2, SALT);
         vm.warp(game.getMission(id).arrival);
         game.advance(1);
@@ -220,7 +374,8 @@ contract HiddenMissionsTest is GameTestBase {
         bytes32 commit = _commit(ATTACK, 2, SALT);
         vm.prank(alice);
         uint256 g = gasleft();
-        uint64 id = game.sendHiddenMission(1, commit, 3, _rowdies(5), _none(), ciphertext);
+        uint64 id =
+            game.sendHiddenMission(1, commit, 3, _rowdies(5), _none(), ciphertext, NO_DEADLINE);
         console.log("sendHiddenMission (400-byte ciphertext):", g - gasleft());
         vm.prank(anyone);
         g = gasleft();

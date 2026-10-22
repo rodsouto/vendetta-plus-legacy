@@ -38,6 +38,8 @@ of these; when they disagree, blockchain.md wins for that implementation.
 | D-23 | Queue re-timing on level-up | Fix | Re-time with the NEW level |
 | D-24 | Points | Fix | Derived from state, never drift |
 | D-25 | Zero-power fight | New | No casualties instead of division by zero |
+| D-26 | Delivery at the door | New | What the receiver cannot store or no longer owns is its loss; the shipment counts |
+| D-27 | Honor power floor | Fix | Never below 1 % of power, however many buildings |
 
 ---
 
@@ -281,3 +283,26 @@ missions by unit count.
 Legacy `_getPorcentPerdidas` divides by zero when both stacks of a fight have zero total power
 (`PAA + PDA = PAD + PDD = 0`). **Target:** `PPA = PPD = 0` (no casualties). Unreachable with current
 data (every troop has attack > 0 or defense > 0), but it defines the rule for future rulesets.
+
+## D-26 — Delivery at the door — New
+
+A transport delivers at the coordinate chosen when it left. Having room and keeping the building
+is the **receiver's responsibility**: what does not fit is lost (D-10), and so is cargo that lands
+on an abandoned slot or on a building that changed hands. A transport that names a market trade
+(D-19) **counts in full** for that trade when it reaches the coordinate, per resource and up to
+what remains, whatever happened to the building meanwhile; the counterparty check moves to the
+moment of sending (the target must belong to the counterparty, or to the creditor after the
+window). Trade transports are always public (B-22: hidden missions cannot name a trade), so the
+receiver sees the arrival time and can make room; the client warns the sender when the target has
+no room and the receiver when an incoming delivery exceeds its free capacity.
+
+Why not "cargo that does not fit comes back": it moves the risk to the sender, who would owe
+restitution plus the penalty whenever the receiver keeps its warehouse full, and it needs partial
+cargo accounting in every delivery. The legacy rule is simpler, and the receiver controls it.
+
+## D-27 — Honor power floor — Fix
+
+`calcPoderAtaque` rounds to zero above 200 buildings at honor 0 and 1 (`round(100 × table[100][h]
+/ B)`), so one unit beats any garrison. **Target:** the power percentage is never below
+`honor.min_power_percent` (1): `max(1, round(…))`. D-25 (no casualties when both sides have zero
+power) is about troops with zero stats and is unaffected.

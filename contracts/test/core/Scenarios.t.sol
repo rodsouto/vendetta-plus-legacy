@@ -11,7 +11,8 @@ import {
     Family,
     War,
     Trade,
-    Session
+    Session,
+    Invite
 } from "../../src/core/GameStorage.sol";
 import {IGameEvents} from "../../src/core/GameErrors.sol";
 import {Vm} from "forge-std/Vm.sol";
@@ -28,11 +29,12 @@ contract ScenariosTest is GameTestBase {
     mapping(address => mapping(uint256 => uint256)) internal announced;
     string internal constant TYPES = "Scenario(uint256 actors,uint256 seed,Step[] steps)"
         "BuildingSnap(uint256 centipoints,uint256 id,uint256 last_update,uint256[] levels,uint256 owner,uint256[] queue_finish,uint256[] queue_index,uint256[] queue_seq,uint256[] stock,uint256[] training_attack,uint256[] training_defense,uint256[] troops)"
+        "InviteSnap(uint256 actor,uint256 epoch,uint256 kind,uint256 player,uint256 recovery,uint256 until)"
         "MissionSnap(uint256[] cargo,uint256[] fields,uint256 id,uint256[] troops)"
         "FamilySnap(bool alive,uint256 id,uint256 members,string name,string tag)"
         "PlayerSnap(uint256[] applications,uint256 buildings,uint256 centipoints,uint256[] controllers,uint256 id,uint256 missions,uint256[] offers,uint256[] owes,uint256[] queue_finish,uint256[] queue_index,uint256[] queue_seq,uint256[] recovery,uint256[] removal_at,uint256[] research,uint256 research_building,uint256[] social)"
         "SessionSnap(uint256 actor,uint256 epoch,uint256 player,uint256 until)"
-        "State(BuildingSnap[] buildings,FamilySnap[] families,MissionSnap[] missions,PlayerSnap[] players,SessionSnap[] sessions,TradeSnap[] trades,WarSnap[] wars)"
+        "State(BuildingSnap[] buildings,FamilySnap[] families,uint256 hidden_bond,InviteSnap[] invites,uint256[] keepers,MissionSnap[] missions,PlayerSnap[] players,SessionSnap[] sessions,TradeSnap[] trades,WarSnap[] wars)"
         "TradeSnap(uint256[] fields,uint256 id,uint256[] paid,uint256[] price,uint256[] returned)"
         "WarSnap(uint256[] fields,uint256 id)"
         "Step(uint256 action,uint256 actor,uint256[] args,string error,State state,uint256 time)";
@@ -54,7 +56,8 @@ contract ScenariosTest is GameTestBase {
 
     struct MissionSnap {
         uint256[] cargo;
-        // owner, origin, kind, returning, city, neighborhood, slot, start, arrival, duration, seq
+        // owner, origin, kind, returning, city, neighborhood, slot, start, arrival, duration, seq,
+        // fromCity, fromNeighborhood, fromSlot, hidden, cover, bond, reportedAt
         uint256[] fields;
         uint256 id;
         uint256[] troops;
@@ -99,7 +102,7 @@ contract ScenariosTest is GameTestBase {
         uint256[] research;
         uint256 researchBuilding;
         // vacationUntil, suspendedUntil, premiumUntil, family, rank, sessionEpoch, vacationStart,
-        // debts, tradeLockUntil, transferTo (actor id), transferAt
+        // debts, tradeLockUntil, transferTo (actor id), transferAt, vacationSeq
         uint256[] social;
     }
 
@@ -110,9 +113,21 @@ contract ScenariosTest is GameTestBase {
         uint256 until;
     }
 
+    struct InviteSnap {
+        uint256 actor; // every (address, player) pair ever invited; zeros once gone
+        uint256 epoch;
+        uint256 kind;
+        uint256 player;
+        uint256 recovery;
+        uint256 until;
+    }
+
     struct State {
         BuildingSnap[] buildings;
         FamilySnap[] families;
+        uint256 hiddenBond;
+        InviteSnap[] invites;
+        uint256[] keepers; // actor ids listed as keepers (B-22)
         MissionSnap[] missions;
         PlayerSnap[] players;
         SessionSnap[] sessions;
@@ -279,7 +294,8 @@ contract ScenariosTest is GameTestBase {
     }
 
     function _act(Game game, Step memory st) internal returns (string memory) {
-        bool byAdmin = st.action == 6 || st.action == 15 || st.action == 16;
+        bool byAdmin = st.action == 6 || st.action == 15 || st.action == 16 || st.action == 48
+            || st.action == 49;
         address who = byAdmin ? admin : address(uint160(0x1000 + st.actor));
         uint256[] memory a = st.args;
         bytes memory call;
@@ -321,6 +337,14 @@ contract ScenariosTest is GameTestBase {
                 Game.claimTrade,
                 (uint64(a[0]), uint64(a[1]), uint64(a[2]), [a[3], a[4], a[5], a[6]])
             );
+        } else if (act == 47) {
+            call = abi.encodeCall(Game.reportGarbage, (uint64(a[0])));
+        } else if (act == 48) {
+            call = abi.encodeCall(Game.setKeeper, (address(uint160(0x1000 + a[0])), a[1] == 1));
+        } else if (act == 49) {
+            call = abi.encodeCall(Game.setHiddenBond, (a[0]));
+        } else if (act == 50) {
+            call = abi.encodeCall(Game.registerDebt, (uint64(a[0])));
         } else {
             call = _socialCall(act, a);
         }
@@ -363,8 +387,13 @@ contract ScenariosTest is GameTestBase {
             return abi.encodeCall(Game.revokeSession, (address(uint160(0x1000 + a[0]))));
         }
         if (act == 35) {
-            return abi.encodeCall(Game.addController, (address(uint160(0x1000 + a[0])), a[1] == 1));
+            return
+                abi.encodeCall(Game.inviteController, (address(uint160(0x1000 + a[0])), a[1] == 1));
         }
+        if (act == 42) return abi.encodeCall(Game.acceptSession, (uint64(a[0])));
+        if (act == 44) return abi.encodeCall(Game.acceptController, (uint64(a[0])));
+        if (act == 45) return abi.encodeCall(Game.cancelInvite, (address(uint160(0x1000 + a[0]))));
+        if (act == 46) return abi.encodeCall(Game.acceptTransfer, (uint64(a[0])));
         if (act == 36) {
             return abi.encodeCall(Game.removeController, (address(uint160(0x1000 + a[0]))));
         }
@@ -383,7 +412,9 @@ contract ScenariosTest is GameTestBase {
         if (act == 26) return abi.encodeCall(Game.dissolveFamily, ());
         if (act == 27) return abi.encodeCall(Game.declareWar, (uint64(a[0])));
         if (act == 28) return abi.encodeCall(Game.offerPeace, (uint64(a[0]), uint8(a[1])));
-        if (act == 29) return abi.encodeCall(Game.answerPeace, (uint64(a[0]), a[1] == 1));
+        if (act == 29) {
+            return abi.encodeCall(Game.answerPeace, (uint64(a[0]), uint8(a[1]), a[2] == 1));
+        }
         if (act == 30) {
             return
                 abi.encodeCall(
@@ -426,13 +457,15 @@ contract ScenariosTest is GameTestBase {
         for (uint256 r; r < RESOURCES; ++r) {
             res[r] = a[7 + TROOPS + r];
         }
+        uint40 deadline = uint40(a[7 + TROOPS + RESOURCES]);
         return abi.encodeCall(
-            Game.sendHiddenMission, (uint64(a[0]), commit, uint32(a[6]), troops, res, hex"c0ffee")
+            Game.sendHiddenMission,
+            (uint64(a[0]), commit, uint32(a[6]), troops, res, hex"c0ffee", deadline)
         );
     }
 
     function _errorName(bytes4 sel) internal pure returns (string memory) {
-        string[56] memory names = [
+        string[61] memory names = [
             "AlreadyRegistered",
             "InvalidCoordinate",
             "SlotTaken",
@@ -488,7 +521,12 @@ contract ScenariosTest is GameTestBase {
             "RemovalPending",
             "NoRemoval",
             "TransferPending",
-            "NoTransfer"
+            "NoTransfer",
+            "NoInvite",
+            "TooLate",
+            "TooEarly",
+            "NotKeeper",
+            "InvalidBond"
         ];
         for (uint256 i; i < names.length; ++i) {
             if (bytes4(keccak256(bytes(string.concat(names[i], "()")))) == sel) return names[i];
@@ -540,7 +578,31 @@ contract ScenariosTest is GameTestBase {
             }
         }
         return _sameFamilies(game, exp.families) && _sameWars(game, exp.wars)
-            && _sameTrades(game, exp.trades) && _sameSessions(game, exp.sessions);
+            && _sameTrades(game, exp.trades) && _sameSessions(game, exp.sessions)
+            && _sameInvites(game, exp.invites) && _sameKeepers(game, exp.keepers)
+            && game.hiddenBond() == exp.hiddenBond;
+    }
+
+    function _sameInvites(Game game, InviteSnap[] memory exp) internal view returns (bool) {
+        for (uint256 i; i < exp.length; ++i) {
+            Invite memory inv =
+                game.getInvite(address(uint160(0x1000 + exp[i].actor)), uint64(exp[i].player));
+            if (
+                inv.kind != exp[i].kind || (inv.recovery ? 1 : 0) != exp[i].recovery
+                    || inv.until != exp[i].until || inv.epoch != exp[i].epoch
+            ) return false;
+        }
+        return true;
+    }
+
+    /// Every actor ever listed stays in the snapshot; a delisted one must read false on-chain.
+    function _sameKeepers(Game game, uint256[] memory exp) internal view returns (bool) {
+        for (uint256 i; i < exp.length; ++i) {
+            uint256 actor = exp[i] >> 1;
+            bool allowed = exp[i] & 1 == 1;
+            if (game.isKeeper(address(uint160(0x1000 + actor))) != allowed) return false;
+        }
+        return true;
     }
 
     function _sameControllers(Game.PlayerView memory p, PlayerSnap memory e)
@@ -576,7 +638,7 @@ contract ScenariosTest is GameTestBase {
         view
         returns (bool)
     {
-        uint256[11] memory f = [
+        uint256[12] memory f = [
             uint256(p.vacationUntil),
             p.suspendedUntil,
             p.premiumUntil,
@@ -587,9 +649,10 @@ contract ScenariosTest is GameTestBase {
             p.debts,
             p.tradeLockUntil,
             p.transferTo == address(0) ? 0 : uint256(uint160(p.transferTo)) - 0x1000,
-            p.transferAt
+            p.transferAt,
+            p.vacationSeq
         ];
-        for (uint256 k; k < 11; ++k) {
+        for (uint256 k; k < 12; ++k) {
             if (f[k] != e.social[k]) return false;
         }
         for (uint256 c; c < e.owes.length; ++c) {
@@ -691,7 +754,7 @@ contract ScenariosTest is GameTestBase {
         for (uint256 i; i < exp.length; ++i) {
             MissionSnap memory e = exp[i];
             Mission memory m = game.getMission(uint64(e.id));
-            uint256[17] memory f = [
+            uint256[18] memory f = [
                 uint256(m.owner),
                 m.origin,
                 m.kind,
@@ -708,9 +771,10 @@ contract ScenariosTest is GameTestBase {
                 m.fromSlot,
                 m.hidden ? 1 : 0,
                 m.cover,
-                m.bond
+                m.bond,
+                m.reportedAt
             ];
-            for (uint256 k; k < 17; ++k) {
+            for (uint256 k; k < 18; ++k) {
                 if (f[k] != e.fields[k]) return false;
             }
             for (uint256 t; t < TROOPS; ++t) {

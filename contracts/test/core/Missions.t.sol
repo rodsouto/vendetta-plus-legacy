@@ -157,7 +157,11 @@ contract MissionsTest is GameTestBase {
         vm.expectRevert(Backlog.selector);
         game.poke(2);
         assertEq(game.advance(4), 4);
-        game.poke(2); // the remaining 10 fit in one transaction
+        vm.prank(bob);
+        vm.expectRevert(Backlog.selector); // 3 arrivals and 4 returns still due
+        game.poke(2);
+        assertEq(game.advance(100), 10);
+        game.poke(2);
         assertEq(game.pendingMissions().length, 0);
         assertEq(game.getBuilding(1).troops[ROWDY], 7);
     }
@@ -181,7 +185,8 @@ contract MissionsTest is GameTestBase {
         (ok, ret) = address(game).call{gas: tight}(abi.encodeCall(game.advance, (10)));
         assertFalse(ok);
         assertEq(bytes4(ret), Backlog.selector);
-        game.poke(2); // with enough gas everything is processed
+        game.advance(10); // with enough gas everything is processed
+        game.poke(2);
         assertEq(game.pendingMissions().length, 0);
     }
 

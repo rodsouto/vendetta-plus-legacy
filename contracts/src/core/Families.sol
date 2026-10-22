@@ -49,6 +49,22 @@ library FamilyRules {
         return !s.wars[id].ended && s.families[a].alive && s.families[b].alive ? id : 0;
     }
 
+    /// The effective result of a war (B-31): a war that ended by agreement keeps its winner; one
+    /// whose family dissolved is over and the family still alive wins (0 if both are gone).
+    function outcome(CoreState storage s, uint64 id)
+        internal
+        view
+        returns (bool ended, uint64 winner)
+    {
+        War storage war = s.wars[id];
+        if (war.a == 0) return (false, 0);
+        if (war.ended) return (true, war.winner);
+        bool aliveA = s.families[war.a].alive;
+        bool aliveB = s.families[war.b].alive;
+        if (aliveA && aliveB) return (false, 0);
+        return (true, aliveA ? war.a : aliveB ? war.b : 0);
+    }
+
     /// Battle hook: lost troop points go to each side's losses if their families are at war.
     function warScore(
         CoreState storage s,
@@ -284,13 +300,14 @@ library Families {
         emit IGameEvents.PeaceOffered(warId, f, kind);
     }
 
-    /// The other family's Capo or SubCapo answers the pending offer; accepting ends the war.
-    function answerPeace(address caller, uint64 warId, bool accept) external {
+    /// The other family's Capo or SubCapo answers the pending offer; accepting ends the war. The
+    /// answer names the offer it saw (`kind`), so a replaced offer is never accepted by mistake.
+    function answerPeace(address caller, uint64 warId, uint8 kind, bool accept) external {
         CoreState storage s = GameStorage.core();
         (, Player storage p) = Access.active(s, caller);
         (War storage war, uint64 f) = _side(s, p, warId);
         if (!_leads(s, p)) revert NotAllowed();
-        if (war.offer == OFFER_NONE || war.offerBy == f) revert NoOffer();
+        if (war.offer == OFFER_NONE || war.offerBy == f || war.offer != kind) revert NoOffer();
         if (accept) {
             war.ended = true;
             war.winner = war.offer == OFFER_SURRENDER ? f : 0;

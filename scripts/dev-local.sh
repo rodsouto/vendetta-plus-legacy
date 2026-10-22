@@ -8,6 +8,7 @@ root="$(git rev-parse --show-toplevel)"
 port="${ANVIL_PORT:-8545}"
 rpc="http://127.0.0.1:${port}"
 key0=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+keeper=0xa0Ee7A142d267C1f36714E4a8F75612F20a79720 # anvil's account 9: listed as a keeper (B-22), pays the keeper's gas
 
 indexer_port="${INDEXER_PORT:-8500}"
 indexer_sh="$root/packages/indexer/scripts/local.sh"
@@ -22,7 +23,7 @@ for _ in $(seq 1 50); do
 done
 
 cd "$root/contracts"
-forge script script/Deploy.s.sol --rpc-url "$rpc" --private-key "$key0" --broadcast >/dev/null
+KEEPER="$keeper" HIDDEN_BOND=1000 forge script script/Deploy.s.sol --rpc-url "$rpc" --private-key "$key0" --broadcast >/dev/null
 game="$(jq -r '[.transactions[] | select(.contractName == "ERC1967Proxy")][0].contractAddress' \
   broadcast/Deploy.s.sol/31337/run-latest.json)"
 directory="$(jq -r '[.transactions[] | select(.contractName == "PasskeyDirectory")][0].contractAddress' \

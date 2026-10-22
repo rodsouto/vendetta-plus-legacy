@@ -3,7 +3,7 @@ pragma solidity 0.8.28;
 
 import {VendettaRuleset as Ruleset} from "../generated/VendettaRuleset.sol";
 
-/// Honor power percentage (05-formulas.md#honor-attack-power-percentage, D-17).
+/// Honor power percentage (05-formulas.md#honor-attack-power-percentage, D-17, D-27).
 library Honor {
     uint256 internal constant MAX_LEVEL = 8;
     uint256 private constant MIN_BUILDINGS = 5;
@@ -12,6 +12,11 @@ library Honor {
     uint256 private constant LEVELS = MAX_LEVEL + 1;
 
     function pct(uint256 buildings, uint256 honorLevel) internal pure returns (uint256) {
+        uint256 p = _pct(buildings, honorLevel);
+        return p < Ruleset.HONOR_MIN_PERCENT ? Ruleset.HONOR_MIN_PERCENT : p; // D-27
+    }
+
+    function _pct(uint256 buildings, uint256 honorLevel) private pure returns (uint256) {
         if (buildings < MIN_BUILDINGS) return 100;
         if (honorLevel > MAX_LEVEL) honorLevel = MAX_LEVEL; // D-17: before every branch
         bytes memory table = Ruleset.honorTable();

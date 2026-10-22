@@ -15,11 +15,16 @@ export interface Snapshot {
   block: bigint;
 }
 
-/** `sessions`: session addresses to load too (Game cannot list them); this device's, in practice. */
+/**
+ * `sessions`: session addresses to load too (Game cannot list them); this device's, in practice.
+ * `controller`: this device's account; with it, the invitations its player made to those
+ * sessions are loaded as well (B-15), so the client knows when a session must accept.
+ */
 export async function loadWorld(
   client: PublicClient,
   game: Address,
   sessions: readonly Address[] = [],
+  controller?: Address,
 ): Promise<Snapshot> {
   const block = await client.getBlock();
   const read = <T>(functionName: string, args: unknown[] = []) =>
@@ -35,9 +40,11 @@ export async function loadWorld(
   const [seq, players, buildings, missions, , globalPremiumUntil] =
     await read<readonly [bigint, bigint, bigint, bigint, bigint, number]>("counters");
   const [families, wars, trades] = await read<readonly [bigint, bigint, bigint]>("socialCounters");
+  const hiddenBond = await read<bigint>("hiddenBond");
 
   const w = sim.newWorld(rs);
   w.seq = seq;
+  w.hiddenBond = hiddenBond;
   w.globalPremiumUntil = big(globalPremiumUntil);
   w.nextPlayer = players + 1n;
   w.nextBuilding = buildings + 1n;
@@ -95,6 +102,7 @@ export async function loadWorld(
       ),
       transferTo: /^0x0+$/.test(p.transferTo) ? "" : controllerKey(p.transferTo),
       transferAt: big(p.transferAt),
+      vacationSeq: BigInt(p.vacationSeq),
     });
     for (const c of p.controllers as Address[]) w.playerOf.set(controllerKey(c), id);
   });
@@ -144,6 +152,7 @@ export async function loadWorld(
       cover: big(m.cover),
       bond: m.bond,
       commit: (m.commit as string).toLowerCase(),
+      reportedAt: big(m.reportedAt),
     });
   });
   w.pending = [...w.missions.values()]
@@ -214,7 +223,92 @@ export async function loadWorld(
     });
   });
 
+  // The invitations this device's player made to its sessions (B-15), if it has a player.
+  const pid = controller ? w.playerOf.get(controllerKey(controller)) : undefined;
+  if (pid !== undefined) {
+    const iv = await Promise.all(sessions.map((a) => read<any>("getInvite", [a, pid])));
+    iv.forEach((inv, i) => {
+      if (inv.kind === 0) return;
+      w.invites.set(sim.inviteKey(controllerKey(sessions[i]!), pid), {
+        kind: inv.kind,
+        recovery: inv.recovery,
+        until: big(inv.until),
+        epoch: BigInt(inv.epoch),
+      });
+    });
+  }
+
   return { world: w, chainTime: block.timestamp, block: block.number };
+}
+
+/** An invitation or a scheduled transfer addressed to an account that is not a controller yet. */
+export interface Pending {
+  kind: "controller" | "transfer";
+  player: bigint;
+  recovery: boolean;
+  /** When it can be accepted (transfers) or until when (invitations). */
+  at: bigint;
+}
+
+/** Blocks per `eth_getLogs` query: within what public RPCs accept for a filtered topic. */
+const LOG_CHUNK = 5000n;
+
+/** Players that ever invited an address, from the `ControllerInvited` logs, scanned forward only. */
+const inviters = new Map<string, { scanned: bigint; players: Set<bigint> }>();
+
+/**
+ * What is waiting for `address` to accept (B-26): controller invitations still valid and due
+ * transfers. Invitations are found through the logs (the contract indexes the invited address),
+ * in bounded block ranges that only move forward, then read back from the state, so a stale
+ * event never shows.
+ */
+export async function pendingFor(
+  client: PublicClient,
+  game: Address,
+  fromBlock: number,
+  address: Address,
+  w: sim.World,
+  now: bigint,
+): Promise<Pending[]> {
+  const key = `${game.toLowerCase()}:${address.toLowerCase()}`;
+  let seen = inviters.get(key);
+  if (!seen) inviters.set(key, (seen = { scanned: BigInt(fromBlock) - 1n, players: new Set() }));
+  const head = await client.getBlockNumber({ cacheTime: 0 }); // never viem's cached value
+  while (seen.scanned < head) {
+    const from = seen.scanned + 1n;
+    const to = from + LOG_CHUNK - 1n < head ? from + LOG_CHUNK - 1n : head;
+    const events = (await client.getContractEvents({
+      address: game,
+      abi: gameAbi,
+      eventName: "ControllerInvited",
+      args: { controller: address },
+      fromBlock: from,
+      toBlock: to,
+    } as never)) as unknown as { args: { player: bigint } }[];
+    for (const e of events) seen.players.add(e.args.player);
+    seen.scanned = to;
+  }
+  const out: Pending[] = [];
+  for (const player of seen.players) {
+    const inv = (await client.readContract({
+      address: game,
+      abi: gameAbi,
+      functionName: "getInvite",
+      args: [address, player],
+    } as never)) as { kind: number; recovery: boolean; until: number; epoch: number };
+    const p = w.players.get(player);
+    const until = big(inv.until);
+    if (inv.kind !== sim.INVITE_CONTROLLER || !p || now >= until) continue;
+    if (BigInt(inv.epoch) !== p.sessionEpoch) continue;
+    out.push({ kind: "controller", player, recovery: inv.recovery, at: until });
+  }
+  const me = controllerKey(address);
+  for (const p of w.players.values()) {
+    if (p.transferTo === me) {
+      out.push({ kind: "transfer", player: p.id, recovery: false, at: p.transferAt });
+    }
+  }
+  return out;
 }
 
 /** Deep copy of a World (the ruleset is shared, never mutated). */
@@ -227,13 +321,17 @@ export function cloneWorld(w: sim.World): sim.World {
  * Applies the reveals the client can make (`known` plaintexts, by commitment) to hidden missions;
  * returns the ids revealed. A plaintext that does not reveal (a wrong one) is skipped.
  */
-export function revealKnown(w: sim.World, known: ReadonlyMap<string, HiddenPlain>): bigint[] {
+export function revealKnown(
+  w: sim.World,
+  known: ReadonlyMap<string, HiddenPlain>,
+  now: bigint,
+): bigint[] {
   const out: bigint[] = [];
   for (const m of w.missions.values()) {
     const p = m.hidden && !m.returning ? known.get(m.commit) : undefined;
     if (!p) continue;
     try {
-      sim.reveal(w, m.id, p.kind, p.target, p.salt);
+      sim.reveal(w, m.id, p.kind, p.target, p.salt, now);
       out.push(m.id);
     } catch (e) {
       if (!(e instanceof sim.GameError)) throw e;
@@ -254,7 +352,7 @@ export function project(
   known: ReadonlyMap<string, HiddenPlain> = new Map(),
 ): sim.World {
   const p = cloneWorld(w);
-  revealKnown(p, known);
+  revealKnown(p, known, now);
   sim.processDue(p, now, Number.MAX_SAFE_INTEGER);
   for (const b of p.buildings.values()) if (b.lastUpdate < now) sim.settle(p, b, now);
   return p;

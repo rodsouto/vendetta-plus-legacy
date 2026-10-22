@@ -17,6 +17,8 @@ contract PasskeyDirectory {
     }
 
     mapping(bytes32 credential => Passkey[]) private _entries;
+    /// credential → keccak256(account, x, y) → published, so a duplicate check never walks the list.
+    mapping(bytes32 credential => mapping(bytes32 entry => bool)) private _published;
 
     event PasskeyPublished(
         bytes32 indexed credential, address indexed account, bytes32 x, bytes32 y
@@ -27,14 +29,10 @@ contract PasskeyDirectory {
     /// Called by the account itself (in the batch that creates it) for its own passkey.
     function publish(bytes calldata credentialId, bytes32 x, bytes32 y) external {
         bytes32 id = keccak256(credentialId);
-        Passkey[] storage list = _entries[id];
-        uint256 n = list.length;
-        for (uint256 i; i < n; ++i) {
-            if (list[i].account == msg.sender && list[i].x == x && list[i].y == y) {
-                revert AlreadyPublished();
-            }
-        }
-        list.push(Passkey(x, y, msg.sender));
+        bytes32 entry = keccak256(abi.encode(msg.sender, x, y));
+        if (_published[id][entry]) revert AlreadyPublished();
+        _published[id][entry] = true;
+        _entries[id].push(Passkey(x, y, msg.sender));
         emit PasskeyPublished(id, msg.sender, x, y);
     }
 

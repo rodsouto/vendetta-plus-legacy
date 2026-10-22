@@ -44,7 +44,7 @@ import {
 } from "./state.js";
 
 /** Missions processed by one action at most before it reverts with Backlog (B-08). */
-export const MAX_MISSIONS_PER_TX = 10;
+export const MAX_MISSIONS_PER_TX = 4;
 
 const before = (a: Mission, b: Mission) =>
   a.arrival < b.arrival || (a.arrival === b.arrival && a.seq < b.seq);
@@ -71,8 +71,8 @@ function sendBack(w: World, m: Mission, t: bigint): void {
 }
 
 /** Settle the research building of a player (if any) up to `t`, so research levels are current. */
-function settleResearch(w: World, p: Player, t: bigint): void {
-  if (p.researchBuilding !== 0n) settle(w, w.buildings.get(p.researchBuilding)!, t);
+function settleResearch(w: World, p: Player, t: bigint, seq: bigint): void {
+  if (p.researchBuilding !== 0n) settle(w, w.buildings.get(p.researchBuilding)!, t, seq);
 }
 
 const honorOf = (w: World, p: Player) =>
@@ -81,8 +81,8 @@ const honorOf = (w: World, p: Player) =>
 function battle(w: World, m: Mission, b: Building, t: bigint): void {
   const attacker = w.players.get(m.owner)!;
   const defender = w.players.get(b.owner)!;
-  settleResearch(w, attacker, t);
-  if (defender.researchBuilding !== b.id) settleResearch(w, defender, t);
+  settleResearch(w, attacker, t, m.seq);
+  if (defender.researchBuilding !== b.id) settleResearch(w, defender, t, m.seq);
   const sa = allTroopStats(w.rs, attacker.research);
   const sd = allTroopStats(w.rs, defender.research);
   const r = resolveBattle(
@@ -151,7 +151,7 @@ function battle(w: World, m: Mission, b: Building, t: bigint): void {
 function refundBond(w: World, m: Mission, t: bigint): void {
   const origin = w.buildings.get(m.origin);
   if (origin && origin.owner === m.owner) {
-    settle(w, origin, t);
+    settle(w, origin, t, m.seq);
     const sr = w.rs.roles.salaryResource;
     credit(
       w,
@@ -162,9 +162,46 @@ function refundBond(w: World, m: Mission, t: bigint): void {
   m.bond = 0n;
 }
 
-/** A due hidden mission still within its reveal grace stops the queue (B-22). */
-const awaitingReveal = (w: World, m: Mission, now: bigint) =>
-  m.hidden && !m.returning && now < m.arrival + w.rs.config.hiddenRevealGrace;
+/**
+ * A due hidden mission still within its reveal grace stops the queue (B-22); a garbage report by a
+ * listed keeper shortens the grace to its window.
+ */
+function awaitingReveal(w: World, m: Mission, now: bigint): boolean {
+  if (!m.hidden || m.returning) return false;
+  let end = m.arrival + w.rs.config.hiddenRevealGrace;
+  if (m.reportedAt !== 0n) {
+    const reported = m.reportedAt + w.rs.config.hiddenReportWindow;
+    if (reported < end) end = reported;
+  }
+  return now < end;
+}
+
+/**
+ * A listed keeper reports a ciphertext that does not decrypt or does not reproduce the commitment,
+ * once the drand round is out (B-22): the mission is forfeited unless somebody reveals it within
+ * the report window. A second report, or one on a mission no longer hidden, does nothing.
+ */
+export const reportGarbage = atomic(function reportGarbage(
+  w: World,
+  keeper: string,
+  missionId: bigint,
+  now: bigint,
+): void {
+  if (!w.keepers.has(keeper)) fail("NotKeeper");
+  const m = w.missions.get(missionId);
+  if (!m || !m.hidden || m.returning || m.reportedAt !== 0n) return;
+  if (now >= m.arrival + w.rs.config.hiddenRevealGrace) return;
+  if (now < m.arrival + w.rs.config.hiddenReportDelay) fail("TooEarly");
+  m.reportedAt = now;
+});
+
+/**
+ * D-18 at arrival: the target's owner was on vacation when the mission was sent. A vacation started
+ * in the send second counts by creation order (B-07).
+ */
+const sentDuringVacation = (o: Player, m: Mission) =>
+  m.start < o.vacationUntil &&
+  (o.vacationStart < m.start || (o.vacationStart === m.start && o.vacationSeq < m.seq));
 
 /** Resolve one mission at its arrival time (07-missions.md#arrival-rules). */
 function process(w: World, m: Mission): void {
@@ -173,7 +210,7 @@ function process(w: World, m: Mission): void {
     const origin = w.buildings.get(m.origin);
     const p = w.players.get(m.owner)!;
     if (origin && origin.owner === m.owner) {
-      settle(w, origin, t);
+      settle(w, origin, t, m.seq);
       origin.troops = origin.troops.map((n, i) => n + m.troops[i]!);
       const back = m.cargo.map((n, i) => n + (i === w.rs.roles.salaryResource ? m.bond : 0n));
       credit(w, origin, Object.fromEntries(w.rs.resources.map((r, i) => [r, back[i]!])));
@@ -190,30 +227,30 @@ function process(w: World, m: Mission): void {
   const target = targetId === undefined ? undefined : w.buildings.get(targetId)!;
   if (m.cover > 0n) {
     refundBond(w, m, t);
-    // D-18 at arrival: the target's owner was on vacation when the mission was sent.
-    const o = target && w.players.get(target.owner)!;
-    if (o && o.vacationStart <= m.start && m.start < o.vacationUntil) return sendBack(w, m, t);
+    if (target && sentDuringVacation(w.players.get(target.owner)!, m)) return sendBack(w, m, t);
   }
   if (m.kind === ATTACK) {
     if (!target || target.owner === m.owner) return sendBack(w, m, t);
-    settle(w, target, t);
+    settle(w, target, t, m.seq);
     return battle(w, m, target, t);
   }
   if (m.kind === STATION) {
     if (!target || target.owner !== m.owner) return sendBack(w, m, t);
-    settle(w, target, t);
+    settle(w, target, t, m.seq);
     target.troops = target.troops.map((n, i) => n + m.troops[i]!);
     return finish(w, m);
   }
   if (m.kind === TRANSPORT) {
     // B-11: a debtor's transport to anyone but itself and its creditors turns back, cargo included.
-    if (!transportAllowed(w, w.players.get(m.owner)!, target?.owner)) return sendBack(w, m, t);
+    if (!transportAllowed(w, w.players.get(m.owner)!, target?.owner, m.trade, t))
+      return sendBack(w, m, t);
     if (target) {
-      settle(w, target, t);
+      settle(w, target, t, m.seq);
       credit(w, target, Object.fromEntries(w.rs.resources.map((r, i) => [r, m.cargo[i]!])));
-      if (m.trade !== 0n) settleTrade(w, m, target, t);
     }
-    m.cargo = m.cargo.map(() => 0n); // delivered, or lost on an empty slot
+    // D-26: the shipment counts for its trade whatever happened to the building.
+    if (m.trade !== 0n) settleTrade(w, m, t);
+    m.cargo = m.cargo.map(() => 0n); // delivered, or lost on an empty slot (D-10, D-26)
     return sendBack(w, m, t);
   }
   // OCCUPY
@@ -336,9 +373,10 @@ function checkTarget(w: World, kind: number, target: Coord, from: Coord): void {
 }
 
 /**
- * What sendMission checks about the target when it leaves. A hidden mission cannot be checked
- * on-chain until its reveal, so clients run this before sending one: a mission that would bounce
- * on arrival (D-18, B-11) or attack its own sender never leaves.
+ * What sendMission checks about the target when it leaves; returns the target's owner (undefined
+ * for an empty slot). A hidden mission cannot be checked on-chain until its reveal, so clients run
+ * this before sending one: a mission that would bounce on arrival (D-18, B-11) or attack its own
+ * sender never leaves.
  */
 export function checkSendTarget(
   w: World,
@@ -347,7 +385,8 @@ export function checkSendTarget(
   kind: number,
   target: Coord,
   now: bigint,
-): void {
+  trade = 0n,
+): bigint | undefined {
   checkTarget(w, kind, target, from);
   const targetId = w.buildingAt.get(coordKey(target));
   const to = targetId === undefined ? undefined : w.buildings.get(targetId)!.owner;
@@ -356,7 +395,9 @@ export function checkSendTarget(
     if (onVacation(w.players.get(to)!, now)) fail("TargetOnVacation"); // D-18
   }
   // B-11: a player with a registered debt only transports to its own and its creditors' buildings.
-  if (kind === TRANSPORT && !transportAllowed(w, w.players.get(owner)!, to)) fail("InDebt");
+  if (kind === TRANSPORT && !transportAllowed(w, w.players.get(owner)!, to, trade, now))
+    fail("InDebt");
+  return to;
 }
 
 export const sendMission = atomic(function sendMission(
@@ -373,8 +414,10 @@ export const sendMission = atomic(function sendMission(
   drain(w, now);
   const [p, b] = owned(w, controller, buildingId, now);
   const c = w.rs.config;
-  checkSendTarget(w, p.id, b.coord, kind, target, now);
-  if (trade !== 0n && (kind !== TRANSPORT || !tradeOpenFor(w, trade, p.id, now)))
+  const to = checkSendTarget(w, p.id, b.coord, kind, target, now, trade);
+  // D-26: a trade transport goes to the counterparty's building (the creditor's, after the
+  // window); at arrival it counts whatever happened to the building.
+  if (trade !== 0n && (kind !== TRANSPORT || !tradeOpenFor(w, trade, p.id, to, now)))
     fail("InvalidTrade");
   if (p.missions >= BigInt(c.maxOutgoingMissions)) fail("TooManyMissions");
   settleForAction(w, p, b, now);
@@ -461,6 +504,7 @@ function create(
     cover: 0n,
     bond: 0n,
     commit: ZERO_COMMIT,
+    reportedAt: 0n,
   };
   w.missions.set(m.id, m);
   p.missions += 1n;
@@ -484,6 +528,7 @@ export function hiddenCommit(owner: bigint, kind: number, target: Coord, salt: b
 /**
  * A mission whose kind and target stay secret until revealed (B-22). Duration and salary use the
  * declared `cover` distance (grid units), at most the distance to the farthest map corner.
+ * `deadline`: the latest arrival the ciphertext's timelock allows; a later one fails with TooLate.
  */
 export const sendHiddenMission = atomic(function sendHiddenMission(
   w: World,
@@ -493,6 +538,7 @@ export const sendHiddenMission = atomic(function sendHiddenMission(
   cover: bigint,
   troops: bigint[],
   resources: bigint[],
+  deadline: bigint,
   now: bigint,
 ): bigint {
   drain(w, now);
@@ -502,8 +548,10 @@ export const sendHiddenMission = atomic(function sendHiddenMission(
   if (p.missions >= BigInt(c.maxOutgoingMissions)) fail("TooManyMissions");
   settleForAction(w, p, b, now);
 
-  const bond = c.hiddenMissionBond;
+  const bond = w.hiddenBond;
   const duration = charge(w, p, b, troops, resources, cover * c.distanceUnit, bond);
+  // The arrival must not pass the round the ciphertext was encrypted for (B-22).
+  if (now + duration > deadline) fail("TooLate");
   const m = create(w, p, b, troops, resources, duration, now);
   m.hidden = true;
   m.cover = cover;
@@ -513,9 +561,10 @@ export const sendHiddenMission = atomic(function sendHiddenMission(
 });
 
 /**
- * Anyone may reveal a hidden mission, any time: it checks the commitment and the target only, and
- * touches no building, so it never drains the queue. An invalid reveal reverts; if nobody can
- * reveal it, the mission is forfeited after the grace.
+ * Anyone may reveal a hidden mission until its grace ends: it checks the commitment and the target
+ * only, and touches no building, so it never drains the queue. An invalid reveal fails; past the
+ * grace it does nothing and the mission is forfeited. A reveal that lands late (after the bond
+ * refund deadline) still resolves the mission, but the bond is lost (B-22).
  */
 export const reveal = atomic(function reveal(
   w: World,
@@ -523,14 +572,18 @@ export const reveal = atomic(function reveal(
   kind: number,
   target: Coord,
   salt: bigint,
+  now: bigint,
 ): void {
   const m = w.missions.get(missionId);
   if (!m || !m.hidden || m.returning) return; // already revealed, recalled or resolved: clients race
+  if (now >= m.arrival + w.rs.config.hiddenRevealGrace) return;
   if (hiddenCommit(m.owner, kind, target, salt) !== m.commit) fail("BadReveal");
   checkTarget(w, kind, target, m.from);
   if (distance(w.rs, m.from, target) > m.cover * w.rs.config.distanceUnit) fail("InvalidCover");
   if (kind !== TRANSPORT && m.cargo.some((r) => r > 0n)) fail("InvalidMission");
   m.hidden = false;
+  m.reportedAt = 0n; // a valid reveal answers a garbage report
+  if (now >= m.arrival + w.rs.config.hiddenBondRefund) m.bond = 0n;
   m.kind = kind;
   m.target = { ...target };
 });

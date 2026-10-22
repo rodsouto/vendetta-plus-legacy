@@ -1,7 +1,7 @@
 // Devices and recovery (B-15, B-26): the controllers of the player, adding another device (it shows
-// a link or QR that a device already in the account approves), recovery codes, and recovering the
-// account on a new device with one. Removing another controller takes two steps a delay apart,
-// cancellable meanwhile; this device leaves at once.
+// a link or QR that a device already in the account opens to invite it; the new device accepts),
+// recovery codes, and recovering the account on a new device with one. Removing another
+// controller takes two steps a delay apart, cancellable meanwhile; this device leaves at once.
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { isAddress, type Address } from "viem";
@@ -45,6 +45,8 @@ export function Devices() {
   const [link, setLink] = useState("");
   const [code, setCode] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  // Addresses invited from this device, not accepted yet: they can be uninvited here.
+  const [invited, setInvited] = useState<Address[]>([]);
   if (!g.me) return null;
   const me = g.me;
   const days = Number(g.world.rs.config.controllerRemovalDelay / 86400n);
@@ -133,11 +135,48 @@ export function Devices() {
         <button
           className="btn primary"
           disabled={g.busy || !added}
-          onClick={() => void g.addController(added!).then((ok) => ok && setLink(""))}
+          onClick={() =>
+            void g.inviteController(added!).then((ok) => {
+              if (!ok) return;
+              setInvited((xs) => [...xs, added!]);
+              setLink("");
+            })
+          }
         >
           {t("devices.addSubmit")}
         </button>
       </div>
+      {invited.filter((a) => !me.controllers.includes(controllerKey(a))).length > 0 && (
+        <>
+          <h3>{t("devices.invitedList")}</h3>
+          <table className="ledger">
+            <tbody>
+              {invited
+                .filter((a) => !me.controllers.includes(controllerKey(a)))
+                .map((a) => (
+                  <tr key={a}>
+                    <td>
+                      <span className="muted">{short(a)}</span>
+                    </td>
+                    <td className="num">
+                      <button
+                        className="btn quiet"
+                        disabled={g.busy}
+                        onClick={() =>
+                          void g
+                            .cancelInvite(controllerKey(a))
+                            .then((ok) => ok && setInvited((xs) => xs.filter((x) => x !== a)))
+                        }
+                      >
+                        {t("devices.cancelInvite")}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </>
+      )}
 
       <h3>{t("devices.recovery")}</h3>
       <p className="note">{t("devices.recoveryNote")}</p>
@@ -213,7 +252,7 @@ export function PendingBanner() {
   );
 }
 
-/** Account page, opened from another device's join link: approve it (a passkey prompt). */
+/** Account page, opened from another device's join link: invite it (a passkey prompt). */
 export function ApproveDevice() {
   const g = useGame();
   const { t } = useTranslation();
@@ -233,7 +272,7 @@ export function ApproveDevice() {
         <button
           className="btn primary"
           disabled={g.busy}
-          onClick={() => void g.addController(a).then((ok) => ok && go("account"))}
+          onClick={() => void g.inviteController(a).then((ok) => ok && go("account"))}
         >
           {t("devices.approveSubmit")}
         </button>
@@ -245,12 +284,55 @@ export function ApproveDevice() {
   );
 }
 
-/** Entry screen, this device waiting to be added: its link and QR, until the account shows up. */
+/**
+ * What waits for this device's account to accept (B-26): invitations to manage a player, and
+ * transfers of a whole account whose delay has passed. Shown wherever the account has no player.
+ */
+export function PendingForMe() {
+  const g = useGame();
+  const { t } = useTranslation();
+  if (g.pending.length === 0) return null;
+  return (
+    <section className="approve" aria-labelledby="pending-title">
+      <h3 id="pending-title">{t("devices.pendingForMe")}</h3>
+      <p className="note">{t("devices.pendingNote")}</p>
+      <table className="ledger">
+        <tbody>
+          {g.pending.map((p) => (
+            <tr key={`${p.kind}-${String(p.player)}`}>
+              <td>
+                {t(p.kind === "transfer" ? "account.transfer" : "devices.other")}{" "}
+                <span className="muted">
+                  {t(p.kind === "transfer" ? "devices.pendingSince" : "devices.pendingUntil")}{" "}
+                  {clock(p.at)}
+                </span>
+              </td>
+              <td className="num">
+                <button
+                  className="btn primary"
+                  disabled={g.busy || (p.kind === "transfer" && g.now < p.at)}
+                  onClick={() => void g.acceptPending(p)}
+                >
+                  {t(p.kind === "transfer" ? "devices.acceptTransfer" : "devices.acceptInvite", {
+                    player: String(p.player),
+                  })}
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+  );
+}
+
+/** Entry screen, this device waiting to be invited: its link and QR, then the invitation. */
 export function Joining() {
   const g = useGame();
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const link = joinLink(g.address!);
+  const invite = g.pending.find((p) => p.kind === "controller");
   return (
     <>
       <header className="account-head">
@@ -277,7 +359,22 @@ export function Joining() {
           {t("joining.cancel")}
         </button>
       </div>
-      <p className="muted">{t("joining.waiting")}</p>
+      {invite ? (
+        <>
+          <p className="note">{t("joining.invited", { player: String(invite.player) })}</p>
+          <p>
+            <button
+              className="btn primary"
+              disabled={g.busy}
+              onClick={() => void g.acceptPending(invite)}
+            >
+              {t("joining.accept")}
+            </button>
+          </p>
+        </>
+      ) : (
+        <p className="muted">{t("joining.waiting")}</p>
+      )}
     </>
   );
 }

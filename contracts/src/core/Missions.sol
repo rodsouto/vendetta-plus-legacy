@@ -43,6 +43,9 @@ import {
     TargetOnVacation,
     InvalidTrade,
     InDebt,
+    TooLate,
+    TooEarly,
+    NotKeeper,
     IGameEvents
 } from "./GameErrors.sol";
 
@@ -50,14 +53,14 @@ import {
 /// Mirrors packages/rules/src/sim/missions.ts: same checks, same order, same errors.
 library Missions {
     /// Missions processed by one action at most before it reverts with Backlog (B-08).
-    uint256 internal constant MAX_MISSIONS_PER_TX = 10;
+    uint256 internal constant MAX_MISSIONS_PER_TX = 4;
 
-    /// Gas a single mission may need at most (B-08 invariant; BattleGas checks the worst battle
-    /// against it). With less gas left and a mission due, processing reverts with Backlog instead
-    /// of running out of gas midway; since it never succeeds short, a gas estimate always covers
-    /// every mission it has to process. The simulator does not model gas: with enough gas both
-    /// behave the same.
-    uint256 internal constant MISSION_GAS_RESERVE = 3_000_000;
+    /// Gas a single mission may need at most (B-08 invariant; MissionGas measures the heaviest
+    /// attack against it). With less gas left and a mission due, processing reverts with Backlog
+    /// instead of running out of gas midway; since it never succeeds short, a gas estimate always
+    /// covers every mission it has to process. The simulator does not model gas: with enough gas
+    /// both behave the same.
+    uint256 internal constant MISSION_GAS_RESERVE = 7_000_000;
 
     // ------------------------------------------------------------------ queue
 
@@ -90,17 +93,38 @@ library Missions {
         }
     }
 
-    /// A due hidden mission still within its reveal grace stops the queue (B-22).
+    /// A due hidden mission still within its reveal grace stops the queue (B-22); a garbage report
+    /// by a listed keeper shortens the grace to its window.
     function _awaitingReveal(Mission storage m) private view returns (bool) {
-        return m.hidden && !m.returning
-            && block.timestamp < uint256(m.arrival) + Ruleset.HIDDEN_REVEAL_GRACE;
+        if (!m.hidden || m.returning) return false;
+        uint256 end = uint256(m.arrival) + Ruleset.HIDDEN_REVEAL_GRACE;
+        if (m.reportedAt != 0) {
+            uint256 reported = uint256(m.reportedAt) + Ruleset.HIDDEN_REPORT_WINDOW;
+            if (reported < end) end = reported;
+        }
+        return block.timestamp < end;
+    }
+
+    /// A listed keeper reports a ciphertext that does not decrypt or does not reproduce the
+    /// commitment, once the drand round is out (B-22): the mission is forfeited unless somebody
+    /// reveals it within the report window. A second report, or one on a mission that is no
+    /// longer hidden, does nothing: keepers race.
+    function reportGarbage(address caller, uint64 missionId) external {
+        CoreState storage s = GameStorage.core();
+        if (!s.keepers[caller]) revert NotKeeper();
+        Mission storage m = s.missions[missionId];
+        if (!m.hidden || m.returning || m.reportedAt != 0) return;
+        if (block.timestamp >= uint256(m.arrival) + Ruleset.HIDDEN_REVEAL_GRACE) return;
+        if (block.timestamp < uint256(m.arrival) + Ruleset.HIDDEN_REPORT_DELAY) revert TooEarly();
+        m.reportedAt = uint40(block.timestamp);
+        emit IGameEvents.GarbageReported(missionId, caller);
     }
 
     /// A revealed hidden mission gives its bond back to the origin building, if still its own.
     function _refundBond(CoreState storage s, Mission storage m, uint256 t) private {
         Building storage origin = s.buildings[m.origin];
         if (origin.owner == m.owner) {
-            SettleLib.settle(m.origin, t);
+            SettleLib.settleBefore(m.origin, t, m.seq);
             uint256[RESOURCES] memory bond;
             bond[Ruleset.SALARY_RESOURCE] = m.bond;
             Settlement.credit(origin, bond);
@@ -134,6 +158,13 @@ library Missions {
         emit IGameEvents.MissionReturning(id, m.arrival);
     }
 
+    /// D-18 at arrival: the target's owner was on vacation when the mission was sent. A vacation
+    /// started in the send second counts by creation order (B-07).
+    function _sentDuringVacation(Player storage o, Mission storage m) private view returns (bool) {
+        if (m.start >= o.vacationUntil) return false;
+        return o.vacationStart < m.start || (o.vacationStart == m.start && o.vacationSeq < m.seq);
+    }
+
     /// Resolve one mission at its arrival time (07-missions.md#arrival-rules).
     function _process(CoreState storage s, uint64 id) private {
         Mission storage m = s.missions[id];
@@ -148,22 +179,20 @@ library Missions {
         uint64 targetOwner = target == 0 ? 0 : s.buildings[target].owner;
         if (m.cover > 0) {
             _refundBond(s, m, t);
-            // D-18 at arrival: the target's owner was on vacation when the mission was sent.
-            Player storage o = s.players[targetOwner];
-            if (target != 0 && o.vacationStart <= m.start && m.start < o.vacationUntil) {
+            if (target != 0 && _sentDuringVacation(s.players[targetOwner], m)) {
                 return _sendBack(s, id, t);
             }
         }
         uint8 kind = m.kind;
         if (kind == ATTACK) {
             if (target == 0 || targetOwner == m.owner) return _sendBack(s, id, t);
-            SettleLib.settle(target, t);
+            SettleLib.settleBefore(target, t, m.seq);
             Battle.attack(id, target, t);
             return _sendBack(s, id, t);
         }
         if (kind == STATION) {
             if (target == 0 || targetOwner != m.owner) return _sendBack(s, id, t);
-            SettleLib.settle(target, t);
+            SettleLib.settleBefore(target, t, m.seq);
             Building storage b = s.buildings[target];
             for (uint256 i; i < TROOPS; ++i) {
                 b.troops[i] += m.troops[i];
@@ -173,15 +202,18 @@ library Missions {
         if (kind == TRANSPORT) {
             // B-11: a debtor's transport to anyone but itself and its creditors turns back, cargo
             // included (hidden missions cannot be checked at send).
-            if (!MarketRules.transportAllowed(s, m.owner, s.players[m.owner], targetOwner)) {
+            if (!MarketRules.transportAllowed(
+                    s, m.owner, s.players[m.owner], targetOwner, m.trade, t
+                )) {
                 return _sendBack(s, id, t);
             }
             if (target != 0) {
-                SettleLib.settle(target, t);
+                SettleLib.settleBefore(target, t, m.seq);
                 Settlement.credit(s.buildings[target], _cargo(m));
-                if (m.trade != 0) MarketRules.settle(s, m, targetOwner, t);
             }
-            delete m.cargo; // delivered, or lost on an empty slot
+            // D-26: the shipment counts for its trade whatever happened to the building.
+            if (m.trade != 0) MarketRules.settle(s, m, t);
+            delete m.cargo; // delivered, or lost on an empty slot (D-10, D-26)
             return _sendBack(s, id, t);
         }
         // OCCUPY
@@ -213,7 +245,7 @@ library Missions {
         Mission storage m = s.missions[id];
         Building storage origin = s.buildings[m.origin];
         if (origin.owner == m.owner) {
-            SettleLib.settle(m.origin, t);
+            SettleLib.settleBefore(m.origin, t, m.seq);
             for (uint256 i; i < TROOPS; ++i) {
                 origin.troops[i] += m.troops[i];
             }
@@ -257,10 +289,7 @@ library Missions {
     ) external returns (uint64 mid) {
         CoreState storage s = GameStorage.core();
         (uint64 pid, Player storage p, Building storage b) = Access.owned(s, caller, id);
-        _validateTarget(s, pid, p, b, kind, target);
-        if (trade != 0 && (kind != TRANSPORT || !MarketRules.openFor(s, trade, pid))) {
-            revert InvalidTrade();
-        }
+        _checkSend(s, pid, p, b, kind, target, trade);
         if (p.missions >= Ruleset.MAX_OUTGOING_MISSIONS) revert TooManyMissions();
         Access.settleForAction(s, p, id);
 
@@ -280,6 +309,7 @@ library Missions {
 
     /// A mission whose kind and target stay secret until revealed (B-22). Duration and salary use
     /// the declared `cover` distance (grid units), at most the distance to the farthest map corner.
+    /// `deadline`: the latest arrival the ciphertext's timelock allows; a later one reverts TooLate.
     function sendHidden(
         address caller,
         uint64 id,
@@ -287,47 +317,61 @@ library Missions {
         uint32 cover,
         uint256[TROOPS] memory troops,
         uint256[RESOURCES] memory resources,
-        bytes calldata ciphertext
+        bytes calldata ciphertext,
+        uint40 deadline
     ) external returns (uint64 mid) {
         CoreState storage s = GameStorage.core();
-        (uint64 pid, uint256 duration) = _chargeHidden(s, caller, id, cover, troops, resources);
-        mid = _create(s, pid, id, troops, resources, duration);
+        mid = _createHidden(s, caller, id, cover, troops, resources);
         Mission storage m = s.missions[mid];
-        (m.hidden, m.cover, m.bond, m.commit) =
-        (true, cover, uint64(Ruleset.HIDDEN_MISSION_BOND), commit);
-        emit IGameEvents.MissionSent(mid, pid, id, 0, 0, 0, 0, m.arrival);
+        // The arrival must not pass the round the ciphertext was encrypted for (B-22).
+        if (m.arrival > deadline) revert TooLate();
+        m.commit = commit;
+        emit IGameEvents.MissionSent(mid, m.owner, id, 0, 0, 0, 0, m.arrival);
         emit IGameEvents.HiddenMissionSent(mid, commit, cover, ciphertext);
     }
 
-    function _chargeHidden(
+    /// Checks, charges (salary over the cover, cargo and the bond in force) and creates the mission.
+    function _createHidden(
         CoreState storage s,
         address caller,
         uint64 id,
         uint32 cover,
         uint256[TROOPS] memory troops,
         uint256[RESOURCES] memory resources
-    ) private returns (uint64 pid, uint256 duration) {
-        Player storage p;
-        Building storage b;
-        (pid, p, b) = Access.owned(s, caller, id);
+    ) private returns (uint64 mid) {
+        (uint64 pid, Player storage p, Building storage b) = Access.owned(s, caller, id);
+        _checkCover(b, cover);
+        if (p.missions >= Ruleset.MAX_OUTGOING_MISSIONS) revert TooManyMissions();
+        Access.settleForAction(s, p, id);
+        Plan memory plan = _plan(p, b, troops);
+        _charge(b, plan, uint256(cover) * Ruleset.DISTANCE_UNIT, resources, s.hiddenBond);
+        p.missions += 1;
+        mid = _create(s, pid, id, troops, resources, plan.duration);
+        _markHidden(s.missions[mid], cover, s.hiddenBond);
+    }
+
+    /// `1 ≤ cover ≤` the distance from the origin to the farthest map corner (B-22).
+    function _checkCover(Building storage b, uint32 cover) private view {
         uint256 dist = uint256(cover) * Ruleset.DISTANCE_UNIT;
         if (cover == 0 || dist > Map.maxDistanceFrom([uint256(b.city), b.neighborhood, b.slot])) {
             revert InvalidCover();
         }
-        if (p.missions >= Ruleset.MAX_OUTGOING_MISSIONS) revert TooManyMissions();
-        Access.settleForAction(s, p, id);
-        Plan memory plan = _plan(p, b, troops);
-        _charge(b, plan, dist, resources, Ruleset.HIDDEN_MISSION_BOND);
-        p.missions += 1;
-        return (pid, plan.duration);
     }
 
-    /// Anyone may reveal a hidden mission, any time: it checks the commitment and the target only,
-    /// and touches no building, so it never drains the queue. An invalid reveal reverts; if nobody
-    /// can reveal it, the mission is forfeited after the grace.
+    function _markHidden(Mission storage m, uint32 cover, uint64 bond) private {
+        m.hidden = true;
+        m.cover = cover;
+        m.bond = bond;
+    }
+
+    /// Anyone may reveal a hidden mission until its grace ends: it checks the commitment and the
+    /// target only, and touches no building, so it never drains the queue. An invalid reveal
+    /// reverts; past the grace it does nothing and the mission is forfeited. A reveal that lands
+    /// late (after HIDDEN_BOND_REFUND) still resolves the mission, but the bond is lost (B-22).
     function reveal(uint64 missionId, uint8 kind, uint256[3] memory target, bytes32 salt) external {
         Mission storage m = GameStorage.core().missions[missionId];
         if (!m.hidden || m.returning) return; // already revealed, recalled or resolved: clients race
+        if (block.timestamp >= uint256(m.arrival) + Ruleset.HIDDEN_REVEAL_GRACE) return;
         if (keccak256(abi.encode(m.owner, kind, target[0], target[1], target[2], salt)) != m.commit)
         {
             revert BadReveal();
@@ -343,6 +387,8 @@ library Missions {
             }
         }
         m.hidden = false;
+        m.reportedAt = 0; // a valid reveal answers a garbage report
+        if (block.timestamp >= uint256(m.arrival) + Ruleset.HIDDEN_BOND_REFUND) m.bond = 0;
         (m.kind, m.city, m.neighborhood, m.slot) =
         (kind, uint8(target[0]), uint8(target[1]), uint8(target[2]));
         emit IGameEvents.MissionRevealed(missionId, kind, m.city, m.neighborhood, m.slot);
@@ -363,24 +409,49 @@ library Missions {
         }
     }
 
+    /// The target checks of a public send, plus the trade's (D-26): a trade transport goes to the
+    /// counterparty's building (the creditor's, after the window), and at arrival it counts
+    /// whatever happened to the building.
+    function _checkSend(
+        CoreState storage s,
+        uint64 pid,
+        Player storage p,
+        Building storage b,
+        uint8 kind,
+        uint256[3] memory target,
+        uint64 trade
+    ) private view {
+        uint64 to = _validateTarget(s, pid, p, b, kind, target, trade);
+        if (trade != 0 && (kind != TRANSPORT || !MarketRules.openFor(s, trade, pid, to))) {
+            revert InvalidTrade();
+        }
+    }
+
     /// Mirrors checkSendTarget in missions.ts, which clients also run before a hidden mission.
+    /// Returns the target's owner (0 for an empty slot).
     function _validateTarget(
         CoreState storage s,
         uint64 pid,
         Player storage p,
         Building storage b,
         uint8 kind,
-        uint256[3] memory target
-    ) private view {
+        uint256[3] memory target,
+        uint64 trade
+    ) private view returns (uint64 to) {
         _checkTarget(kind, target, [uint256(b.city), b.neighborhood, b.slot]);
         uint64 targetId = s.buildingAt[GameStorage.coordKey(target[0], target[1], target[2])];
-        uint64 to = targetId == 0 ? 0 : s.buildings[targetId].owner;
+        to = targetId == 0 ? 0 : s.buildings[targetId].owner;
         if (to != 0) {
             if (kind == ATTACK && to == pid) revert OwnTarget();
             if (s.players[to].vacationUntil > block.timestamp) revert TargetOnVacation(); // D-18
         }
         // B-11: a player with a registered debt only transports to its own and its creditors'.
-        if (kind == TRANSPORT && !MarketRules.transportAllowed(s, pid, p, to)) revert InDebt();
+        if (
+            kind == TRANSPORT
+                && !MarketRules.transportAllowed(s, pid, p, to, trade, block.timestamp)
+        ) {
+            revert InDebt();
+        }
     }
 
     /// Travel time, salary, cargo limit over `dist`; pays resources + salary (+ bond) from the

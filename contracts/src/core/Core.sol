@@ -22,6 +22,7 @@ import {
     TimingRoomRequired,
     ResearchElsewhere,
     NothingToCancel,
+    InvalidBond,
     IGameEvents
 } from "./GameErrors.sol";
 
@@ -155,6 +156,21 @@ library Core {
     function setGlobalPremium(uint256 until) external {
         GameStorage.core().globalPremiumUntil = uint40(until);
         emit IGameEvents.GlobalPremiumSet(uint40(until));
+    }
+
+    /// Admin only (checked by Game): the hidden mission bond in force, within the bounds (B-22).
+    function setHiddenBond(uint256 bond) external {
+        if (bond < Ruleset.HIDDEN_MISSION_BOND_MIN || bond > Ruleset.HIDDEN_MISSION_BOND_MAX) {
+            revert InvalidBond();
+        }
+        GameStorage.core().hiddenBond = uint64(bond);
+        emit IGameEvents.HiddenBondSet(uint64(bond));
+    }
+
+    /// Admin only (checked by Game): an address that may report garbage ciphertexts (B-22).
+    function setKeeper(address keeper, bool allowed) external {
+        GameStorage.core().keepers[keeper] = allowed;
+        emit IGameEvents.KeeperSet(keeper, allowed);
     }
 
     /// Anyone can bring a building up to date.

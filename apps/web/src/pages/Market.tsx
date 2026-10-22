@@ -54,8 +54,9 @@ export function Market() {
     .filter((x) => x.seller === p.id || x.buyer === p.id)
     .reverse();
   const creditors = others.filter((x) => sim.owes(w, p.id, x.id) > 0);
+  // D-26: a trade transport goes to the counterparty's building (the creditor's, after the window).
   const deliverTo = (x: sim.Trade) => {
-    const other = x.seller === p.id ? x.buyer : x.seller;
+    const other = sim.tradeCounterparty(w, x.id, p.id, g.now);
     const dest = [...w.buildings.values()].find((b) => b.owner === other);
     if (dest) go(`missions?to=${coord(dest.coord)}&kind=${sim.TRANSPORT}&trade=${x.id}`);
   };
@@ -167,7 +168,7 @@ function TradeRow({ x, deliverTo }: { x: sim.Trade; deliverTo: (x: sim.Trade) =>
   const w = g.world;
   const selling = x.seller === p.id;
   const other = selling ? x.buyer : x.seller;
-  const open = sim.tradeOpenFor(w, x.id, p.id, g.now);
+  const open = sim.tradeCounterparty(w, x.id, p.id, g.now) !== undefined;
   const closed = x.accepted && g.now > sim.tradeWindow(w, x);
   const debt = closed ? sim.tradeDebt(w, x) : null;
   const inDefault = debt !== null && sim.inDefault(debt);
@@ -190,6 +191,25 @@ function TradeRow({ x, deliverTo }: { x: sim.Trade; deliverTo: (x: sim.Trade) =>
             {progress(x.returned, debt.owed, t)} {t("market.returned")} ·{" "}
             {t("market.penaltyNote", { percent: String(rs.config.marketPenaltyPercent) })}
           </span>
+        )}
+        {owedToMe && !x.registered && (
+          <p className="note">
+            {t("market.registerNote")}{" "}
+            <button
+              className="btn quiet"
+              disabled={g.busy}
+              onClick={() =>
+                void g.act({
+                  done: t("market.registered"),
+                  check: (sw, c, n) => sim.registerDebt(sw, c, x.id, n),
+                  functionName: "registerDebt",
+                  args: [x.id],
+                })
+              }
+            >
+              {t("market.register")}
+            </button>
+          </p>
         )}
         {owedToMe && <ClaimForm x={x} debt={debt} />}
       </td>

@@ -41,7 +41,7 @@ const ACTION = {
   endVacation: 14, // []
   suspend: 15, // [player, until], by the admin
   grantPremium: 16, // [player, until], by the admin
-  transferPlayer: 17, // [new controller (actor id)]
+  transferPlayer: 17, // [new controller (actor id)]: schedules; the target accepts (46)
   createFamily: 18, // [tag index, name index] into NAMES
   applyToFamily: 19, // [family]
   withdrawApplication: 20, // [family]
@@ -53,20 +53,34 @@ const ACTION = {
   dissolveFamily: 26, // []
   declareWar: 27, // [family]
   offerPeace: 28, // [war, kind]
-  answerPeace: 29, // [war, accept 0/1]
+  answerPeace: 29, // [war, kind, accept 0/1]
   offerTrade: 30, // [buyer, sold, quantity, price × 4]
   cancelTrade: 31, // [trade]
   acceptTrade: 32, // [trade]
-  authorizeSession: 33, // [session (actor id), until]
+  authorizeSession: 33, // [session (actor id), until]: invites; the session accepts (42)
   revokeSession: 34, // [session (actor id)]
-  addController: 35, // [controller (actor id), recovery 0/1]
+  inviteController: 35, // [controller (actor id), recovery 0/1]: invites; the address accepts (44)
   removeController: 36, // [controller (actor id)]: itself at once; another one schedules, then executes once due
-  sendHiddenMission: 37, // [building, kind, city, neighborhood, slot, salt, cover, troops × 21, resources × 4]
+  sendHiddenMission: 37, // [building, kind, city, neighborhood, slot, salt, cover, troops × 21, resources × 4, deadline]
   reveal: 38, // [mission, kind, city, neighborhood, slot, salt]
   claimTrade: 39, // [trade, fromBuilding, toBuilding, amount × 4]
   cancelRemoval: 40, // [controller (actor id)]
   cancelTransfer: 41, // []
+  acceptSession: 42, // [player], by the invited session
+  acceptController: 44, // [player], by the invited address
+  cancelInvite: 45, // [invited (actor id)]
+  acceptTransfer: 46, // [player], by the transfer's target
+  reportGarbage: 47, // [mission], by a listed keeper
+  setKeeper: 48, // [keeper (actor id), allowed 0/1], by the admin
+  setHiddenBond: 49, // [bond], by the admin
+  registerDebt: 50, // [trade]
 } as const;
+
+/** Keepers in the scenarios (B-22): actor 900 is listed, 901 never is. */
+const KEEPER = 900;
+const NOT_KEEPER = 901;
+/** Hidden sends use this deadline unless they test TooLate (B-22). */
+const FAR = 4_000_000_000;
 
 /** Family tags and names by index, shared with Scenarios.t.sol (some invalid on purpose). */
 const NAMES = [
@@ -84,7 +98,13 @@ const NAMES = [
 ];
 
 /** Admin actions run as the owner in Scenarios.t.sol. */
-const ADMIN_ACTIONS: number[] = [ACTION.setGlobalPremium, ACTION.suspend, ACTION.grantPremium];
+const ADMIN_ACTIONS: number[] = [
+  ACTION.setGlobalPremium,
+  ACTION.suspend,
+  ACTION.grantPremium,
+  ACTION.setKeeper,
+  ACTION.setHiddenBond,
+];
 
 /** `cover`: what a market action is meant to exercise, if it works out (MARKET_COVERAGE). */
 type Action = { action: number; args: number[]; cover?: string };
@@ -117,6 +137,12 @@ const trainingSnap = (q: sim.TrainingItem[]) =>
 /** Every session address ever authorized, so revoked ones are checked too (as zeros). */
 const SESSIONS = new Set<string>();
 
+/** Every (invited actor, player) pair ever invited, so consumed or dead ones are checked too. */
+const INVITED = new Set<string>();
+
+/** Every actor ever listed or delisted as a keeper. */
+const KEEPERS = new Set<number>();
+
 /** Plaintext of the hidden missions sent in the current scenario, by mission id: [kind, city, neighborhood, slot, salt]. */
 const SECRETS = new Map<number, number[]>();
 
@@ -126,6 +152,21 @@ const playerFor = (w: sim.World, controller: string) =>
 
 function snapshot(w: sim.World) {
   return {
+    hidden_bond: num(w.hiddenBond),
+    invites: [...INVITED].map((k) => {
+      const [actor, player] = k.split(":") as [string, string];
+      const inv = w.invites.get(sim.inviteKey(actor, BigInt(player)));
+      return {
+        actor: Number(actor),
+        epoch: inv ? num(inv.epoch) : 0,
+        kind: inv ? inv.kind : 0,
+        player: Number(player),
+        recovery: inv?.recovery ? 1 : 0,
+        until: inv ? num(inv.until) : 0,
+      };
+    }),
+    // actor id and whether it is listed, packed as actor × 2 + allowed.
+    keepers: [...KEEPERS].map((a) => a * 2 + (w.keepers.has(String(a)) ? 1 : 0)),
     sessions: [...SESSIONS].map((k) => {
       const s = w.sessions.get(k);
       return {
@@ -167,6 +208,7 @@ function snapshot(w: sim.World) {
         m.hidden ? 1n : 0n,
         m.cover,
         m.bond,
+        m.reportedAt,
       ].map(num),
       id: num(m.id),
       troops: m.troops.map(num),
@@ -195,6 +237,7 @@ function snapshot(w: sim.World) {
         p.tradeLockUntil,
         p.transferTo === "" ? 0n : BigInt(p.transferTo),
         p.transferAt,
+        p.vacationSeq,
       ].map(num),
       applications: p.applications.map(num),
       offers: p.offers.map(num),
@@ -284,7 +327,18 @@ function run(w: sim.World, controller: string, a: Action, now: bigint): void {
       const commit = sim.hiddenCommit(playerFor(w, controller), Number(n[1]), target, n[5]!);
       const troops = n.slice(7, 7 + rs.troops.length);
       const res = n.slice(7 + rs.troops.length, 7 + rs.troops.length + rs.resources.length);
-      return void sim.sendHiddenMission(w, controller, n[0]!, commit, n[6]!, troops, res, now);
+      const deadline = n[7 + rs.troops.length + rs.resources.length]!;
+      return void sim.sendHiddenMission(
+        w,
+        controller,
+        n[0]!,
+        commit,
+        n[6]!,
+        troops,
+        res,
+        deadline,
+        now,
+      );
     }
     case ACTION.reveal:
       return sim.reveal(
@@ -293,6 +347,7 @@ function run(w: sim.World, controller: string, a: Action, now: bigint): void {
         Number(n[1]),
         { city: n[2]!, neighborhood: n[3]!, slot: n[4]! },
         n[5]!,
+        now,
       );
     case ACTION.recall:
       return sim.recall(w, controller, n[0]!, now);
@@ -335,7 +390,7 @@ function run(w: sim.World, controller: string, a: Action, now: bigint): void {
     case ACTION.offerPeace:
       return sim.offerPeace(w, controller, n[0]!, Number(n[1]), now);
     case ACTION.answerPeace:
-      return sim.answerPeace(w, controller, n[0]!, n[1] === 1n, now);
+      return sim.answerPeace(w, controller, n[0]!, Number(n[1]), n[2] === 1n, now);
     case ACTION.offerTrade:
       return void sim.offerTrade(w, controller, n[0]!, Number(n[1]), n[2]!, n.slice(3, 7), now);
     case ACTION.cancelTrade:
@@ -348,8 +403,24 @@ function run(w: sim.World, controller: string, a: Action, now: bigint): void {
       return sim.authorizeSession(w, controller, String(n[0]), n[1]!, now);
     case ACTION.revokeSession:
       return sim.revokeSession(w, controller, String(n[0]), now);
-    case ACTION.addController:
-      return sim.addController(w, controller, String(n[0]), n[1] === 1n, now);
+    case ACTION.inviteController:
+      return sim.inviteController(w, controller, String(n[0]), n[1] === 1n, now);
+    case ACTION.acceptSession:
+      return sim.acceptSession(w, controller, n[0]!, now);
+    case ACTION.acceptController:
+      return sim.acceptController(w, controller, n[0]!, now);
+    case ACTION.cancelInvite:
+      return sim.cancelInvite(w, controller, String(n[0]), now);
+    case ACTION.acceptTransfer:
+      return sim.acceptTransfer(w, controller, n[0]!, now);
+    case ACTION.reportGarbage:
+      return sim.reportGarbage(w, controller, n[0]!, now);
+    case ACTION.setKeeper:
+      return sim.setKeeper(w, String(n[0]), n[1] === 1n);
+    case ACTION.setHiddenBond:
+      return sim.setHiddenBond(w, n[0]!);
+    case ACTION.registerDebt:
+      return sim.registerDebt(w, controller, n[0]!, now);
     case ACTION.removeController:
       return sim.removeController(w, controller, String(n[0]), now);
     case ACTION.cancelRemoval:
@@ -386,6 +457,8 @@ const reqsMet = (
 
 function randomScenario(seed: number) {
   SESSIONS.clear();
+  INVITED.clear();
+  KEEPERS.clear();
   const r = rng(seed);
   const pick = <T>(xs: T[]) => xs[Math.floor(r() * xs.length)]!;
   const w = sim.newWorld(rs);
@@ -624,6 +697,8 @@ function hide(
           : d + Math.floor(r() * (Math.max(Math.ceil(d / 2), 20) + 1));
   const cargo = kind !== sim.TRANSPORT && r() < 0.03 ? [10, 0, 0, 0] : res;
   const salt = 1 + Math.floor(r() * 1_000_000_000);
+  // The timelock's round: usually far off; sometimes the mission would land after it (TooLate).
+  const deadline = r() < 0.04 ? num(w.seq) + Number(w.nextMission) : FAR;
   return {
     action: ACTION.sendHiddenMission,
     args: [
@@ -636,8 +711,25 @@ function hide(
       cover,
       ...troops,
       ...cargo,
+      deadline,
     ],
   };
+}
+
+/**
+ * Garbage reports (B-22) for the due hidden missions: by the listed keeper (sometimes too early),
+ * now and then by an address that is no keeper. Returns [actor, action] pairs.
+ */
+function reportCandidates(w: sim.World, r: () => number, now: bigint): [number, Action][] {
+  const out: [number, Action][] = [];
+  for (const m of w.missions.values()) {
+    if (!m.hidden || m.returning || m.arrival > now || m.reportedAt !== 0n) continue;
+    if (r() < 0.5) {
+      const actor = r() < 0.1 ? NOT_KEEPER : KEEPER;
+      out.push([actor, { action: ACTION.reportGarbage, args: [num(m.id)] }]);
+    }
+  }
+  return out;
 }
 
 /** Reveals anyone could send now: due hidden missions first, sometimes with a wrong salt. */
@@ -711,8 +803,11 @@ function socialCandidates(
       );
       if (wars.length > 0) {
         const war = pick(wars);
-        if (war.offer !== sim.OFFER_NONE && war.offerBy !== f)
-          out.push({ action: ACTION.answerPeace, args: [num(war.id), r() < 0.6 ? 1 : 0] });
+        if (war.offer !== sim.OFFER_NONE && war.offerBy !== f) {
+          // The answer names the offer it saw; sometimes the other kind, which NoOffer.
+          const kind = r() < 0.15 ? 3 - war.offer : war.offer;
+          out.push({ action: ACTION.answerPeace, args: [num(war.id), kind, r() < 0.6 ? 1 : 0] });
+        }
         out.push({
           action: ACTION.offerPeace,
           args: [num(war.id), r() < 0.5 ? sim.OFFER_SURRENDER : sim.OFFER_DRAW],
@@ -736,11 +831,16 @@ function socialCandidates(
     const trades = [...w.trades.values()];
     const mine = trades.filter((t) => t.buyer === p.id && !t.accepted);
     if (mine.length > 0) out.push({ action: ACTION.acceptTrade, args: [num(pick(mine).id)] });
-    const open = trades.filter((t) => t.accepted && sim.tradeOpenFor(w, t.id, p.id, now));
+    const open = trades.filter(
+      (t) => t.accepted && sim.tradeCounterparty(w, t.id, p.id, now) !== undefined,
+    );
     if (open.length > 0) {
       const t = pick(open);
       const counterparty = w.players.get(t.seller === p.id ? t.buyer : t.seller)!;
-      const dest = [...w.buildings.values()].find((x) => x.owner === counterparty.id);
+      // Usually the counterparty's building (D-26); sometimes another one, which InvalidTrade.
+      const dest = [...w.buildings.values()].find(
+        (x) => x.owner === (r() < 0.1 ? p.id : counterparty.id),
+      );
       if (dest) {
         const res = [0, 0, 0, 0];
         if (t.seller === p.id)
@@ -771,9 +871,10 @@ function socialCandidates(
   } else if (p.transferTo !== "" && r() < 0.3) {
     out.push({ action: ACTION.cancelTransfer, args: [] });
   } else {
-    // Mostly the pending target again, so the transfer executes once due (B-26).
+    // Sometimes the pending target again (TransferPending), mostly a new one; the target accepts
+    // once due (see botScenario).
     const to =
-      p.transferTo !== "" && r() < 0.7 ? Number(p.transferTo) : 1000 + Math.floor(r() * 1000);
+      p.transferTo !== "" && r() < 0.3 ? Number(p.transferTo) : 1000 + Math.floor(r() * 1000);
     out.push({ action: ACTION.transferPlayer, args: [to] });
   }
   void b;
@@ -807,6 +908,9 @@ const MARKET_COVERAGE = [
   "hidden-bounce", // a debtor's hidden transport to a third party turns back with its cargo
   "claim-second-creditor", // a claim on a debtor already registered by someone else
   "two-creditors", // one debtor registered with two creditors at once
+  "register-debt", // a creditor registers without collecting
+  "trade-wrong-target", // InvalidTrade: a trade transport towards a building that is not the counterparty's
+  "pay-unregistered-creditor", // a registered debtor's restitution to a creditor that never registered
 ] as const;
 
 /** The revert each tagged action is meant to produce ("" = it must succeed). */
@@ -823,6 +927,7 @@ const EXPECTED: Record<string, string> = {
   "debt-accept": "InDebt",
   "debt-vacation": "InDebt",
   "window-vacation": "TradeOpen",
+  "trade-wrong-target": "InvalidTrade",
 };
 
 const COVERED = new Set<string>();
@@ -905,6 +1010,11 @@ function marketCandidates(
     args: [num(t.id), num(from), num(to), ...amount.map(num)],
     cover,
   });
+  const claimRegister = (t: sim.Trade): Action => ({
+    action: ACTION.registerDebt,
+    args: [num(t.id)],
+    cover: "register-debt",
+  });
 
   // Spend: a batch of rowdies drains ammunition and weapons (claims need free capacity, and
   // transports need troops); a mob school drains both plus dollars.
@@ -931,12 +1041,27 @@ function marketCandidates(
       if (creditorBuildings.length > 0 && canSend && r() < 0.35) {
         const res = d.remaining.map((x) => (x === 0n ? 0 : Math.max(1, Math.ceil(num(x) * r()))));
         if (r() < 0.3) res[res.findIndex((x) => x > 0)]! += 1 + Math.floor(r() * 30);
-        out.push(transport(creditorBuildings[0]!.coord, res, num(t.id), "voluntary-payment"));
+        const unregistered = p.debts > 0 && sim.owes(w, p.id, d.creditor) === 0;
+        out.push(
+          transport(
+            creditorBuildings[0]!.coord,
+            res,
+            num(t.id),
+            unregistered ? "pay-unregistered-creditor" : "voluntary-payment",
+          ),
+        );
+      }
+      if (r() < 0.1) {
+        // A restitution towards a building that is not the creditor's: InvalidTrade.
+        const wrong = buildingsOf(p.id).concat(buildingsOf(pick(others).id))[0];
+        if (wrong && canSend)
+          out.push(transport(wrong.coord, [1, 0, 0, 0], num(t.id), "trade-wrong-target"));
       }
       if (creditorBuildings.length > 0 && r() < 0.3) {
         out.push(claim(t, b.id, creditorBuildings[0]!.id, d.remaining, "claim-not-creditor"));
       }
     } else if (d.creditor === p.id && debtorBuildings.length > 0) {
+      if (!t.registered && r() < 0.3) out.push(claimRegister(t));
       // Usually a random building of the debtor; sometimes the one holding least of what is owed.
       let from = pick(debtorBuildings);
       if (r() < 0.4) {
@@ -1032,6 +1157,11 @@ function marketCandidates(
   for (const t of open) {
     if (r() < 0.3) out.push(claim(t, b.id, b.id, [0n, 0n, 0n, 0n], "claim-early"));
     if (!canSend || r() < 0.55) continue;
+    if (r() < 0.1) {
+      // Towards a building that is not the counterparty's: InvalidTrade (D-26).
+      const wrong = buildingsOf(p.id).concat(buildingsOf(pick(others).id))[0];
+      if (wrong) out.push(transport(wrong.coord, [1, 0, 0, 0], num(t.id), "trade-wrong-target"));
+    }
     const dest = buildingsOf(t.seller === p.id ? t.buyer : t.seller)[0];
     if (!dest) continue;
     const res = [0, 0, 0, 0];
@@ -1084,6 +1214,7 @@ function marketCandidates(
             d + Math.floor(r() * 10),
             ...troops,
             ...cargo,
+            FAR,
           ],
           cover: "hidden-bounce",
         });
@@ -1170,6 +1301,8 @@ function botScenario(seed: number, mode: Mode = "bots") {
   const hidden = mode === "hidden";
   const market = mode === "market";
   SESSIONS.clear();
+  INVITED.clear();
+  KEEPERS.clear();
   SECRETS.clear();
   const r = rng(seed);
   const w = sim.newWorld(rs);
@@ -1186,9 +1319,15 @@ function botScenario(seed: number, mode: Mode = "bots") {
       time: num(now),
     });
 
-  // Premium for everybody (long queues), then the players register next to each other.
+  // Premium for everybody (long queues), then the players register next to each other. The bond
+  // comes down to what a new account can pay (B-22), and a keeper is listed.
   const premium = { action: ACTION.setGlobalPremium, args: [Number(T0) + 100_000_000] };
   record(0, premium, attempt(w, "admin", premium, now));
+  const bond = { action: ACTION.setHiddenBond, args: [num(rs.config.hiddenMissionBondMin)] };
+  record(0, bond, attempt(w, "admin", bond, now));
+  KEEPERS.add(KEEPER);
+  const keeper = { action: ACTION.setKeeper, args: [KEEPER, 1] };
+  record(0, keeper, attempt(w, "admin", keeper, now));
   for (let i = 0; i < actors; i++) {
     const reg = { action: ACTION.register, args: [1, 1, 1 + i * 7] };
     record(i, reg, attempt(w, String(i), reg, now));
@@ -1198,7 +1337,9 @@ function botScenario(seed: number, mode: Mode = "bots") {
   const owners = Array.from({ length: actors }, (_, i) => [i]);
   let nextDevice = 2000;
   // Each seat may have a session key (B-15) that plays for it; ids 500+ never control a player.
+  // An invited session or device accepts in a later step (B-15, B-26).
   const sessions: (number | undefined)[] = Array.from({ length: actors }, () => undefined);
+  const pending: { actor: number; action: number }[][] = Array.from({ length: actors }, () => []);
   let nextSession = 500;
   const total = market ? MARKET.steps : hidden ? HIDDEN.steps : BOTS.steps;
   while (steps.length < total) {
@@ -1226,27 +1367,72 @@ function botScenario(seed: number, mode: Mode = "bots") {
         .sort((a, b) => (a.arrival < b.arrival ? -1 : 1))[0];
       if (next) now = next.arrival + BigInt(Math.floor(r() * (market ? 50 : 90)));
     }
-    if (r() < 0.03) {
-      // The admin suspends, lifts or grants premium to a random player.
+    if (r() < 0.035) {
+      // The admin suspends, lifts or grants premium to a random player, retunes the bond (within
+      // or outside the bounds) or lists / delists a keeper.
       const player = 1 + Math.floor(r() * actors);
       const k = r();
-      const a =
-        k < 0.4
-          ? { action: ACTION.suspend, args: [player, Number(now) + Math.floor(r() * 200_000)] }
-          : k < 0.6
-            ? { action: ACTION.suspend, args: [player, 0] }
-            : {
-                action: ACTION.grantPremium,
-                args: [player, Number(now) + Math.floor(r() * 3_000_000)],
-              };
+      let a: Action;
+      if (k < 0.3) {
+        a = { action: ACTION.suspend, args: [player, Number(now) + Math.floor(r() * 200_000)] };
+      } else if (k < 0.45) {
+        a = { action: ACTION.suspend, args: [player, 0] };
+      } else if (k < 0.75) {
+        a = {
+          action: ACTION.grantPremium,
+          args: [player, Number(now) + Math.floor(r() * 3_000_000)],
+        };
+      } else if (k < 0.9) {
+        const bonds = [500, 1000, 1500, 2000, 150_000];
+        a = { action: ACTION.setHiddenBond, args: [bonds[Math.floor(r() * bonds.length)]!] };
+      } else {
+        const who = r() < 0.7 ? KEEPER : NOT_KEEPER;
+        KEEPERS.add(who);
+        a = { action: ACTION.setKeeper, args: [who, r() < 0.8 ? 1 : 0] };
+      }
       record(0, a, attempt(w, "admin", a, now));
       continue;
+    }
+    if ((hidden || market) && r() < 0.2) {
+      // The keeper (or somebody who is none) reports a due hidden mission as garbage.
+      const reports = reportCandidates(w, r, now);
+      if (reports.length > 0) {
+        const [who, a] = reports[Math.floor(r() * reports.length)]!;
+        record(who, a, attempt(w, String(who), a, now));
+        continue;
+      }
     }
     const seat = Math.floor(r() * actors);
     const seatOwners = owners[seat]!;
     const owner = seatOwners[Math.floor(r() * seatOwners.length)]!;
     const controller = String(owner);
     const session = sessions[seat];
+    const seatPlayerId = BigInt(seat + 1);
+    // An invited session or device accepts (mostly), sometimes for the wrong player; the target
+    // of a due transfer takes the account.
+    const invited = pending[seat]!;
+    if (invited.length > 0 && r() < 0.6) {
+      const inv = invited.shift()!;
+      const player = r() < 0.1 ? Number(seatPlayerId) + 1 : Number(seatPlayerId);
+      const a = { action: inv.action, args: [player] };
+      const error = attempt(w, String(inv.actor), a, now);
+      if (error === "" && inv.action === ACTION.acceptSession) sessions[seat] = inv.actor;
+      for (let i = 0; i < actors; i++)
+        owners[i] = w.players.get(BigInt(i + 1))!.controllers.map(Number);
+      record(inv.actor, a, error);
+      continue;
+    }
+    const seatP = w.players.get(seatPlayerId)!;
+    if (seatP.transferTo !== "" && now >= seatP.transferAt && r() < 0.7) {
+      const to = Number(seatP.transferTo);
+      const a = { action: ACTION.acceptTransfer, args: [Number(seatPlayerId)] };
+      const error = attempt(w, String(to), a, now);
+      if (error === "") EXECUTED.transfers++;
+      for (let i = 0; i < actors; i++)
+        owners[i] = w.players.get(BigInt(i + 1))!.controllers.map(Number);
+      record(to, a, error);
+      continue;
+    }
     // Half the time the seat plays through its session key, as a real client does.
     const actor = session !== undefined && r() < 0.5 ? session : owner;
     const candidates: Action[] = [];
@@ -1261,15 +1447,20 @@ function botScenario(seed: number, mode: Mode = "bots") {
             : nextSession++;
       const span = r() < 0.1 ? num(rs.config.maxSessionSeconds) + 1 : Math.floor(r() * 1_500_000);
       SESSIONS.add(String(target));
+      INVITED.add(`${target}:${seatPlayerId}`);
       candidates.push({ action: ACTION.authorizeSession, args: [target, Number(now) + span] });
     } else if (k < 0.05 && session !== undefined) {
       candidates.push({ action: ACTION.revokeSession, args: [session] });
     } else if (k < 0.075) {
-      // Another device or a recovery code; sometimes an address already in use.
+      // Another device or a recovery code; sometimes an address already in use, sometimes an
+      // invitation dropped before it is accepted.
       const other = owners[Math.floor(r() * actors)]![0]!;
       const target =
         r() < 0.15 ? other : r() < 0.05 && session !== undefined ? session : nextDevice++;
-      candidates.push({ action: ACTION.addController, args: [target, r() < 0.3 ? 1 : 0] });
+      INVITED.add(`${target}:${seatPlayerId}`);
+      candidates.push({ action: ACTION.inviteController, args: [target, r() < 0.3 ? 1 : 0] });
+      if (invited.length > 0 && r() < 0.3)
+        candidates.unshift({ action: ACTION.cancelInvite, args: [invited[0]!.actor] });
     } else if (k < 0.1) {
       // Drop a device (maybe itself, maybe the last one) or cancel a scheduled removal; mostly
       // one already scheduled, so removals execute once due (B-26); sometimes another seat's.
@@ -1313,11 +1504,14 @@ function botScenario(seed: number, mode: Mode = "bots") {
       !seatPlayer.controllers.includes(String(chosen.args[0]))
     )
       EXECUTED.removals++;
-    if (chosen.action === ACTION.transferPlayer && error === "" && seatPlayer.transferTo === "")
-      EXECUTED.transfers++;
     for (let i = 0; i < actors; i++)
       owners[i] = w.players.get(BigInt(i + 1))!.controllers.map(Number);
-    if (chosen.action === ACTION.authorizeSession && error === "") sessions[seat] = chosen.args[0]!;
+    if (chosen.action === ACTION.authorizeSession && error === "")
+      pending[seat]!.push({ actor: chosen.args[0]!, action: ACTION.acceptSession });
+    if (chosen.action === ACTION.inviteController && error === "")
+      pending[seat]!.push({ actor: chosen.args[0]!, action: ACTION.acceptController });
+    if (chosen.action === ACTION.cancelInvite && error === "")
+      pending[seat] = pending[seat]!.filter((x) => x.actor !== chosen.args[0]);
     if (chosen.action === ACTION.sendHiddenMission && error === "")
       SECRETS.set(num(w.nextMission) - 1, chosen.args.slice(1, 6));
     record(actor, chosen, error);
@@ -1341,6 +1535,8 @@ function botScenario(seed: number, mode: Mode = "bots") {
  */
 function scriptedMarketScenario(seed: number) {
   SESSIONS.clear();
+  INVITED.clear();
+  KEEPERS.clear();
   SECRETS.clear();
   const w = sim.newWorld(rs);
   let now = T0;
@@ -1420,6 +1616,7 @@ function scriptedMarketScenario(seed: number) {
   // Premium on; three players next to each other; a boot camp each; movers (10000 of cargo) for
   // Alice and Bob, rowdies for everyone. Carol buys no mover yet: her dollars stay near the cap.
   ok(act(-1, ACTION.setGlobalPremium, [Number(T0) + 100_000_000]), "premium");
+  ok(act(-1, ACTION.setHiddenBond, [num(rs.config.hiddenMissionBondMin)]), "bond");
   for (let i = 0; i < 3; i++) ok(act(i, ACTION.register, [1, 1, 1 + i * 7]), "register");
   for (let i = 0; i < 3; i++) ok(act(i, ACTION.queueRoom, [bid(i), room("boot_camp")]), "camp");
   jump(3 * 86400);
@@ -1537,7 +1734,7 @@ function scriptedMarketScenario(seed: number) {
     act(
       0,
       ACTION.sendHiddenMission,
-      [bid(0), sim.TRANSPORT, ...at(bld(2)), salt, cover, ...units("rowdy", 3), 10, 10, 0, 0],
+      [bid(0), sim.TRANSPORT, ...at(bld(2)), salt, cover, ...units("rowdy", 3), 10, 10, 0, 0, FAR],
       "hidden-bounce",
     ),
     "hidden transport in debt",
@@ -1559,6 +1756,15 @@ function scriptedMarketScenario(seed: number) {
   arrive();
   allHome();
   assume(w.trades.get(BigInt(A))!.returned[AMMUNITION] === 1800n, "A: 1800 returned");
+  // Carol never registered B, yet Alice (registered by Bob) may pay her by naming it (B-11, D-26).
+  assume(sim.owes(w, 1n, 3n) === 0, "Carol has not registered");
+  ok(
+    transport(0, bld(2), units("rowdy", 2), [0, 0, 0, 50], B, "pay-unregistered-creditor"),
+    "Alice pays Carol, unregistered",
+  );
+  arrive();
+  allHome();
+  assume(w.trades.get(BigInt(B))!.returned[DOLLAR] === 50n, "B: 50 returned");
 
   // Carol, the second creditor: her dollars are near the cap, so a claim can exceed her free
   // capacity without exceeding the debt or Alice's stock; after she spends on a mover, she claims.
@@ -1571,19 +1777,38 @@ function scriptedMarketScenario(seed: number) {
     "over capacity",
   );
   ok(act(2, ACTION.train, [bid(2), troop("mover"), 1]), "Carol spends dollars");
-  ok(claim(2, B, bld(0), bld(2), [0, 0, 0, 200], "claim-second-creditor"), "Carol claims");
+  // Carol registers first (B-11), then collects: the second creditor of the same debtor.
+  expect("InvalidTrade", act(0, ACTION.registerDebt, [B], "register-debt"), "the debtor registers");
+  ok(act(2, ACTION.registerDebt, [B], "register-debt"), "Carol registers");
+  ok(act(2, ACTION.registerDebt, [B], "register-debt"), "again: nothing changes");
   assume(w.players.get(1n)!.debts === 2 && COVERED.has("two-creditors"), "two creditors");
+  ok(claim(2, B, bld(0), bld(2), [0, 0, 0, 200], "claim-second-creditor"), "Carol claims");
+  // Alice, in debt to both, pays Carol back by a transport that names B (allowed, D-26 / B-11).
+  ok(
+    transport(0, bld(2), units("rowdy", 2), [0, 0, 0, 100], B, "voluntary-payment"),
+    "Alice pays Carol",
+  );
+  arrive();
+  allHome();
+  expect(
+    "InvalidTrade",
+    transport(0, bld(1), units("rowdy", 2), [0, 0, 0, 10], B, "trade-wrong-target"),
+    "B's restitution to Bob",
+  );
   return { actors: 3, seed, steps };
 }
 
 /**
- * A deterministic walk through the controller rules (B-26, B-15): kinds, a scheduled removal
- * (pending, cancelled, executed), immediate self-removal, and a transfer in two steps, also while
- * suspended. The bots add breadth. Actor 0 is the phone, 1 another player, 2000+ devices, 2001 a
- * recovery code, 500 a session, 1000+ transfer targets.
+ * A deterministic walk through the controller rules (B-26, B-15): invitations accepted by the
+ * invited address (or not: wrong player, cancelled, expired, dead with the epoch), kinds, a
+ * scheduled removal (pending, cancelled, executed), immediate self-removal, and a transfer in two
+ * steps accepted by its target, also while suspended. The bots add breadth. Actor 0 is the phone,
+ * 1 another player, 2000+ devices, 2001 a recovery code, 500 a session, 1000+ transfer targets.
  */
 function scriptedControllersScenario(seed: number) {
   SESSIONS.clear();
+  INVITED.clear();
+  KEEPERS.clear();
   SECRETS.clear();
   const w = sim.newWorld(rs);
   let now = T0;
@@ -1612,17 +1837,35 @@ function scriptedControllersScenario(seed: number) {
   const jump = (seconds: number) => (now += BigInt(seconds));
   const DAY = 86400;
   const DELAY = Number(rs.config.controllerRemovalDelay);
+  const TTL = Number(rs.config.inviteTtl);
   const P = () => w.players.get(1n)!;
+  const invite = (by: number, who: number, recovery: number) => {
+    INVITED.add(`${who}:1`);
+    return act(by, ACTION.inviteController, [who, recovery]);
+  };
+  const inviteSession = (by: number, who: number, until: number) => {
+    SESSIONS.add(String(who));
+    INVITED.add(`${who}:1`);
+    return act(by, ACTION.authorizeSession, [who, until]);
+  };
 
   ok(act(0, ACTION.register, [1, 1, 1]), "the phone registers");
   ok(act(1, ACTION.register, [1, 1, 8]), "another player registers");
-  ok(act(0, ACTION.addController, [2000, 0]), "a laptop");
-  ok(act(0, ACTION.addController, [2001, 1]), "a recovery code");
-  SESSIONS.add("500");
-  ok(act(0, ACTION.authorizeSession, [500, Number(now) + DAY]), "a session");
+  ok(invite(0, 2000, 0), "a laptop invited");
+  assume(!w.playerOf.has("2000"), "an invitation binds nothing");
+  expect("NoInvite", act(2000, ACTION.acceptController, [2]), "for another player");
+  ok(act(2000, ACTION.acceptController, [1]), "the laptop accepts");
+  ok(invite(0, 2001, 1), "a recovery code invited");
+  ok(act(2001, ACTION.acceptController, [1]), "the code accepts");
+  ok(inviteSession(0, 500, Number(now) + DAY), "a session invited");
+  expect("NotRegistered", act(500, ACTION.queueRoom, [1, room("boss_office")]), "not bound yet");
+  ok(act(500, ACTION.acceptSession, [1]), "the session accepts");
   assume(P().recovery.has("2001") && !P().recovery.has("2000"), "the code is flagged");
+  assume(sim.sessionPlayer(w, "500", now) === 1n, "the session plays");
 
-  // The laptop schedules the phone's removal: every session dies now, the phone keeps its rights.
+  // The laptop schedules the phone's removal: every session and invitation dies now, the phone
+  // keeps its rights.
+  ok(invite(0, 2002, 0), "another device invited");
   ok(act(2000, ACTION.removeController, [0]), "the laptop schedules the phone's removal");
   assume(
     P().removalAt.get("0") === now + BigInt(DELAY) &&
@@ -1630,14 +1873,18 @@ function scriptedControllersScenario(seed: number) {
       sim.sessionPlayer(w, "500", now) === undefined,
     "scheduled, sessions dead",
   );
+  expect("NoInvite", act(2002, ACTION.acceptController, [1]), "the invitation died with the epoch");
   ok(act(0, ACTION.queueRoom, [1, room("boss_office")]), "the phone still plays");
   expect("RemovalPending", act(2000, ACTION.removeController, [0]), "not due yet");
   ok(act(0, ACTION.cancelRemoval, [0]), "the phone cancels its own removal");
   expect("NoRemoval", act(0, ACTION.cancelRemoval, [0]), "nothing to cancel");
   expect("NoRemoval", act(0, ACTION.cancelRemoval, [1]), "another player's controller");
-  ok(act(0, ACTION.authorizeSession, [500, Number(now) + DAY]), "the session again");
+  ok(inviteSession(0, 500, Number(now) + DAY), "the session invited again");
+  ok(act(500, ACTION.acceptSession, [1]), "and accepted again");
   expect("NotController", act(500, ACTION.cancelRemoval, [0]), "a session cannot cancel");
   expect("NotController", act(500, ACTION.removeController, [0]), "a session cannot remove");
+  expect("NotController", act(500, ACTION.inviteController, [2003, 0]), "nor invite");
+  expect("NotController", act(500, ACTION.cancelInvite, [2002]), "nor cancel an invitation");
 
   // The code schedules it again; once due the same call executes it.
   ok(act(2001, ACTION.removeController, [0]), "the code schedules the phone's removal");
@@ -1655,10 +1902,21 @@ function scriptedControllersScenario(seed: number) {
   assume(P().controllers.join() === "2001", "only the code is left");
   expect("LastController", act(2001, ACTION.removeController, [2001]), "never the last");
 
-  // Transfers: scheduled, pending, re-scheduled, cancelled, checked again when executing.
-  ok(act(2001, ACTION.addController, [2002, 0]), "a new device");
+  // Invitations are cancelled, or expire.
+  ok(invite(2001, 2004, 0), "a device invited");
+  ok(act(2001, ACTION.cancelInvite, [2004]), "and uninvited");
+  expect("NoInvite", act(2004, ACTION.acceptController, [1]), "cancelled");
+  expect("NoInvite", act(2001, ACTION.cancelInvite, [2004]), "nothing left to cancel");
+  ok(invite(2001, 2005, 0), "another device invited");
+  jump(TTL);
+  expect("NoInvite", act(2005, ACTION.acceptController, [1]), "expired");
+
+  // Transfers: scheduled, pending, re-scheduled, cancelled, checked again when the target accepts.
+  ok(invite(2001, 2002, 0), "a new device invited");
+  ok(act(2002, ACTION.acceptController, [1]), "and in");
   ok(act(2001, ACTION.transferPlayer, [1000]), "transfer scheduled");
-  expect("TransferPending", act(2001, ACTION.transferPlayer, [1000]), "not due yet");
+  expect("TransferPending", act(2001, ACTION.transferPlayer, [1000]), "already scheduled");
+  expect("TransferPending", act(1000, ACTION.acceptTransfer, [1]), "not due yet");
   ok(act(2001, ACTION.transferPlayer, [1001]), "re-scheduled to another address");
   assume(P().transferTo === "1001", "re-scheduled");
   ok(act(2002, ACTION.cancelTransfer, []), "the new device cancels it");
@@ -1671,28 +1929,37 @@ function scriptedControllersScenario(seed: number) {
   ok(act(2001, ACTION.transferPlayer, [1000]), "scheduled again");
   jump(3 * DAY);
   ok(act(1000, ACTION.register, [1, 1, 40]), "the target registers meanwhile");
-  expect("ControllerTaken", act(2001, ACTION.transferPlayer, [1000]), "checked again on execution");
+  expect("ControllerTaken", act(1000, ACTION.acceptTransfer, [1]), "checked again when accepting");
   ok(act(2001, ACTION.transferPlayer, [1002]), "scheduled to a free address");
+  expect("NoTransfer", act(1000, ACTION.acceptTransfer, [1]), "not the target any more");
   jump(3 * DAY);
-  ok(act(2001, ACTION.transferPlayer, [1002]), "executed");
+  ok(act(1002, ACTION.acceptTransfer, [1]), "the target takes the account");
   assume(
     P().controllers.join() === "1002" &&
       P().transferTo === "" &&
       P().removalAt.size === 0 &&
-      P().recovery.size === 0,
+      P().recovery.size === 0 &&
+      P().sessionEpoch === 5n, // two removals scheduled, one executed, a self-removal, the transfer
     "transferred, clean",
   );
 
-  // A self-removal drops its own schedule; managing works while suspended, transferring does not.
-  ok(act(1002, ACTION.addController, [2003, 0]), "a device");
+  // A self-removal drops its own schedule; managing works while suspended, transferring and
+  // accepting a transfer do not.
+  ok(invite(1002, 2003, 0), "a device invited");
+  ok(act(2003, ACTION.acceptController, [1]), "and in");
   ok(act(1002, ACTION.removeController, [2003]), "its removal scheduled");
   ok(act(2003, ACTION.removeController, [2003]), "it removes itself at once");
   expect("NoRemoval", act(1002, ACTION.cancelRemoval, [2003]), "the schedule went with it");
-  ok(act(-1, ACTION.suspend, [1, Number(now) + DAY]), "suspended");
-  expect("Suspended", act(1002, ACTION.transferPlayer, [1003]), "no transfer while suspended");
-  ok(act(1002, ACTION.addController, [2004, 0]), "adding works suspended");
-  ok(act(1002, ACTION.removeController, [2004]), "scheduling works suspended");
-  ok(act(1002, ACTION.cancelRemoval, [2004]), "cancelling works suspended");
+  ok(act(1002, ACTION.transferPlayer, [1003]), "a transfer scheduled before the suspension");
+  ok(act(-1, ACTION.suspend, [1, Number(now) + 4 * DAY]), "suspended");
+  expect("Suspended", act(1002, ACTION.transferPlayer, [1004]), "no transfer while suspended");
+  jump(3 * DAY + 1);
+  expect("Suspended", act(1003, ACTION.acceptTransfer, [1]), "no accepting while suspended");
+  ok(invite(1002, 2006, 0), "inviting works suspended");
+  ok(act(2006, ACTION.acceptController, [1]), "accepting works suspended");
+  ok(act(1002, ACTION.removeController, [2006]), "scheduling works suspended");
+  ok(act(1002, ACTION.cancelRemoval, [2006]), "cancelling works suspended");
+  ok(act(1002, ACTION.cancelTransfer, []), "cancelling the transfer works suspended");
   return { actors: 2, seed, steps };
 }
 
@@ -1730,9 +1997,11 @@ console.log(
     `${count(ACTION.sendMission)} missions, ${count(ACTION.sendHiddenMission)} hidden, ` +
     `${count(ACTION.reveal)} reveals, ${steps.filter((x) => x.error === "Unrevealed").length} unrevealed, ` +
     `${count(ACTION.recall)} recalls, ${count(ACTION.abandon)} abandons, ` +
-    `${count(ACTION.authorizeSession)} sessions, ${count(ACTION.addController)} + ` +
-    `${count(ACTION.removeController)} - controllers (${EXECUTED.removals} executed, ` +
+    `${count(ACTION.authorizeSession)} sessions (${count(ACTION.acceptSession)} accepted), ` +
+    `${count(ACTION.inviteController)} invited + ${count(ACTION.acceptController)} joined - ` +
+    `${count(ACTION.removeController)} controllers (${EXECUTED.removals} executed, ` +
     `${count(ACTION.cancelRemoval)} cancelled), ${EXECUTED.transfers} transfers executed, ` +
-    `${count(ACTION.claimTrade)} claims, ` +
+    `${count(ACTION.claimTrade)} claims, ${count(ACTION.registerDebt)} registrations, ` +
+    `${count(ACTION.reportGarbage)} reports, ` +
     `${steps.filter((x) => x.error === "InDebt").length} InDebt`,
 );

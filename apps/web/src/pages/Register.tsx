@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { sim } from "@vendetta/rules";
 import { useGame } from "../state/game.js";
 import { Plat, PlatNav, type Lot } from "../ui/Plat.js";
-import { Joining, OtherWays } from "./Devices.js";
+import { Joining, OtherWays, PendingForMe } from "./Devices.js";
 
 export function Register() {
   const g = useGame();
@@ -21,6 +21,7 @@ export function Register() {
       <header className="account-head">
         <h2>{t(signedOut ? "entry.title" : "register.title")}</h2>
       </header>
+      {g.address && <PendingForMe />}
       {signedOut && (
         <>
           <p className="note">{t("entry.body")}</p>

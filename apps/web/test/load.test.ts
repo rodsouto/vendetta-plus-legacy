@@ -99,7 +99,17 @@ describe.skipIf(!hasAnvil)("chain loader", () => {
     const commit = sim.hiddenCommit(1n, sim.ATTACK, target, plain.salt);
     const troops = rs.troops.map((_, i) => (i === 0 ? 5n : 0n));
     const ciphertext = await timelock.encrypt(plain, 0n);
-    await send(1, "sendHiddenMission", [1n, commit, 4, troops, [0n, 0n, 0n, 0n], ciphertext]);
+    // A fresh deployment's bond is above a new account's dollars (B-22): the admin lowers it.
+    await send(0, "setHiddenBond", [rs.config.hiddenMissionBondMin]);
+    await send(1, "sendHiddenMission", [
+      1n,
+      commit,
+      4,
+      troops,
+      [0n, 0n, 0n, 0n],
+      ciphertext,
+      2n ** 40n - 1n,
+    ]);
 
     const snap = await loadWorld(clients.public, clients.deployment.game);
     const [m] = [...snap.world.missions.values()];

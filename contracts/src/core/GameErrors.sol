@@ -60,6 +60,11 @@ error RemovalPending();
 error NoRemoval();
 error TransferPending();
 error NoTransfer();
+error NoInvite();
+error TooLate();
+error TooEarly();
+error NotKeeper();
+error InvalidBond();
 
 struct BattleReport {
     uint64[TROOPS] attacker;
@@ -109,6 +114,8 @@ interface IGameEvents {
         uint64 indexed mission, uint8 kind, uint8 city, uint8 neighborhood, uint8 slot
     );
     event MissionForfeited(uint64 indexed mission);
+    /// A listed keeper reported the ciphertext as garbage: forfeited unless revealed in time (B-22).
+    event GarbageReported(uint64 indexed mission, address keeper);
     event MissionRecalled(uint64 indexed mission, uint40 arrival);
     event MissionReturning(uint64 indexed mission, uint40 arrival);
     event MissionEnded(uint64 indexed mission);
@@ -126,15 +133,22 @@ interface IGameEvents {
     event VacationEnded(uint64 indexed player);
     event PlayerSuspended(uint64 indexed player, uint40 until);
     event PremiumGranted(uint64 indexed player, uint40 until);
-    event PlayerTransferred(uint64 indexed player, address from, address to);
+    event PlayerTransferred(uint64 indexed player, address to);
+    event ControllerInvited(
+        uint64 indexed player, address indexed controller, bool recovery, uint40 until
+    );
     event ControllerAdded(uint64 indexed player, address indexed controller, bool recovery);
+    event InviteCancelled(uint64 indexed player, address indexed invited);
     event ControllerRemoved(uint64 indexed player, address indexed controller);
+    event SessionInvited(uint64 indexed player, address indexed session, uint40 until);
     event SessionAuthorized(uint64 indexed player, address indexed session, uint40 until);
     event SessionRevoked(uint64 indexed player, address indexed session);
     event ControllerRemovalScheduled(uint64 indexed player, address indexed controller, uint40 at);
     event ControllerRemovalCancelled(uint64 indexed player, address indexed controller);
     event PlayerTransferScheduled(uint64 indexed player, address to, uint40 at);
     event PlayerTransferCancelled(uint64 indexed player);
+    event HiddenBondSet(uint64 bond);
+    event KeeperSet(address indexed keeper, bool allowed);
     event FamilyCreated(uint64 indexed family, uint64 indexed capo, string tag, string name);
     event FamilyChanged(uint64 indexed family, uint64 indexed player, uint8 rank); // rank 0 = left
     event FamilyDissolved(uint64 indexed family);

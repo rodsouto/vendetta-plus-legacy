@@ -1,7 +1,8 @@
-// Keeper (B-22, B-08, B-19): reveals hidden missions as soon as their timelock opens, processes
-// due missions, and settles the buildings whose points lag behind their finished queues, so the
-// global queue and the ranking (B-18) do not wait for a player to act. It holds no secret: anyone
-// may run one, and clients reveal on their own when it is down.
+// Keeper (B-22, B-08, B-19): reveals hidden missions as soon as their timelock opens, reports the
+// garbage ones when the admin listed it as a keeper, processes due missions, and settles the
+// buildings whose points lag behind their finished queues, so the global queue and the ranking
+// (B-18) do not wait for a player to act. It holds no secret: anyone may run one, and clients
+// reveal on their own when it is down. Only a listed keeper reports.
 //
 // Usage: tsx scripts/keeper.ts <deployment.json> [local|arbitrum]
 //   KEEPER_PRIVATE_KEY         the account that pays the gas (default: anvil's account 9, local only)
@@ -14,7 +15,7 @@ import { arbitrum } from "viem/chains";
 import { sim, vendetta as rs } from "@vendetta/rules";
 import { gameAbi } from "../src/chain/abi.js";
 import { anvilChain } from "../src/chain/config.js";
-import { ciphertextOf, timelockFor } from "../src/chain/hidden.js";
+import { CiphertextIndex, timelockFor } from "../src/chain/hidden.js";
 import { cloneWorld, loadWorld } from "../src/chain/load.js";
 import type { Deployment, Network, NetworkId } from "../src/chain/networks.js";
 
@@ -22,6 +23,8 @@ const ANVIL_KEY_9 = "0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff
 const TICK_MS = 2000;
 /** Pokes per settle run: bounds the gas spent at once; the rest waits for the next run. */
 const MAX_POKES_PER_RUN = 25;
+/** Ciphertexts opened at once: drand and the RPC are shared with every client. */
+const DECRYPT_CONCURRENCY = 4;
 
 const [file, id = "local"] = process.argv.slice(2);
 if (!file) throw new Error("usage: keeper.ts <deployment.json> [local|arbitrum]");
@@ -37,19 +40,31 @@ const SETTLE_INTERVAL_MS = Number(
 // Batched: loading the world is one call per entity.
 const transport = http(deployment.rpc, { batch: { batchSize: 100 } });
 const client = createPublicClient({ chain, transport }) as PublicClient;
-const wallet = createWalletClient({ chain, transport, account: privateKeyToAccount(key) });
+const account = privateKeyToAccount(key);
+const wallet = createWalletClient({ chain, transport, account });
 const timelock = timelockFor({ id: id as NetworkId } as Network);
 const game = deployment.game;
+const ciphertexts = new CiphertextIndex(client, game, deployment.fromBlock);
 
 type M = {
+  owner: bigint;
   hidden: boolean;
   returning: boolean;
   arrival: number;
   seq: bigint;
+  commit: Hex;
+  reportedAt: number;
 };
 
 const read = <T>(functionName: string, args: unknown[] = []) =>
   client.readContract({ address: game, abi: gameAbi, functionName, args } as never) as Promise<T>;
+
+/** The game's custom error a failed call reverted with, if it is one. */
+const gameError = (e: unknown): string | undefined => {
+  const message = e instanceof Error ? e.message : String(e);
+  const m = /(?:reverted with the following reason|Error:)\s*([A-Za-z]+)\(\)/.exec(message);
+  return m?.[1];
+};
 
 async function call(functionName: string, args: unknown[]): Promise<void> {
   const hash = await wallet.writeContract({
@@ -63,40 +78,129 @@ async function call(functionName: string, args: unknown[]): Promise<void> {
   if (receipt.status !== "success") throw new Error(`${functionName} reverted`);
 }
 
-/** Missions whose reveal reverted (a wrong plaintext): left to the forfeit. */
-const failed = new Set<bigint>();
+/**
+ * Missions whose ciphertext opened to something the contract rejects (a wrong plaintext): garbage
+ * for good, so they are reported (when allowed) and never retried. A transient error never puts a
+ * mission here: the next tick tries again.
+ */
+const garbage = new Set<bigint>();
+
+/** Runs `fn` over `items`, at most `limit` at a time, keeping the order of the results. */
+async function mapLimit<T, R>(items: T[], limit: number, fn: (x: T) => Promise<R>): Promise<R[]> {
+  const out: R[] = new Array(items.length);
+  let next = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, async () => {
+      for (let i = next++; i < items.length; i = next++) out[i] = await fn(items[i]!);
+    }),
+  );
+  return out;
+}
+
+type Verdict = { kind: "reveal"; args: unknown[] } | { kind: "garbage" } | { kind: "wait" };
+
+/** What to do with a due hidden mission: reveal it, report it, or wait. */
+async function judge(mid: bigint, m: M): Promise<Verdict> {
+  if (garbage.has(mid)) return { kind: "garbage" };
+  const c = await ciphertexts.get(mid);
+  if (!c) return { kind: "garbage" }; // no log carries a ciphertext for it
+  const opened = await timelock.open(c); // throws on a transient failure: judged again next tick
+  if ("locked" in opened) return { kind: "wait" };
+  if ("garbage" in opened) return { kind: "garbage" };
+  const { kind, target, salt } = opened.plain;
+  if (sim.hiddenCommit(m.owner, kind, target, salt) !== m.commit.toLowerCase()) {
+    return { kind: "garbage" }; // a plaintext that is not the one committed to
+  }
+  const { city, neighborhood, slot } = target;
+  return {
+    kind: "reveal",
+    args: [mid, kind, [city, neighborhood, slot], `0x${salt.toString(16).padStart(64, "0")}`],
+  };
+}
 
 async function tick(): Promise<void> {
+  await ciphertexts.catchUp();
   const now = (await client.getBlock()).timestamp;
   const ids = await read<readonly bigint[]>("pendingMissions");
   const missions = await Promise.all(
     ids.map(async (id) => [id, await read<M>("getMission", [id])] as const),
   );
-  for (const [id, m] of missions) {
-    if (!m.hidden || m.returning || BigInt(m.arrival) > now || failed.has(id)) continue;
-    const c = await ciphertextOf(client, game, deployment.fromBlock, id);
-    const p = c && (await timelock.decrypt(c)); // null while the round is not out, or garbage
-    if (!p) continue;
-    const { city, neighborhood, slot } = p.target;
-    const salt = `0x${p.salt.toString(16).padStart(64, "0")}`;
+  // Due hidden missions, in the order the queue resolves them (arrival, then creation).
+  const due = missions
+    .filter(([, m]) => m.hidden && !m.returning && BigInt(m.arrival) <= now)
+    .sort(([, a], [, b]) => a.arrival - b.arrival || (a.seq < b.seq ? -1 : 1));
+  const listed = due.length > 0 && (await read<boolean>("isKeeper", [account.address]));
+  const verdicts = await mapLimit(due, DECRYPT_CONCURRENCY, async ([mid, m]) => {
     try {
-      await call("reveal", [id, p.kind, [city, neighborhood, slot], salt]);
-      console.log(`revealed mission ${id}`);
+      return await judge(mid, m);
     } catch (e) {
-      failed.add(id);
-      console.warn(`mission ${id} does not reveal:`, (e as Error).message.split("\n")[0]);
+      console.warn(`mission ${mid}: cannot open yet:`, (e as Error).message.split("\n")[0]);
+      return { kind: "wait" } as Verdict;
+    }
+  });
+  for (const [i, [mid, m]] of due.entries()) {
+    const v = verdicts[i]!;
+    try {
+      if (v.kind === "reveal") {
+        await call("reveal", v.args);
+        console.log(`revealed mission ${mid}`);
+      } else if (v.kind === "garbage") {
+        garbage.add(mid);
+        const since = BigInt(m.arrival) + rs.config.hiddenReportDelay;
+        if (listed && m.reportedAt === 0 && now >= since) {
+          await call("reportGarbage", [mid]);
+          console.log(`reported mission ${mid} as garbage`);
+        }
+      }
+    } catch (e) {
+      const name = gameError(e);
+      if (v.kind === "reveal" && name && name !== "Unrevealed" && name !== "Backlog") {
+        // The contract rejects the plaintext (BadReveal, InvalidCover, InvalidMission): garbage.
+        garbage.add(mid);
+        console.warn(`mission ${mid} does not reveal: ${name}`);
+      } else {
+        console.warn(`mission ${mid}: ${(e as Error).message.split("\n")[0]}`); // next tick
+      }
     }
   }
-  // Process what is due, unless the head still waits for its reveal within the grace.
+  // Process what is due, unless the head still waits for its reveal within its grace.
   const head = [...missions]
     .map(([, m]) => m)
     .sort((a, b) => a.arrival - b.arrival || (a.seq < b.seq ? -1 : 1))[0];
   if (!head || BigInt(head.arrival) > now) return;
   // A head revealed in this tick still reads as hidden here: it is processed on the next one.
-  const grace = BigInt(head.arrival) + rs.config.hiddenRevealGrace;
-  if (head.hidden && !head.returning && now < grace) return;
-  await call("advance", [BigInt(sim.MAX_MISSIONS_PER_TX)]);
-  console.log("advanced the mission queue");
+  if (head.hidden && !head.returning) {
+    let end = BigInt(head.arrival) + rs.config.hiddenRevealGrace;
+    if (head.reportedAt > 0) {
+      const reported = BigInt(head.reportedAt) + rs.config.hiddenReportWindow;
+      if (reported < end) end = reported;
+    }
+    if (now < end) return;
+  }
+  await advance();
+}
+
+/**
+ * Processes due missions in batches; a batch that does not fit the gas (B-08: a heavy mission, a
+ * long backlog) falls back to one mission per transaction until the queue is caught up.
+ */
+async function advance(): Promise<void> {
+  try {
+    await call("advance", [BigInt(sim.MAX_MISSIONS_PER_TX)]);
+    console.log("advanced the mission queue");
+    return;
+  } catch (e) {
+    console.warn("advance in a batch failed, one at a time:", (e as Error).message.split("\n")[0]);
+  }
+  for (let i = 0; i < sim.MAX_MISSIONS_PER_TX; i++) {
+    try {
+      await call("advance", [1n]);
+      console.log("advanced one mission");
+    } catch (e) {
+      console.warn("advance failed:", (e as Error).message.split("\n")[0]);
+      return;
+    }
+  }
 }
 
 /**
@@ -138,7 +242,7 @@ async function settleStale(): Promise<void> {
 }
 
 console.log(
-  `keeper for ${game} on ${chain.name} (${deployment.rpc}), timelock ${id === "arbitrum" ? "drand" : "plain"}, ` +
+  `keeper ${account.address} for ${game} on ${chain.name} (${deployment.rpc}), timelock ${id === "arbitrum" ? "drand" : "plain"}, ` +
     `settling stale points every ${SETTLE_INTERVAL_MS / 1000} s`,
 );
 let lastSettle = 0;

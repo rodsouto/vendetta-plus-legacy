@@ -34,6 +34,20 @@ export function warBetween(w: World, a: bigint, b: bigint): bigint {
   return !war.ended && w.families.get(a)!.alive && w.families.get(b)!.alive ? id : 0n;
 }
 
+/**
+ * The effective result of a war (B-31): one that ended by agreement keeps its winner; one whose
+ * family dissolved is over and the family still alive wins (0 if both are gone).
+ */
+export function warOutcome(w: World, id: bigint): { ended: boolean; winner: bigint } {
+  const war = w.wars.get(id);
+  if (!war) return { ended: false, winner: 0n };
+  if (war.ended) return { ended: true, winner: war.winner };
+  const aliveA = w.families.get(war.a)!.alive;
+  const aliveB = w.families.get(war.b)!.alive;
+  if (aliveA && aliveB) return { ended: false, winner: 0n };
+  return { ended: true, winner: aliveA ? war.a : aliveB ? war.b : 0n };
+}
+
 /** Battle hook: lost troop points go to each side's losses if their families are at war. */
 export function warScore(
   w: World,
@@ -274,11 +288,15 @@ export const offerPeace = atomic(function offerPeace(
   [war.offer, war.offerBy] = [kind, f];
 });
 
-/** The other family's Capo or SubCapo accepts the pending offer, which ends the war. */
+/**
+ * The other family's Capo or SubCapo answers the pending offer; accepting ends the war. The answer
+ * names the offer it saw (`kind`), so a replaced offer is never accepted by mistake.
+ */
 export const answerPeace = atomic(function answerPeace(
   w: World,
   controller: string,
   warId: bigint,
+  kind: number,
   accept: boolean,
   now: bigint,
 ): void {
@@ -286,7 +304,7 @@ export const answerPeace = atomic(function answerPeace(
   const p = active(w, controller, now);
   const [war, f] = side(w, p, warId);
   if (!leads(w, p)) fail("NotAllowed");
-  if (war.offer === OFFER_NONE || war.offerBy === f) fail("NoOffer");
+  if (war.offer === OFFER_NONE || war.offerBy === f || war.offer !== kind) fail("NoOffer");
   if (accept) {
     war.ended = true;
     war.winner = war.offer === OFFER_SURRENDER ? f : 0n;

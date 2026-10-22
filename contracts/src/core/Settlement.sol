@@ -152,13 +152,19 @@ library Settlement {
 
     /// Process the building's own events up to `t` (B-06), in (time, seq) order.
     function settle(CoreState storage s, uint64 id, uint256 t) internal {
+        settleBefore(s, id, t, type(uint64).max);
+    }
+
+    /// Like settle, but an event at `t` itself runs only if it was created before `seq` (B-07): a
+    /// mission arriving at `t` resolves before the events created after it that finish then.
+    function settleBefore(CoreState storage s, uint64 id, uint256 t, uint64 seq) internal {
         Building storage b = s.buildings[id];
         uint64 pid = b.owner;
         Player storage p = s.players[pid];
         uint128 points = p.centipoints;
         while (true) {
-            (uint256 kind, uint256 at) = _nextEvent(b, p, id);
-            if (kind == NONE || at > t) break;
+            (uint256 kind, uint256 at, uint64 evSeq) = _nextEvent(b, p, id);
+            if (kind == NONE || at > t || (at == t && evSeq > seq)) break;
             integrate(b, at);
             if (kind == ROOM) {
                 uint8 room = b.roomQueue[0].index;
@@ -194,9 +200,8 @@ library Settlement {
     function _nextEvent(Building storage b, Player storage p, uint64 id)
         private
         view
-        returns (uint256 kind, uint256 at)
+        returns (uint256 kind, uint256 at, uint64 seq)
     {
-        uint256 seq;
         if (b.roomQueue.length > 0) {
             (kind, at, seq) = (ROOM, b.roomQueue[0].finishAt, b.roomQueue[0].seq);
         }
@@ -255,5 +260,10 @@ library Settlement {
 library SettleLib {
     function settle(uint64 id, uint256 t) external {
         Settlement.settle(GameStorage.core(), id, t);
+    }
+
+    /// Settlement at a mission's arrival: its own events created after the mission wait (B-07).
+    function settleBefore(uint64 id, uint256 t, uint64 seq) external {
+        Settlement.settleBefore(GameStorage.core(), id, t, seq);
     }
 }

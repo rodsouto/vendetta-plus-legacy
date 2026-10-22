@@ -53,8 +53,21 @@ library VendettaRuleset {
     uint256 internal constant TROOP_QUEUE = 1;
     uint256 internal constant TROOP_QUEUE_PREMIUM = 5;
     uint256 internal constant MAX_OUTGOING_MISSIONS = 20;
-    uint256 internal constant HIDDEN_MISSION_BOND = 500;
+    /// Starting hidden mission bond; the admin tunes it within the bounds (B-22).
+    uint256 internal constant HIDDEN_MISSION_BOND = 10000;
+    uint256 internal constant HIDDEN_MISSION_BOND_MIN = 1000;
+    uint256 internal constant HIDDEN_MISSION_BOND_MAX = 100000;
     uint256 internal constant HIDDEN_REVEAL_GRACE = 60;
+    /// The bond comes back only when the reveal lands this soon after the arrival (B-22).
+    uint256 internal constant HIDDEN_BOND_REFUND = 30;
+    /// A listed keeper may report a garbage ciphertext from here on; the mission is forfeited
+    /// unless revealed within the window (B-22).
+    uint256 internal constant HIDDEN_REPORT_DELAY = 15;
+    uint256 internal constant HIDDEN_REPORT_WINDOW = 15;
+    /// A controller or transfer invitation lasts this long (B-26).
+    uint256 internal constant INVITE_TTL = 604800;
+    /// Honor power never drops below this percentage (D-27).
+    uint256 internal constant HONOR_MIN_PERCENT = 1;
     uint256 internal constant OCCUPATION_TROOP = 4;
     uint256 internal constant OCCUPATION_RESOURCES = 1000;
     uint256 internal constant OCCUPATION_BUILD_SPEED_LEVEL = 1;

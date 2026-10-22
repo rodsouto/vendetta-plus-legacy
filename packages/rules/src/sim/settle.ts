@@ -116,13 +116,19 @@ export function trainingSeconds(w: World, b: Building, item: TrainingItem): bigi
 export const troopCentipoints = (w: World, units: readonly bigint[]) =>
   units.reduce((s, n, i) => s + n * w.rs.troops[i]!.centipoints, 0n);
 
+const NO_CUT = 2n ** 64n - 1n;
+
 type Event =
   | { kind: "room"; at: bigint; seq: bigint }
   | { kind: "research"; at: bigint; seq: bigint }
   | { kind: "training"; queue: number; at: bigint; seq: bigint };
 
-/** Process the building's own events up to `t` (B-06), in (time, seq) order. */
-export function settle(w: World, b: Building, t: bigint): void {
+/**
+ * Process the building's own events up to `t` (B-06), in (time, seq) order. `seq`: a mission
+ * arriving at `t` resolves before the building's events created after it that finish at `t`
+ * (B-07); those wait for the next settlement.
+ */
+export function settle(w: World, b: Building, t: bigint, seq: bigint = NO_CUT): void {
   const p = w.players.get(b.owner)!;
   for (;;) {
     let next: Event | null = null;
@@ -137,7 +143,7 @@ export function settle(w: World, b: Building, t: bigint): void {
       if (q[0]) consider({ kind: "training", queue, at: q[0].finishAt, seq: q[0].seq });
     });
     const e = next as Event | null;
-    if (e === null || e.at > t) break;
+    if (e === null || e.at > t || (e.at === t && e.seq > seq)) break;
 
     integrate(w, b, e.at);
     if (e.kind === "room") {

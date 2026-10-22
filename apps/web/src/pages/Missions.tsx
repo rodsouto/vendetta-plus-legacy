@@ -89,8 +89,21 @@ function MissionsFor({ b, p }: { b: sim.Building; p: sim.Player }) {
   }, [to, kind, b.id, g.world, g.now]);
 
   const trades = [...g.world.trades.values()].filter(
-    (x) => x.accepted && sim.tradeOpenFor(g.world, x.id, p.id, g.now),
+    (x) => x.accepted && sim.tradeCounterparty(g.world, x.id, p.id, g.now) !== undefined,
   );
+  // D-26: what does not fit at the destination is lost; warn the sender before it leaves.
+  const scale = sim.stockScale(rs);
+  const freeAt = (dest: sim.Building) =>
+    sim
+      .capacities(g.world, dest)
+      .map((c, i) => (c > dest.stock[i]! ? (c - dest.stock[i]!) / scale : 0n));
+  const destination = target
+    ? g.world.buildings.get(g.world.buildingAt.get(sim.coordKey(target)) ?? 0n)
+    : undefined;
+  const noRoom =
+    kind === sim.TRANSPORT && destination
+      ? rs.resources.filter((_, i) => res[i]! > freeAt(destination)[i]!)
+      : [];
   const attackTroops = rs.troops.filter((tr) => tr.isAttack && b.troops[tr.index]! > 0n);
   const mine = [...g.world.missions.values()].filter((m) => m.owner === p.id);
   const myCoords = new Set(g.myBuildings.map((x) => sim.coordKey(x.coord)));
@@ -103,6 +116,12 @@ function MissionsFor({ b, p }: { b: sim.Building; p: sim.Player }) {
       !m.returning &&
       (m.hidden ? reaches(m) : myCoords.has(sim.coordKey(m.target))),
   );
+  // A public transport bound to one of my buildings that does not fit there (D-26).
+  const overflows = (m: sim.Mission) => {
+    if (m.hidden || m.kind !== sim.TRANSPORT) return false;
+    const dest = g.world.buildings.get(g.world.buildingAt.get(sim.coordKey(m.target)) ?? 0n);
+    return !!dest && freeAt(dest).some((f, i) => m.cargo[i]! > f);
+  };
 
   const send = async () => {
     if (!target || targetError) return;
@@ -127,15 +146,17 @@ function MissionsFor({ b, p }: { b: sim.Building; p: sim.Player }) {
     const commit = sim.hiddenCommit(p.id, kind, target, plain.salt);
     const arrival = g.now + (plan && "secs" in plan && plan.secs !== undefined ? plan.secs : 0n);
     const ciphertext = await g.timelock.encrypt(plain, arrival);
+    // The mission must land before the round the ciphertext was made for opens (B-22).
+    const deadline = await g.timelock.deadline(arrival);
     g.rememberHidden(commit, plain);
     await g.act({
       done: t("missions.sent"),
       check: (w, c, n) => {
         sim.checkSendTarget(w, p.id, b.coord, kind, target, n);
-        return sim.sendHiddenMission(w, c, b.id, commit, cover, counts, res, n);
+        return sim.sendHiddenMission(w, c, b.id, commit, cover, counts, res, deadline, n);
       },
       functionName: "sendHiddenMission",
-      args: [b.id, commit, Number(cover), counts, res, ciphertext],
+      args: [b.id, commit, Number(cover), counts, res, ciphertext, deadline],
     });
   };
 
@@ -265,7 +286,7 @@ function MissionsFor({ b, p }: { b: sim.Building; p: sim.Player }) {
                     <tr>
                       <td>{t("missions.bond")}</td>
                       <td className="num">
-                        <Icon name="dollar" /> {amount(rs.config.hiddenMissionBond)}
+                        <Icon name="dollar" /> {amount(g.world.hiddenBond)}
                       </td>
                     </tr>
                   )}
@@ -279,6 +300,11 @@ function MissionsFor({ b, p }: { b: sim.Building; p: sim.Player }) {
           </table>
         )}
         <p className="note">{t(hidden ? "missions.hiddenNote" : "missions.publicNote")}</p>
+        {noRoom.length > 0 && (
+          <p className="note red" role="alert">
+            {t("missions.noRoom", { list: noRoom.map((r) => t(`resources.${r}`)).join(", ") })}
+          </p>
+        )}
         {targetError && (
           <p className="note red" role="alert">
             {t(`errors.${targetError}`)}
@@ -342,6 +368,7 @@ function MissionsFor({ b, p }: { b: sim.Building; p: sim.Player }) {
                         {m.hidden && !m.returning && m.arrival <= g.now
                           ? ` · ${t("missions.revealing")}`
                           : ""}
+                        {hostile && overflows(m) ? ` · ${t("missions.incomingOverflow")}` : ""}
                       </small>
                     </span>
                     {!hostile && !m.returning ? (

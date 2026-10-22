@@ -121,7 +121,17 @@ execFileSync(
     DEV_KEYS[0],
     "--broadcast",
   ],
-  { cwd: contracts, stdio: "ignore" },
+  // Anvil's account 9 runs the keeper on local stacks: listed so it may report garbage (B-22).
+  {
+    cwd: contracts,
+    stdio: "ignore",
+    // The bond starts at its minimum, so a new account can send hidden missions right away.
+    env: {
+      ...process.env,
+      KEEPER: "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
+      HIDDEN_BOND: "1000",
+    },
+  },
 );
 const chainId = await client.getChainId();
 const broadcast = JSON.parse(

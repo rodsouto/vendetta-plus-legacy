@@ -89,7 +89,13 @@ interface GameConfig {
     max_controllers_per_player: number;
     controller_removal_delay_seconds: number;
     hidden_mission_bond: number;
+    hidden_mission_bond_min: number;
+    hidden_mission_bond_max: number;
     hidden_reveal_grace_seconds: number;
+    hidden_bond_refund_seconds: number;
+    hidden_report_delay_seconds: number;
+    hidden_report_window_seconds: number;
+    invite_ttl_seconds: number;
   };
   vacation: { duration_days: number; cooldown_days: number };
   market: {
@@ -98,7 +104,7 @@ interface GameConfig {
     delivery_window_days: number;
   };
   families: { tag_length: [number, number]; name_length: [number, number] };
-  honor: { table: Record<string, number[]> };
+  honor: { table: Record<string, number[]>; min_power_percent: number };
   premium: {
     without_premium: Record<string, number>;
     with_premium: Record<string, number>;
@@ -296,8 +302,21 @@ library ${name} {
     uint256 internal constant TROOP_QUEUE = ${q("max_troop_batches_per_queue", false)};
     uint256 internal constant TROOP_QUEUE_PREMIUM = ${q("max_troop_batches_per_queue", true)};
     uint256 internal constant MAX_OUTGOING_MISSIONS = ${config.onchain.max_outgoing_missions_per_player};
+    /// Starting hidden mission bond; the admin tunes it within the bounds (B-22).
     uint256 internal constant HIDDEN_MISSION_BOND = ${config.onchain.hidden_mission_bond};
+    uint256 internal constant HIDDEN_MISSION_BOND_MIN = ${config.onchain.hidden_mission_bond_min};
+    uint256 internal constant HIDDEN_MISSION_BOND_MAX = ${config.onchain.hidden_mission_bond_max};
     uint256 internal constant HIDDEN_REVEAL_GRACE = ${config.onchain.hidden_reveal_grace_seconds};
+    /// The bond comes back only when the reveal lands this soon after the arrival (B-22).
+    uint256 internal constant HIDDEN_BOND_REFUND = ${config.onchain.hidden_bond_refund_seconds};
+    /// A listed keeper may report a garbage ciphertext from here on; the mission is forfeited
+    /// unless revealed within the window (B-22).
+    uint256 internal constant HIDDEN_REPORT_DELAY = ${config.onchain.hidden_report_delay_seconds};
+    uint256 internal constant HIDDEN_REPORT_WINDOW = ${config.onchain.hidden_report_window_seconds};
+    /// A controller or transfer invitation lasts this long (B-26).
+    uint256 internal constant INVITE_TTL = ${config.onchain.invite_ttl_seconds};
+    /// Honor power never drops below this percentage (D-27).
+    uint256 internal constant HONOR_MIN_PERCENT = ${config.honor.min_power_percent};
     uint256 internal constant OCCUPATION_TROOP = ${troopIndex.get(rs.roles.occupation_troop!)!};
     uint256 internal constant OCCUPATION_RESOURCES = ${config.occupation.starting_resources_each};
     uint256 internal constant OCCUPATION_BUILD_SPEED_LEVEL = ${config.occupation.starting_build_speed_room_level};

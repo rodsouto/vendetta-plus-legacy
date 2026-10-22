@@ -157,10 +157,12 @@
     "hidden": "Hidden",
     "hiddenTarget": "hidden target",
     "mayBeYou": "may be for you",
-    "bond": "Bond (back when it resolves)",
+    "bond": "Bond (back if revealed in time)",
     "hiddenNote": "The kind and target stay hidden until arrival. Travel time and salary use a random cover distance, so they do not give the target away.",
     "publicNote": "Transports for a market order travel in the open.",
-    "revealing": "revealing"
+    "revealing": "revealing",
+    "noRoom": "The destination cannot store: {{list}}. What does not fit is lost: having room is the receiver's responsibility.",
+    "incomingOverflow": "not everything fits: make room before it lands"
   },
   "reports": {
     "title": "Battle reports",
@@ -253,7 +255,10 @@
     "inDebt": "You have {{count}} registered debt(s). Until they are paid you cannot offer or accept trades, start a vacation, or send transports anywhere but your own buildings and your creditors'.",
     "creditors": "Creditors",
     "vacationLocked": "No vacation while an accepted trade's window is open:",
-    "debtorLocked": "The debtor cannot start a vacation or trade until the debt is paid."
+    "debtorLocked": "The debtor cannot start a vacation or trade until the debt is paid.",
+    "register": "Register the debt",
+    "registered": "Debt registered",
+    "registerNote": "Register the debt so the debtor is restricted even while nothing can be collected yet:"
   },
   "account": {
     "title": "Account",
@@ -267,16 +272,16 @@
     "suspended": "Suspended until",
     "transfer": "Transfer the account",
     "to": "Destination address",
-    "transferNote": "The whole account (buildings, troops, family, trades) moves to that address. It takes {{days}} days; meanwhile any device of the account can cancel it.",
+    "transferNote": "The whole account (buildings, troops, family, trades) moves to that address. It takes {{days}} days and then the destination address has to accept it; meanwhile any device of the account can cancel it.",
     "transferred": "Account transferred",
     "transferSubmit": "Request the transfer",
     "transferScheduled": "Transfer requested: completes in {{days}} days",
     "transferPending": "Transfer pending to",
-    "transferFrom": "can be completed from",
+    "transferFrom": "can be accepted from",
     "transferNow": "Complete the transfer",
     "transferCancel": "Cancel the transfer",
     "transferCancelled": "Transfer cancelled",
-    "transferPendingBanner": "A transfer of the account to {{to}} is pending: it can be completed on {{when}}.",
+    "transferPendingBanner": "A transfer of the account to {{to}} is pending: it can be accepted from {{when}}.",
     "state": "State",
     "active": "Active"
   },
@@ -361,7 +366,12 @@
     "InvalidCover": "The cover distance is not valid for that target.",
     "InDebt": "You have a registered market debt: pay it first.",
     "TradeOpen": "You cannot start a vacation while an accepted trade's window is open.",
-    "InvalidClaim": "The claim does not fit: check what remains, the debtor's stock and your free capacity."
+    "InvalidClaim": "The claim does not fit: check what remains, the debtor's stock and your free capacity.",
+    "NoInvite": "There is no valid invitation for this address.",
+    "TooLate": "The mission would land after its encryption opens: send it again.",
+    "TooEarly": "Too early to report: wait for the round to come out.",
+    "NotKeeper": "Only a listed keeper can report.",
+    "InvalidBond": "The bond must be within the configured bounds."
   },
   "theme": {
     "label": "Theme",
@@ -371,11 +381,13 @@
   },
   "joining": {
     "title": "Add this device",
-    "body": "Scan this code (or open the link) on a device that already has the account, and approve it with its passkey. This screen moves on by itself when it is done.",
+    "body": "Scan this code (or open the link) on a device that already has the account, and approve it with its passkey. Once it invites you, the button to accept shows up here.",
     "copy": "Copy link",
     "copied": "Link copied",
     "cancel": "Cancel",
-    "waiting": "Waiting for approval…"
+    "waiting": "Waiting for approval…",
+    "invited": "Account #{{player}} invited you. Accept to join (asks for your passkey once).",
+    "accept": "Accept the invitation"
   },
   "devices": {
     "title": "Devices and recovery",
@@ -396,12 +408,12 @@
     "usedHere": "used to recover on this device",
     "usedNote": "That code was already used to recover the account: generate a new one and remove the used one.",
     "add": "Add a device",
-    "addNote": "On the new device choose “Add this device to my account”: it shows a QR code. Scan it with this device, or paste its link here.",
+    "addNote": "On the new device choose “Add this device to my account”: it shows a QR code. Scan it with this device, or paste its link here; then accept the invitation on the new device.",
     "link": "Link or address of the new device",
     "addSubmit": "Add",
     "added": "Device added",
     "approve": "A device asks to join your account",
-    "approveNote": "Approve it only if you are setting it up yourself: it will manage the whole account.",
+    "approveNote": "It invites it to manage the whole account: the new device then accepts the invitation. Invite it only if you are setting it up yourself.",
     "approveSubmit": "Approve device",
     "reject": "Not mine",
     "recovery": "Recovery code",
@@ -410,7 +422,18 @@
     "saved": "I saved it",
     "activate": "Activate the code",
     "activated": "Code activated",
-    "discard": "Discard"
+    "discard": "Discard",
+    "invited": "Device invited: it has to accept from its own screen",
+    "uninvited": "Invitation cancelled",
+    "joined": "Device added to the account",
+    "invitedList": "Invitations pending from this device",
+    "cancelInvite": "Cancel the invitation",
+    "pendingForMe": "Waiting for you to accept",
+    "pendingNote": "Nobody can add this address to an account unless you accept here. Accepting asks for your passkey once.",
+    "acceptInvite": "Join account #{{player}}",
+    "acceptTransfer": "Accept account #{{player}}",
+    "pendingUntil": "valid until",
+    "pendingSince": "can be accepted from"
   },
   "recovery": {
     "done": "Account recovered"

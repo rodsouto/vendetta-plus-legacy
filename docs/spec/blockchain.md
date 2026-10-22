@@ -182,6 +182,10 @@ Every mission in the world resolves in **global arrival order**, ties broken by 
   client calls `advance` until the queue is caught up.
 - A due hidden mission that nobody revealed yet stops the queue for at most a short grace (B-22):
   actions revert with `Unrevealed`, and the client reveals it first.
+- **Same-second order.** A building's own events (room, research, training) that finish at the
+  arrival second are ordered against the mission by creation (`seq`, D-08): those created before
+  the mission was created resolve before it, those created after resolve after it. A vacation that
+  starts in the same second as a hidden send is ordered the same way (B-22).
 - Why global and not per target: a mission's return depends on a battle in another building, and
   honor depends on occupations still in flight. With per-target order, settling one building would
   need a recursive resolution across buildings and players, with a work stack stored on-chain and
@@ -199,21 +203,27 @@ Local settlement is bounded by the queue sizes, so it always fits in a transacti
 mission queue (B-07) is not: after a burst of arrivals there may be more due missions than one
 transaction can process. So:
 
-- Every player action first processes due missions, at most **`MAX_MISSIONS_PER_TX` = 10**. If due
+- Every player action first processes due missions, at most **`MAX_MISSIONS_PER_TX` = 4**. If due
   missions remain, the action **reverts** with `Backlog`.
 - `advance(n)` is public (anyone, no ownership): it processes up to `n` due missions and never
   reverts on a remaining backlog. The client (or our keeper) calls it, then retries the action.
-- **Gas cap:** a due mission is processed only while at least `MISSION_GAS_RESERVE` (3M, the
+- **Gas cap:** a due mission is processed only while at least `MISSION_GAS_RESERVE` (7M, the
   invariant below) gas is left; otherwise the action (or `advance`) reverts with `Backlog` instead
   of running out of gas midway. It never succeeds having skipped a due mission for lack of gas, so a
   gas estimate covers every mission it must process. This matters because an action's cost depends
-  on when it lands: missions may come due between the gas estimate and inclusion. On `Backlog` the client retries once with `advance(10)` first, in the same
-  operation. The simulator has no gas, so it never stops early; with enough gas both agree.
-  Side effect: while a mission is due, an action's estimated gas limit includes the 3M reserve
-  (only the limit; ERC-4337 charges 10% of the unused part).
-- **Invariant:** one single event (the worst case is one battle) always fits in a block with room
-  to spare. Target: **< 3M gas per battle**. Measured: **~1.37M** for the worst case found,
-  including every storage read and write (`forge test --match-contract BattleGas -vv`).
+  on when it lands: missions may come due between the gas estimate and inclusion. On `Backlog` the
+  client retries with `advance(MAX_MISSIONS_PER_TX)` in front, in the same operation; if that
+  fails too, the client and the keeper fall back to `advance(1)` in separate operations until the
+  queue is caught up. The simulator has no gas, so it never stops early; with enough gas both
+  agree. Side effect: while a mission is due, an action's estimated gas limit includes the 7M
+  reserve (only the limit; ERC-4337 charges 10% of the unused part).
+- **Invariant:** one single mission always fits in a transaction with room to spare. The reserve
+  stays above the heaviest mission measured: a battle alone costs **~1.37M** in the worst case
+  found (`forge test --match-contract BattleGas -vv`), but a mission also settles up to four
+  buildings (origin, target and both research buildings): with full premium queues an attack
+  costs **~4–6.4M** (`forge test --match-contract MissionGas -vv`), so the reserve is 7M and the
+  batch 4 (4 × 7M fits Arbitrum's 32M transaction limit). 7M is provisional until a
+  reachable-state measurement (a long trip with queue items that finish during it) confirms it.
 
 ## B-09 — Hard caps — Adapt
 
@@ -270,10 +280,17 @@ On-chain details:
 - `offerTrade(buyer, sold, quantity, price)`: the price must equal one of the fixed rates exactly,
   compared with integers over the common denominator (`quantity / rate[sold] = Σ price[r] / rate[r]`).
   The converted resource (alcohol) is neither sold nor paid, and a resource is never traded for itself.
-  The trade stores the index of the rate it matched (with two rates a price matches only one).
+  The trade stores the index of the rate it matched; a price that matches more than one rate is
+  rejected (`InvalidOffer`), so the stored rate is never ambiguous. `quantity` and every
+  `price[r]` must fit in 64 bits (`InvalidOffer`).
+- `acceptTrade` checks the seller again: active (not on vacation nor suspended, B-14) and without
+  a registered debt; otherwise `InvalidTrade`.
 - A seller has at most 10 open trades (pending, or accepted inside the window and not complete, B-09).
-- `sendMission(…, trade)`: a transport names the trade it delivers for (D-19). At arrival the
-  resources are credited first; then the cargo counts, per resource and up to what remains:
+- `sendMission(…, trade)`: a transport names the trade it delivers for (D-19). The target must
+  belong to the counterparty when it leaves (after the window: to the creditor), `InvalidTrade`
+  otherwise. At arrival the cargo **counts in full** for the trade, per resource and up to what
+  remains, whatever happened to the building meanwhile (D-26); what fits is credited and the rest
+  is lost (D-10):
   - inside the window: seller → buyer, the sold resource adds to `delivered`; buyer → seller, each
     price resource adds to `paid`;
   - after the window: debtor → creditor, each owed resource adds to `returned`.
@@ -288,12 +305,14 @@ On-chain details:
   and ≤ the free capacity of `toBuilding`, alcohol and resources not owed are 0, and at least one
   is > 0; otherwise it reverts. The resources move directly (no mission) and add to `returned`.
   Works whether the debtor is active, suspended or on vacation.
-- **Registration:** the first claim sets `Trade.registered` and increments the debtor's
-  `Player.debts` and `owes[debtor][creditor]`. When `returned` reaches `owed`, both decrement.
-  Every check below is O(1).
+- **Registration:** `registerDebt(trade)` (creditor only, after the window, idempotent: it moves
+  nothing and emits `DebtRegistered` once) or the first claim sets `Trade.registered` and
+  increments the debtor's `Player.debts` and `owes[debtor][creditor]`. When `returned` reaches
+  `owed`, both decrement. Every check below is O(1).
 - **Restrictions** while `Player.debts > 0`: `offerTrade` and `acceptTrade` revert `InDebt`;
   `startVacation` reverts; `sendMission` of a transport to a building not owned by the sender or
-  by one of its creditors reverts `InDebt`. Hidden missions (B-22) cannot be checked at send, so at
+  by one of its creditors reverts `InDebt`; a transport that names a trade the debtor owes on is
+  always allowed to that trade's creditor, registered or not. Hidden missions (B-22) cannot be checked at send, so at
   arrival a transport (hidden or not) from a player with debts to such a building **bounces**:
   it turns back with its troops and cargo.
 - **Vacation lock:** `acceptTrade` sets `tradeLockUntil` of both parties to the latest window end;
@@ -360,8 +379,11 @@ vacation or suspended can only end the vacation. In v1 `suspend(player, until)` 
   controller: the client suggests replacing it. An email-based method may come later (it needs a
   service).
 - **Session keys, native to the game:** the controller calls `authorizeSession(session, until)` to
-  let a per-device address (a simple 4337 account held by a browser key) play for it, at most
-  `onchain.max_session_seconds` (30 days); renewing is authorizing again, `revokeSession` ends it.
+  invite a per-device address (a simple 4337 account held by a browser key) to play for it, at
+  most `onchain.max_session_seconds` (30 days). The session binds only when that address accepts
+  (`acceptSession(player)`, sent by the session address itself), so nobody binds an address it
+  does not hold; the invitation lasts until `until`. Renewing is inviting again, accepted again in
+  the session's next operation; `revokeSession` ends it.
   A session does every game action, under the same vacation and suspension locks, but never manages
   the account: it cannot authorize or revoke sessions, transfer the player, or register a player of
   its own (`NotController`, `AlreadyRegistered`). An address is a controller or a live session,
@@ -370,17 +392,20 @@ vacation or suspended can only end the vacation. In v1 `suspend(player, until)` 
   enumerated. The passkey signs only to create the account, open or renew a session and manage
   devices.
 - **Client flows** (`apps/web/src/account/`): *create* = new passkey, then one operation from the
-  counterfactual account that publishes it in the directory, registers the player and authorizes
-  this device's session. *Sign in* = a WebAuthn assertion on a random challenge, then the directory
-  check above, then authorizing this device's session. Every game action goes out through the
-  session with no prompt; when the session has lapsed, the action first renews it (one passkey
-  prompt). The session key lives in browser storage: it can only play, expires and is revocable.
+  counterfactual account that publishes it in the directory, registers the player and invites
+  this device's session; the session accepts in front of its first action. *Sign in* = a WebAuthn
+  assertion on a random challenge, then the directory check above, then inviting this device's
+  session. Every game action goes out through the session with no prompt; when the session has
+  lapsed, the action first renews it (one passkey prompt) and accepts the invitation in front of
+  the action. The session key lives in browser storage: it can only play, expires and is revocable.
   *Add a device* = the new device makes its passkey and shows a link (and QR) with its account's
-  address; a device already in the account opens it and approves (`addController`, one prompt).
+  address; a device already in the account opens it and invites it (`inviteController`, one
+  prompt); the new device accepts from its own account (`acceptController`, one prompt, publishing
+  its passkey in the same operation).
   *Recovery code* = 120 random bits shown as six groups of four base32 characters; the key is
   `keccak256("vendetta recovery v1" ‖ bits)` and its simple account becomes a controller (one
-  prompt). *Recover* = new passkey, then the code's account adds it as a device (no prompt), then
-  the new account publishes its passkey and authorizes the session (one prompt); the device remembers
+  prompt). *Recover* = new passkey, then the code's account invites it (no prompt), then the new
+  account accepts, publishes its passkey and invites the session (one prompt); the device remembers
   which code it used and suggests a new one. An account that joined without publishing yet publishes
   with its first session renewal. *Remove a device* schedules the removal (B-26) and later executes
   it; both steps kill every session, so each re-authorizes this device's session in the same
@@ -512,11 +537,17 @@ precompile only returns a boolean, so decrypting tlock on-chain is not practical
   difference is not refunded. `1 ≤ cover ≤` the distance from the origin to the farthest map
   corner, the longest trip that building can already make with a real target, so hiding never
   allows a longer trip (fleet save) than today.
-- **Bond.** A hidden mission also pays `hidden_mission_bond` in the salary resource
-  ([game_config.yaml](data/game_config.yaml)). It goes back to the origin building when the
-  mission resolves after a reveal, or when it comes home after a recall; it is lost on forfeit.
-- **Reveal.** `reveal(id, kind, target, salt)`: anyone, any time (before the drand round only the
-  sender knows the plaintext). The contract checks the hash, that the kind and coordinate are
+- **Bond.** A hidden mission also pays the hidden mission bond in the salary resource: a parameter
+  the admin sets with `setHiddenBond` within [`hidden_mission_bond_min`, `hidden_mission_bond_max`],
+  starting at `hidden_mission_bond` ([game_config.yaml](data/game_config.yaml)); it is the price of
+  stalling the world, so it stays well above what a new account starts with, and the admin raises
+  it as the economy grows. It goes back to the origin building when the mission resolves after a
+  reveal that landed before `arrival + hidden_bond_refund_seconds` (30 s: an honest reveal lands
+  15–20 s after the arrival), or when it comes home after a recall. A later reveal still resolves
+  the mission but the bond is lost, and so it is on forfeit.
+- **Reveal.** `reveal(id, kind, target, salt)`: anyone, until the grace ends (before the drand round
+  only the sender knows the plaintext); past `arrival + hidden_reveal_grace_seconds` it does
+  nothing, the mission is forfeited whoever reveals it. The contract checks the hash, that the kind and coordinate are
   valid and not the origin, and that `distance(origin, target) ≤ cover`; otherwise it reverts, and
   the mission is eventually forfeited. Revealing a mission that is no longer hidden does nothing, so
   clients and the keeper can race. Reveal does not drain the queue: it touches no building, so it
@@ -530,15 +561,29 @@ precompile only returns a boolean, so decrypting tlock on-chain is not practical
 - **Forfeit.** Once the grace has passed, the head is resolved in order as a forfeit: it turns
   back from its arrival time with all its troops and cargo, and the bond is lost. Garbage
   ciphertexts can stall the world for the grace at most, at the cost of a bond.
+- **Garbage report.** The contract cannot tell a valid ciphertext from garbage, so the grace is
+  the honest revealer's time budget and nobody can shorten it without trust. Our keeper (any
+  address the admin lists with `setKeeper`) may shorten it for one mission: from
+  `arrival + hidden_report_delay_seconds` (15 s, once the drand round is out) it calls
+  `reportGarbage(id)` when the ciphertext does not decrypt or does not reproduce the commitment,
+  never on a transient error; the mission is then forfeited unless someone reveals it within
+  `hidden_report_window_seconds` (15 s), which also cancels the report. A false report can only
+  forfeit a mission nobody revealed within 30 s, the bond refund deadline anyway; every report is
+  an event (`GarbageReported`). External keepers reveal but never report.
 - **Arrival rules** are the usual ones (07-missions.md), plus D-18 checked at arrival: a hidden
   mission bounces if the target's owner was on vacation when it was sent (a vacation started later
-  does not protect). A transport from a player in debt to anyone but its own buildings and its
-  creditors also bounces (B-11).
+  does not protect, a vacation started in the same second counts by creation order, B-07). A
+  transport from a player in debt to anyone but its own buildings and its creditors also bounces
+  (B-11).
 - `sendMission` stays public; the client uses it only for transports bound to a trade (D-19), whose
   counterparty is public anyway. Recall works the same on hidden missions.
-- **Timelock per network.** On Arbitrum One, tlock for the quicknet round at `arrival + 10 s`, so
-  inclusion latency never lets anyone open it before the mission lands. On local chains the
-  plaintext travels as is ("plain"): anvil's clock jumps (time travel) and drand's does not.
+- **Timelock per network.** On Arbitrum One, tlock for the quicknet round at `arrival + 10 s`
+  (drand's `roundAt` floors to the round scheduled at most 10 s after the arrival, so the
+  ciphertext opens 8–10 s after it). Inclusion latency must not push the real arrival past that
+  round: `sendHiddenMission` takes a `deadline` and reverts `TooLate` when the arrival computed at
+  inclusion would be later; the client sets it to the round's time minus one second and encrypts
+  again on that error. On local chains the plaintext travels as is ("plain"): anvil's clock
+  jumps (time travel) and drand's does not.
 - **Measured:** `sendHiddenMission` ~400k gas with a 400-byte ciphertext, `reveal` ~13k
   (`forge test --match-contract HiddenMissions -vv`).
 - **Accepted leaks:** the cover ring; the cargo (a mission carrying resources is a transport); the
@@ -596,9 +641,12 @@ sanctions) is keyed by a **`playerId`**, never by an address. Each player has **
 (B-15). They are all equal: any of them manages the account and plays. The contract records which
 controllers are recovery codes, so every device labels them right.
 
-- `addController(address, recovery)`: by a controller (never a session key), for an address that
-  controls no player and is no live session (`ControllerTaken`), within the cap
-  (`TooManyControllers`). Immediate.
+- `inviteController(address, recovery)`: by a controller (never a session key), for an address
+  that controls no player and is no live session (`ControllerTaken`). The address becomes a
+  controller only when it accepts itself (`acceptController(player)`, within the cap,
+  `TooManyControllers`): nobody is bound to an account without its own call. An invitation lasts
+  `onchain.invite_ttl_seconds` (7 days), dies with the player's `sessionEpoch`, and any controller
+  drops it with `cancelInvite(address)`.
 - `removeController(address)`: by a controller. Removing **itself** is immediate, never the last one
   (`LastController`). Removing **another** controller takes two steps: the first call schedules it
   for `now + onchain.controller_removal_delay_seconds` (3 days), bumps `sessionEpoch` (every session
@@ -614,14 +662,16 @@ controllers are recovery codes, so every device labels them right.
   removal forever: a stalemate, but neither takes the account alone, since nothing executes while
   the other side cancels. The owner cuts the thief's play at once with `revokeSession` (any
   controller revokes any session of the player) and wipes the device remotely.
-- `transferPlayer(newController)` gives the whole account to someone else, in the same two steps:
-  the first call schedules it (`PlayerTransferScheduled`; the target must be free, checked again at
-  execution), the same call once due executes it (`PlayerTransferred`: the new address becomes the
-  only controller and every session dies), a call with a different target re-schedules,
-  `TransferPending` before it is due, and any controller cancels with `cancelTransfer()`
-  (`NoTransfer`). Scheduling and executing need the player active: **not on vacation nor suspended**
-  (B-14), so a sanction cannot be escaped by moving the account; cancelling works while locked. It
-  is in v1. The v2 NFT (B-24) only wraps it.
+- `transferPlayer(newController)` gives the whole account to someone else, in two steps: a
+  controller schedules it (`PlayerTransferScheduled`; the target must be free), and once due the
+  **target accepts** it (`acceptTransfer(player)`, from the target address, free at that moment,
+  `TransferPending` before it is due): `PlayerTransferred`, the new address becomes the only
+  controller and every session dies. A call with a different target re-schedules, and any
+  controller cancels with `cancelTransfer()` (`NoTransfer`). Scheduling and accepting need the
+  player active: **not on vacation nor suspended** (B-14), so a sanction cannot be escaped by
+  moving the account; cancelling works while locked. It is in v1. The v2 NFT (B-24) only wraps it.
+- `revokeSession`, `cancelRemoval`, `cancelTransfer` and `cancelInvite` do not drain the mission
+  queue (B-07): they touch no building, so a stalled queue never delays them. `recall` does.
 - Everything moves with the account: buildings, troops, missions in flight, queues, premium, family
   membership and role, market trades and debts. A player in debt (B-11) can transfer the account:
   the creditor collects from it just the same.
@@ -742,7 +792,7 @@ Measured with a prototype before the B-03 deviation list and B-09 caps are fixed
 | Missions | **Measured (3b)**: send an attack ~354k; process one attack (battle, loot, return queued) ~555k; process one return ~82k (`MissionsGasTest`, inside a test) |
 | Storage, not combat, dominates cost | Unmeasured. Decides whether B-02 ever needs Stylus. |
 | Precision vs test vectors | **0 deviations** in every formula, including travel time and salary (exact integer math, B-03) |
-| Missions processed per transaction | `MAX_MISSIONS_PER_TX` = 10: up to ~14M gas in the worst case (10 worst battles), within an Arbitrum block |
+| Missions processed per transaction | `MAX_MISSIONS_PER_TX` = 4 and a 7M reserve per mission (B-08): an attack that settles four buildings with full premium queues measured ~4–6.4M (`MissionGas`), so 4 × 7M fits Arbitrum's 32M transaction limit |
 | Daily sponsored allowance per account | Set from the measured costs and budget |
 | Smart account provider supports multi-passkey + session keys + paymaster | **Chosen (4b)**: Kernel with a passkey owner (permissionless.js), native game sessions (B-15), Pimlico paymaster. Multi-ecosystem devices and recovery still to verify |
 | Session management | **Measured (4b, inside a test)**: authorize a session ~41k (a new storage slot); an action through a session costs the same as through the controller plus about two storage reads |

@@ -1,7 +1,7 @@
 // Several controllers per player (B-26) on the local 4337 stack: a recovery code brings the account
 // to a device with a new passkey, that device schedules the lost one's removal (cancels it, asks
 // again, executes it once due), and a device from "another ecosystem" (its own passkey) joins
-// through the link an existing device approves.
+// through the link an existing device opens to invite it, accepting the invitation itself.
 import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 
 const stamp = (page: Page) => page.locator(".stamp-toast").last();
@@ -129,21 +129,27 @@ test("recover with a code, remove the lost device, add a device from another eco
   const created = await laptop.prompts();
   const link = (await laptop.page.locator(".join-link a").getAttribute("href"))!;
 
-  // ...that the recovered device opens and approves (a passkey prompt).
+  // ...that the recovered device opens to invite it (a passkey prompt). Nothing binds the laptop
+  // yet: it accepts from its own screen (a prompt), publishing its passkey and inviting its
+  // session in the same operation; its first order then needs none.
   await fresh.page.goto(link);
   await fresh.page.getByRole("button", { name: "Aprobar dispositivo" }).click();
-  await expect(stamp(fresh.page)).toContainText("Dispositivo agregado", { timeout: 60_000 });
+  await expect(stamp(fresh.page)).toContainText("Dispositivo invitado", { timeout: 60_000 });
   expect(await fresh.prompts()).toBe(recovered + 5);
 
-  // The laptop moves on by itself; its first order publishes its passkey and opens its session.
+  await laptop.page
+    .getByRole("button", { name: "Aceptar la invitación" })
+    .click({ timeout: 30_000 });
+  await expect(stamp(laptop.page)).toContainText("Dispositivo sumado", { timeout: 60_000 });
+  const joined = await laptop.prompts();
+  expect(joined).toBe(created + 1);
   await expect(laptop.page.getByRole("heading", { name: "Sumá este dispositivo" })).toBeHidden({
     timeout: 30_000,
   });
   await laptop.page.goto("/#/account");
   await laptop.page.getByRole("button", { name: "Volver de vacaciones" }).click();
   await expect(stamp(laptop.page)).toContainText("Volver de vacaciones", { timeout: 60_000 });
-  const joined = await laptop.prompts();
-  expect(joined).toBe(created + 1);
+  expect(await laptop.prompts()).toBe(joined);
 
   // Its passkey is in the directory now: signing out and back in works.
   await laptop.page.getByRole("button", { name: "Salir", exact: true }).click();

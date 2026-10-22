@@ -327,6 +327,7 @@ function Wars({ f, families }: { f: bigint; families: sim.Family[] }) {
           <tbody>
             {wars.map((x) => {
               const running = sim.warBetween(w, x.a, x.b) === x.id;
+              const result = sim.warOutcome(w, x.id); // a dissolved family lost (B-31)
               const theirOffer = x.offer !== sim.OFFER_NONE && x.offerBy !== f;
               return (
                 <tr key={String(x.id)}>
@@ -337,8 +338,8 @@ function Wars({ f, families }: { f: bigint; families: sim.Family[] }) {
                         ? x.offer !== sim.OFFER_NONE
                           ? `${t("family.offerPending")}: ${x.offer === sim.OFFER_SURRENDER ? t("family.surrender") : t("family.draw")}`
                           : ""
-                        : x.winner
-                          ? `${t("family.winner")} ${name(x.winner)}`
+                        : result.winner
+                          ? `${t("family.winner")} ${name(result.winner)}`
                           : t("family.drawResult")}
                     </span>
                   </td>
@@ -388,8 +389,8 @@ function Wars({ f, families }: { f: bigint; families: sim.Family[] }) {
                             void g.act({
                               done: t("family.done"),
                               functionName: "answerPeace",
-                              args: [x.id, true],
-                              check: (w, c, n) => sim.answerPeace(w, c, x.id, true, n),
+                              args: [x.id, x.offer, true],
+                              check: (w, c, n) => sim.answerPeace(w, c, x.id, x.offer, true, n),
                             })
                           }
                         >
@@ -402,8 +403,8 @@ function Wars({ f, families }: { f: bigint; families: sim.Family[] }) {
                             void g.act({
                               done: t("family.done"),
                               functionName: "answerPeace",
-                              args: [x.id, false],
-                              check: (w, c, n) => sim.answerPeace(w, c, x.id, false, n),
+                              args: [x.id, x.offer, false],
+                              check: (w, c, n) => sim.answerPeace(w, c, x.id, x.offer, false, n),
                             })
                           }
                         >
