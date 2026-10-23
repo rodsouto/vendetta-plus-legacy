@@ -1,9 +1,16 @@
 // A mined transaction that reverted is replayed with `call` to name its custom error (B-08): the
 // revert data then travels on the RPC error itself, not on a RawContractError like a simulation.
+// A dev account's call rejected at its gas estimate carries its index: the calls before it landed.
 import { describe, expect, it } from "vitest";
-import { createPublicClient, custom } from "viem";
+import {
+  ContractFunctionExecutionError,
+  ContractFunctionRevertedError,
+  createPublicClient,
+  custom,
+} from "viem";
 import { gameAbi } from "../src/chain/abi.js";
-import { revertData, revertName } from "../src/account/signer.js";
+import { DevSigner, RevertedError, revertData, revertName } from "../src/account/signer.js";
+import { gameCall, sendBehindQueue } from "../src/state/backlog.js";
 import type { Clients } from "../src/chain/config.js";
 
 const BACKLOG = "0x7564d4c1"; // Backlog()
@@ -65,5 +72,62 @@ describe("revert decoding", () => {
       gameAbi,
     );
     expect(name).toBeUndefined();
+  });
+});
+
+describe("dev account", () => {
+  const GAME = "0x0000000000000000000000000000000000000001";
+  const train = gameCall(GAME, "train", [1n, 0n, 1n]);
+
+  /** A wallet whose `failAt`-th write is rejected at its gas estimate with Backlog, as viem does. */
+  function clientsFailingAt(failAt: number) {
+    const sent: string[] = [];
+    const wallet = {
+      chain: undefined,
+      account: { address: from },
+      async writeContract(c: { functionName: string; args: readonly unknown[] }) {
+        if (sent.length === failAt) {
+          const revert = new ContractFunctionRevertedError({
+            abi: gameAbi,
+            data: BACKLOG,
+            functionName: c.functionName,
+          });
+          throw new ContractFunctionExecutionError(revert, {
+            abi: gameAbi,
+            functionName: c.functionName,
+            args: c.args,
+          });
+        }
+        sent.push(c.functionName);
+        return "0x" + "33".repeat(32);
+      },
+    };
+    const pub = {
+      waitForTransactionReceipt: async () => ({ status: "success", blockNumber: 1n }),
+    };
+    return { clients: { public: pub, wallet: () => wallet } as unknown as Clients, sent };
+  }
+
+  it("names the call rejected at its gas estimate", async () => {
+    const { clients } = clientsFailingAt(1);
+    const e = await new DevSigner(clients).send([train, train], "actor").catch((x) => x);
+    expect(e).toBeInstanceOf(RevertedError);
+    expect(e).toMatchObject({ errorName: "Backlog", failed: 1 });
+  });
+
+  it("an action that landed before a call rejected with Backlog is not sent again", async () => {
+    const { clients, sent } = clientsFailingAt(1);
+    const signer = new DevSigner(clients);
+    await expect(
+      sendBehindQueue({
+        world: undefined,
+        known: new Map(),
+        game: GAME,
+        calls: [train, train],
+        submit: (c) => signer.send(c, "actor"),
+        clock: () => 0n,
+      }),
+    ).rejects.toMatchObject({ errorName: "Backlog" });
+    expect(sent).toEqual(["train"]);
   });
 });

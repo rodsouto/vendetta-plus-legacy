@@ -295,7 +295,8 @@
     "lift": "Levantar suspensión",
     "grant": "Premium 30 días",
     "target": "Jugador",
-    "admin": "admin"
+    "admin": "admin",
+    "warpStopped": "El tiempo se detuvo en la llegada de una misión oculta que no se pudo revelar; esperá al keeper y seguí."
   },
   "errors": {
     "AlreadyRegistered": "Esta dirección ya tiene una cuenta.",
@@ -310,7 +311,7 @@
     "TimingRoomRequired": "Falta la sala necesaria (nivel 1 o más).",
     "ResearchElsewhere": "Ya estás investigando en otro edificio.",
     "NothingToCancel": "No hay nada para anular ahí.",
-    "Backlog": "Hay misiones atrasadas por procesar; procesalas y reintentá.",
+    "Backlog": "La cola de misiones se está poniendo al día; reintentá en unos segundos.",
     "InvalidMission": "La misión no es válida.",
     "OwnTarget": "No podés atacar un edificio tuyo.",
     "InvalidTroops": "Esas tropas no están disponibles.",

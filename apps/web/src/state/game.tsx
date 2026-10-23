@@ -25,6 +25,7 @@ import { loadNetwork, type Network } from "../chain/networks.js";
 import {
   byArrival,
   clockOffset,
+  cloneWorld,
   controllerKey,
   loadWorld,
   pendingFor,
@@ -41,14 +42,7 @@ import {
 } from "../chain/hidden.js";
 import { parseRecoveryCode, recoveryKey, rememberUsedRecovery } from "../account/recovery.js";
 import { DevSigner, PasskeySigner, makeSigner, type Call, type From } from "../account/signer.js";
-import {
-  MAX_BACKLOG_RETRIES,
-  cancelled,
-  errorName,
-  gameCall,
-  revealPlan,
-  sendBehindQueue,
-} from "./backlog.js";
+import { cancelled, errorName, gameCall, revealPlan, sendBehindQueue } from "./backlog.js";
 
 // The passkey stack (permissionless, ox) loads on first use, not with the app.
 const passkeys = () => import("../account/passkey.js");
@@ -287,14 +281,15 @@ export function GameProvider({
   );
 
   /**
-   * Sends the calls behind the advances and the reveals they need (backlog.ts: retries with
-   * advance() on Backlog, B-08; reveals in order, B-22) and resolves to the ids it revealed. The
-   * reveals are planned at a fresh block's time: only missions that arrived on chain go.
+   * Sends the calls behind an advance() for the due missions and the reveals they need
+   * (backlog.ts: one retry on Backlog, then the keeper catches up, B-08; reveals in order, B-22)
+   * and resolves to the ids it revealed. The reveals are planned at a fresh block's time: only
+   * missions that arrived on chain go.
    */
   const send = useCallback(
     (calls: Call[], from: From): Promise<bigint[]> =>
       sendBehindQueue({
-        world: snapshot?.world,
+        world: snapshot ? cloneWorld(snapshot.world) : undefined,
         known,
         game,
         calls,
@@ -749,8 +744,9 @@ export function GameProvider({
    * Dev only. A jump in one go would carry every due hidden mission past its grace and forfeit
    * it (B-22), so the jump stops at the arrival of each mission this browser can reveal (any
    * account's plaintext it stored) and reveals it there, in arrival order, as the keeper would in
-   * real time. A reveal drains the queue like an action: on a backlog it goes again behind an
-   * advance(). It holds `busy` throughout: the reveals at arrival and the player's actions wait.
+   * real time, behind an advance() like any send. A mission that does not reveal stops the jump
+   * there: going on would forfeit it before the keeper had a tick. It holds `busy` throughout:
+   * the reveals at arrival and the player's actions wait.
    */
   const warp = useCallback(
     async (seconds: number) => {
@@ -762,7 +758,6 @@ export function GameProvider({
         await clients.public.request({ method: "evm_mine" as never });
         offset.current += s;
       };
-      const advance = gameCall(game, "advance", [BigInt(sim.MAX_MISSIONS_PER_TX)]);
       const start = BigInt(Math.floor(Date.now() / 1000) + offset.current);
       const target = start + BigInt(seconds);
       const plains = allStoredPlains(game);
@@ -776,6 +771,8 @@ export function GameProvider({
             m.arrival <= target,
         )
         .sort(byArrival);
+      const w = snapshot ? cloneWorld(snapshot.world) : undefined;
+      const revealed = new Set<bigint>();
       setBusy(true);
       try {
         let at = start;
@@ -784,29 +781,33 @@ export function GameProvider({
             await increase(Number(m.arrival - at));
             at = m.arrival;
           }
-          const p = plains.get(m.commit)!;
-          const { city, neighborhood, slot } = p.target;
-          const salt = `0x${p.salt.toString(16).padStart(64, "0")}`;
-          const reveal = gameCall(game, "reveal", [m.id, p.kind, [city, neighborhood, slot], salt]);
-          for (let advances = 0; ; advances++) {
+          if (!revealed.has(m.id)) {
             try {
-              await signer.send([...Array<Call>(advances).fill(advance), reveal], "admin");
-              break;
+              const sent = await sendBehindQueue({
+                world: w,
+                known: plains,
+                game,
+                calls: [],
+                submit: (c) => signer.send(c, "admin"),
+                clock: () => at,
+              });
+              for (const id of sent) revealed.add(id);
             } catch (e) {
-              if (errorName(e) !== "Backlog" || advances >= MAX_BACKLOG_RETRIES) {
-                console.warn("reveal during warp", m.id, e);
-                break;
-              }
+              console.warn("reveal during warp", m.id, e);
             }
+          }
+          if (!revealed.has(m.id)) {
+            toast(t("dev.warpStopped"), true);
+            return;
           }
         }
         if (target > at) await increase(Number(target - at));
       } finally {
         setBusy(false);
+        await refresh();
       }
-      await refresh();
     },
-    [clients, refresh, snapshot, game, signer],
+    [clients, refresh, snapshot, game, signer, toast, t],
   );
 
   if (!snapshot || !world) return <>{children(false)}</>;

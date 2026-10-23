@@ -33,7 +33,7 @@ which network it runs on. Messaging, chat and moderation are off-chain (B-10).
 | B-05 | Public state | Adapt | All state is visible to everyone except hidden mission targets (B-22); `spy` / `espionage` unchanged |
 | B-06 | Lazy settlement | Adapt | D-08 in two levels: local per building on touch, global mission queue; no keepers |
 | B-07 | Global mission order | New | All missions resolve in global arrival order (heap); local events stay per building; an unrevealed hidden mission is parked and re-enters at its reveal |
-| B-08 | Chunked settlement | New | Actions process ≤ 10 due missions, else revert `Backlog`; `advance(n)`; one event always fits in a block |
+| B-08 | Chunked settlement | New | Actions process ≤ 4 due missions, else revert `Backlog`; `advance(n)`; one event always fits in a block |
 | B-09 | Hard caps | Adapt | Queue, mission and offer limits, configurable |
 | B-10 | Off-chain social | Adapt | Messaging, chat, moderation off-chain |
 | B-11 | Market | Keep | D-19 as is: seller escrow and buyer deposit from acceptance, shares withdrawn; no debts |
@@ -178,8 +178,8 @@ Every mission in the world resolves in **global arrival order**, ties broken by 
 
 - Before any action, missions with arrival ≤ now are processed, up to `maxEvents` per transaction
   (B-08). Each one first settles its target building **locally** up to the arrival time, then
-  resolves (combat, delivery, occupation, return). If a backlog remains, the action reverts and the
-  client calls `advance` until the queue is caught up.
+  resolves (combat, delivery, occupation, return). If a backlog remains, the action reverts with
+  `Backlog`: the client puts an `advance` in front and our keeper catches up the queue (B-08).
 - A due hidden mission that nobody revealed yet never stops the queue: it is **parked** out of it
   and re-enters, as public, with its reveal time as arrival (B-22).
 - **Same-second order.** A building's own events (room, research, training) that finish at the
@@ -206,17 +206,24 @@ transaction can process. So:
 - Every player action first processes due missions, at most **`MAX_MISSIONS_PER_TX` = 4**. If due
   missions remain, the action **reverts** with `Backlog`.
 - `advance(n)` is public (anyone, no ownership): it processes up to `n` due missions and never
-  reverts on a remaining backlog. The client (or our keeper) calls it, then retries the action.
+  reverts on a remaining backlog. The client and our keeper call it.
 - **Gas cap:** a due mission is processed only while at least `MISSION_GAS_RESERVE` (7M, the
   invariant below) gas is left; otherwise the action (or `advance`) reverts with `Backlog` instead
   of running out of gas midway. It never succeeds having skipped a due mission for lack of gas, so a
   gas estimate covers every mission it must process. This matters because an action's cost depends
-  on when it lands: missions may come due between the gas estimate and inclusion. On `Backlog` the
-  client retries with `advance(MAX_MISSIONS_PER_TX)` in front, in the same operation; if that
-  fails too, the client and the keeper fall back to `advance(1)` in separate operations until the
-  queue is caught up. The simulator has no gas, so it never stops early; with enough gas both
-  agree. Side effect: while a mission is due, an action's estimated gas limit includes the 7M
-  reserve (only the limit; ERC-4337 charges 10% of the unused part).
+  on when it lands: missions may come due between the gas estimate and inclusion. The simulator
+  has no gas, so it never stops early; with enough gas both agree. Side effect: while a mission is
+  due, an action's estimated gas limit includes the 7M reserve (only the limit; ERC-4337 charges
+  10% of the unused part).
+- **Client and keeper.** The client counts the due missions with the simulator (B-20) and sends
+  `advance(count)` in front of the action, in the same operation. On `Backlog` (a mission came due
+  on the way, the snapshot missed some, or they do not fit the operation's gas) it counts again
+  and retries **once**; then the action fails and the player retries later. Catching up a longer
+  backlog is the **keeper's** job: it advances whenever the queue head is due, with
+  `advance(MAX_MISSIONS_PER_TX)` and, if that does not fit, `advance(1)` per transaction. The
+  calls that do not drain (B-26) go out alone, with no advance or reveal in front. With the keeper
+  down the game stays correct (B-06: anyone can call `advance`), but actions may fail on a backlog
+  until someone catches it up: an operating dependency, like the keeper's reveals (B-22).
 - **Invariant:** one single mission always fits in a transaction with room to spare. The reserve
   stays above the heaviest mission measured: a battle alone costs **~1.37M** in the worst case
   found (`forge test --match-contract BattleGas -vv`), but a mission also settles up to four
@@ -224,6 +231,8 @@ transaction can process. So:
   costs **~4–6.4M** (`forge test --match-contract MissionGas -vv`), so the reserve is 7M and the
   batch 4 (4 × 7M fits Arbitrum's 32M transaction limit). 7M is provisional until a
   reachable-state measurement (a long trip with queue items that finish during it) confirms it.
+  The 32M limit holds for the keeper's plain transactions; an ERC-4337 operation also has its
+  bundler's cap (the local Alto's default is 16M), which may fit fewer heavy missions per action.
 
 ## B-09 — Hard caps — Adapt
 
@@ -539,7 +548,7 @@ precompile only returns a boolean, so decrypting tlock on-chain is not practical
   origin, and that `distance(origin, target) ≤ cover`; otherwise it reverts. Revealing a mission
   that is no longer hidden does nothing, so clients and the keeper can race. Reveal drains the
   queue like any action (B-07), so every due mission ahead of it is processed or parked first;
-  with a backlog it reverts `Backlog` and the client advances first. A mission revealed before it
+  with a backlog it reverts `Backlog`, so the client puts an `advance` in front (B-08). A mission revealed before it
   arrives resolves at its arrival like a public one; one revealed after its arrival (**parked**,
   below) re-enters the queue with the reveal time as its arrival and a fresh `seq`, so it
   resolves against the target's state at the second of the reveal, with the same-second order of
@@ -720,7 +729,8 @@ controllers are recovery codes, so every device labels them right.
   player active: **not on vacation nor suspended** (B-14), so a sanction cannot be escaped by
   moving the account; cancelling works while locked. It is in v1. The v2 NFT (B-24) only wraps it.
 - `revokeSession`, `cancelRemoval`, `cancelTransfer` and `cancelInvite` do not drain the mission
-  queue (B-07): they touch no building, so a backlog never delays them. `recall` does.
+  queue (B-07): they touch no building, so a backlog never delays them, and the client sends them
+  alone, with no advance or reveal in front (B-08). `recall` does drain.
 - Everything moves with the account: buildings, troops, missions in flight, queues, premium, family
   membership and role, market trades with their shares (B-11).
 - Sanctions and open Kleros cases (B-23) follow the account, not the person.
@@ -840,7 +850,7 @@ Measured with a prototype before the B-03 deviation list and B-09 caps are fixed
 | Missions | **Measured (3b)**: send an attack ~354k; process one attack (battle, loot, return queued) ~555k; process one return ~82k (`MissionsGasTest`, inside a test) |
 | Storage, not combat, dominates cost | Unmeasured. Decides whether B-02 ever needs Stylus. |
 | Precision vs test vectors | **0 deviations** in every formula, including travel time and salary (exact integer math, B-03) |
-| Missions processed per transaction | `MAX_MISSIONS_PER_TX` = 4 and a 7M reserve per mission (B-08): an attack that settles four buildings with full premium queues measured ~4–6.4M (`MissionGas`), so 4 × 7M fits Arbitrum's 32M transaction limit |
+| Missions processed per transaction | `MAX_MISSIONS_PER_TX` = 4 and a 7M reserve per mission (B-08): an attack that settles four buildings with full premium queues measured ~4–6.4M (`MissionGas`), so 4 × 7M fits Arbitrum's 32M transaction limit. Unverified for ERC-4337: the bundler's cap per operation (16M by default in the local Alto) is below 4 × 7M, and Pimlico's on Arbitrum must be checked before deploy |
 | Daily sponsored allowance per account | Set from the measured costs and budget |
 | Smart account provider supports multi-passkey + session keys + paymaster | **Chosen (4b)**: Kernel with a passkey owner (permissionless.js), native game sessions (B-15), Pimlico paymaster. Multi-ecosystem devices and recovery still to verify |
 | Session management | **Measured (4b, inside a test)**: authorize a session ~41k (a new storage slot); an action through a session costs the same as through the controller plus about two storage reads |

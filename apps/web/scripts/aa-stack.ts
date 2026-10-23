@@ -1,8 +1,8 @@
 // Local ERC-4337 stack for passkey accounts (4b.3): a plain anvil with the account contracts of
 // Arbitrum One installed at their real addresses (EntryPoint 0.7, Kernel v3.1 and its WebAuthn
 // validator, the P-256 verifier, SimpleAccount; snapshot in aa-contracts.json, see aa-fixture.ts),
-// the Game deployed, the Alto bundler and Pimlico's mock paymaster (sponsors everything). Then the
-// web app, pointed at it. No fork: public RPCs drop old state within minutes, and this way it runs
+// the Game deployed, the Alto bundler and Pimlico's mock paymaster (sponsors everything), and the
+// keeper (B-08, B-22). Then the web app, pointed at it. No fork: public RPCs drop old state within minutes, and this way it runs
 // offline and in CI.
 //
 //   tsx scripts/aa-stack.ts [--base 8545] [--vite 5173] [--public]
@@ -11,7 +11,8 @@
 // public/deployment.local.json (pnpm dev:aa); otherwise the deployment goes to Vite through
 // VITE_DEPLOYMENT (isolated e2e runs).
 import { execFileSync, spawn, type ChildProcess } from "node:child_process";
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
@@ -33,6 +34,8 @@ const base = Number(values.base);
 // Anvil's mnemonic accounts 8 and 9: the bundler's utility and executor wallets.
 const UTILITY_KEY = "0xdbda1821b80551c9d65939329250298aa3472ba22feea921c0cf5d620ea67b97";
 const EXECUTOR_KEY = "0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6";
+// Account 7 for the keeper: 0–6 are the workshop's dev accounts, 8 and 9 the bundler's.
+const KEEPER_KEY = "0x4bbbf85ce3377467afe5d46f804f221813b2bb87f24d81f60f1fcdbf7cbf4356";
 const ENTRY_POINT_07 = "0x0000000071727De22E5E9d8BAf0edAc6f37da032";
 
 const anvilRpc = `http://127.0.0.1:${base}`;
@@ -162,7 +165,13 @@ console.log(`Game ${deployment.game} on anvil (chain ${chainId}) (${anvilRpc})`)
 console.log(`bundler ${bundlerRpc}, paymaster ${paymasterRpc}`);
 
 const env: NodeJS.ProcessEnv = {};
-if (values.public)
-  writeFileSync(join(web, "public/deployment.local.json"), JSON.stringify(deployment, null, 2));
-else env.VITE_DEPLOYMENT = JSON.stringify(deployment);
+const file = values.public
+  ? join(web, "public/deployment.local.json")
+  : join(mkdtempSync(join(tmpdir(), "vendetta-aa-")), "deployment.json");
+writeFileSync(file, JSON.stringify(deployment, null, 2));
+if (!values.public) env.VITE_DEPLOYMENT = JSON.stringify(deployment);
+// The keeper reveals hidden missions and catches up the mission queue, as on a real deployment.
+run(join(web, "node_modules/.bin/tsx"), ["scripts/keeper.ts", file, "local"], {
+  KEEPER_PRIVATE_KEY: KEEPER_KEY,
+});
 run(join(web, "node_modules/.bin/vite"), ["--port", values.vite!, "--strictPort"], env, false);

@@ -1,12 +1,12 @@
 // Sending behind a backlog (B-08) with the reveals an operation can make (B-22), against the
-// simulator as the chain. A dev account sends the calls one by one, so the advances of a failed
-// attempt stay committed: the next plan must start from the chain as it is, or it leaves out a
-// reveal it could make (here the transport that funds the action, which then fails CannotAfford).
+// simulator as the chain. The first attempt carries an advance() for every due mission; a Backlog
+// gets one retry. A dev account sends the calls one by one, so the calls of a failed attempt that
+// landed stay committed: the retry must plan from the chain as it is.
 import { describe, expect, it } from "vitest";
 import { sim, vendetta as rs, type HiddenPlain } from "@vendetta/rules";
 import { cloneWorld, project } from "../src/chain/load.js";
 import { RevertedError, type Call } from "../src/account/signer.js";
-import { gameCall, sendBehindQueue } from "../src/state/backlog.js";
+import { gameCall, revealPlan, sendBehindQueue } from "../src/state/backlog.js";
 
 const GAME = "0x0000000000000000000000000000000000000001";
 const ROWDY = rs.troops.findIndex((t) => t.id === "rowdy");
@@ -109,7 +109,9 @@ function chainOf(world: sim.World, semantics: "atomic" | "plain", at: bigint) {
     }
     throw new Error(`unexpected ${c.functionName}`);
   };
+  const sent: Call[][] = [];
   const submit = async (calls: Call[]) => {
+    sent.push(calls);
     attempts.push(calls.map((c) => c.functionName));
     if (semantics === "atomic") {
       const copy = cloneWorld(chain);
@@ -131,7 +133,7 @@ function chainOf(world: sim.World, semantics: "atomic" | "plain", at: bigint) {
       }
     }
   };
-  return { chain, submit, attempts };
+  return { chain, submit, attempts, sent };
 }
 
 describe("sendBehindQueue", () => {
@@ -146,7 +148,7 @@ describe("sendBehindQueue", () => {
   for (const semantics of ["atomic", "plain"] as const) {
     it(`reveals the transport and trains behind the backlog (${semantics} operations)`, async () => {
       const { w, known, transport, at } = backlogWorld();
-      const { chain, submit, attempts } = chainOf(w, semantics, at);
+      const { chain, submit, attempts, sent } = chainOf(w, semantics, at);
       const ids = await sendBehindQueue({
         world: w,
         known,
@@ -158,11 +160,12 @@ describe("sendBehindQueue", () => {
       expect(ids).toEqual([transport]);
       expect(chain.missions.get(transport)!.hidden).toBe(false);
       expect(chain.buildings.get(1n)!.training.some((q) => q.length > 0)).toBe(true);
-      expect(attempts.at(-1)!.at(-1)).toBe("train");
-      expect(attempts.at(-1)).toContain("reveal");
+      // One attempt: the advance covers the thirteen due missions.
+      expect(attempts).toEqual([["advance", "reveal", "train"]]);
+      expect(sent[0]![0]!.args).toEqual([13n]);
     });
 
-    it(`with no action of its own, an empty plan for a backlog advances first (${semantics})`, async () => {
+    it(`with no action of its own, the reveal goes behind the advance (${semantics})`, async () => {
       const { w, known, transport, at } = backlogWorld();
       const { chain, submit } = chainOf(w, semantics, at);
       const ids = await sendBehindQueue({
@@ -180,9 +183,10 @@ describe("sendBehindQueue", () => {
 
   // `clock` is a fresh block's time on a live chain: before the arrival, no reveal leaves (B-22).
   it("no reveal leaves before its mission arrived on chain, at arrival or in front of an action", async () => {
-    const { w, known, transport, at } = backlogWorld();
-    const { chain, submit, attempts } = chainOf(w, "plain", at);
-    const before = async () => w.missions.get(transport)!.arrival - 1n;
+    const { w, known, transport } = backlogWorld();
+    const arrival = w.missions.get(transport)!.arrival;
+    const { chain, submit, attempts } = chainOf(w, "plain", arrival - 1n);
+    const before = async () => arrival - 1n;
     const ids = await sendBehindQueue({
       world: w,
       known,
@@ -221,5 +225,94 @@ describe("sendBehindQueue", () => {
         .filter((x) => x === "train"),
     ).toHaveLength(2);
     expect(attempts.at(-1)!.at(-1)).toBe("train");
+  });
+
+  it("a Backlog gets one retry, planned from what landed, with the reveals of both attempts", async () => {
+    const { w, known, transport, at } = backlogWorld();
+    const { chain, submit, attempts } = chainOf(w, "plain", at);
+    let blocked = true;
+    // The first train hits a mission that came due on the way: advance and reveal stay committed.
+    const flaky = async (calls: Call[]) => {
+      if (blocked && calls.at(-1)!.functionName === "train") {
+        blocked = false;
+        await submit(calls.slice(0, -1));
+        attempts.at(-1)!.push("train");
+        throw new RevertedError("Backlog", calls.length - 1);
+      }
+      return submit(calls);
+    };
+    const ids = await sendBehindQueue({
+      world: w,
+      known,
+      game: GAME,
+      calls: [train],
+      submit: flaky,
+      clock: () => at,
+    });
+    expect(ids).toEqual([transport]);
+    // The revealed transport re-entered the queue due now: the retry advances it, then trains.
+    expect(attempts).toEqual([
+      ["advance", "reveal", "train"],
+      ["advance", "train"],
+    ]);
+    expect(chain.buildings.get(1n)!.training.some((q) => q.length > 0)).toBe(true);
+  });
+
+  it("a second Backlog fails: the keeper catches up the queue", async () => {
+    const { w, known, at } = backlogWorld();
+    let tries = 0;
+    await expect(
+      sendBehindQueue({
+        world: w,
+        known,
+        game: GAME,
+        calls: [train],
+        submit: async () => {
+          tries++;
+          throw new RevertedError("Backlog");
+        },
+        clock: () => at,
+      }),
+    ).rejects.toMatchObject({ errorName: "Backlog" });
+    expect(tries).toBe(2);
+  });
+
+  it("calls that do not drain the queue go out alone, whatever is due (B-26)", async () => {
+    const { w, known, at } = backlogWorld();
+    const revoke = gameCall(GAME, "revokeSession", ["0x0000000000000000000000000000000000000002"]);
+    const sent: Call[][] = [];
+    const ids = await sendBehindQueue({
+      world: w,
+      known,
+      game: GAME,
+      calls: [revoke],
+      submit: async (c) => void sent.push(c),
+      clock: () => at,
+    });
+    expect(ids).toEqual([]);
+    expect(sent).toEqual([[revoke]]);
+  });
+
+  it("with nothing to reveal, a reveal at arrival sends nothing however much is due", async () => {
+    const { w, known, transport } = backlogWorld();
+    // Within the order window the parked missions ahead hold the transport (OutOfOrder).
+    const held = w.missions.get(transport)!.arrival;
+    expect(revealPlan(w, known, GAME, held)).toMatchObject({ due: 13, accepted: [] });
+    const ids = await sendBehindQueue({
+      world: w,
+      known,
+      game: GAME,
+      calls: [],
+      submit: async () => expect.unreachable("nothing to send"),
+      clock: () => held,
+    });
+    expect(ids).toEqual([]);
+  });
+
+  it("a mission past its grace is not planned: the reveal would do nothing (B-22)", () => {
+    const { w, known, transport } = backlogWorld();
+    const end = w.missions.get(transport)!.arrival + rs.config.hiddenRevealGrace;
+    expect(revealPlan(w, known, GAME, end - 1n).accepted.map((x) => x.id)).toEqual([transport]);
+    expect(revealPlan(w, known, GAME, end).accepted).toEqual([]);
   });
 });

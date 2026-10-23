@@ -3,7 +3,7 @@
 // - PasskeySigner: the passkey's Kernel account for account management and this device's session
 //   account for every game action, both as sponsored ERC-4337 operations (B-15, B-16). The passkey
 //   stack (stack.ts: permissionless, ox) loads on its first use, not with the app.
-import { decodeErrorResult } from "viem";
+import { BaseError, ContractFunctionRevertedError, decodeErrorResult } from "viem";
 import type { Abi, Address, Hex, PublicClient } from "viem";
 import type { Clients } from "../chain/config.js";
 import { devAccount } from "../chain/config.js";
@@ -63,16 +63,18 @@ export class NoAccountError extends Error {
 }
 
 /**
- * A call that reverted on chain; `errorName` is the contract's custom error when it is known.
- * `failed` is the index of the call that reverted when the calls went one by one (a dev account):
- * the ones before it landed. Undefined for an operation that reverts as a whole.
+ * A call that reverted, on chain or at its gas estimate; `errorName` is the contract's custom
+ * error when it is known. `failed` is the index of the call that reverted when the calls went one
+ * by one (a dev account): the ones before it landed. Undefined for an operation that reverts as a
+ * whole.
  */
 export class RevertedError extends Error {
   constructor(
     readonly errorName?: string,
     readonly failed?: number,
+    options?: ErrorOptions,
   ) {
-    super(errorName ?? "reverted");
+    super(errorName ?? "reverted", options);
   }
 }
 
@@ -123,12 +125,21 @@ export async function revertName(clients: Clients, hash: Hex, block: bigint, abi
 async function sendPlain(clients: Clients, account: number, calls: Call[]) {
   const wallet = clients.wallet(account);
   for (const [i, c] of calls.entries()) {
-    const hash = await wallet.writeContract({
-      ...c,
-      address: c.to,
-      chain: wallet.chain,
-      account: wallet.account!,
-    } as never);
+    let hash: Hex;
+    try {
+      hash = await wallet.writeContract({
+        ...c,
+        address: c.to,
+        chain: wallet.chain,
+        account: wallet.account!,
+      } as never);
+    } catch (e) {
+      // Rejected at its gas estimate, never sent: the calls before it landed all the same.
+      const revert =
+        e instanceof BaseError && e.walk((x) => x instanceof ContractFunctionRevertedError);
+      if (!(revert instanceof ContractFunctionRevertedError)) throw e;
+      throw new RevertedError(revert.data?.errorName, i, { cause: e });
+    }
     const receipt = await clients.public.waitForTransactionReceipt({ hash });
     if (receipt.status !== "success") {
       throw new RevertedError(await revertName(clients, hash, receipt.blockNumber, c.abi), i);

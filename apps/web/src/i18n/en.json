@@ -295,7 +295,8 @@
     "lift": "Lift suspension",
     "grant": "Premium 30 days",
     "target": "Player",
-    "admin": "admin"
+    "admin": "admin",
+    "warpStopped": "Time stopped at the arrival of a hidden mission that could not be revealed; wait for the keeper and go on."
   },
   "errors": {
     "AlreadyRegistered": "This address already has an account.",
@@ -310,7 +311,7 @@
     "TimingRoomRequired": "The required room is missing (level 1 or more).",
     "ResearchElsewhere": "You are already researching in another building.",
     "NothingToCancel": "There is nothing to void there.",
-    "Backlog": "Overdue missions are waiting; process them and retry.",
+    "Backlog": "The mission queue is catching up; try again in a few seconds.",
     "InvalidMission": "The mission is not valid.",
     "OwnTarget": "You cannot attack your own building.",
     "InvalidTroops": "Those troops are not available.",
