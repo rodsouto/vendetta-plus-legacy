@@ -8,8 +8,8 @@
 //  - bots: players that grow, train, attack, transport, station, occupy, recall and abandon over
 //    months of game time, so battles, loot, occupations and returns to lost buildings happen;
 //  - hidden: bots that send hidden missions (B-22) and reveal them on time, late, wrongly or never;
-//  - market: bots that trade, under- and over-deliver, default, claim, pay back and run into the
-//    debt restrictions (D-19, B-11). The generator checks that every case it is meant to cover
+//  - market: bots that trade, pay in full, in part or not at all, withdraw their shares and run
+//    into the market rules (D-19, B-11). The generator checks that every case it is meant to cover
 //    happened (see MARKET_COVERAGE).
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -54,16 +54,16 @@ const ACTION = {
   declareWar: 27, // [family]
   offerPeace: 28, // [war, kind]
   answerPeace: 29, // [war, kind, accept 0/1]
-  offerTrade: 30, // [buyer, sold, quantity, price × 4]
+  offerTrade: 30, // [buyer, fromBuilding, sold, quantity, price × 4]
   cancelTrade: 31, // [trade]
-  acceptTrade: 32, // [trade]
+  acceptTrade: 32, // [trade, depositBuilding]
   authorizeSession: 33, // [session (actor id), until]: invites; the session accepts (42)
   revokeSession: 34, // [session (actor id)]
   inviteController: 35, // [controller (actor id), recovery 0/1]: invites; the address accepts (44)
   removeController: 36, // [controller (actor id)]: itself at once; another one schedules, then executes once due
   sendHiddenMission: 37, // [building, kind, city, neighborhood, slot, salt, cover, troops × 21, resources × 4, arrival]
   reveal: 38, // [mission, kind, city, neighborhood, slot, salt]
-  claimTrade: 39, // [trade, fromBuilding, toBuilding, amount × 4]
+  withdrawTrade: 39, // [trade, toBuilding, amount × 4]
   cancelRemoval: 40, // [controller (actor id)]
   cancelTransfer: 41, // []
   acceptSession: 42, // [player], by the invited session
@@ -71,7 +71,6 @@ const ACTION = {
   cancelInvite: 45, // [invited (actor id)]
   acceptTransfer: 46, // [player], by the transfer's target
   forfeit: 47, // [mission], by anyone past the grace
-  registerDebt: 50, // [trade]
 } as const;
 
 /** Whoever forfeits a parked hidden mission (B-22): a bystander, the keeper in real life. */
@@ -218,7 +217,6 @@ function snapshot(w: sim.World) {
         BigInt(p.rank),
         p.sessionEpoch,
         p.vacationStart,
-        BigInt(p.debts),
         p.tradeLockUntil,
         p.transferTo === "" ? 0n : BigInt(p.transferTo),
         p.transferAt,
@@ -226,8 +224,7 @@ function snapshot(w: sim.World) {
       ].map(num),
       applications: p.applications.map(num),
       offers: p.offers.map(num),
-      // Registered unpaid debts to every player (by id), as the contract's owes mapping.
-      owes: [...w.players.keys()].map((c) => sim.owes(w, p.id, c)),
+      purchases: p.purchases.map(num),
     })),
     families: [...w.families.values()].map((f) => ({
       alive: f.alive,
@@ -250,21 +247,22 @@ function snapshot(w: sim.World) {
       id: num(x.id),
     })),
     trades: [...w.trades.values()].map((t) => ({
+      buyer_took: t.buyerTook.map(num),
+      deposit: t.deposit.map(num),
       fields: [
         t.seller,
         t.buyer,
+        t.from,
         BigInt(t.sold),
         t.accepted ? 1n : 0n,
-        t.acceptedAt,
+        t.closesAt,
         t.quantity,
-        t.delivered,
-        BigInt(t.rate),
-        t.registered ? 1n : 0n,
       ].map(num),
       id: num(t.id),
       paid: t.paid.map(num),
       price: t.price.map(num),
-      returned: t.returned.map(num),
+      rate: t.rate.map(num),
+      seller_took: t.sellerTook.map(num),
     })),
   };
 }
@@ -377,13 +375,22 @@ function run(w: sim.World, controller: string, a: Action, now: bigint): void {
     case ACTION.answerPeace:
       return sim.answerPeace(w, controller, n[0]!, Number(n[1]), n[2] === 1n, now);
     case ACTION.offerTrade:
-      return void sim.offerTrade(w, controller, n[0]!, Number(n[1]), n[2]!, n.slice(3, 7), now);
+      return void sim.offerTrade(
+        w,
+        controller,
+        n[0]!,
+        n[1]!,
+        Number(n[2]),
+        n[3]!,
+        n.slice(4, 8),
+        now,
+      );
     case ACTION.cancelTrade:
       return sim.cancelTrade(w, controller, n[0]!, now);
     case ACTION.acceptTrade:
-      return sim.acceptTrade(w, controller, n[0]!, now);
-    case ACTION.claimTrade:
-      return sim.claimTrade(w, controller, n[0]!, n[1]!, n[2]!, n.slice(3, 7), now);
+      return sim.acceptTrade(w, controller, n[0]!, n[1]!, now);
+    case ACTION.withdrawTrade:
+      return sim.withdrawTrade(w, controller, n[0]!, n[1]!, n.slice(2, 6), now);
     case ACTION.authorizeSession:
       return sim.authorizeSession(w, controller, String(n[0]), n[1]!, now);
     case ACTION.revokeSession:
@@ -400,8 +407,6 @@ function run(w: sim.World, controller: string, a: Action, now: bigint): void {
       return sim.acceptTransfer(w, controller, n[0]!, now);
     case ACTION.forfeit:
       return sim.forfeit(w, n[0]!, now);
-    case ACTION.registerDebt:
-      return sim.registerDebt(w, controller, n[0]!, now);
     case ACTION.removeController:
       return sim.removeController(w, controller, String(n[0]), now);
     case ACTION.cancelRemoval:
@@ -762,9 +767,8 @@ function revealCandidates(w: sim.World, r: () => number, now: bigint): Action[] 
     const secret = SECRETS.get(num(m.id));
     if (!m.hidden || m.returning || !secret) continue;
     const due = m.arrival <= now;
-    const bouncer = BOUNCERS.has(num(m.id));
-    if ((due && bouncer) || r() < (due ? 0.5 : 0.05)) {
-      const wrong = !bouncer && r() < 0.1;
+    if (r() < (due ? 0.5 : 0.05)) {
+      const wrong = r() < 0.1;
       out.push({
         action: ACTION.reveal,
         args: [num(m.id), ...secret.slice(0, 4), wrong ? secret[4]! + 1 : secret[4]!],
@@ -853,25 +857,24 @@ function socialCandidates(
   } else if (roll < 0.85) {
     const trades = [...w.trades.values()];
     const mine = trades.filter((t) => t.buyer === p.id && !t.accepted);
-    if (mine.length > 0) out.push({ action: ACTION.acceptTrade, args: [num(pick(mine).id)] });
-    const open = trades.filter(
-      (t) => t.accepted && sim.tradeCounterparty(w, t.id, p.id, now) !== undefined,
-    );
-    if (open.length > 0) {
-      const t = pick(open);
-      const counterparty = w.players.get(t.seller === p.id ? t.buyer : t.seller)!;
-      // Usually the counterparty's building (D-26); sometimes another one, which InvalidTrade.
-      const dest = [...w.buildings.values()].find(
-        (x) => x.owner === (r() < 0.1 ? p.id : counterparty.id),
-      );
+    if (mine.length > 0)
+      out.push({ action: ACTION.acceptTrade, args: [num(pick(mine).id), num(b.id)] });
+    const owing = trades.filter((t) => sim.tradePayable(w, t.id, p.id, t.seller, now));
+    if (owing.length > 0) {
+      const t = pick(owing);
+      // Usually the seller's building (D-26); sometimes another one, which InvalidTrade.
+      const dest = [...w.buildings.values()].find((x) => x.owner === (r() < 0.1 ? p.id : t.seller));
       if (dest) {
-        const res = [0, 0, 0, 0];
-        if (t.seller === p.id)
-          res[t.sold] = Math.max(1, Math.min(150, num(t.quantity - t.delivered)));
-        else t.price.forEach((x, i) => (res[i] = Math.min(150, num(x - t.paid[i]!))));
-        if (r() < 0.2) res[(t.sold + 1) % 4]! += 10; // sometimes a shipment that does not settle
+        const res = t.price.map((x, i) => Math.min(150, num(x - t.paid[i]!)));
+        if (r() < 0.2) res[t.sold]! += 10; // sometimes cargo that does not settle
         out.push(send(sim.TRANSPORT, dest.coord, army(0.4), res, num(t.id)));
       }
+    }
+    const shares = trades.filter((t) => sim.shareLeft(t, p.id, now).some((x) => x > 0n));
+    if (shares.length > 0) {
+      const t = pick(shares);
+      const amount = sim.shareLeft(t, p.id, now).map((x) => num(x > 200n ? 200n : x));
+      out.push({ action: ACTION.withdrawTrade, args: [num(t.id), num(b.id), ...amount] });
     }
     if (others.length > 0) {
       const buyer = num(pick(others).id);
@@ -882,7 +885,7 @@ function socialCandidates(
         [0, 300, 0, 0, 0, 99], // unfair: rejected
       ];
       const [sold, qty, ...price] = pick(offers);
-      out.push({ action: ACTION.offerTrade, args: [buyer, sold!, qty!, ...price] });
+      out.push({ action: ACTION.offerTrade, args: [buyer, num(b.id), sold!, qty!, ...price] });
     }
     const cancellable = trades.filter(
       (t) => !t.accepted && (t.seller === p.id || t.buyer === p.id),
@@ -900,7 +903,6 @@ function socialCandidates(
       p.transferTo !== "" && r() < 0.3 ? Number(p.transferTo) : 1000 + Math.floor(r() * 1000);
     out.push({ action: ACTION.transferPlayer, args: [to] });
   }
-  void b;
   return out;
 }
 
@@ -908,86 +910,99 @@ function socialCandidates(
 
 /** What the market scenarios must exercise at least once, together; the generator fails otherwise. */
 const MARKET_COVERAGE = [
-  "buyer-debtor", // a closed window where the buyer owes
-  "seller-debtor", // a closed window where the seller owes
-  "no-debt", // a closed window with both sides even (complete, or nothing sent)
-  "over-shipment", // a shipment beyond what remained, or with other resources, counted in part
-  "claim", // a successful claim
-  "claim-repeated", // a second claim on the same trade
-  "claim-over-debt", // InvalidClaim: more than remains
-  "claim-over-stock", // InvalidClaim: more than the debtor's building holds
-  "claim-over-capacity", // InvalidClaim: more than the creditor's building can take
-  "claim-zero", // InvalidClaim: nothing claimed
-  "claim-not-creditor", // InvalidTrade: the debtor claims its own debt
-  "claim-early", // InvalidTrade: a claim inside the window
-  "claim-not-owner", // NotOwner: into a building that is not the creditor's
-  "voluntary-payment", // the debtor's transport naming the trade after the window
-  "debt-transport", // InDebt: a debtor's transport to a third party
-  "debt-transport-allowed", // a debtor's transport to a creditor or to itself leaves
-  "debt-offer", // InDebt on offerTrade
-  "debt-accept", // InDebt on acceptTrade
-  "debt-vacation", // InDebt on startVacation
+  "paid-in-full", // a trade fully paid: final before its window closes
+  "partly-paid", // a closed window with part of the price paid
+  "unpaid", // a closed window with nothing paid
+  "over-payment", // a payment beyond what remained, or with other resources, counted in part
+  "withdraw-buyer", // the buyer withdraws goods or its deposit
+  "withdraw-seller", // the seller withdraws the rest and its deposit share
+  "withdraw-repeated", // a second withdrawal by the same party on the same trade
+  "withdraw-over-share", // InvalidWithdrawal: more than the share left
+  "withdraw-over-capacity", // InvalidWithdrawal: more than the building can take
+  "withdraw-zero", // InvalidWithdrawal: nothing
+  "withdraw-early", // InvalidWithdrawal: the seller before the trade is final
+  "withdraw-third-party", // InvalidTrade: a player that is not a party
+  "withdraw-not-owner", // NotOwner: into a building that is not the caller's
+  "shares-left-offer", // SharesLeft on offerTrade
+  "shares-left-accept", // SharesLeft on acceptTrade
+  "accept-no-stock", // CannotAfford: the offer's building lacks the goods
+  "accept-not-owner", // NotOwner: the deposit from a building that is not the buyer's
   "window-vacation", // TradeOpen on startVacation
-  "hidden-bounce", // a debtor's hidden transport to a third party turns back with its cargo
-  "claim-second-creditor", // a claim on a debtor already registered by someone else
-  "two-creditors", // one debtor registered with two creditors at once
-  "register-debt", // a creditor registers without collecting
-  "trade-wrong-target", // InvalidTrade: a trade transport towards a building that is not the counterparty's
-  "pay-unregistered-creditor", // a registered debtor's restitution to a creditor that never registered
+  "trade-wrong-target", // InvalidTrade: a payment towards a building that is not the seller's
+  "seller-ships", // InvalidTrade: the seller names the trade on a transport
+  "late-payment", // InvalidTrade: a payment that would arrive after the window
 ] as const;
 
 /** The revert each tagged action is meant to produce ("" = it must succeed). */
 const EXPECTED: Record<string, string> = {
-  "claim-over-debt": "InvalidClaim",
-  "claim-over-stock": "InvalidClaim",
-  "claim-over-capacity": "InvalidClaim",
-  "claim-zero": "InvalidClaim",
-  "claim-not-creditor": "InvalidTrade",
-  "claim-early": "InvalidTrade",
-  "claim-not-owner": "NotOwner",
-  "debt-transport": "InDebt",
-  "debt-offer": "InDebt",
-  "debt-accept": "InDebt",
-  "debt-vacation": "InDebt",
+  "withdraw-over-share": "InvalidWithdrawal",
+  "withdraw-over-capacity": "InvalidWithdrawal",
+  "withdraw-zero": "InvalidWithdrawal",
+  "withdraw-early": "InvalidWithdrawal",
+  "withdraw-third-party": "InvalidTrade",
+  "withdraw-not-owner": "NotOwner",
+  "shares-left-offer": "SharesLeft",
+  "shares-left-accept": "SharesLeft",
+  "accept-no-stock": "CannotAfford",
+  "accept-not-owner": "NotOwner",
   "window-vacation": "TradeOpen",
   "trade-wrong-target": "InvalidTrade",
+  "seller-ships": "InvalidTrade",
+  "late-payment": "InvalidTrade",
 };
 
 const COVERED = new Set<string>();
 /** Scheduled removals and transfers the bots executed once due (B-26); none means the bias is off. */
 const EXECUTED = { removals: 0, transfers: 0 };
-/** Hidden transports a debtor sent to a third party: they must come back with their cargo. */
-const BOUNCERS = new Set<number>();
-/** Successful claims per trade. */
-const CLAIMS = new Map<number, number>();
+/** Successful withdrawals per trade and side ("<trade>:<tag>"). */
+const WITHDRAWALS = new Map<string, number>();
 
-/** The world as the action will see it: due missions processed and both buildings settled. */
-function settledClaimable(
-  w: sim.World,
-  t: sim.Trade,
-  from: sim.Building,
-  to: sim.Building,
-  now: bigint,
-): { max: bigint[]; stock: bigint[]; free: bigint[] } {
+/** A copy of the world as an action will see it: due missions processed, `ids` settled. */
+function projected(w: sim.World, now: bigint, ids: bigint[]): sim.World {
   const { rs: ruleset, ...rest } = w;
   const c = Object.assign(structuredClone(rest), { rs: ruleset }) as sim.World;
   sim.processDue(c, now, Number.MAX_SAFE_INTEGER);
-  const f = c.buildings.get(from.id);
+  for (const id of ids) {
+    const b = c.buildings.get(id);
+    if (b) sim.settle(c, b, now);
+  }
+  return c;
+}
+
+/** What `player` can withdraw into `to` and the building's free capacity, as the action sees them. */
+function settledWithdrawable(
+  w: sim.World,
+  t: sim.Trade,
+  player: bigint,
+  to: sim.Building,
+  now: bigint,
+): { max: bigint[]; free: bigint[] } {
+  const c = projected(w, now, [to.id]);
   const o = c.buildings.get(to.id);
   const zero = rs.resources.map(() => 0n);
-  if (!f || !o) return { max: zero, stock: zero, free: zero };
-  sim.settle(c, f, now);
-  sim.settle(c, o, now);
+  if (!o) return { max: zero, free: zero };
   const scale = sim.stockScale(rs);
   const cap = sim.capacities(c, o);
   return {
-    max: sim.claimable(c, c.trades.get(t.id)!, f, o),
-    stock: f.stock.map((x) => x / scale),
+    max: sim.withdrawable(c, c.trades.get(t.id)!, player, o, now),
     free: cap.map((x, r) => (x > o.stock[r]! ? (x - o.stock[r]!) / scale : 0n)),
   };
 }
 
-/** Trades, deliveries, defaults, claims, payments and the debt restrictions, for player `p` at `b`. */
+/** A building's stock in whole units, as an action sees it. */
+function settledStock(w: sim.World, id: bigint, now: bigint): bigint[] {
+  const b = projected(w, now, [id]).buildings.get(id);
+  return b ? b.stock.map((x) => x / sim.stockScale(rs)) : rs.resources.map(() => 0n);
+}
+
+/** A share left in a final trade blocks offers and acceptances (D-19). */
+const blocked = (w: sim.World, p: sim.Player, now: bigint) =>
+  [...p.offers, ...p.purchases].some((id) => {
+    const t = w.trades.get(id)!;
+    return sim.tradeFinal(t, now) && sim.shareLeft(t, p.id, now).some((x) => x > 0n);
+  });
+
+/** Offers, acceptances, payments, withdrawals and the market rules, for player `p` at `b`. */
 function marketCandidates(
   w: sim.World,
   p: sim.Player,
@@ -1002,7 +1017,8 @@ function marketCandidates(
   const buildingsOf = (id: bigint) => [...w.buildings.values()].filter((x) => x.owner === id);
   const troops = b.troops.map((n, i) => (rs.troops[i]!.isAttack ? Math.ceil(Number(n) * 0.5) : 0));
   const canSend = troops.some((n) => n > 0);
-  const indebted = p.debts > 0;
+  const stuck = blocked(w, p, now);
+  const only = (i: number, v: bigint) => rs.resources.map((_, k) => (k === i ? v : 0n));
   const transport = (
     to: sim.Building["coord"],
     res: number[],
@@ -1022,28 +1038,17 @@ function marketCandidates(
     ],
     cover,
   });
-  const claim = (
-    t: sim.Trade,
-    from: bigint,
-    to: bigint,
-    amount: bigint[],
-    cover: string,
-  ): Action => ({
-    action: ACTION.claimTrade,
-    args: [num(t.id), num(from), num(to), ...amount.map(num)],
+  const withdraw = (t: sim.Trade, to: bigint, amount: bigint[], cover: string): Action => ({
+    action: ACTION.withdrawTrade,
+    args: [num(t.id), num(to), ...amount.map(num)],
     cover,
   });
-  const claimRegister = (t: sim.Trade): Action => ({
-    action: ACTION.registerDebt,
-    args: [num(t.id)],
-    cover: "register-debt",
-  });
 
-  // Spend: a batch of rowdies drains ammunition and weapons (claims need free capacity, and
-  // transports need troops); a mob school drains both plus dollars.
+  // Spend: a batch of rowdies drains ammunition and weapons (withdrawals need free capacity, and
+  // payments need troops); a mob school drains both plus dollars.
   if (r() < 0.5) {
     if (b.levels[room("boot_camp")]! > 0n) {
-      // Movers carry 10000 each: with them shipments, and so debts, get large.
+      // Movers carry 10000 each: with them payments get large.
       const mover = r() < 0.35;
       out.push({
         action: ACTION.train,
@@ -1053,108 +1058,56 @@ function marketCandidates(
     if (r() < 0.3) out.push({ action: ACTION.queueRoom, args: [Number(b.id), room("mob_school")] });
   }
 
-  // After the window: the debtor pays back, the creditor claims, the rest try and fail.
-  const closed = trades.filter((t) => t.accepted && now > sim.tradeWindow(w, t));
-  for (const t of closed) {
-    const d = sim.tradeDebt(w, t);
-    if (!sim.inDefault(d)) continue;
-    const creditorBuildings = buildingsOf(d.creditor);
-    const debtorBuildings = buildingsOf(d.debtor);
-    if (d.debtor === p.id) {
-      if (creditorBuildings.length > 0 && canSend && r() < 0.35) {
-        const res = d.remaining.map((x) => (x === 0n ? 0 : Math.max(1, Math.ceil(num(x) * r()))));
-        if (r() < 0.3) res[res.findIndex((x) => x > 0)]! += 1 + Math.floor(r() * 30);
-        const unregistered = p.debts > 0 && sim.owes(w, p.id, d.creditor) === 0;
-        out.push(
-          transport(
-            creditorBuildings[0]!.coord,
-            res,
-            num(t.id),
-            unregistered ? "pay-unregistered-creditor" : "voluntary-payment",
-          ),
-        );
-      }
-      if (r() < 0.1) {
-        // A restitution towards a building that is not the creditor's: InvalidTrade.
-        const wrong = buildingsOf(p.id).concat(buildingsOf(pick(others).id))[0];
-        if (wrong && canSend)
-          out.push(transport(wrong.coord, [1, 0, 0, 0], num(t.id), "trade-wrong-target"));
-      }
-      if (creditorBuildings.length > 0 && r() < 0.3) {
-        out.push(claim(t, b.id, creditorBuildings[0]!.id, d.remaining, "claim-not-creditor"));
-      }
-    } else if (d.creditor === p.id && debtorBuildings.length > 0) {
-      if (!t.registered && r() < 0.3) out.push(claimRegister(t));
-      // Usually a random building of the debtor; sometimes the one holding least of what is owed.
-      let from = pick(debtorBuildings);
-      if (r() < 0.4) {
-        const scale = sim.stockScale(rs);
-        const least = (x: sim.Building) =>
-          d.remaining.reduce(
-            (m, o, i) => (o > 0n && x.stock[i]! / scale < m ? x.stock[i]! / scale : m),
-            2n ** 64n,
-          );
-        from = debtorBuildings.reduce((a, x) => (least(x) < least(a) ? x : a));
-      }
-      const { max, stock, free } = settledClaimable(w, t, from, b, now);
-      const owedIdx = d.remaining.map((x, i) => (x > 0n ? i : -1)).filter((i) => i >= 0);
-      const only = (i: number, v: bigint) => rs.resources.map((_, k) => (k === i ? v : 0n));
-      const k = r();
-      if (max.some((x) => x > 0n)) {
-        const debtor = w.players.get(d.debtor)!;
-        // A small claim on a debtor someone else already registered keeps both debts alive.
-        if (debtor.debts > 0 && sim.owes(w, d.debtor, p.id) === 0) {
-          const part = max.map((x) => (x > 4n ? x / 4n : x));
-          out.push(claim(t, from.id, b.id, part, "claim-second-creditor"));
-        }
-        if (k < 0.25) out.push(claim(t, from.id, b.id, max, "claim"));
-        else if (k < 0.7) {
-          const div = 2n + BigInt(Math.floor(r() * 4));
-          out.push(
-            claim(
-              t,
-              from.id,
-              b.id,
-              max.map((x) => (x > 1n ? x / div : x)),
-              "claim",
-            ),
-          );
-        }
-      }
-      if (k >= 0.7 || max.every((x) => x === 0n)) {
-        const i = pick(owedIdx);
-        const bound = r();
-        if (bound < 0.3)
-          out.push(claim(t, from.id, b.id, only(i, d.remaining[i]! + 1n), "claim-over-debt"));
-        else if (bound < 0.5) {
-          // The debtor's stock binds: ask one more than a building holds, still within the debt.
-          for (const x of debtorBuildings) {
-            const held = settledClaimable(w, t, x, b, now).stock;
-            const j = owedIdx.find((i) => held[i]! < d.remaining[i]!);
-            if (j === undefined) continue;
-            out.push(claim(t, x.id, b.id, only(j, held[j]! + 1n), "claim-over-stock"));
-            break;
-          }
-        } else if (bound < 0.75) {
-          // The creditor's free capacity binds: one more than fits, within the debt and the stock.
-          const j = owedIdx.find((x) => free[x]! < d.remaining[x]! && free[x]! < stock[x]!);
-          if (j !== undefined)
-            out.push(claim(t, from.id, b.id, only(j, free[j]! + 1n), "claim-over-capacity"));
-        } else if (bound < 0.88) out.push(claim(t, from.id, b.id, [0n, 0n, 0n, 0n], "claim-zero"));
-        else out.push(claim(t, from.id, from.id, max, "claim-not-owner"));
-      }
+  // Withdrawals: my shares into my building; sometimes the edges.
+  for (const t of trades.filter((x) => x.accepted && (x.seller === p.id || x.buyer === p.id))) {
+    const left = sim.shareLeft(t, p.id, now);
+    const side = t.buyer === p.id ? "withdraw-buyer" : "withdraw-seller";
+    if (t.seller === p.id && !sim.tradeFinal(t, now) && r() < 0.2)
+      out.push(withdraw(t, b.id, only(t.sold, 1n), "withdraw-early"));
+    if (left.every((x) => x === 0n)) continue;
+    const { max, free } = settledWithdrawable(w, t, p.id, b, now);
+    const k = r();
+    if (k < 0.6 && max.some((x) => x > 0n)) {
+      const div = r() < 0.5 ? 1n : 2n + BigInt(Math.floor(r() * 3));
+      out.push(
+        withdraw(
+          t,
+          b.id,
+          max.map((x) => (x > 1n ? x / div : x)),
+          side,
+        ),
+      );
+    } else if (k < 0.72) {
+      const i = left.findIndex((x) => x > 0n);
+      out.push(withdraw(t, b.id, only(i, left[i]! + 1n), "withdraw-over-share"));
+    } else if (k < 0.84) {
+      const j = left.findIndex((x, i) => x > free[i]!);
+      if (j >= 0) out.push(withdraw(t, b.id, only(j, free[j]! + 1n), "withdraw-over-capacity"));
+    } else if (k < 0.92) out.push(withdraw(t, b.id, only(0, 0n), "withdraw-zero"));
+    else {
+      const other = others.length > 0 ? buildingsOf(pick(others).id)[0] : undefined;
+      if (other) out.push(withdraw(t, other.id, left, "withdraw-not-owner"));
     }
   }
+  const foreign = trades.filter((x) => x.accepted && x.seller !== p.id && x.buyer !== p.id);
+  if (foreign.length > 0 && r() < 0.1)
+    out.push(withdraw(pick(foreign), b.id, only(0, 1n), "withdraw-third-party"));
 
-  // Offers made to me, and new offers; both revert while in debt.
+  // Offers made to me: the deposit from my building, sometimes from someone else's.
   for (const t of trades.filter((x) => x.buyer === p.id && !x.accepted)) {
-    if (r() < 0.7)
-      out.push({
-        action: ACTION.acceptTrade,
-        args: [num(t.id)],
-        cover: indebted ? "debt-accept" : undefined,
-      });
+    if (r() < 0.3) continue;
+    let cover: string | undefined;
+    let deposit = b.id;
+    if (stuck) cover = "shares-left-accept";
+    else if (p.purchases.length < rs.config.maxPurchases) {
+      if (r() < 0.1 && others.length > 0) {
+        deposit = buildingsOf(pick(others).id)[0]?.id ?? b.id;
+        if (deposit !== b.id) cover = "accept-not-owner";
+      } else if (settledStock(w, t.from, now)[t.sold]! < t.quantity) cover = "accept-no-stock";
+    }
+    out.push({ action: ACTION.acceptTrade, args: [num(t.id), num(deposit)], cover });
   }
+  // New offers from my building; large ones often find the building short at acceptance.
   if (others.length > 0 && r() < 0.5) {
     const offers = [
       [0, 300, 0, 0, 0, 100], // 3-5-1: 300 weapons for 100 dollars
@@ -1165,156 +1118,81 @@ function marketCandidates(
       [3, 50, 0, 250, 0, 0], // 3-5-1: 50 dollars for 250 ammunition
     ];
     const [sold, qty, ...price] = pick(offers);
-    const mult = r() < 0.2 ? 8 + Math.floor(r() * 8) : 1 + Math.floor(r() * 3);
+    const mult = r() < 0.2 ? 8 + Math.floor(r() * 30) : 1 + Math.floor(r() * 3);
     out.push({
       action: ACTION.offerTrade,
-      args: [num(pick(others).id), sold!, qty! * mult, ...price.map((x) => x! * mult)],
-      cover: indebted ? "debt-offer" : undefined,
+      args: [num(pick(others).id), num(b.id), sold!, qty! * mult, ...price.map((x) => x! * mult)],
+      cover: stuck ? "shares-left-offer" : undefined,
     });
   }
 
-  // Inside the window: deliver or pay part of what remains; sometimes more, or with other cargo.
+  // Inside the window: the buyer pays part of what remains, sometimes more or with other cargo;
+  // the seller sometimes tries to ship.
   const open = trades.filter(
-    (t) => t.accepted && now <= sim.tradeWindow(w, t) && (t.seller === p.id || t.buyer === p.id),
+    (t) => !sim.tradeFinal(t, now) && t.accepted && (t.seller === p.id || t.buyer === p.id),
   );
   for (const t of open) {
-    if (r() < 0.3) out.push(claim(t, b.id, b.id, [0n, 0n, 0n, 0n], "claim-early"));
     if (!canSend || r() < 0.55) continue;
-    if (r() < 0.1) {
-      // Towards a building that is not the counterparty's: InvalidTrade (D-26).
-      const wrong = buildingsOf(p.id).concat(buildingsOf(pick(others).id))[0];
-      if (wrong) out.push(transport(wrong.coord, [1, 0, 0, 0], num(t.id), "trade-wrong-target"));
+    const counterparty = buildingsOf(t.seller === p.id ? t.buyer : t.seller)[0];
+    if (t.seller === p.id) {
+      if (counterparty && r() < 0.15)
+        out.push(transport(counterparty.coord, num1(t.sold), num(t.id), "seller-ships"));
+      continue;
     }
-    const dest = buildingsOf(t.seller === p.id ? t.buyer : t.seller)[0];
-    if (!dest) continue;
-    const res = [0, 0, 0, 0];
+    if (r() < 0.1) {
+      // Towards a building that is not the seller's: InvalidTrade (D-26).
+      const wrong = buildingsOf(p.id).concat(buildingsOf(pick(others).id))[0];
+      if (wrong && wrong.owner !== t.seller)
+        out.push(transport(wrong.coord, [0, 0, 0, 1], num(t.id), "trade-wrong-target"));
+    }
+    if (!counterparty) continue;
     const share = r();
     let over = false;
-    const part = (remaining: bigint) =>
-      remaining === 0n ? 0 : Math.max(1, Math.ceil(num(remaining) * share));
-    if (t.seller === p.id) {
-      res[t.sold] = part(t.quantity - t.delivered);
-      if (r() < 0.3) {
-        res[t.sold]! += 1 + Math.floor(r() * 60);
-        over = true;
-      }
-      if (r() < 0.2) {
-        res[t.price.findIndex((x) => x > 0n)]! += 1 + Math.floor(r() * 20);
-        over = true;
-      }
-    } else {
-      t.price.forEach((x, i) => (res[i] = part(x - t.paid[i]!)));
-      if (r() < 0.3) {
-        res[t.price.findIndex((x) => x > 0n)]! += 1 + Math.floor(r() * 40);
-        over = true;
-      }
+    const res = t.price.map((x, i) =>
+      x === t.paid[i]! ? 0 : Math.max(1, Math.ceil(num(x - t.paid[i]!) * share)),
+    );
+    if (r() < 0.3) {
+      res[t.price.findIndex((x) => x > 0n)]! += 1 + Math.floor(r() * 40);
+      over = true;
+    }
+    if (r() < 0.2) {
+      res[t.sold]! += 1 + Math.floor(r() * 20);
+      over = true;
     }
     if (res.every((x) => x === 0)) continue;
-    out.push(transport(dest.coord, res, num(t.id), over ? "over-shipment" : undefined));
+    out.push(transport(counterparty.coord, res, num(t.id), over ? "over-payment" : undefined));
   }
 
-  // The debt restrictions (B-11) and the vacation lock (D-18).
-  if (indebted) {
-    const creditors = others.filter((x) => sim.owes(w, p.id, x.id) > 0);
-    const third = others.filter((x) => sim.owes(w, p.id, x.id) === 0);
-    const cargo = [10, 10, 0, 0];
-    const restricted: Action[] = [];
-    const dest = third.length > 0 ? buildingsOf(pick(third).id)[0] : undefined;
-    if (canSend && dest) {
-      restricted.push(transport(dest.coord, cargo, 0, "debt-transport"));
-      if (!sim.onVacation(w.players.get(dest.owner)!, now)) {
-        // An honest hidden transport to a third party: it leaves, and bounces on arrival.
-        const d = Number(distance(rs, b.coord, dest.coord) / rs.config.distanceUnit);
-        restricted.push({
-          action: ACTION.sendHiddenMission,
-          args: [
-            Number(b.id),
-            sim.TRANSPORT,
-            Number(dest.coord.city),
-            Number(dest.coord.neighborhood),
-            Number(dest.coord.slot),
-            1 + Math.floor(r() * 1_000_000_000),
-            d + Math.floor(r() * 10),
-            ...troops,
-            ...cargo,
-            NATURAL,
-          ],
-          cover: "hidden-bounce",
-        });
-      }
-    }
-    if (canSend) {
-      const own = buildingsOf(p.id).filter((x) => x.id !== b.id);
-      const to = r() < 0.5 && own.length > 0 ? own[0] : buildingsOf(pick(creditors).id)[0];
-      if (to) restricted.push(transport(to.coord, cargo, 0, "debt-transport-allowed"));
-    }
-    restricted.push({ action: ACTION.startVacation, args: [], cover: "debt-vacation" });
-    restricted.push({
-      action: ACTION.offerTrade,
-      args: [num(pick(others).id), 0, 300, 0, 0, 0, 100],
-      cover: "debt-offer",
-    });
-    const offered = trades.find((x) => x.buyer === p.id && !x.accepted);
-    if (offered) {
-      restricted.push({
-        action: ACTION.acceptTrade,
-        args: [num(offered.id)],
-        cover: "debt-accept",
-      });
-    }
-    // Shuffle, and try them before anything else: the first that works ends the turn.
-    for (let i = restricted.length - 1; i > 0; i--) {
-      const j = Math.floor(r() * (i + 1));
-      [restricted[i], restricted[j]] = [restricted[j]!, restricted[i]!];
-    }
-    out.unshift(...restricted);
-  } else if (now <= p.tradeLockUntil && r() < 0.25) {
+  // The vacation lock (D-18).
+  if (now <= p.tradeLockUntil && r() < 0.25)
     out.push({ action: ACTION.startVacation, args: [], cover: "window-vacation" });
-  }
   // Whatever is not covered yet goes first, so every case happens within the budget of steps.
   const rank = (a: Action) => (a.cover && !COVERED.has(a.cover) ? 0 : 1);
   return out.sort((a, z) => rank(a) - rank(z));
 }
 
+/** One unit of resource `i`, as transport cargo. */
+const num1 = (i: number) => rs.resources.map((_, k) => (k === i ? 1 : 0));
+
 /** Coverage bookkeeping after a market step: the tag's outcome, then the world's facts. */
 function trackMarket(w: sim.World, chosen: Action, error: string, now: bigint): void {
   const tag = chosen.cover;
-  if (tag === "hidden-bounce") {
-    if (error === "") BOUNCERS.add(num(w.nextMission) - 1);
-  } else if (tag && error === (EXPECTED[tag] ?? "")) COVERED.add(tag);
-  if (chosen.action === ACTION.claimTrade && error === "") {
-    const n = (CLAIMS.get(chosen.args[0]!) ?? 0) + 1;
-    CLAIMS.set(chosen.args[0]!, n);
-    if (n >= 2) COVERED.add("claim-repeated");
+  if (tag && error === (EXPECTED[tag] ?? "")) COVERED.add(tag);
+  if (chosen.action === ACTION.withdrawTrade && error === "" && tag) {
+    const key = `${chosen.args[0]}:${tag}`;
+    const n = (WITHDRAWALS.get(key) ?? 0) + 1;
+    WITHDRAWALS.set(key, n);
+    if (n >= 2) COVERED.add("withdraw-repeated");
   }
   observeMarket(w, now);
 }
 
-/** Facts about the world the tags cannot tell: who defaulted, repeated claims, bounces. */
+/** Facts about the world the tags cannot tell: how trades ended. */
 function observeMarket(w: sim.World, now: bigint): void {
   for (const t of w.trades.values()) {
-    if (!t.accepted || now <= sim.tradeWindow(w, t)) continue;
-    const d = sim.tradeDebt(w, t);
-    COVERED.add(
-      d.debtor === 0n ? "no-debt" : d.debtor === t.buyer ? "buyer-debtor" : "seller-debtor",
-    );
-  }
-  const creditors = new Map<string, number>();
-  for (const [key, n] of w.owes) {
-    if (n === 0) continue;
-    const debtor = key.split(":")[0]!;
-    creditors.set(debtor, (creditors.get(debtor) ?? 0) + 1);
-  }
-  if ([...creditors.values()].some((n) => n >= 2)) COVERED.add("two-creditors");
-  for (const m of w.missions.values()) {
-    if (
-      BOUNCERS.has(num(m.id)) &&
-      m.returning &&
-      !m.hidden &&
-      m.kind === sim.TRANSPORT &&
-      m.cargo.some((x) => x > 0n)
-    )
-      COVERED.add("hidden-bounce");
+    if (!sim.tradeFinal(t, now)) continue;
+    if (t.paid.every((x, r) => x === t.price[r])) COVERED.add("paid-in-full");
+    else COVERED.add(t.paid.every((x) => x === 0n) ? "unpaid" : "partly-paid");
   }
 }
 
@@ -1360,29 +1238,20 @@ function botScenario(seed: number, mode: Mode = "bots") {
   const total = market ? MARKET.steps : hidden ? HIDDEN.steps : BOTS.steps;
   while (steps.length < total) {
     // Hours to a couple of days between actions: months of game time in total. Market bots also
-    // jump past a delivery window now and then, so trades default.
+    // jump past a delivery window now and then, so trades end unpaid or partly paid.
     const before = now;
     now += BigInt(
       Math.floor(
-        market && r() < 0.12 ? 950_000 + r() * 300_000 : r() < 0.6 ? r() * 60_000 : r() * 300_000,
+        market && r() < 0.12 ? 450_000 + r() * 150_000 : r() < 0.6 ? r() * 60_000 : r() * 300_000,
       ),
     );
-    if (market) {
-      // A revealed bouncer that is due: land soon, so its bounce is seen before it gets home.
-      const due = [...w.missions.values()].find(
-        (m) => BOUNCERS.has(num(m.id)) && !m.hidden && !m.returning && m.arrival <= before,
-      );
-      if (due) now = before + BigInt(1 + Math.floor(r() * 600));
-    }
-    if ((hidden || market) && r() < (hidden ? 0.4 : 0.5)) {
+    if (hidden && r() < 0.4) {
       // Land right after the next hidden arrival, often within its reveal grace, so reveals,
-      // forfeits and actions interleave with parked missions (market bots: always within it, so
-      // the debtor's hidden transports get revealed and bounce).
+      // forfeits and actions interleave with parked missions.
       const next = [...w.missions.values()]
         .filter((m) => m.hidden && !m.returning && m.arrival > before)
-        .filter((m) => !market || BOUNCERS.has(num(m.id)))
         .sort((a, b) => (a.arrival < b.arrival ? -1 : 1))[0];
-      if (next) now = next.arrival + BigInt(Math.floor(r() * (market ? 50 : 90)));
+      if (next) now = next.arrival + BigInt(Math.floor(r() * 90));
     }
     if (r() < 0.035) {
       // The admin suspends, lifts or grants premium to a random player.
@@ -1536,11 +1405,11 @@ function botScenario(seed: number, mode: Mode = "bots") {
 // ------------------------------------------------------------------ scripted market scenario
 
 /**
- * A deterministic walk through every case in MARKET_COVERAGE: Alice (actor 0) sells to Bob (1)
- * and Carol (2) and under-delivers both; Bob claims, registering the debt; Alice runs into every
- * restriction, pays part back and her hidden transport bounces; Carol claims as the second
- * creditor. Amounts come from the simulator, so the script states what it relies on and fails
- * loudly if a rule change breaks an assumption. The random market scenarios add breadth.
+ * A deterministic walk through every case in MARKET_COVERAGE: Alice (actor 0), Bob (1) and Carol
+ * (2) trade four times at once; one trade is paid in full, one in part, one not at all, one with
+ * an over-payment. Buyers withdraw inside the window, sellers once final, and the market rules
+ * stop the rest. Amounts come from the simulator, so the script states what it relies on and
+ * fails loudly if a rule change breaks an assumption. The random market scenarios add breadth.
  */
 function scriptedMarketScenario(seed: number) {
   SESSIONS.clear();
@@ -1561,8 +1430,6 @@ function scriptedMarketScenario(seed: number) {
       time: num(now),
     });
     trackMarket(w, a, error, now);
-    if (action === ACTION.sendHiddenMission && error === "")
-      SECRETS.set(num(w.nextMission) - 1, args.slice(1, 6));
     return error;
   };
   const expect = (want: string, got: string, what: string) => {
@@ -1614,19 +1481,22 @@ function scriptedMarketScenario(seed: number) {
       [bid(actor), sim.TRANSPORT, ...at(to), ...troops, ...res, trade],
       cover,
     );
-  const claim = (
+  const withdraw = (
     actor: number,
     trade: number,
-    from: sim.Building,
     to: sim.Building,
     amount: number[],
     cover: string,
-  ) => act(actor, ACTION.claimTrade, [trade, num(from.id), num(to.id), ...amount], cover);
-  const debt = (trade: number) => sim.tradeDebt(w, w.trades.get(BigInt(trade))!);
+  ) => act(actor, ACTION.withdrawTrade, [trade, num(to.id), ...amount], cover);
+  const left = (trade: number, actor: number) =>
+    sim.shareLeft(w.trades.get(BigInt(trade))!, BigInt(actor + 1), now);
+  const room4 = (trade: number, actor: number) =>
+    settledWithdrawable(w, w.trades.get(BigInt(trade))!, BigInt(actor + 1), bld(actor), now);
   const [WEAPONS, AMMUNITION, , DOLLAR] = [0, 1, 2, 3];
+  const only = (i: number, v: number) => rs.resources.map((_, k) => (k === i ? v : 0));
 
   // Premium on; three players next to each other; a boot camp each; movers (10000 of cargo) for
-  // Alice and Bob, rowdies for everyone. Carol buys no mover yet: her dollars stay near the cap.
+  // Alice and Bob, rowdies for everyone.
   ok(act(-1, ACTION.setGlobalPremium, [Number(T0) + 100_000_000]), "premium");
   for (let i = 0; i < 3; i++) ok(act(i, ACTION.register, [1, 1, 1 + i * 7]), "register");
   for (let i = 0; i < 3; i++) ok(act(i, ACTION.queueRoom, [bid(i), room("boot_camp")]), "camp");
@@ -1636,188 +1506,125 @@ function scriptedMarketScenario(seed: number) {
     ok(act(i, ACTION.train, [bid(i), troop("rowdy"), i < 2 ? 3 : 5]), "rowdies");
   jump(86400);
 
-  // Four trades accepted at once. A: Alice sells Bob 2000 weapons for 4000 ammunition (2-4-1).
-  // B: Alice sells Carol 1500 weapons for 500 dollars (3-5-1). C: Carol sells Bob 500 ammunition
-  // for 100 dollars. D: Bob sells Carol 200 weapons for 400 ammunition.
+  // A: Alice sells Bob 2000 weapons for 4000 ammunition (2-4-1). B: Alice sells Carol 1500
+  // weapons for 500 dollars (3-5-1). C: Carol sells Bob 500 ammunition for 100 dollars. D: Bob
+  // sells Carol 200 weapons for 400 ammunition. E: Carol offers Alice 300 weapons for 100 dollars,
+  // accepted later. F: Bob offers Carol 30000 weapons, more than his building can hold.
   const A = num(w.nextTrade);
-  ok(act(0, ACTION.offerTrade, [2, WEAPONS, 2000, 0, 4000, 0, 0]), "offer A");
+  ok(act(0, ACTION.offerTrade, [2, bid(0), WEAPONS, 2000, 0, 4000, 0, 0]), "offer A");
   const B = num(w.nextTrade);
-  ok(act(0, ACTION.offerTrade, [3, WEAPONS, 1500, 0, 0, 0, 500]), "offer B");
+  ok(act(0, ACTION.offerTrade, [3, bid(0), WEAPONS, 1500, 0, 0, 0, 500]), "offer B");
   const C = num(w.nextTrade);
-  ok(act(2, ACTION.offerTrade, [2, AMMUNITION, 500, 0, 0, 0, 100]), "offer C");
+  ok(act(2, ACTION.offerTrade, [2, bid(2), AMMUNITION, 500, 0, 0, 0, 100]), "offer C");
   const D = num(w.nextTrade);
-  ok(act(1, ACTION.offerTrade, [3, WEAPONS, 200, 0, 400, 0, 0]), "offer D");
-  ok(act(1, ACTION.acceptTrade, [A]), "accept A");
-  ok(act(2, ACTION.acceptTrade, [B]), "accept B");
-  ok(act(1, ACTION.acceptTrade, [C]), "accept C");
-  ok(act(2, ACTION.acceptTrade, [D]), "accept D");
+  ok(act(1, ACTION.offerTrade, [3, bid(1), WEAPONS, 200, 0, 400, 0, 0]), "offer D");
+  const E = num(w.nextTrade);
+  ok(act(2, ACTION.offerTrade, [1, bid(2), WEAPONS, 300, 0, 0, 0, 100]), "offer E");
+  const F = num(w.nextTrade);
+  ok(act(1, ACTION.offerTrade, [3, bid(1), WEAPONS, 30000, 0, 0, 0, 10000]), "offer F");
+  expect(
+    "NotOwner",
+    act(1, ACTION.acceptTrade, [A, bid(0)], "accept-not-owner"),
+    "deposit from Alice's building",
+  );
+  expect("CannotAfford", act(2, ACTION.acceptTrade, [F, bid(2)], "accept-no-stock"), "F");
+  ok(act(1, ACTION.cancelTrade, [F]), "Bob withdraws F");
+  ok(act(1, ACTION.acceptTrade, [A, bid(1)]), "accept A");
+  ok(act(2, ACTION.acceptTrade, [B, bid(2)]), "accept B");
+  ok(act(1, ACTION.acceptTrade, [C, bid(1)]), "accept C");
+  ok(act(2, ACTION.acceptTrade, [D, bid(2)]), "accept D");
   const windowEnd = now + rs.config.marketWindowSeconds;
+  assume(w.trades.get(BigInt(A))!.deposit[AMMUNITION] === 400n, "A: a 400 ammunition deposit");
   expect("TradeOpen", act(0, ACTION.startVacation, [], "window-vacation"), "vacation in window");
-  expect("InvalidTrade", claim(1, A, bld(0), bld(1), [0, 0, 0, 0], "claim-early"), "early claim");
+  expect(
+    "InvalidTrade",
+    transport(0, bld(1), units("rowdy", 1), only(WEAPONS, 10), A, "seller-ships"),
+    "Alice ships A",
+  );
+  expect(
+    "InvalidTrade",
+    transport(1, bld(2), units("rowdy", 1), only(AMMUNITION, 10), A, "trade-wrong-target"),
+    "Bob pays A to Carol",
+  );
+  expect(
+    "InvalidWithdrawal",
+    withdraw(0, A, bld(0), only(WEAPONS, 1), "withdraw-early"),
+    "Alice withdraws A early",
+  );
+  expect(
+    "InvalidTrade",
+    withdraw(0, C, bld(0), only(AMMUNITION, 1), "withdraw-third-party"),
+    "Alice withdraws C",
+  );
 
-  // Deliveries. A: Bob pays in full, Alice delivers a quarter. B: Carol pays in full, Alice
-  // nothing. C: Carol delivers in full, Bob pays half. D: Bob ships more weapons than it takes
-  // plus some dollars (the rest is a plain transport), Carol pays in full.
+  // Payments. A: Bob pays in full. B: Carol pays 200 of 500 dollars. D: Carol pays in full plus
+  // 50 dollars (a plain transport). C: Bob pays nothing.
   ok(transport(1, bld(0), units("mover", 1), [0, 4000, 0, 0], A), "Bob pays A");
   arrive();
-  ok(transport(0, bld(1), units("mover", 1), [500, 0, 0, 0], A), "Alice delivers part of A");
-  arrive();
-  ok(transport(2, bld(0), units("rowdy", 5), [0, 0, 0, 500], B), "Carol pays B");
-  arrive();
-  ok(transport(1, bld(2), units("rowdy", 3), [300, 0, 0, 5], D, "over-shipment"), "Bob ships D");
+  ok(transport(2, bld(0), units("rowdy", 5), only(DOLLAR, 200), B), "Carol pays part of B");
   arrive();
   allHome();
-  ok(transport(2, bld(1), units("rowdy", 5), [0, 500, 0, 0], C), "Carol delivers C");
-  arrive();
-  ok(transport(1, bld(2), units("rowdy", 3), [0, 0, 0, 50], C), "Bob pays half of C");
+  ok(transport(2, bld(1), units("rowdy", 5), [0, 400, 0, 50], D, "over-payment"), "Carol pays D");
   arrive();
   allHome();
-  ok(transport(2, bld(1), units("rowdy", 5), [0, 400, 0, 0], D), "Carol pays D");
-  arrive();
-  allHome();
-  assume(
-    w.trades.get(BigInt(A))!.delivered === 500n && w.trades.get(BigInt(D))!.delivered === 200n,
-    "deliveries",
-  );
+  assume(sim.tradeFinal(w.trades.get(BigInt(A))!, now), "A is final early");
+  assume(left(A, 1)[WEAPONS] === 2000n && left(A, 1)[AMMUNITION] === 400n, "A: Bob's shares");
 
-  // The windows close. Alice is in default on A (3300 ammunition) and B (550 dollars), Bob on C
-  // (275 ammunition), D is complete. Alice trains eight rowdies: her ammunition drops below what
-  // she owes, so a claim can exceed her stock without exceeding the debt.
-  now = windowEnd + 1n;
-  ok(act(0, ACTION.train, [bid(0), troop("rowdy"), 8]), "Alice spends ammunition");
-  jump(86400);
-  const a = debt(A);
-  assume(a.debtor === 1n && a.remaining[AMMUNITION] === 3300n, "A: Alice owes 3300 ammunition");
-  assume(debt(B).debtor === 1n && debt(B).remaining[DOLLAR] === 550n, "B: Alice owes 550 dollars");
-  assume(
-    debt(C).debtor === 2n && debt(C).remaining[AMMUNITION] === 275n,
-    "C: Bob owes 275 ammunition",
-  );
-  assume(debt(D).debtor === 0n, "D: no debt");
-  const toBob = settledClaimable(w, w.trades.get(BigInt(A))!, bld(0), bld(1), now);
-  assume(
-    toBob.stock[AMMUNITION]! < 3300n && toBob.free[AMMUNITION]! >= 3300n,
-    "Alice's stock binds",
-  );
-  const held = num(toBob.stock[AMMUNITION]!);
+  // Carol withdraws what B earned so far (1500 × 200 / 500 = 600 weapons), after making room.
+  ok(act(2, ACTION.queueRoom, [bid(2), room("mob_school")]), "Carol makes room");
+  assume(left(B, 2)[WEAPONS] === 600n && left(B, 2)[DOLLAR] === 0n, "B: 600 weapons earned");
+  assume(room4(B, 2).max[WEAPONS] === 600n, "Carol has room for them");
   expect(
-    "InvalidClaim",
-    claim(1, A, bld(0), bld(1), [0, held + 1, 0, 0], "claim-over-stock"),
-    "over stock",
+    "InvalidWithdrawal",
+    withdraw(2, B, bld(2), only(WEAPONS, 601), "withdraw-over-share"),
+    "over share",
   );
+  expect("InvalidWithdrawal", withdraw(2, B, bld(2), [0, 0, 0, 0], "withdraw-zero"), "zero");
   expect(
-    "InvalidClaim",
-    claim(1, A, bld(0), bld(1), [0, 3301, 0, 0], "claim-over-debt"),
-    "over debt",
+    "NotOwner",
+    withdraw(2, B, bld(0), only(WEAPONS, 10), "withdraw-not-owner"),
+    "into Alice's building",
   );
-  expect("InvalidClaim", claim(1, A, bld(0), bld(1), [0, 0, 0, 0], "claim-zero"), "zero claim");
-  expect("NotOwner", claim(1, A, bld(0), bld(0), [0, 100, 0, 0], "claim-not-owner"), "not owner");
+  ok(withdraw(2, B, bld(2), only(WEAPONS, 300), "withdraw-buyer"), "Carol withdraws");
+  ok(withdraw(2, B, bld(2), only(WEAPONS, 300), "withdraw-buyer"), "Carol withdraws again");
+
+  // The last second of the window: any payment would arrive after it.
+  now = windowEnd;
   expect(
     "InvalidTrade",
-    claim(0, A, bld(0), bld(1), [0, 100, 0, 0], "claim-not-creditor"),
-    "debtor claims",
+    transport(1, bld(2), units("rowdy", 3), only(DOLLAR, 100), C, "late-payment"),
+    "Bob pays C too late",
   );
-  ok(claim(1, A, bld(0), bld(1), [0, 1000, 0, 0], "claim"), "Bob claims");
-  ok(claim(1, A, bld(0), bld(1), [0, 500, 0, 0], "claim"), "Bob claims again");
-  assume(w.players.get(1n)!.debts === 1 && sim.owes(w, 1n, 2n) === 1, "Alice's debt is registered");
 
-  // Alice, in debt: no market, no vacation, no transports but to herself and her creditors. Her
-  // hidden transport to Carol leaves (nothing can check it) and bounces on arrival; her payment
-  // to Bob counts towards the debt.
+  // The windows close. B: Alice gets 900 weapons and ⌈50 × 300 / 500⌉ = 30 dollars, Carol 20.
+  // C: Carol gets her 500 ammunition and Bob's 10-dollar deposit back.
+  now = windowEnd + 1n;
+  assume(left(B, 0)[WEAPONS] === 900n && left(B, 0)[DOLLAR] === 30n, "B: Alice's shares");
+  assume(left(B, 2)[DOLLAR] === 20n, "B: Carol's deposit share");
+  assume(left(C, 2)[AMMUNITION] === 500n && left(C, 2)[DOLLAR] === 10n, "C: Carol's shares");
+  assume(
+    left(C, 1).every((x) => x === 0n),
+    "C: nothing for Bob",
+  );
   expect(
-    "InDebt",
-    act(0, ACTION.offerTrade, [3, WEAPONS, 300, 0, 0, 0, 100], "debt-offer"),
-    "offer in debt",
+    "SharesLeft",
+    act(0, ACTION.offerTrade, [2, bid(0), WEAPONS, 300, 0, 0, 0, 100], "shares-left-offer"),
+    "Alice offers with B's shares left",
   );
-  const offered = num(w.nextTrade);
-  ok(act(2, ACTION.offerTrade, [1, WEAPONS, 300, 0, 0, 0, 100]), "Carol offers Alice");
-  expect("InDebt", act(0, ACTION.acceptTrade, [offered], "debt-accept"), "accept in debt");
-  ok(act(2, ACTION.cancelTrade, [offered]), "Carol withdraws");
-  expect("InDebt", act(0, ACTION.startVacation, [], "debt-vacation"), "vacation in debt");
-  expect(
-    "InDebt",
-    transport(0, bld(2), units("rowdy", 2), [10, 10, 0, 0], 0, "debt-transport"),
-    "transport in debt",
-  );
-  const salt = 123456789;
-  const cover = Number(distance(rs, bld(0).coord, bld(2).coord) / rs.config.distanceUnit) + 2;
-  ok(
-    act(
-      0,
-      ACTION.sendHiddenMission,
-      [
-        bid(0),
-        sim.TRANSPORT,
-        ...at(bld(2)),
-        salt,
-        cover,
-        ...units("rowdy", 3),
-        10,
-        10,
-        0,
-        0,
-        NATURAL,
-      ],
-      "hidden-bounce",
-    ),
-    "hidden transport in debt",
-  );
-  const hiddenId = num(w.nextMission) - 1;
-  now = w.missions.get(BigInt(hiddenId))!.arrival + 5n;
-  ok(act(2, ACTION.reveal, [hiddenId, sim.TRANSPORT, ...at(bld(2)), salt]), "Carol reveals it");
-  ok(act(1, ACTION.advance, [10]), "it bounces");
-  assume(COVERED.has("hidden-bounce"), "the hidden transport bounced");
-  ok(
-    transport(0, bld(1), units("rowdy", 2), [10, 10, 0, 0], 0, "debt-transport-allowed"),
-    "transport to creditor",
-  );
-  arrive();
-  ok(
-    transport(0, bld(1), units("rowdy", 2), [0, 300, 0, 0], A, "voluntary-payment"),
-    "Alice pays back",
-  );
-  arrive();
-  allHome();
-  assume(w.trades.get(BigInt(A))!.returned[AMMUNITION] === 1800n, "A: 1800 returned");
-  // Carol never registered B, yet Alice (registered by Bob) may pay her by naming it (B-11, D-26).
-  assume(sim.owes(w, 1n, 3n) === 0, "Carol has not registered");
-  ok(
-    transport(0, bld(2), units("rowdy", 2), [0, 0, 0, 50], B, "pay-unregistered-creditor"),
-    "Alice pays Carol, unregistered",
-  );
-  arrive();
-  allHome();
-  assume(w.trades.get(BigInt(B))!.returned[DOLLAR] === 50n, "B: 50 returned");
+  expect("SharesLeft", act(0, ACTION.acceptTrade, [E, bid(0)], "shares-left-accept"), "accept E");
+  ok(withdraw(0, B, bld(0), only(WEAPONS, 900), "withdraw-seller"), "Alice withdraws B");
 
-  // Carol, the second creditor: her dollars are near the cap, so a claim can exceed her free
-  // capacity without exceeding the debt or Alice's stock; after she spends on a mover, she claims.
-  const toCarol = settledClaimable(w, w.trades.get(BigInt(B))!, bld(0), bld(2), now);
-  const free = toCarol.free[DOLLAR]!;
-  assume(free < 550n && free < toCarol.stock[DOLLAR]!, "Carol's free capacity binds");
+  // Bob's weapons are near the cap: A's 2000 do not fit at once.
+  const bob = room4(A, 1);
+  assume(bob.free[WEAPONS]! < 2000n, "Bob's free capacity binds");
   expect(
-    "InvalidClaim",
-    claim(2, B, bld(0), bld(2), [0, 0, 0, num(free) + 1], "claim-over-capacity"),
+    "InvalidWithdrawal",
+    withdraw(1, A, bld(1), only(WEAPONS, num(bob.free[WEAPONS]!) + 1), "withdraw-over-capacity"),
     "over capacity",
   );
-  ok(act(2, ACTION.train, [bid(2), troop("mover"), 1]), "Carol spends dollars");
-  // Carol registers first (B-11), then collects: the second creditor of the same debtor.
-  expect("InvalidTrade", act(0, ACTION.registerDebt, [B], "register-debt"), "the debtor registers");
-  ok(act(2, ACTION.registerDebt, [B], "register-debt"), "Carol registers");
-  ok(act(2, ACTION.registerDebt, [B], "register-debt"), "again: nothing changes");
-  assume(w.players.get(1n)!.debts === 2 && COVERED.has("two-creditors"), "two creditors");
-  ok(claim(2, B, bld(0), bld(2), [0, 0, 0, 200], "claim-second-creditor"), "Carol claims");
-  // Alice, in debt to both, pays Carol back by a transport that names B (allowed, D-26 / B-11).
-  ok(
-    transport(0, bld(2), units("rowdy", 2), [0, 0, 0, 100], B, "voluntary-payment"),
-    "Alice pays Carol",
-  );
-  arrive();
-  allHome();
-  expect(
-    "InvalidTrade",
-    transport(0, bld(1), units("rowdy", 2), [0, 0, 0, 10], B, "trade-wrong-target"),
-    "B's restitution to Bob",
-  );
+  ok(withdraw(1, A, bld(1), only(AMMUNITION, 400), "withdraw-buyer"), "Bob takes the deposit back");
+  ok(act(1, ACTION.queueRoom, [bid(1), room("mob_school")]), "Bob makes room");
+  ok(withdraw(1, A, bld(1), only(WEAPONS, 1000), "withdraw-buyer"), "Bob withdraws part of A");
   return { actors: 3, seed, steps };
 }
 
@@ -2224,7 +2031,7 @@ console.log(
     `${count(ACTION.inviteController)} invited + ${count(ACTION.acceptController)} joined - ` +
     `${count(ACTION.removeController)} controllers (${EXECUTED.removals} executed, ` +
     `${count(ACTION.cancelRemoval)} cancelled), ${EXECUTED.transfers} transfers executed, ` +
-    `${count(ACTION.claimTrade)} claims, ${count(ACTION.registerDebt)} registrations, ` +
-    `${errors("InDebt")} InDebt, ${errors("TroopsResting")} TroopsResting, ` +
+    `${count(ACTION.acceptTrade)} trades accepted, ${count(ACTION.withdrawTrade)} withdrawals, ` +
+    `${errors("SharesLeft")} SharesLeft, ${errors("TroopsResting")} TroopsResting, ` +
     `${errors("OutOfOrder")} OutOfOrder`,
 );

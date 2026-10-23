@@ -291,37 +291,33 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
 
     // ------------------------------------------------------------------ market (D-19, B-11)
 
+    /// The goods will leave `fromBuilding` when the buyer accepts (D-19).
     function offerTrade(
         uint64 buyer,
+        uint64 fromBuilding,
         uint256 sold,
         uint256 quantity,
         uint256[RESOURCES] calldata price
     ) external drained returns (uint64) {
-        return Market.offer(msg.sender, buyer, sold, quantity, price);
+        return Market.offer(msg.sender, buyer, fromBuilding, sold, quantity, price);
     }
 
     function cancelTrade(uint64 trade) external drained {
         Market.cancel(msg.sender, trade);
     }
 
-    function acceptTrade(uint64 trade) external drained {
-        Market.accept(msg.sender, trade);
+    /// The buyer accepts; the deposit leaves `depositBuilding` (D-19).
+    function acceptTrade(uint64 trade, uint64 depositBuilding) external drained {
+        Market.accept(msg.sender, trade, depositBuilding);
     }
 
-    /// The creditor of a defaulted trade registers the debt without collecting (B-11).
-    function registerDebt(uint64 trade) external drained {
-        Market.registerDebt(msg.sender, trade);
-    }
-
-    /// The creditor of a defaulted trade collects `amount` of each owed resource from a building
-    /// of the debtor into one of its own (D-19, B-11). Reverts unless every amount fits.
-    function claimTrade(
-        uint64 trade,
-        uint64 fromBuilding,
-        uint64 toBuilding,
-        uint256[RESOURCES] calldata amount
-    ) external drained {
-        Market.claim(msg.sender, trade, fromBuilding, toBuilding, amount);
+    /// A party moves `amount` of its shares into one of its buildings (D-19, B-11). Reverts
+    /// unless every amount fits.
+    function withdrawTrade(uint64 trade, uint64 toBuilding, uint256[RESOURCES] calldata amount)
+        external
+        drained
+    {
+        Market.withdraw(msg.sender, trade, toBuilding, amount);
     }
 
     // ------------------------------------------------------------------ views (raw stored state)
@@ -359,13 +355,13 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
         uint64[] offers;
         uint32 sessionEpoch;
         uint40 vacationStart;
-        uint32 debts;
         uint40 tradeLockUntil;
         uint40[] removalAt; // parallel to controllers: scheduled removal, 0 = none (B-26)
         bool[] recovery; // parallel to controllers: a recovery code rather than a device (B-15)
         address transferTo; // pending transfer target, 0 = none (B-26)
         uint40 transferAt;
         uint64 vacationSeq; // creation order of the last vacation start (B-07)
+        uint64[] purchases; // trades as buyer (B-11)
     }
 
     function getBuilding(uint64 id) external view returns (BuildingView memory v) {
@@ -406,7 +402,6 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
         v.offers = p.offers;
         v.sessionEpoch = p.sessionEpoch;
         v.vacationStart = p.vacationStart;
-        v.debts = p.debts;
         v.tradeLockUntil = p.tradeLockUntil;
         v.removalAt = new uint40[](p.controllers.length);
         v.recovery = new bool[](p.controllers.length);
@@ -418,11 +413,7 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
         v.transferTo = p.transferTo;
         v.transferAt = p.transferAt;
         v.vacationSeq = p.vacationSeq;
-    }
-
-    /// Registered trade debts `debtor` still owes `creditor` (B-11).
-    function owes(uint64 debtor, uint64 creditor) external view returns (uint32) {
-        return GameStorage.core().owes[debtor][creditor];
+        v.purchases = p.purchases;
     }
 
     function getFamily(uint64 id) external view returns (Family memory) {

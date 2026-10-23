@@ -18,24 +18,21 @@ dataSources:
       entities:
         - Player
         - Trade
-        - Claim
+        - Payment
+        - Withdrawal
       abis:
         - name: IGameEvents
           file: ../../contracts/out/GameErrors.sol/IGameEvents.json
       eventHandlers:
         # Market (B-11). uint64[4] is one entry per resource (RESOURCES in the generated ruleset).
-        - event: TradeOffered(indexed uint64,indexed uint64,indexed uint64,uint8,uint64,uint64[4],uint8)
+        - event: TradeOffered(indexed uint64,indexed uint64,indexed uint64,uint64,uint8,uint64,uint64[4],uint64[4])
           handler: handleTradeOffered
-        - event: TradeAccepted(indexed uint64)
+        - event: TradeAccepted(indexed uint64,uint40,uint64[4])
           handler: handleTradeAccepted
         - event: TradeCancelled(indexed uint64)
           handler: handleTradeCancelled
-        - event: TradeSettled(indexed uint64,uint64,uint64[4],uint64[4])
-          handler: handleTradeSettled
-        - event: TradeClaimed(indexed uint64,uint64[4])
-          handler: handleTradeClaimed
-        - event: DebtRegistered(indexed uint64,indexed uint64,indexed uint64)
-          handler: handleDebtRegistered
-        - event: DebtPaid(indexed uint64)
-          handler: handleDebtPaid
+        - event: TradePaid(indexed uint64,uint64[4])
+          handler: handleTradePaid
+        - event: TradeWithdrawn(indexed uint64,indexed uint64,uint64[4])
+          handler: handleTradeWithdrawn
       file: ./src/mapping.ts

@@ -1,23 +1,19 @@
-// Market history (B-11, B-18): every trade with its terms, progress, claims and debt.
+// Market history (B-11, B-18): every trade with its terms, payments and withdrawals.
 import { BigInt } from "@graphprotocol/graph-ts";
 import {
-  DebtPaid,
-  DebtRegistered,
   TradeAccepted,
   TradeCancelled,
-  TradeClaimed,
   TradeOffered,
-  TradeSettled,
+  TradePaid,
+  TradeWithdrawn,
 } from "../generated/Game/IGameEvents";
-import { Claim, Player, Trade } from "../generated/schema";
+import { Payment, Player, Trade, Withdrawal } from "../generated/schema";
 
 function player(id: BigInt): Player {
   let p = Player.load(id.toString());
   if (p == null) {
     p = new Player(id.toString());
     p.completedTrades = 0;
-    p.defaults = 0;
-    p.openDebts = 0;
   }
   return p;
 }
@@ -30,9 +26,8 @@ function zeros(n: i32): BigInt[] {
   return out;
 }
 
-/** Fully delivered and fully paid. */
+/** Fully paid. */
 function complete(t: Trade): boolean {
-  if (!t.delivered.equals(t.quantity)) return false;
   const price = t.price;
   const paid = t.paid;
   for (let i = 0; i < price.length; i++) {
@@ -49,17 +44,15 @@ export function handleTradeOffered(e: TradeOffered): void {
   t.seller = e.params.seller.toString();
   t.buyer = e.params.buyer.toString();
   t.status = "PENDING";
+  t.from = e.params.from;
   t.sold = e.params.sold;
   t.quantity = e.params.quantity;
   t.price = e.params.price;
   t.rate = e.params.rate;
   t.offeredAt = e.block.timestamp;
-  t.delivered = BigInt.zero();
+  t.deposit = zeros(e.params.price.length);
   t.paid = zeros(e.params.price.length);
-  t.returned = zeros(e.params.price.length);
   t.complete = false;
-  t.registered = false;
-  t.debtPaid = false;
   t.save();
 }
 
@@ -67,6 +60,8 @@ export function handleTradeAccepted(e: TradeAccepted): void {
   const t = Trade.load(e.params.trade.toString())!;
   t.status = "ACCEPTED";
   t.acceptedAt = e.block.timestamp;
+  t.closesAt = e.params.closesAt;
+  t.deposit = e.params.deposit;
   t.save();
 }
 
@@ -77,12 +72,21 @@ export function handleTradeCancelled(e: TradeCancelled): void {
   t.save();
 }
 
-/** A transport naming the trade counted: the event carries the new totals. */
-export function handleTradeSettled(e: TradeSettled): void {
+/** A payment naming the trade counted: the event carries the new totals; each one is kept. */
+export function handleTradePaid(e: TradePaid): void {
   const t = Trade.load(e.params.trade.toString())!;
-  t.delivered = e.params.delivered;
-  t.paid = e.params.paid;
-  t.returned = e.params.returned;
+  const before = t.paid;
+  const after = e.params.paid;
+  const amount = new Array<BigInt>(after.length);
+  for (let i = 0; i < after.length; i++) amount[i] = after[i].minus(before[i]);
+  const x = new Payment(e.transaction.hash.toHexString() + "-" + e.logIndex.toString());
+  x.trade = t.id;
+  x.amount = amount;
+  x.paid = after;
+  x.timestamp = e.block.timestamp;
+  x.block = e.block.number;
+  x.save();
+  t.paid = after;
   if (!t.complete && complete(t)) {
     t.complete = true;
     const seller = player(BigInt.fromString(t.seller));
@@ -95,42 +99,13 @@ export function handleTradeSettled(e: TradeSettled): void {
   t.save();
 }
 
-/** The creditor collected `amount` directly from a building of the debtor. */
-export function handleTradeClaimed(e: TradeClaimed): void {
-  const t = Trade.load(e.params.trade.toString())!;
-  const c = new Claim(e.transaction.hash.toHexString() + "-" + e.logIndex.toString());
-  c.trade = t.id;
-  c.amount = e.params.amount;
-  c.timestamp = e.block.timestamp;
-  c.block = e.block.number;
-  c.save();
-  const returned = t.returned;
-  const amount = e.params.amount;
-  for (let i = 0; i < returned.length; i++) {
-    returned[i] = returned[i].plus(amount[i]);
-  }
-  t.returned = returned;
-  t.save();
-}
-
-/** First claim on a defaulted trade: the debt now restricts the debtor (B-11). */
-export function handleDebtRegistered(e: DebtRegistered): void {
-  const t = Trade.load(e.params.trade.toString())!;
-  t.registered = true;
-  t.debtor = e.params.debtor.toString();
-  t.creditor = e.params.creditor.toString();
-  t.save();
-  const debtor = player(e.params.debtor);
-  debtor.defaults = debtor.defaults + 1;
-  debtor.openDebts = debtor.openDebts + 1;
-  debtor.save();
-}
-
-export function handleDebtPaid(e: DebtPaid): void {
-  const t = Trade.load(e.params.trade.toString())!;
-  t.debtPaid = true;
-  t.save();
-  const debtor = player(BigInt.fromString(t.debtor!));
-  debtor.openDebts = debtor.openDebts - 1;
-  debtor.save();
+/** A party moved part of its shares into one of its buildings. */
+export function handleTradeWithdrawn(e: TradeWithdrawn): void {
+  const x = new Withdrawal(e.transaction.hash.toHexString() + "-" + e.logIndex.toString());
+  x.trade = e.params.trade.toString();
+  x.player = e.params.player.toString();
+  x.amount = e.params.amount;
+  x.timestamp = e.block.timestamp;
+  x.block = e.block.number;
+  x.save();
 }

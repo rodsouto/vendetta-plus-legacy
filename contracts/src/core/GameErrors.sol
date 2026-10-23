@@ -47,9 +47,10 @@ error NoOffer();
 error InvalidOffer();
 error TooManyOffers();
 error InvalidTrade();
-error InDebt();
 error TradeOpen();
-error InvalidClaim();
+error InvalidWithdrawal();
+error SharesLeft();
+error TooManyTrades();
 error NotController();
 error InvalidSession();
 error SessionTooLong();
@@ -153,26 +154,23 @@ interface IGameEvents {
     event PeaceOffered(uint64 indexed war, uint64 family, uint8 offer);
     event WarEnded(uint64 indexed war, uint64 winner);
     /// The terms travel with the event, so the indexer needs no calls to rebuild a trade (B-18).
+    /// `from`: the seller's building the goods leave at acceptance; `rate`: the values of the
+    /// exchange rate the price matched (B-11).
     event TradeOffered(
         uint64 indexed trade,
         uint64 indexed seller,
         uint64 indexed buyer,
+        uint64 from,
         uint8 sold,
         uint64 quantity,
         uint64[RESOURCES] price,
-        uint8 rate
+        uint64[RESOURCES] rate
     );
-    event TradeAccepted(uint64 indexed trade);
+    /// The goods and the deposit are held from now; payments must arrive by `closesAt` (D-19).
+    event TradeAccepted(uint64 indexed trade, uint40 closesAt, uint64[RESOURCES] deposit);
     event TradeCancelled(uint64 indexed trade);
-    /// A transport naming the trade counted: inside the window towards `delivered` / `paid`, after
-    /// it towards `returned` (B-11).
-    event TradeSettled(
-        uint64 indexed trade, uint64 delivered, uint64[RESOURCES] paid, uint64[RESOURCES] returned
-    );
-    /// The creditor collected `amount` of the debt directly from a building of the debtor.
-    event TradeClaimed(uint64 indexed trade, uint64[RESOURCES] amount);
-    /// First claim on a defaulted trade: the debt now restricts the debtor (B-11).
-    event DebtRegistered(uint64 indexed trade, uint64 indexed debtor, uint64 indexed creditor);
-    /// A registered debt was fully returned.
-    event DebtPaid(uint64 indexed trade);
+    /// A payment naming the trade counted: `paid` so far (B-11).
+    event TradePaid(uint64 indexed trade, uint64[RESOURCES] paid);
+    /// A party moved `amount` of its shares into one of its buildings (D-19).
+    event TradeWithdrawn(uint64 indexed trade, uint64 indexed player, uint64[RESOURCES] amount);
 }

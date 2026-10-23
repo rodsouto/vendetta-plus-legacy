@@ -30,9 +30,11 @@ import {
     InvalidOffer,
     TooManyOffers,
     InvalidTrade,
-    InDebt,
     TradeOpen,
-    InvalidClaim,
+    InvalidWithdrawal,
+    SharesLeft,
+    TooManyTrades,
+    CannotAfford,
     NotOwner,
     ControllerTaken,
     NotRegistered,
@@ -136,25 +138,23 @@ contract SocialTest is GameTestBase {
         return game.getBuilding(building).stock[WEAPONS] / Ruleset.STOCK_SCALE;
     }
 
-    /// Alice sells Bob 300 weapons for 100 dollars, delivers them all and Bob pays `dollars`.
-    /// Returns the trade; the window is still open.
-    function _defaulted(uint256 dollars) internal returns (uint64 t) {
-        vm.prank(alice);
-        t = game.offerTrade(2, WEAPONS, 300, _only(DOLLAR, 100));
-        _armyFor(alice, 1, 3);
-        _armyFor(bob, 2, 3);
-        vm.prank(bob);
-        game.acceptTrade(t);
-        _ship(alice, 1, [uint256(1), 1, 2], 3, _only(WEAPONS, 300), t);
-        if (dollars > 0) _ship(bob, 2, [uint256(1), 1, 1], 3, _only(DOLLAR, dollars), t);
-        _allHome();
+    function _stock(uint64 building, uint256 r) internal view returns (uint256) {
+        return game.getBuilding(building).stock[r] / Ruleset.STOCK_SCALE;
     }
 
-    /// Moves past the window and makes room for weapons in Alice's building (a mob school).
-    function _afterWindow(uint64 t) internal {
-        vm.warp(uint256(game.getTrade(t).acceptedAt) + Ruleset.MARKET_WINDOW_SECONDS + 1);
+    /// Alice and Bob get rowdies, then Alice offers Bob 300 weapons from her building for 100
+    /// dollars and Bob accepts, his deposit (10 dollars) from his building. The window just opened.
+    function _accepted() internal returns (uint64 t) {
+        _armyFor(alice, 1, 3);
+        _armyFor(bob, 2, 3);
         vm.prank(alice);
-        game.queueRoom(1, MOB_SCHOOL);
+        t = game.offerTrade(2, 1, WEAPONS, 300, _only(DOLLAR, 100));
+        vm.prank(bob);
+        game.acceptTrade(t, 2);
+    }
+
+    function _afterWindow(uint64 t) internal {
+        vm.warp(uint256(game.getTrade(t).closesAt) + 1);
     }
 
     // ------------------------------------------------------------------ account
@@ -353,62 +353,196 @@ contract SocialTest is GameTestBase {
         price[3] = 99; // 300 weapons are worth 100 dollars at 3-5-1
         vm.startPrank(alice);
         vm.expectRevert(InvalidOffer.selector);
-        game.offerTrade(2, 0, 300, price);
+        game.offerTrade(2, 1, 0, 300, price);
         price[3] = 100;
+        vm.expectRevert(NotOwner.selector); // the goods would leave Bob's building
+        game.offerTrade(2, 2, 0, 300, price);
         for (uint256 i; i < Ruleset.MAX_OPEN_OFFERS; ++i) {
-            game.offerTrade(2, 0, 300, price);
+            game.offerTrade(2, 1, 0, 300, price);
         }
         vm.expectRevert(TooManyOffers.selector);
-        game.offerTrade(2, 0, 300, price);
+        game.offerTrade(2, 1, 0, 300, price);
         vm.stopPrank();
     }
 
-    function test_marketDeliveryByTradeId() public {
-        uint256[RESOURCES] memory price;
-        price[3] = 100;
+    /// D-19: acceptance takes the goods from the offer's building and the deposit from the
+    /// buyer's, and fixes the terms.
+    function test_marketAcceptHoldsGoodsAndDeposit() public {
         vm.prank(alice);
-        uint64 t = game.offerTrade(2, 0, 300, price);
-        _army(2);
-        uint256[RESOURCES] memory res;
-        res[0] = 150;
-        vm.prank(alice);
-        vm.expectRevert(InvalidTrade.selector); // not accepted yet
-        game.sendMission(1, TRANSPORT, [uint256(1), 1, 2], _rowdies(2), res, t);
+        uint64 big = game.offerTrade(2, 1, WEAPONS, 30_000, _only(DOLLAR, 10_000));
         vm.prank(bob);
-        game.acceptTrade(t);
+        vm.expectRevert(CannotAfford.selector); // Alice has no 30,000 weapons
+        game.acceptTrade(big, 2);
         vm.prank(alice);
-        uint64 id = game.sendMission(1, TRANSPORT, [uint256(1), 1, 2], _rowdies(2), res, t);
-        vm.warp(game.getMission(id).arrival);
-        game.advance(1);
-        Trade memory tr = game.getTrade(t);
-        assertEq(tr.delivered, 150);
-        assertEq(tr.rate, 0); // 3-5-1
+        uint64 t = game.offerTrade(2, 1, WEAPONS, 300, _only(DOLLAR, 100));
+        vm.prank(bob);
+        vm.expectRevert(NotOwner.selector); // the deposit from Alice's building
+        game.acceptTrade(t, 1);
+        uint256 dollars = _stock(2, DOLLAR);
+        uint256 weapons = _stock(1, WEAPONS); // at the cap: production adds nothing
+        uint40 closes = uint40(block.timestamp + Ruleset.MARKET_WINDOW_SECONDS);
+        vm.expectEmit(address(game));
+        emit IGameEvents.TradeAccepted(t, closes, [uint64(0), 0, 0, 10]);
+        vm.prank(bob);
+        game.acceptTrade(t, 2);
+        Trade memory x = game.getTrade(t);
+        assertEq(x.closesAt, closes);
+        assertEq(x.deposit[DOLLAR], 10);
+        assertEq(x.from, 1);
+        assertEq(x.rate[WEAPONS], 3); // 3-5-1
+        assertEq(x.rate[DOLLAR], 1);
+        assertEq(_stock(2, DOLLAR), dollars - 10);
+        assertEq(_stock(1, WEAPONS), weapons - 300);
     }
 
-    function test_marketShipmentCountsUpToWhatRemains() public {
-        uint256[RESOURCES] memory price;
-        price[DOLLAR] = 100;
-        vm.prank(alice);
-        uint64 t = game.offerTrade(2, WEAPONS, 300, price);
-        _armyFor(alice, 1, 3);
+    /// D-19: the buyer withdraws the goods it paid for at any time; once final, the seller gets
+    /// the rest and the unpaid fraction of the deposit, and nobody offers or accepts with a share
+    /// left in a final trade.
+    function test_marketSharesAndWithdrawals() public {
+        uint64 t = _accepted();
+        _ship(bob, 2, [uint256(1), 1, 1], 3, _only(DOLLAR, 40), t);
+        assertEq(game.getTrade(t).paid[DOLLAR], 40);
         vm.prank(bob);
-        game.acceptTrade(t);
+        game.queueRoom(2, MOB_SCHOOL); // room for weapons
+        vm.startPrank(bob);
+        vm.expectRevert(InvalidWithdrawal.selector); // 300 × 40 / 100 = 120 earned
+        game.withdrawTrade(t, 2, _only(WEAPONS, 121));
+        vm.expectRevert(InvalidWithdrawal.selector); // the deposit waits for the end
+        game.withdrawTrade(t, 2, _only(DOLLAR, 1));
+        vm.expectRevert(InvalidWithdrawal.selector);
+        game.withdrawTrade(t, 2, _none());
+        vm.expectRevert(NotOwner.selector);
+        game.withdrawTrade(t, 1, _only(WEAPONS, 1));
+        vm.expectEmit(address(game));
+        emit IGameEvents.TradeWithdrawn(t, 2, [uint64(100), 0, 0, 0]);
+        game.withdrawTrade(t, 2, _only(WEAPONS, 100));
+        game.withdrawTrade(t, 2, _only(WEAPONS, 20));
+        vm.expectRevert(InvalidWithdrawal.selector);
+        game.withdrawTrade(t, 2, _only(WEAPONS, 1));
+        vm.stopPrank();
+        vm.prank(alice);
+        vm.expectRevert(InvalidWithdrawal.selector); // nothing is the seller's before the end
+        game.withdrawTrade(t, 1, _only(WEAPONS, 1));
+        vm.prank(carol);
+        vm.expectRevert(InvalidTrade.selector);
+        game.withdrawTrade(t, 3, _only(WEAPONS, 1));
+
+        // Alice: the other 180 weapons and ⌈10 × 60 / 100⌉ = 6 dollars; Bob: the other 4 dollars.
+        _afterWindow(t);
+        vm.prank(alice);
+        game.queueRoom(1, MOB_SCHOOL); // room for weapons and 25 dollars
+        vm.startPrank(alice);
+        vm.expectRevert(InvalidWithdrawal.selector);
+        game.withdrawTrade(t, 1, _only(WEAPONS, 181));
+        vm.expectRevert(InvalidWithdrawal.selector);
+        game.withdrawTrade(t, 1, _only(DOLLAR, 7));
+        game.withdrawTrade(t, 1, _only(WEAPONS, 180));
+        vm.expectRevert(SharesLeft.selector);
+        game.offerTrade(3, 1, WEAPONS, 300, _only(DOLLAR, 100));
+        game.withdrawTrade(t, 1, _only(DOLLAR, 6));
+        game.offerTrade(3, 1, WEAPONS, 300, _only(DOLLAR, 100)); // nothing left: free again
+        vm.stopPrank();
+        vm.startPrank(bob);
+        vm.expectRevert(SharesLeft.selector);
+        game.offerTrade(3, 2, WEAPONS, 300, _only(DOLLAR, 100));
+        vm.expectRevert(InvalidWithdrawal.selector);
+        game.withdrawTrade(t, 2, _only(DOLLAR, 5));
+        game.withdrawTrade(t, 2, _only(DOLLAR, 4));
+        game.offerTrade(3, 2, WEAPONS, 300, _only(DOLLAR, 100));
+        vm.stopPrank();
+        assertEq(game.getPlayer(1).offers.length, 1, "the finished trade left Alice's list");
+    }
+
+    /// D-19, D-26: a full payment makes the trade final early, and counts at the door even when
+    /// the seller's building has no room; the buyer gets everything back.
+    function test_marketFullPayment() public {
+        uint64 t = _accepted();
+        assertEq(_stock(1, DOLLAR), 10_000); // Alice's dollars sit at the level-0 cap
         uint256[RESOURCES] memory cargo;
-        cargo[WEAPONS] = 400; // 300 count, the rest and the ammunition are a plain transport
+        cargo[DOLLAR] = 130; // 100 count, the rest and the ammunition are a plain transport
         cargo[1] = 7;
-        _ship(alice, 1, [uint256(1), 1, 2], 3, cargo, t);
-        assertEq(game.getTrade(t).delivered, 300);
+        _ship(bob, 2, [uint256(1), 1, 1], 3, cargo, t);
+        assertEq(game.getTrade(t).paid[DOLLAR], 100);
+        assertEq(_stock(1, DOLLAR), 10_000);
+        _allHome();
+        vm.prank(bob);
+        vm.expectRevert(InvalidTrade.selector); // final: nothing left to pay
+        game.sendMission(2, TRANSPORT, [uint256(1), 1, 1], _rowdies(1), _only(DOLLAR, 1), t);
+        vm.prank(alice);
+        vm.expectRevert(InvalidWithdrawal.selector); // Alice was paid in full: nothing left
+        game.withdrawTrade(t, 1, _only(WEAPONS, 1));
+        vm.prank(alice);
+        game.offerTrade(3, 1, WEAPONS, 300, _only(DOLLAR, 100)); // not blocked
+        vm.prank(bob);
+        game.queueRoom(2, MOB_SCHOOL);
+        vm.startPrank(bob);
+        game.withdrawTrade(t, 2, _only(WEAPONS, 300));
+        game.withdrawTrade(t, 2, _only(DOLLAR, 10));
+        vm.stopPrank();
+    }
+
+    /// B-11: only the buyer pays, to the seller's building, arriving within the window.
+    function test_marketPaymentRules() public {
+        uint64 t = _accepted();
+        vm.prank(alice);
+        vm.expectRevert(InvalidTrade.selector); // the seller never ships for a trade
+        game.sendMission(1, TRANSPORT, [uint256(1), 1, 2], _rowdies(1), _only(WEAPONS, 10), t);
+        vm.startPrank(bob);
+        vm.expectRevert(InvalidTrade.selector); // a third party's building
+        game.sendMission(2, TRANSPORT, [uint256(1), 1, 3], _rowdies(1), _only(DOLLAR, 10), t);
+        vm.expectRevert(InvalidTrade.selector); // an empty slot
+        game.sendMission(2, TRANSPORT, [uint256(1), 1, 9], _rowdies(1), _only(DOLLAR, 10), t);
+        vm.stopPrank();
+        vm.warp(game.getTrade(t).closesAt); // a payment leaving now arrives after the window
+        vm.prank(bob);
+        vm.expectRevert(InvalidTrade.selector);
+        game.sendMission(2, TRANSPORT, [uint256(1), 1, 1], _rowdies(1), _only(DOLLAR, 10), t);
+    }
+
+    /// B-11: at most MAX_PURCHASES trades as buyer.
+    function test_marketBuyerCap() public {
+        vm.startPrank(alice);
+        for (uint256 i; i < Ruleset.MAX_OPEN_OFFERS; ++i) {
+            game.offerTrade(2, 1, WEAPONS, 30, _only(DOLLAR, 10));
+        }
+        vm.stopPrank();
+        vm.prank(carol);
+        uint64 extra = game.offerTrade(2, 3, WEAPONS, 30, _only(DOLLAR, 10));
+        vm.startPrank(bob);
+        for (uint64 id = 1; id <= Ruleset.MAX_PURCHASES; ++id) {
+            game.acceptTrade(id, 2);
+        }
+        vm.expectRevert(TooManyTrades.selector);
+        game.acceptTrade(extra, 2);
+        vm.stopPrank();
+        assertEq(game.getPlayer(2).purchases.length, Ruleset.MAX_PURCHASES);
+    }
+
+    /// D-19: a party withdraws whatever the counterparty's state; a suspended one cannot (B-14).
+    function test_marketWithdrawWhileCounterpartySuspended() public {
+        uint64 t = _accepted();
+        _ship(bob, 2, [uint256(1), 1, 1], 3, _only(DOLLAR, 40), t);
+        _afterWindow(t);
+        vm.prank(admin);
+        game.suspend(2, block.timestamp + 10 days);
+        vm.prank(alice);
+        game.queueRoom(1, MOB_SCHOOL);
+        vm.prank(alice);
+        game.withdrawTrade(t, 1, _only(WEAPONS, 180));
+        vm.prank(bob);
+        vm.expectRevert(Suspended.selector);
+        game.withdrawTrade(t, 2, _only(DOLLAR, 4));
     }
 
     function test_marketVacationLock() public {
         uint256[RESOURCES] memory price;
         price[DOLLAR] = 100;
         vm.prank(alice);
-        uint64 t = game.offerTrade(2, WEAPONS, 300, price);
+        uint64 t = game.offerTrade(2, 1, WEAPONS, 300, price);
         vm.prank(carol);
         game.startVacation(); // not a party
         vm.prank(bob);
-        game.acceptTrade(t);
+        game.acceptTrade(t, 2);
         uint256 lock = block.timestamp + Ruleset.MARKET_WINDOW_SECONDS;
         assertEq(game.getPlayer(1).tradeLockUntil, lock);
         assertEq(game.getPlayer(2).tradeLockUntil, lock);
@@ -424,135 +558,6 @@ contract SocialTest is GameTestBase {
         game.startVacation();
     }
 
-    function test_marketClaimRegistersAndPaysTheDebt() public {
-        uint64 t = _defaulted(40); // Bob owes (300 − 120) × 1.1 = 198 weapons
-        vm.prank(alice);
-        vm.expectRevert(InvalidTrade.selector); // the window is open
-        game.claimTrade(t, 2, 1, _only(WEAPONS, 1));
-        _afterWindow(t);
-
-        vm.prank(bob);
-        vm.expectRevert(InvalidTrade.selector); // the debtor
-        game.claimTrade(t, 2, 1, _only(WEAPONS, 1));
-        vm.prank(carol);
-        vm.expectRevert(InvalidTrade.selector); // a third party
-        game.claimTrade(t, 2, 1, _only(WEAPONS, 1));
-        vm.startPrank(alice);
-        vm.expectRevert(NotOwner.selector); // into the debtor's own building
-        game.claimTrade(t, 2, 2, _only(WEAPONS, 1));
-        vm.expectRevert(NotOwner.selector); // from somebody else's
-        game.claimTrade(t, 3, 1, _only(WEAPONS, 1));
-        uint256[RESOURCES] memory zero;
-        vm.expectRevert(InvalidClaim.selector);
-        game.claimTrade(t, 2, 1, zero);
-        vm.expectRevert(InvalidClaim.selector); // more than owed
-        game.claimTrade(t, 2, 1, _only(WEAPONS, 199));
-        vm.expectRevert(InvalidClaim.selector); // not owed
-        game.claimTrade(t, 2, 1, _only(DOLLAR, 1));
-
-        uint256 before = _weapons(1);
-        uint64[RESOURCES] memory moved;
-        moved[WEAPONS] = 100;
-        vm.expectEmit();
-        emit IGameEvents.DebtRegistered(t, 2, 1);
-        vm.expectEmit();
-        emit IGameEvents.TradeClaimed(t, moved);
-        uint256 g = gasleft();
-        game.claimTrade(t, 2, 1, _only(WEAPONS, 100));
-        console.log("claimTrade (first, registers the debt):", g - gasleft());
-        assertEq(_weapons(1), before + 100);
-        Trade memory tr = game.getTrade(t);
-        assertTrue(tr.registered);
-        assertEq(tr.returned[WEAPONS], 100);
-        assertEq(game.getPlayer(2).debts, 1);
-        assertEq(game.owes(2, 1), 1);
-
-        vm.expectEmit();
-        emit IGameEvents.DebtPaid(t);
-        game.claimTrade(t, 2, 1, _only(WEAPONS, 98));
-        assertEq(game.getTrade(t).returned[WEAPONS], 198);
-        assertEq(game.getPlayer(2).debts, 0);
-        assertEq(game.owes(2, 1), 0);
-        vm.expectRevert(InvalidTrade.selector); // nothing left
-        game.claimTrade(t, 2, 1, _only(WEAPONS, 1));
-        vm.stopPrank();
-    }
-
-    function test_marketDebtRestrictionsAndBounce() public {
-        uint64 t = _defaulted(0); // Bob owes 330 weapons
-        _afterWindow(t);
-        vm.prank(bob);
-        game.offerTrade(3, 1, 500, _only(DOLLAR, 100)); // nothing registered yet
-        vm.prank(alice);
-        game.claimTrade(t, 2, 1, _only(WEAPONS, 30));
-        assertEq(game.getPlayer(2).debts, 1);
-
-        vm.prank(carol);
-        uint64 offered = game.offerTrade(2, 1, 500, _only(DOLLAR, 100));
-        vm.startPrank(bob);
-        vm.expectRevert(InDebt.selector);
-        game.offerTrade(3, 1, 500, _only(DOLLAR, 100));
-        vm.expectRevert(InDebt.selector);
-        game.acceptTrade(offered);
-        vm.expectRevert(InDebt.selector);
-        game.startVacation();
-        vm.expectRevert(InDebt.selector); // a third party
-        game.sendMission(2, TRANSPORT, [uint256(1), 1, 3], _rowdies(1), _only(WEAPONS, 5), 0);
-        vm.expectRevert(InDebt.selector); // an empty slot
-        game.sendMission(2, TRANSPORT, [uint256(1), 1, 9], _rowdies(1), _only(WEAPONS, 5), 0);
-        game.sendMission(2, ATTACK, [uint256(1), 1, 3], _rowdies(1), _only(WEAPONS, 0), 0); // not a transport
-        game.sendMission(2, TRANSPORT, [uint256(1), 1, 1], _rowdies(1), _only(WEAPONS, 5), 0); // the creditor
-        // A hidden transport leaves unchecked and turns back with its cargo on arrival.
-        bytes32 salt = bytes32(uint256(7));
-        bytes32 commit =
-            keccak256(abi.encode(uint64(2), TRANSPORT, uint256(1), uint256(1), uint256(3), salt));
-        uint64 hidden =
-            game.sendHiddenMission(2, commit, 3, _rowdies(1), _only(WEAPONS, 5), hex"", 0);
-        vm.stopPrank();
-        vm.warp(game.getMission(hidden).arrival);
-        game.reveal(hidden, TRANSPORT, [uint256(1), 1, 3], salt);
-        game.advance(10);
-        Mission memory m = game.getMission(hidden);
-        assertTrue(m.returning);
-        assertEq(m.cargo[WEAPONS], 5); // back with the cargo
-        _allHome();
-
-        // Paying the rest back by a transport that names the trade closes the debt.
-        vm.prank(bob);
-        uint64 paying =
-            game.sendMission(2, TRANSPORT, [uint256(1), 1, 1], _rowdies(3), _only(WEAPONS, 300), t);
-        vm.warp(game.getMission(paying).arrival);
-        vm.expectEmit();
-        emit IGameEvents.DebtPaid(t);
-        game.advance(10);
-        assertEq(game.getTrade(t).returned[WEAPONS], 330);
-        assertEq(game.getPlayer(2).debts, 0);
-        assertEq(game.owes(2, 1), 0);
-        vm.prank(bob);
-        game.offerTrade(3, 1, 500, _only(DOLLAR, 100)); // free again
-    }
-
-    function test_marketClaimFromDebtorOnVacationOrSuspended() public {
-        uint64 t = _defaulted(0);
-        _afterWindow(t);
-        vm.prank(bob);
-        game.startVacation(); // nothing registered yet, the lock has passed
-        vm.prank(alice);
-        game.claimTrade(t, 2, 1, _only(WEAPONS, 100));
-        vm.prank(admin);
-        game.suspend(2, block.timestamp + 30 days);
-        vm.prank(alice);
-        game.claimTrade(t, 2, 1, _only(WEAPONS, 100));
-        assertEq(game.getTrade(t).returned[WEAPONS], 200);
-        vm.prank(alice);
-        game.startVacation();
-        vm.prank(alice);
-        vm.expectRevert(OnVacation.selector); // the creditor itself has to be active
-        game.claimTrade(t, 2, 1, _only(WEAPONS, 100));
-    }
-}
-
-contract SocialGasTest is GameTestBase {
     function test_gasSocial() public {
         vm.warp(T0);
         Game game = deployGame();
@@ -579,11 +584,11 @@ contract SocialGasTest is GameTestBase {
         price[3] = 100;
         vm.prank(a);
         g = gasleft();
-        uint64 t = game.offerTrade(2, 0, 300, price);
+        uint64 t = game.offerTrade(2, 1, 0, 300, price);
         console.log("offerTrade:", g - gasleft());
         vm.prank(b);
         g = gasleft();
-        game.acceptTrade(t);
+        game.acceptTrade(t, 2);
         console.log("acceptTrade:", g - gasleft());
         vm.warp(block.timestamp + Ruleset.MARKET_WINDOW_SECONDS + 1); // no vacation inside the window
         vm.prank(a);
@@ -596,42 +601,6 @@ contract SocialGasTest is GameTestBase {
 contract MarketRulesTest is SocialTest {
     uint256 internal constant AMMUNITION = 1;
 
-    /// What the debtor still owes of the sold resource, from the stored trade (D-19).
-    function sim_remaining(uint64 id) internal view returns (uint256) {
-        Trade memory x = game.getTrade(id);
-        // buyer in debt, nothing paid: owed = delivered × 1.1, rounded up
-        return (uint256(x.delivered) * 110 + 99) / 100 - x.returned[x.sold];
-    }
-
-    /// D-26: the shipment counts at the coordinate chosen at send, whatever the building holds;
-    /// what does not fit is lost (D-10). A trade transport must leave towards the counterparty.
-    function test_marketShipmentCountsAtTheDoor() public {
-        vm.prank(alice);
-        uint64 t = game.offerTrade(2, WEAPONS, 300, _only(DOLLAR, 100));
-        _armyFor(alice, 1, 3);
-        vm.prank(bob);
-        game.acceptTrade(t);
-        // bob's weapons sit at the level-0 cap (10,000): nothing fits, the delivery counts in full
-        assertEq(_weapons(2), 10_000);
-        _ship(alice, 1, [uint256(1), 1, 2], 3, _only(WEAPONS, 200), t);
-        assertEq(_weapons(2), 10_000);
-        assertEq(game.getTrade(t).delivered, 200);
-        _allHome();
-        vm.startPrank(alice);
-        vm.expectRevert(InvalidTrade.selector); // a third party's building
-        game.sendMission(1, TRANSPORT, [uint256(1), 1, 3], _rowdies(1), _only(WEAPONS, 10), t);
-        vm.expectRevert(InvalidTrade.selector); // an empty slot
-        game.sendMission(1, TRANSPORT, [uint256(1), 1, 9], _rowdies(1), _only(WEAPONS, 10), t);
-        vm.stopPrank();
-        // the buyer pays the seller the same way: only towards the seller's building
-        _armyFor(bob, 2, 3);
-        vm.prank(bob);
-        vm.expectRevert(InvalidTrade.selector);
-        game.sendMission(2, TRANSPORT, [uint256(1), 1, 3], _rowdies(1), _only(DOLLAR, 10), t);
-        _ship(bob, 2, [uint256(1), 1, 1], 3, _only(DOLLAR, 100), t);
-        assertEq(game.getTrade(t).paid[DOLLAR], 100);
-    }
-
     /// B-11: a price that matches more than one rate is rejected, so the stored rate is never
     /// ambiguous; quantities and prices must fit in 64 bits.
     function test_marketOfferChecks() public {
@@ -640,94 +609,132 @@ contract MarketRulesTest is SocialTest {
         price[DOLLAR] = 1; // 10 ammunition for 3 weapons and 1 dollar fits both 3-5-1 and 2-4-1
         vm.startPrank(alice);
         vm.expectRevert(InvalidOffer.selector);
-        game.offerTrade(2, AMMUNITION, 10, price);
-        game.offerTrade(2, AMMUNITION, 10, _only(DOLLAR, 2)); // 3-5-1 only
+        game.offerTrade(2, 1, AMMUNITION, 10, price);
+        game.offerTrade(2, 1, AMMUNITION, 10, _only(DOLLAR, 2)); // 3-5-1 only
         vm.expectRevert(InvalidOffer.selector);
-        game.offerTrade(2, WEAPONS, 3 * (uint256(1) << 64), _only(DOLLAR, uint256(1) << 64));
+        game.offerTrade(2, 1, WEAPONS, 3 * (uint256(1) << 64), _only(DOLLAR, uint256(1) << 64));
         vm.expectRevert(InvalidOffer.selector);
-        game.offerTrade(2, WEAPONS, uint256(1) << 64, _only(DOLLAR, (uint256(1) << 64) / 3));
+        game.offerTrade(2, 1, WEAPONS, uint256(1) << 64, _only(DOLLAR, (uint256(1) << 64) / 3));
         vm.stopPrank();
     }
 
-    /// B-11: accepting checks the seller again: active and without a registered debt.
+    /// B-11: accepting checks the seller again: active.
     function test_marketAcceptChecksTheSeller() public {
         vm.prank(alice);
-        uint64 t = game.offerTrade(2, WEAPONS, 300, _only(DOLLAR, 100));
+        uint64 t = game.offerTrade(2, 1, WEAPONS, 300, _only(DOLLAR, 100));
         vm.prank(admin);
         game.suspend(1, block.timestamp + 10 days);
         vm.prank(bob);
         vm.expectRevert(InvalidTrade.selector);
-        game.acceptTrade(t);
+        game.acceptTrade(t, 2);
         vm.prank(admin);
         game.suspend(1, 0);
         vm.prank(alice);
         game.startVacation();
         vm.prank(bob);
         vm.expectRevert(InvalidTrade.selector);
-        game.acceptTrade(t);
+        game.acceptTrade(t, 2);
         vm.prank(alice);
         game.endVacation();
         vm.prank(bob);
-        game.acceptTrade(t);
+        game.acceptTrade(t, 2);
         assertTrue(game.getTrade(t).accepted);
     }
 
-    /// B-11: the creditor registers the debt without collecting; idempotent.
-    function test_marketRegisterDebt() public {
-        uint64 t = _defaulted(0); // Bob owes 330 weapons
-        vm.prank(alice);
-        vm.expectRevert(InvalidTrade.selector); // the window is open
-        game.registerDebt(t);
-        _afterWindow(t);
+    /// B-11: a payment may arrive at the window's last second, and counts even when the queue is
+    /// drained after the window closed; one second later it cannot leave.
+    function test_marketPaymentArrivesExactlyAtTheDeadline() public {
+        uint64 t = _accepted();
+        uint256 closes = game.getTrade(t).closesAt;
+        uint256 snap = vm.snapshotState();
         vm.prank(bob);
-        vm.expectRevert(InvalidTrade.selector); // the debtor
-        game.registerDebt(t);
-        vm.prank(carol);
-        vm.expectRevert(InvalidTrade.selector); // a third party
-        game.registerDebt(t);
-        uint256 before = _weapons(1);
-        vm.expectEmit(address(game));
-        emit IGameEvents.DebtRegistered(t, 2, 1);
-        vm.prank(alice);
-        game.registerDebt(t);
-        assertEq(_weapons(1), before, "nothing moved");
-        assertTrue(game.getTrade(t).registered);
-        assertEq(game.getPlayer(2).debts, 1);
-        assertEq(game.owes(2, 1), 1);
-        vm.prank(alice);
-        game.registerDebt(t); // again: nothing changes
-        assertEq(game.getPlayer(2).debts, 1);
+        uint64 probe =
+            game.sendMission(2, TRANSPORT, [uint256(1), 1, 1], _rowdies(3), _only(DOLLAR, 40), t);
+        uint256 duration = game.getMission(probe).arrival - block.timestamp;
+        vm.revertToState(snap);
+        snap = vm.snapshotState();
+        vm.warp(closes - duration + 1);
         vm.prank(bob);
-        vm.expectRevert(InDebt.selector); // the restrictions started without a claim
-        game.offerTrade(3, AMMUNITION, 500, _only(DOLLAR, 100));
+        vm.expectRevert(InvalidTrade.selector);
+        game.sendMission(2, TRANSPORT, [uint256(1), 1, 1], _rowdies(3), _only(DOLLAR, 40), t);
+        vm.revertToState(snap);
+        vm.warp(closes - duration);
+        vm.prank(bob);
+        uint64 id =
+            game.sendMission(2, TRANSPORT, [uint256(1), 1, 1], _rowdies(3), _only(DOLLAR, 40), t);
+        assertEq(game.getMission(id).arrival, closes);
+        vm.warp(closes + 1 days);
+        game.advance(10);
+        assertEq(game.getTrade(t).paid[DOLLAR], 40);
     }
 
-    /// B-11: a registered debtor can always pay a trade's creditor, registered or not.
-    function test_marketDebtorPaysUnregisteredCreditor() public {
-        uint64 first = _defaulted(0); // Bob owes Alice 330 weapons
-        // Carol sells Bob 500 ammunition for 100 dollars and delivers; Bob pays nothing, so after
-        // the window he owes the ammunition back, plus the penalty (D-19).
-        _armyFor(carol, 3, 3);
-        vm.prank(carol);
-        uint64 second = game.offerTrade(2, AMMUNITION, 500, _only(DOLLAR, 100));
+    /// D-19: shares are totals minus what was taken, so more payment after a withdrawal earns the
+    /// rest of the goods.
+    function test_marketPaymentAfterPartialWithdrawal() public {
+        uint64 t = _accepted();
+        _ship(bob, 2, [uint256(1), 1, 1], 3, _only(DOLLAR, 40), t);
         vm.prank(bob);
-        game.acceptTrade(second);
-        _ship(carol, 3, [uint256(1), 1, 2], 3, _only(AMMUNITION, 500), second);
+        game.queueRoom(2, MOB_SCHOOL);
+        vm.prank(bob);
+        game.withdrawTrade(t, 2, _only(WEAPONS, 120));
         _allHome();
-        _afterWindow(second);
+        _ship(bob, 2, [uint256(1), 1, 1], 3, _only(DOLLAR, 60), t); // paid in full: final
+        uint256[RESOURCES] memory rest;
+        (rest[WEAPONS], rest[DOLLAR]) = (180, 10);
+        vm.startPrank(bob);
+        vm.expectRevert(InvalidWithdrawal.selector);
+        game.withdrawTrade(t, 2, _only(WEAPONS, 181));
+        game.withdrawTrade(t, 2, rest);
+        vm.stopPrank();
         vm.prank(alice);
-        game.registerDebt(first); // Alice registers, Carol does not
-        assertEq(game.owes(2, 1), 1);
-        assertEq(game.owes(2, 3), 0);
+        vm.expectRevert(InvalidWithdrawal.selector);
+        game.withdrawTrade(t, 1, _only(WEAPONS, 1));
+    }
+
+    /// B-11: a recalled payment never reaches the seller and pays nothing.
+    function test_marketRecalledPaymentPaysNothing() public {
+        uint64 t = _accepted();
         vm.prank(bob);
-        vm.expectRevert(InDebt.selector); // a plain transport to Carol is still blocked
-        game.sendMission(2, TRANSPORT, [uint256(1), 1, 3], _rowdies(1), _only(DOLLAR, 1), 0);
+        uint64 id =
+            game.sendMission(2, TRANSPORT, [uint256(1), 1, 1], _rowdies(3), _only(DOLLAR, 40), t);
+        vm.warp(block.timestamp + 1);
         vm.prank(bob);
-        vm.expectRevert(InvalidTrade.selector); // naming the trade, but not to the creditor
-        game.sendMission(2, TRANSPORT, [uint256(1), 1, 1], _rowdies(1), _only(DOLLAR, 1), second);
-        assertEq(sim_remaining(second), 550);
-        _ship(bob, 2, [uint256(1), 1, 3], 3, _only(AMMUNITION, 400), second); // the restitution leaves
-        assertEq(game.getTrade(second).returned[AMMUNITION], 400);
-        assertEq(game.getPlayer(2).debts, 1, "Alice's debt stands");
+        game.recall(id);
+        _allHome();
+        assertEq(game.getTrade(t).paid[DOLLAR], 0);
+    }
+
+    /// D-19: on a tiny trade the seller's deposit share is the unpaid fraction of the rounded
+    /// deposit, rounded up. 9 weapons for 10 ammunition and 1 dollar; 1 ammunition left unpaid.
+    function test_marketTinyTradeDeposit() public {
+        _armyFor(alice, 1, 3);
+        _armyFor(bob, 2, 3);
+        uint256[RESOURCES] memory price;
+        (price[AMMUNITION], price[DOLLAR]) = (10, 1);
+        vm.prank(alice);
+        uint64 t = game.offerTrade(2, 1, WEAPONS, 9, price);
+        vm.prank(bob);
+        game.acceptTrade(t, 2);
+        assertEq(game.getTrade(t).deposit[AMMUNITION], 1);
+        assertEq(game.getTrade(t).deposit[DOLLAR], 1);
+        uint256[RESOURCES] memory paid;
+        (paid[AMMUNITION], paid[DOLLAR]) = (9, 1);
+        _ship(bob, 2, [uint256(1), 1, 1], 3, paid, t);
+        _afterWindow(t);
+        vm.prank(bob);
+        game.queueRoom(2, MOB_SCHOOL); // production refilled the stores during the window
+        vm.prank(alice);
+        game.queueRoom(1, MOB_SCHOOL);
+        vm.startPrank(bob); // ⌊9 × 2.8 / 3⌋ = 8 weapons; nothing of the deposit
+        vm.expectRevert(InvalidWithdrawal.selector);
+        game.withdrawTrade(t, 2, _only(WEAPONS, 9));
+        vm.expectRevert(InvalidWithdrawal.selector);
+        game.withdrawTrade(t, 2, _only(AMMUNITION, 1));
+        game.withdrawTrade(t, 2, _only(WEAPONS, 8));
+        vm.stopPrank();
+        uint256[RESOURCES] memory seller;
+        (seller[WEAPONS], seller[AMMUNITION], seller[DOLLAR]) = (1, 1, 1);
+        vm.prank(alice);
+        game.withdrawTrade(t, 1, seller);
     }
 }

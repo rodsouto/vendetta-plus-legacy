@@ -91,8 +91,8 @@ export async function loadWorld(
       rank: p.rank,
       applications: [...p.applications],
       offers: [...p.offers],
+      purchases: [...p.purchases],
       sessionEpoch: BigInt(p.sessionEpoch),
-      debts: Number(p.debts),
       tradeLockUntil: big(p.tradeLockUntil),
       removalAt: new Map(
         (p.controllers as Address[]).flatMap((c, i) =>
@@ -198,26 +198,19 @@ export async function loadWorld(
       id,
       seller: t.seller,
       buyer: t.buyer,
+      from: t.from,
       sold: t.sold,
       quantity: t.quantity,
       price: [...t.price],
-      delivered: t.delivered,
-      paid: [...t.paid],
+      rate: [...t.rate],
       accepted: t.accepted,
-      acceptedAt: big(t.acceptedAt),
-      rate: t.rate,
-      registered: t.registered,
-      returned: [...t.returned],
+      closesAt: big(t.closesAt),
+      deposit: [...t.deposit],
+      paid: [...t.paid],
+      sellerTook: [...t.sellerTook],
+      buyerTook: [...t.buyerTook],
     });
   });
-  // owes[debtor][creditor] (B-11) is not listable on-chain; it is the registered debts still open.
-  for (const t of w.trades.values()) {
-    if (!t.registered) continue;
-    const d = sim.tradeDebt(w, t);
-    if (!sim.inDefault(d)) continue;
-    const key = sim.owesKey(d.debtor, d.creditor);
-    w.owes.set(key, (w.owes.get(key) ?? 0) + 1);
-  }
 
   sv.forEach((s, i) => {
     if (s.player === 0n) return;

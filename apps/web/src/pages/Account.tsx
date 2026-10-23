@@ -6,7 +6,7 @@ import { isAddress, type Address } from "viem";
 import { sim } from "@vendetta/rules";
 import { useGame } from "../state/game.js";
 import { Empty } from "../ui/parts.js";
-import { clock, playerLabel } from "../ui/format.js";
+import { clock } from "../ui/format.js";
 import { controllerKey } from "../chain/load.js";
 import { ApproveDevice, Devices, PendingBanner } from "./Devices.js";
 
@@ -18,8 +18,7 @@ export function Account() {
   const p = g.me;
   const vacation = sim.onVacation(p, g.now);
   const premium = sim.isPremium(g.world, p, g.now);
-  // D-19, B-11: no vacation with a registered market debt or an accepted trade's window open.
-  const creditors = [...g.world.players.values()].filter((x) => sim.owes(g.world, p.id, x.id) > 0);
+  // D-18, D-19: no vacation while an accepted trade's window is open.
   const tradeLocked = !vacation && g.now <= p.tradeLockUntil;
   const days = Number(g.world.rs.config.controllerRemovalDelay / 86400n);
   const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
@@ -67,13 +66,6 @@ export function Account() {
       {g.signer.mode === "passkey" && <Devices />}
 
       <h3>{t("account.vacation")}</h3>
-      {p.debts > 0 && (
-        <p className="note red" role="alert">
-          {t("market.inDebt", { count: p.debts })}{" "}
-          {creditors.length > 0 &&
-            `${t("market.creditors")}: ${creditors.map((x) => playerLabel(g.world, x.id)).join(", ")}.`}
-        </p>
-      )}
       {tradeLocked && (
         <p className="note">
           {t("market.vacationLocked")} {clock(p.tradeLockUntil)}
@@ -97,7 +89,7 @@ export function Account() {
       ) : (
         <button
           className="btn"
-          disabled={g.busy || p.debts > 0 || tradeLocked}
+          disabled={g.busy || tradeLocked}
           onClick={() =>
             void g.act({
               done: t("account.startVacation"),

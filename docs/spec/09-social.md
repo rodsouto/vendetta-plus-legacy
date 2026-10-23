@@ -1,7 +1,7 @@
 # Social Systems
 
 Legacy rules with source citations. Target changes: [D-18](decisions.md#d-18--vacation--keep--fix),
-[D-19](decisions.md#d-19--market--keep--fix), [D-20](decisions.md#d-20--families--wars--keep--fix).
+[D-19](decisions.md#d-19--market--keep--fix--new), [D-20](decisions.md#d-20--families--wars--keep--fix).
 
 ## Vacation mode
 

@@ -73,19 +73,23 @@ struct War {
     uint64 offerBy; // family that made the offer
 }
 
+/// A market trade (D-19, B-11). From acceptance it holds the seller's goods and the buyer's
+/// deposit; each party withdraws its shares. Its terms (rate, window end, deposit) never change
+/// once set, whatever later configuration or upgrade (B-17).
 struct Trade {
     uint64 seller;
     uint64 buyer;
+    uint64 from; // the seller's building the goods leave at acceptance
     uint8 sold; // resource index
     bool accepted;
-    uint40 acceptedAt;
+    uint40 closesAt; // the window end, set at acceptance: payments must arrive by then
     uint64 quantity;
-    uint64 delivered;
     uint64[RESOURCES] price;
+    uint64[RESOURCES] rate; // values of the exchange rate the price matched, per resource (B-11)
+    uint64[RESOURCES] deposit; // the buyer's deposit held at acceptance
     uint64[RESOURCES] paid;
-    uint8 rate; // index of the exchange rate the price matched (B-11): values the default (D-19)
-    bool registered; // the creditor claimed once: the debt counts in Player.debts and owes
-    uint64[RESOURCES] returned; // restitution received by the creditor after the window
+    uint64[RESOURCES] sellerTook; // withdrawn by the seller
+    uint64[RESOURCES] buyerTook; // withdrawn by the buyer
 }
 
 struct Building {
@@ -119,14 +123,14 @@ struct Player {
     uint64 family; // valid only while that family is alive
     uint8 rank; // CAPO, SUBCAPO, MEMBER
     uint64[] applications; // families applied to (B-31)
-    uint64[] offers; // trades where this player is the seller (B-09 cap)
+    uint64[] offers; // trades as seller: pending, not final, or final with a share left (B-11 cap)
     uint32 sessionEpoch; // bumped by transferPlayer and removeController: older sessions die (B-15)
     uint40 vacationStart; // when the last vacation started: hidden missions sent during it bounce (B-22)
-    uint32 debts; // registered trade debts not yet paid (B-11): restricts market, vacation, transports
     uint40 tradeLockUntil; // latest window end of an accepted trade: no vacation while now ≤ it (D-18)
     address transferTo; // pending transfer target (B-26), 0 = none
     uint40 transferAt; // when the pending transfer can be accepted
     uint64 vacationSeq; // creation order of the last vacation start: same-second sends (B-07, B-22)
+    uint64[] purchases; // trades as buyer: not final, or final with a share left (B-11 cap)
 }
 
 /// A session key: an address allowed to play for a player until `until` (B-15).
@@ -186,7 +190,6 @@ struct CoreState {
     uint64 nextTrade;
     mapping(uint64 => Trade) trades;
     mapping(address => Session) sessions; // session address → authorization
-    mapping(uint64 => mapping(uint64 => uint32)) owes; // debtor → creditor → registered unpaid debts (B-11)
     mapping(address => ControllerInfo) controllerInfo; // B-26
     mapping(address => mapping(uint64 => Invite)) invites; // invited address → player → invitation
 }

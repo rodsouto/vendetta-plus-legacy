@@ -84,6 +84,7 @@ interface GameConfig {
   onchain: {
     max_outgoing_missions_per_player: number;
     max_open_market_offers_per_player: number;
+    max_market_purchases_per_player: number;
     max_family_applications_per_player: number;
     max_session_seconds: number;
     max_controllers_per_player: number;
@@ -97,7 +98,7 @@ interface GameConfig {
   vacation: { duration_days: number; cooldown_days: number };
   market: {
     exchange_rates: Record<string, Record<string, number>>;
-    default_penalty_percent: number;
+    deposit_percent: number;
     delivery_window_days: number;
   };
   families: { tag_length: [number, number]; name_length: [number, number] };
@@ -332,9 +333,10 @@ library ${name} {
     uint256 internal constant VACATION_SECONDS = ${config.vacation.duration_days * 86400};
     uint256 internal constant VACATION_COOLDOWN_SECONDS = ${config.vacation.cooldown_days * 86400};
     uint256 internal constant MARKET_WINDOW_SECONDS = ${config.market.delivery_window_days * 86400};
-    /// Added to the restitution a defaulter owes, in percent (D-19).
-    uint256 internal constant DEFAULT_PENALTY_PERCENT = ${config.market.default_penalty_percent};
+    /// The buyer's deposit, in percent of each price resource (D-19).
+    uint256 internal constant DEPOSIT_PERCENT = ${config.market.deposit_percent};
     uint256 internal constant MAX_OPEN_OFFERS = ${config.onchain.max_open_market_offers_per_player};
+    uint256 internal constant MAX_PURCHASES = ${config.onchain.max_market_purchases_per_player};
     uint256 internal constant MAX_APPLICATIONS = ${config.onchain.max_family_applications_per_player};
     uint256 internal constant MAX_SESSION_SECONDS = ${config.onchain.max_session_seconds};
     uint256 internal constant MAX_CONTROLLERS = ${config.onchain.max_controllers_per_player};

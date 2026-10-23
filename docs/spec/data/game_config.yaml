@@ -92,8 +92,8 @@ market:
   exchange_rates:                       # value of 1 dollar expressed in each resource
     rate_3_5_1: {weapons: 3, ammunition: 5, dollar: 1}
     rate_2_4_1: {weapons: 2, ammunition: 4, dollar: 1}
-  default_penalty_percent: 10           # NOT legacy (D-19): added to the restitution a defaulter owes
-  delivery_window_days: 10              # after acceptance
+  deposit_percent: 10                   # NOT legacy (D-19): the buyer's deposit, held from acceptance, per price resource
+  delivery_window_days: 5               # NOT legacy (legacy 10, D-19): payments must arrive within this after acceptance
 
 families:
   tag_length: [2, 8]
@@ -106,7 +106,8 @@ onchain:
   # Every loop in a contract must be bounded. Starting values, to be tuned with gas measurements.
   # Room and research queue limits above (queues:) are kept as-is.
   max_outgoing_missions_per_player: 20  # missions sent by a player and not yet back
-  max_open_market_offers_per_player: 10
+  max_open_market_offers_per_player: 10  # trades as seller (B-11): pending, open, or final with a seller share left
+  max_market_purchases_per_player: 10   # trades as buyer (B-11): open, or final with a buyer share left
   max_family_applications_per_player: 5 # open applications to families (B-31)
   max_session_seconds: 2592000          # longest session key authorization: 30 days (B-15)
   max_controllers_per_player: 5         # devices (passkeys) and recovery codes that manage an account (B-26)

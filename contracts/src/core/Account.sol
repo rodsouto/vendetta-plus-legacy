@@ -20,7 +20,6 @@ import {
     SessionTooLong,
     MissionsInFlight,
     VacationCooldown,
-    InDebt,
     TradeOpen,
     NotOnVacation,
     OnVacation,
@@ -40,8 +39,8 @@ import {
 /// (B-15, B-26). An address joins an account only by accepting an invitation itself: nobody binds
 /// an address it does not hold. Linked external library. Mirrors packages/rules/src/sim/account.ts.
 library Account {
-    /// 15 days; needs no own missions in flight, 7 days since the last vacation ended, no
-    /// registered trade debt and no accepted trade whose window is still open (D-19, B-11).
+    /// 15 days; needs no own missions in flight, 7 days since the last vacation ended and no
+    /// accepted trade whose window is still open (D-18, D-19).
     function startVacation(address caller) external {
         CoreState storage s = GameStorage.core();
         (uint64 pid, Player storage p) = Access.active(s, caller);
@@ -50,7 +49,6 @@ library Account {
             p.vacationUntil > 0
                 && block.timestamp < p.vacationUntil + Ruleset.VACATION_COOLDOWN_SECONDS
         ) revert VacationCooldown();
-        if (p.debts > 0) revert InDebt();
         if (block.timestamp <= p.tradeLockUntil) revert TradeOpen();
         p.vacationUntil = uint40(block.timestamp + Ruleset.VACATION_SECONDS);
         p.vacationStart = uint40(block.timestamp);

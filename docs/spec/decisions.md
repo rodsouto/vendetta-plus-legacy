@@ -31,7 +31,7 @@ of these; when they disagree, blockchain.md wins for that implementation.
 | D-16 | Double fight per round | Keep | Each pairing fights in both phases |
 | D-17 | Honor > 100 buildings | Fix | Cap honor at 8 before every branch |
 | D-18 | Vacation | Keep + Fix | Legacy rules; cooldown enforced server-side |
-| D-19 | Market | Keep + Fix | Legacy mechanics with bugs fixed; a defaulter owes restitution plus a penalty |
+| D-19 | Market | Keep + Fix + New | Legacy offers with bugs fixed; the seller's goods and a buyer deposit held from acceptance, shares withdrawn |
 | D-20 | Families & wars | Keep + Fix | Legacy mechanics with authorization fixed |
 | D-21 | Space4k | — | Second ruleset: same mechanics, own data |
 | D-22 | Server-side validation | Fix | Every action validated on the server |
@@ -191,51 +191,70 @@ be targeted by new missions, production and queues keep running, missions alread
 **Fix:** enforce the 7-day cooldown on the server, and compute it from the actual end time even if the
 player never logged in after an automatic expiry.
 
-## D-19 — Market — Keep + Fix
+## D-19 — Market — Keep + Fix + New
 
-Keep the legacy mechanics (offers at fixed exchange rates, delivery via transport missions, 10-day
-window, no escrow). **Fixes:**
+Keep the legacy offers: fixed exchange rates, an offer names its buyer, the buyer pays with
+transport missions, only pending offers can be cancelled (by either party). **Fixes:**
 - The transport mission stores the **trade id** chosen by the player, and settlement applies to that trade only.
 - Validate quantities > 0, compare rates with integer arithmetic, and reject trading a resource for itself.
-- Neither party can delete an accepted trade; only pending offers can be cancelled (by either party).
-- A shipment counts for its trade **up to what remains** of each resource; the rest of the cargo
+- Neither party can delete an accepted trade.
+- A payment counts for its trade **up to what remains** of each resource; the rest of the cargo
   (other resources, the excess) is a plain transport the recipient keeps. Legacy ignored the whole
   shipment if any part did not fit, which loses shipments to a race when several are in flight.
-- **Default has a remedy** (legacy: none, the trade just stops settling). Below.
 
-### Default
+**New: escrow for the seller, deposit for the buyer** (legacy: no escrow, both parties deliver by
+transport, and a party that does not deliver faces nothing).
 
-When the window closes, each side is valued at the trade's rate (the one its price matched):
-the seller's progress is `delivered / quantity`, the buyer's `paidValue / priceValue`, where a value
-is `Σ amount[r] / rate[r]`. The party further behind is the **debtor**, the other the
-**creditor**. Equal progress (including nothing sent) means no debt. At most one party is a debtor.
+- **The seller's goods.** The offer names the seller's building the goods come from. Acceptance
+  takes the whole quantity from that building into the trade, and fails if the building is no
+  longer the seller's or lacks the stock. Nothing is held while the offer is pending. The seller
+  never sends a transport.
+- **The buyer's deposit.** Acceptance also takes `deposit[r] = ⌈price[r] × p / 100⌉` from a
+  building of the buyer chosen at acceptance (`market.deposit_percent`, 10 %,
+  [game_config.yaml](data/game_config.yaml)), and fails if the stock is missing. The deposit is not
+  payment.
+- **Payment.** The buyer pays with transports to any building of the seller, which must arrive
+  within the **5-day window** after acceptance (`market.delivery_window_days`). A transport that
+  would arrive later cannot be sent.
+- **Final.** The trade is final when the window closes, or earlier when the price is fully paid.
+- **Shares.** A value is `Σ amount[r] / rate[r]` at the rate the price matched; `P` is the value of
+  the price and `V` the value paid so far.
+  - Goods: the buyer earns `E = ⌊quantity × V / P⌋` as it pays; once final, the seller gets
+    `quantity − E` back.
+  - Deposit, once final: the seller gets `⌈deposit[r] × (P − V) / P⌉` and the buyer the rest. Full
+    payment returns it all to the buyer; no payment gives it all to the seller.
 
-- **Restitution in kind.** The debtor gives back what it received beyond what it gave, in the
-  resources it received:
-  - buyer in debt: `owed[sold] = delivered − ⌊quantity × paidValue / priceValue⌋`;
-  - seller in debt: the excess value is returned in proportion to what was paid,
-    `owed[r] = ⌈paid[r] × (paidValue × quantity − priceValue × delivered) / (paidValue × quantity)⌉`.
-- **Penalty:** each `owed[r]` grows by `market.default_penalty_percent` (10%,
-  [game_config.yaml](data/game_config.yaml)): `⌈owed[r] × (100 + p) / 100⌉`. Roundings favour the
-  creditor.
-- **No substitution.** Only the owed resources pay the debt; a debtor without them has to produce,
-  loot or receive them.
-- The debt is fixed when the window closes, never expires and follows the account (B-26).
-- **Payment:** the creditor **claims** it from a building of the debtor, as many times as needed
-  (an exact amount per resource that fits in the debt, in the debtor's stock and in the creditor's
-  free capacity). The debtor can also pay voluntarily: after the window, a transport to the
-  creditor that names the trade counts, in kind and up to what remains. Several creditors claim
-  independently, with no priority.
-- **Registered debt.** The creditor's first claim registers the debt. While a player has a
-  registered debt and until it is paid, they cannot offer or accept trades, start a vacation, or
-  send transports to anyone but their own buildings and their creditors.
+  Shares are computed on the totals, and roundings favour the seller. The seller's deposit share is
+  the unpaid fraction of the rounded deposit, so on a tiny trade it can be worth more than p % of
+  what was left unpaid; at usual sizes (thousands of units and more) the difference is negligible.
+- **Withdrawal.** Each party moves its shares into a building of its own, directly (no mission), up
+  to that building's free capacity, as many times as needed. The buyer withdraws goods as soon as
+  it earns them, everything else once final. Shares never expire.
+- **No new trades with a share left in a final trade.** A player cannot offer or accept while it
+  has anything left to withdraw from a final trade. Only its own shares count: a party that does
+  not withdraw never blocks the other.
+- **Terms never change once set:** the rate the price matched (at the offer), the window end and
+  the deposit (at acceptance). A later change of the configuration or the contract (B-17) does not
+  change a trade.
 - **Vacation:** nobody can start a vacation while party to an accepted trade whose window has not
-  closed (D-18).
-- A suspension (B-14) does not extend the window. A creditor can claim from a debtor who is
-  suspended or on vacation.
+  closed (D-18): a buyer on vacation could not pay, a seller on vacation could not be paid.
 
-What the contract cannot see (emptying the buildings to another account before the window closes,
-being looted on purpose) is pushing, for the rulebook (B-23).
+Nobody can owe anything: the seller's goods are in the trade, the buyer only gets what it paid for,
+and what not paying costs is already held.
+
+Why the seller's side only: the buyer's payment often needs several transports from different
+buildings (cargo depends on the troops sent, [07-missions.md](07-missions.md#salary-and-cargo)), while
+the seller's goods are one resource from one building. Holding the seller's side rules out default;
+the deposit makes not paying cost something. Before this, both sides delivered by transport and a
+defaulter owed restitution plus a penalty that the creditor collected: a debt between two parties
+that had both received resources, with registration, claims and restrictions on the debtor.
+
+Accepted: goods and deposits in a trade are in no building, so they cannot be looted and count
+against no storage capacity. The rule above bounds this per player (B-11: 10 trades as seller, 10 as
+buyer); several accounts get several bounds, as with any per-account limit (B-13). Why shares never
+expire: honest players withdraw anyway, and an expiry would not stop a rolling vault (withdraw and
+put the goods in a new trade with an ally); the accumulation it would bound, the rule above bounds
+too.
 
 ## D-20 — Families & wars — Keep + Fix
 
@@ -291,14 +310,14 @@ is the **receiver's responsibility**: what does not fit is lost (D-10), and so i
 on an abandoned slot or on a building that changed hands. A transport that names a market trade
 (D-19) **counts in full** for that trade when it reaches the coordinate, per resource and up to
 what remains, whatever happened to the building meanwhile; the counterparty check moves to the
-moment of sending (the target must belong to the counterparty, or to the creditor after the
-window). Trade transports are always public (B-22: hidden missions cannot name a trade), so the
+moment of sending (the target must belong to the seller). Trade transports are always public (B-22: hidden missions cannot name a trade), so the
 receiver sees the arrival time and can make room; the client warns the sender when the target has
-no room and the receiver when an incoming delivery exceeds its free capacity.
+no room and the receiver when an incoming payment exceeds its free capacity.
 
-Why not "cargo that does not fit comes back": it moves the risk to the sender, who would owe
-restitution plus the penalty whenever the receiver keeps its warehouse full, and it needs partial
-cargo accounting in every delivery. The legacy rule is simpler, and the receiver controls it.
+Why not "cargo that does not fit comes back": it moves the risk to the sender, who would leave the
+trade unpaid and lose part of its deposit whenever the receiver keeps its warehouse full, and it
+needs partial cargo accounting in every delivery. The legacy rule is simpler, and the receiver
+controls it.
 
 ## D-27 — Honor power floor — Fix
 

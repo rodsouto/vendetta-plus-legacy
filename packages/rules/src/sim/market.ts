@@ -1,11 +1,11 @@
-// Market (09-social.md#market, D-19, B-11): private offers at fixed exchange rates, delivered with
-// ordinary transport missions that name the trade. No escrow: a party that does not deliver owes
-// restitution plus a penalty once the window closes, which the creditor claims on-chain.
+// Market (09-social.md#market, D-19, B-11): private offers at fixed exchange rates. From acceptance
+// the trade holds the seller's goods and the buyer's deposit; the buyer pays with ordinary transport
+// missions that name the trade, and each party withdraws its shares. Nobody can owe anything.
 // Mirrors contracts/src/core/Market.sol.
-import { active, atomic, onVacation, suspended } from "./common.js";
+import { active, atomic, onVacation, owned, suspended } from "./common.js";
 import { drain } from "./missions.js";
 import { fail } from "./errors.js";
-import { capacities, credit, pay, settle } from "./settle.js";
+import { affordable, capacities, credit, pay, settle } from "./settle.js";
 import {
   stockScale,
   type Mission,
@@ -21,103 +21,86 @@ const converted = (w: World) =>
 const min = (a: bigint, b: bigint) => (a < b ? a : b);
 const ceilDiv = (a: bigint, b: bigint) => (a + b - 1n) / b;
 const UINT64_MAX = 2n ** 64n - 1n;
-
-/** When the 10-day delivery window of an accepted trade closes. */
-export const tradeWindow = (w: World, t: Trade) => t.acceptedAt + w.rs.config.marketWindowSeconds;
-const complete = (t: Trade) =>
-  t.delivered === t.quantity && t.paid.every((p, i) => p === t.price[i]);
-
-/** Pending, or accepted, inside the 10-day window and not complete: counts against the cap. */
-export const tradeOpen = (w: World, t: Trade, now: bigint) =>
-  !t.accepted || (now <= tradeWindow(w, t) && !complete(t));
-
-/** Registered debts `debtor` still owes `creditor` (B-11): O(1), like the contract's mapping. */
-export const owesKey = (debtor: bigint, creditor: bigint) => `${debtor}:${creditor}`;
-export const owes = (w: World, debtor: bigint, creditor: bigint) =>
-  w.owes.get(owesKey(debtor, creditor)) ?? 0;
+const amounts = (w: World, v: bigint[]) =>
+  Object.fromEntries(w.rs.resources.map((r, i) => [r, v[i]!]));
 
 /**
- * B-11: a player with a registered debt only transports to its own buildings and its creditors':
- * those registered, or the creditor of the defaulted trade the transport names, registered or
- * not. `targetOwner` is undefined for an empty slot, which is not allowed either. `at`: the time
- * of the check (the send, or the arrival).
+ * The value of the price and of what was paid, in dollars × Π rate (the common denominator of the
+ * trade's rate), so every comparison is exact.
  */
-export function transportAllowed(
-  w: World,
-  p: Player,
-  targetOwner: bigint | undefined,
-  trade: bigint,
-  at: bigint,
-): boolean {
-  if (p.debts === 0) return true;
-  if (targetOwner === undefined) return false;
-  if (targetOwner === p.id || owes(w, p.id, targetOwner) > 0) return true;
-  if (trade === 0n) return false;
-  const t = w.trades.get(trade);
-  if (!t || !t.accepted || at <= tradeWindow(w, t)) return false;
-  const d = tradeDebt(w, t);
-  return inDefault(d) && d.debtor === p.id && d.creditor === targetOwner;
+export function tradeValues(t: Trade): { price: bigint; paid: bigint } {
+  const den = t.rate.reduce((d, x) => (x > 0n ? d * x : d), 1n);
+  const unit = t.rate.map((x) => (x > 0n ? den / x : 0n)); // value of one unit of each resource
+  return {
+    price: t.price.reduce((s, x, r) => s + x * unit[r]!, 0n),
+    paid: t.paid.reduce((s, x, r) => s + x * unit[r]!, 0n),
+  };
 }
 
-export interface TradeDebt {
-  debtor: bigint; // 0 = no debt
-  creditor: bigint;
-  owed: bigint[]; // per resource, penalty included
-  remaining: bigint[]; // owed − returned
-}
+const fullyPaid = (t: Trade) => t.paid.every((x, r) => x === t.price[r]);
 
-const noDebt = (w: World): TradeDebt => ({
-  debtor: 0n,
-  creditor: 0n,
-  owed: w.rs.resources.map(() => 0n),
-  remaining: w.rs.resources.map(() => 0n),
-});
+/** Final: the window closed, or the price is fully paid (D-19). Shares no longer change. */
+export const tradeFinal = (t: Trade, now: bigint) =>
+  t.accepted && (now > t.closesAt || fullyPaid(t));
 
 /**
- * The debt of a trade (D-19, Default): a pure function of `delivered`, `paid`, the rate the price
- * matched and the penalty, minus `returned`. Values are in dollars × Π rate (the common
- * denominator), so every comparison is exact. Meaningful once the window has closed, when
- * `delivered` and `paid` no longer change; the caller checks that.
+ * What each party is entitled to in total (D-19), before subtracting what it already took. The
+ * buyer earns `E = ⌊quantity × V / P⌋` of the goods as it pays; once final, the seller gets the rest
+ * of the goods and `⌈deposit × (P − V) / P⌉` of the deposit, the buyer the rest of the deposit.
+ * Roundings favour the seller.
  */
-export function tradeDebt(w: World, t: Trade): TradeDebt {
-  const rate = w.rs.config.marketRates[t.rate]!;
-  const den = rate.reduce((d, x) => (x > 0n ? d * x : d), 1n);
-  const unit = rate.map((x) => (x > 0n ? den / x : 0n)); // value of one unit of each resource
-  const priceValue = t.price.reduce((s, x, r) => s + x * unit[r]!, 0n);
-  const paidValue = t.paid.reduce((s, x, r) => s + x * unit[r]!, 0n);
-  // Progress compared over the common denominator: delivered / quantity vs paidValue / priceValue.
-  const sellerSide = t.delivered * priceValue;
-  const buyerSide = paidValue * t.quantity;
-  if (sellerSide === buyerSide) return noDebt(w);
-  const d = noDebt(w);
-  if (sellerSide > buyerSide) {
-    // The buyer paid for less than it received: it gives back the rest of the sold resource.
-    d.debtor = t.buyer;
-    d.creditor = t.seller;
-    d.owed[t.sold] = t.delivered - (t.quantity * paidValue) / priceValue;
-  } else {
-    // The seller delivered less than it was paid for: the excess value goes back in proportion
-    // to what was paid, rounded up.
-    d.debtor = t.seller;
-    d.creditor = t.buyer;
-    const excess = buyerSide - sellerSide;
-    d.owed = t.paid.map((x) => (x > 0n ? ceilDiv(x * excess, buyerSide) : 0n));
+export function tradeShares(t: Trade, now: bigint): { buyer: bigint[]; seller: bigint[] } {
+  const buyer = t.price.map(() => 0n);
+  const seller = t.price.map(() => 0n);
+  if (!t.accepted) return { buyer, seller };
+  const v = tradeValues(t);
+  const earned = (t.quantity * v.paid) / v.price;
+  buyer[t.sold] = earned;
+  if (!tradeFinal(t, now)) return { buyer, seller };
+  seller[t.sold] = t.quantity - earned;
+  t.deposit.forEach((d, r) => {
+    if (d === 0n) return;
+    seller[r] = ceilDiv(d * (v.price - v.paid), v.price);
+    buyer[r] = d - seller[r]!;
+  });
+  return { buyer, seller };
+}
+
+/** What `player` can still withdraw from the trade, per resource (all zeros for a third party). */
+export function shareLeft(t: Trade, player: bigint, now: bigint): bigint[] {
+  const s = tradeShares(t, now);
+  if (player === t.buyer) return s.buyer.map((x, r) => x - t.buyerTook[r]!);
+  if (player === t.seller) return s.seller.map((x, r) => x - t.sellerTook[r]!);
+  return t.price.map(() => 0n);
+}
+
+/**
+ * Whether a trade stays in the seller's list (`Player.offers`): pending, not final, or final with a
+ * seller share left. In the buyer's (`Player.purchases`): not final, or final with a buyer share
+ * left (B-11).
+ */
+const keeps = (t: Trade, player: bigint, now: bigint) =>
+  !tradeFinal(t, now) || shareLeft(t, player, now).some((x) => x > 0n);
+
+/**
+ * Prunes both trade lists of `p` and fails `SharesLeft` if one of them still holds a final trade:
+ * a player cannot offer or accept with a share left in a final trade (D-19).
+ */
+function gate(w: World, p: Player, now: bigint): void {
+  const kept = (list: bigint[]) => list.filter((id) => keeps(w.trades.get(id)!, p.id, now));
+  p.offers = kept(p.offers);
+  p.purchases = kept(p.purchases);
+  for (const id of [...p.offers, ...p.purchases]) {
+    if (tradeFinal(w.trades.get(id)!, now)) fail("SharesLeft");
   }
-  const p = w.rs.config.marketPenaltyPercent;
-  d.owed = d.owed.map((x) => ceilDiv(x * (100n + p), 100n));
-  d.remaining = d.owed.map((x, r) => x - t.returned[r]!);
-  return d;
 }
 
-/** Something is still owed. */
-export const inDefault = (d: TradeDebt) => d.debtor !== 0n && d.remaining.some((x) => x > 0n);
-
 /**
- * Can `player` send a transport naming this trade to a building of `targetOwner` now? Inside the
- * window, each party to the other; after it, the debtor to the creditor while something remains
- * (voluntary payment). The counterparty is checked here, at send (D-26).
+ * Can `player` send a payment for this trade to a building of `targetOwner` now (D-26: checked at
+ * send)? Only the buyer, to the seller, while the trade is not final. The arrival must also be
+ * within the window: `sendMission` checks it once the duration is known.
  */
-export function tradeOpenFor(
+export function tradePayable(
   w: World,
   id: bigint,
   player: bigint,
@@ -125,24 +108,7 @@ export function tradeOpenFor(
   now: bigint,
 ): boolean {
   const t = w.trades.get(id);
-  if (!t || !t.accepted) return false;
-  if (now <= tradeWindow(w, t)) {
-    return (
-      (player === t.seller && targetOwner === t.buyer) ||
-      (player === t.buyer && targetOwner === t.seller)
-    );
-  }
-  const d = tradeDebt(w, t);
-  return inDefault(d) && player === d.debtor && targetOwner === d.creditor;
-}
-
-/** The counterparty `player` would ship to for this trade now, or undefined (for the client). */
-export function tradeCounterparty(w: World, id: bigint, player: bigint, now: bigint) {
-  const t = w.trades.get(id);
-  if (!t || !t.accepted) return undefined;
-  if (now <= tradeWindow(w, t)) return player === t.seller ? t.buyer : t.seller;
-  const d = tradeDebt(w, t);
-  return inDefault(d) && player === d.debtor ? d.creditor : undefined;
+  return !!t && t.accepted && player === t.buyer && targetOwner === t.seller && !tradeFinal(t, now);
 }
 
 /**
@@ -167,10 +133,12 @@ function matchRate(w: World, sold: number, quantity: bigint, price: bigint[]): n
   return found < 0 ? -1 : found;
 }
 
+/** The seller offers `quantity` of `sold` from its building `from`; nothing is held yet. */
 export const offerTrade = atomic(function offerTrade(
   w: World,
   controller: string,
   buyer: bigint,
+  from: bigint,
   sold: number,
   quantity: bigint,
   price: bigint[],
@@ -178,7 +146,6 @@ export const offerTrade = atomic(function offerTrade(
 ): bigint {
   drain(w, now);
   const p = active(w, controller, now);
-  if (p.debts > 0) fail("InDebt");
   const alc = converted(w);
   if (!w.players.has(buyer) || buyer === p.id) fail("InvalidOffer");
   if (sold < 0 || sold >= w.rs.resources.length || sold === alc) fail("InvalidOffer");
@@ -188,22 +155,25 @@ export const offerTrade = atomic(function offerTrade(
   if (price.some((x) => x > UINT64_MAX)) fail("InvalidOffer"); // stored as uint64
   const rate = matchRate(w, sold, quantity, price);
   if (rate < 0) fail("InvalidOffer");
-  p.offers = p.offers.filter((id) => tradeOpen(w, w.trades.get(id)!, now));
+  if (w.buildings.get(from)?.owner !== p.id) fail("NotOwner");
+  gate(w, p, now);
   if (p.offers.length >= w.rs.config.maxOpenOffers) fail("TooManyOffers");
+  const zero = price.map(() => 0n);
   const t: Trade = {
     id: w.nextTrade++,
     seller: p.id,
     buyer,
+    from,
     sold,
     quantity,
     price: [...price],
-    delivered: 0n,
-    paid: price.map(() => 0n),
+    rate: [...w.rs.config.marketRates[rate]!],
     accepted: false,
-    acceptedAt: 0n,
-    rate,
-    registered: false,
-    returned: price.map(() => 0n),
+    closesAt: 0n,
+    deposit: [...zero],
+    paid: [...zero],
+    sellerTook: [...zero],
+    buyerTook: [...zero],
   };
   w.trades.set(t.id, t);
   p.offers.push(t.id);
@@ -226,153 +196,98 @@ export const cancelTrade = atomic(function cancelTrade(
   w.trades.delete(id);
 });
 
+/** The buyer's deposit for a trade: ⌈price × p / 100⌉ per resource (D-19). */
+export const tradeDeposit = (w: World, t: Trade) =>
+  t.price.map((x) => ceilDiv(x * w.rs.config.marketDepositPercent, 100n));
+
 /**
- * The buyer accepts: the 10-day delivery window starts, and neither party can start a vacation
- * until it closes (D-18). The seller is checked again, as when it offered: active and free of
- * registered debt.
+ * The buyer accepts, naming its building the deposit leaves (D-19). The seller is checked again
+ * (active); both buildings are settled (B-06), then the goods leave the offer's building and the
+ * deposit the buyer's. The window starts, and neither party can start a vacation until it closes
+ * (D-18).
  */
 export const acceptTrade = atomic(function acceptTrade(
   w: World,
   controller: string,
   id: bigint,
+  depositBuilding: bigint,
   now: bigint,
 ): void {
   drain(w, now);
   const p = active(w, controller, now);
-  if (p.debts > 0) fail("InDebt");
   const t = w.trades.get(id);
   if (!t || t.accepted || p.id !== t.buyer) fail("InvalidTrade");
   const seller = w.players.get(t.seller)!;
-  if (onVacation(seller, now) || suspended(seller, now) || seller.debts > 0) fail("InvalidTrade");
+  if (onVacation(seller, now) || suspended(seller, now)) fail("InvalidTrade");
+  gate(w, p, now);
+  if (p.purchases.length >= w.rs.config.maxPurchases) fail("TooManyTrades");
+  const from = w.buildings.get(t.from);
+  const dep = w.buildings.get(depositBuilding);
+  if (!from || from.owner !== t.seller || !dep || dep.owner !== p.id) fail("NotOwner");
+  settle(w, from, now);
+  settle(w, dep, now);
+  const goods = t.price.map((_, r) => (r === t.sold ? t.quantity : 0n));
+  const deposit = tradeDeposit(w, t);
+  if (!affordable(w, from, amounts(w, goods)) || !affordable(w, dep, amounts(w, deposit)))
+    fail("CannotAfford");
+  pay(w, from, amounts(w, goods));
+  pay(w, dep, amounts(w, deposit));
   t.accepted = true;
-  t.acceptedAt = now;
-  const lock = tradeWindow(w, t);
-  for (const q of [seller, p]) if (lock > q.tradeLockUntil) q.tradeLockUntil = lock;
+  t.closesAt = now + w.rs.config.marketWindowSeconds;
+  t.deposit = deposit;
+  p.purchases.push(t.id);
+  for (const q of [seller, p]) if (t.closesAt > q.tradeLockUntil) q.tradeLockUntil = t.closesAt;
 });
 
 /**
- * `amount` of each resource reaches the creditor as restitution. Once a registered debt is fully
- * returned, it stops counting (B-11). Returns whether anything was added.
- */
-function addReturned(w: World, t: Trade, d: TradeDebt, amount: bigint[]): boolean {
-  if (amount.every((x) => x === 0n)) return false;
-  t.returned = t.returned.map((x, r) => x + amount[r]!);
-  if (t.registered && d.remaining.every((x, r) => x === amount[r])) {
-    w.players.get(d.debtor)!.debts -= 1;
-    const key = owesKey(d.debtor, d.creditor);
-    const n = w.owes.get(key)! - 1;
-    if (n === 0) w.owes.delete(key);
-    else w.owes.set(key, n);
-  }
-  return true;
-}
-
-/** Registers the debt of a defaulted trade (B-11): the debtor's restrictions start. Idempotent. */
-function register(w: World, t: Trade, d: TradeDebt): void {
-  if (t.registered) return;
-  t.registered = true;
-  w.players.get(d.debtor)!.debts += 1;
-  const key = owesKey(d.debtor, d.creditor);
-  w.owes.set(key, (w.owes.get(key) ?? 0) + 1);
-}
-
-/**
- * A transport naming a trade reached the coordinate chosen at send, at `at` (D-26): the cargo
- * counts per resource and up to what remains, whatever happened to the building; the rest was a
- * plain transport. Inside the window: the seller's adds to `delivered`, the buyer's to `paid`.
- * After it: the debtor's adds to `returned`.
+ * A transport naming a trade reached the coordinate chosen at send, at `at` (D-26): the buyer's
+ * cargo counts per resource and up to what remains unpaid, whatever happened to the building; the
+ * rest was a plain transport. A send arrives within the window (sendMission checks it).
  */
 export function settleTrade(w: World, m: Mission, at: bigint): void {
   const t = w.trades.get(m.trade);
-  if (!t || !t.accepted) return;
-  if (at <= tradeWindow(w, t)) {
-    if (m.owner === t.seller) {
-      t.delivered += min(m.cargo[t.sold]!, t.quantity - t.delivered);
-    } else if (m.owner === t.buyer) {
-      t.paid = t.paid.map((p, r) => p + min(m.cargo[r]!, t.price[r]! - p));
-    }
-    return;
-  }
-  const d = tradeDebt(w, t);
-  if (!inDefault(d) || m.owner !== d.debtor) return;
-  addReturned(
-    w,
-    t,
-    d,
-    d.remaining.map((x, r) => min(x, m.cargo[r]!)),
-  );
+  if (!t || !t.accepted || m.owner !== t.buyer || at > t.closesAt) return;
+  t.paid = t.paid.map((p, r) => p + min(m.cargo[r]!, t.price[r]! - p));
 }
 
 /**
- * The most a creditor can claim from `from` into `to`, per resource: what remains of the debt,
- * the debtor's stock and the creditor's free capacity, over the buildings as given (settled by the
- * caller: the action does it itself, the client projects the world first). All zeros when there is
- * nothing to claim or the buildings are not the debtor's and the creditor's.
+ * The most `player` can withdraw into `to`, per resource: its share left and the building's free
+ * capacity, over the building as given (settled by the caller: the action does it itself, the
+ * client projects the world first).
  */
-export function claimable(w: World, t: Trade, from: Building, to: Building): bigint[] {
-  const d = tradeDebt(w, t);
-  if (!inDefault(d) || from.owner !== d.debtor || to.owner !== d.creditor) {
-    return d.remaining.map(() => 0n);
-  }
+export function withdrawable(w: World, t: Trade, player: bigint, to: Building, now: bigint) {
   const scale = stockScale(w.rs);
   const cap = capacities(w, to);
-  return d.remaining.map((x, r) => {
+  return shareLeft(t, player, now).map((x, r) => {
     const free = cap[r]! > to.stock[r]! ? (cap[r]! - to.stock[r]!) / scale : 0n;
-    return min(min(x, from.stock[r]! / scale), free);
+    return min(x, free);
   });
 }
 
 /**
- * The creditor registers the debt of a defaulted trade without collecting anything (B-11), so
- * the debtor's restrictions start even while nothing can be claimed. Idempotent.
+ * A party moves part of its shares into a building of its own, settled first (B-06). Each amount
+ * must fit in its share left and in the building's free capacity, and at least one must be > 0.
+ * The counterparty's state does not matter.
  */
-export const registerDebt = atomic(function registerDebt(
+export const withdrawTrade = atomic(function withdrawTrade(
   w: World,
   controller: string,
   id: bigint,
-  now: bigint,
-): void {
-  drain(w, now);
-  const p = active(w, controller, now);
-  const t = w.trades.get(id);
-  if (!t || !t.accepted || now <= tradeWindow(w, t)) fail("InvalidTrade");
-  const d = tradeDebt(w, t);
-  if (!inDefault(d) || d.creditor !== p.id) fail("InvalidTrade");
-  register(w, t, d);
-});
-
-/**
- * The creditor collects part of a debt directly from a building of the debtor into one of its
- * own, both settled first (B-06); works whether the debtor is active, suspended or on vacation.
- * Each amount must fit in what remains, in the debtor's stock and in the creditor's free
- * capacity, and at least one must be > 0. The first claim registers the debt (B-11).
- */
-export const claimTrade = atomic(function claimTrade(
-  w: World,
-  controller: string,
-  id: bigint,
-  fromId: bigint,
   toId: bigint,
   amount: bigint[],
   now: bigint,
 ): void {
   drain(w, now);
-  const p = active(w, controller, now);
+  const [p, to] = owned(w, controller, toId, now);
   const t = w.trades.get(id);
-  if (!t || !t.accepted || now <= tradeWindow(w, t)) fail("InvalidTrade");
-  const d = tradeDebt(w, t);
-  if (!inDefault(d) || d.creditor !== p.id) fail("InvalidTrade");
-  const from = w.buildings.get(fromId);
-  const to = w.buildings.get(toId);
-  if (!from || from.owner !== d.debtor || !to || to.owner !== p.id) fail("NotOwner");
-  settle(w, from, now);
+  if (!t || !t.accepted || (p.id !== t.seller && p.id !== t.buyer)) fail("InvalidTrade");
   settle(w, to, now);
-  if (amount.length !== w.rs.resources.length || amount.some((x) => x < 0n)) fail("InvalidClaim");
-  const max = claimable(w, t, from, to);
-  if (amount.some((x, r) => x > max[r]!) || amount.every((x) => x === 0n)) fail("InvalidClaim");
-  const moved = Object.fromEntries(w.rs.resources.map((r, i) => [r, amount[i]!]));
-  pay(w, from, moved);
-  credit(w, to, moved);
-  register(w, t, d);
-  addReturned(w, t, d, amount);
+  if (amount.length !== w.rs.resources.length || amount.some((x) => x < 0n))
+    fail("InvalidWithdrawal");
+  const max = withdrawable(w, t, p.id, to, now);
+  if (amount.some((x, r) => x > max[r]!) || amount.every((x) => x === 0n))
+    fail("InvalidWithdrawal");
+  credit(w, to, amounts(w, amount));
+  if (p.id === t.buyer) t.buyerTook = t.buyerTook.map((x, r) => x + amount[r]!);
+  else t.sellerTook = t.sellerTook.map((x, r) => x + amount[r]!);
 });

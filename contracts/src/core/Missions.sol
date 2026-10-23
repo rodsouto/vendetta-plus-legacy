@@ -41,7 +41,6 @@ import {
     LastBuilding,
     TargetOnVacation,
     InvalidTrade,
-    InDebt,
     TooLate,
     InvalidArrival,
     TooEarly,
@@ -190,13 +189,6 @@ library Missions {
             return _finish(s, id);
         }
         if (kind == TRANSPORT) {
-            // B-11: a debtor's transport to anyone but itself and its creditors turns back, cargo
-            // included (hidden missions cannot be checked at send).
-            if (!MarketRules.transportAllowed(
-                    s, m.owner, s.players[m.owner], targetOwner, m.trade, t
-                )) {
-                return _sendBack(s, id, t);
-            }
             if (target != 0) {
                 SettleLib.settleBefore(target, t, m.seq);
                 Settlement.credit(s.buildings[target], _cargo(m));
@@ -276,7 +268,7 @@ library Missions {
     ) external returns (uint64 mid) {
         CoreState storage s = GameStorage.core();
         (uint64 pid, Player storage p, Building storage b) = Access.owned(s, caller, id);
-        _checkSend(s, pid, p, b, kind, target, trade);
+        _checkSend(s, pid, b, kind, target, trade);
         if (p.missions >= Ruleset.MAX_OUTGOING_MISSIONS) revert TooManyMissions();
         Access.settleForAction(s, p, id);
         _checkRested(b);
@@ -284,6 +276,10 @@ library Missions {
         Plan memory plan = _plan(p, b, troops);
         if (kind != TRANSPORT) delete resources;
         _charge(b, plan, Map.distance([uint256(b.city), b.neighborhood, b.slot], target), resources);
+        // B-11: a payment must arrive within the window, so `paid` is final when it closes.
+        if (trade != 0 && block.timestamp + plan.duration > s.trades[trade].closesAt) {
+            revert InvalidTrade();
+        }
         mid = _create(s, pid, id, troops, resources, plan.duration, block.timestamp + plan.duration);
         Mission storage m = s.missions[mid];
         (m.kind, m.city, m.neighborhood, m.slot) =
@@ -438,20 +434,18 @@ library Missions {
         }
     }
 
-    /// The target checks of a public send, plus the trade's (D-26): a trade transport goes to the
-    /// counterparty's building (the creditor's, after the window), and at arrival it counts
-    /// whatever happened to the building.
+    /// The target checks of a public send, plus the trade's (D-26): a payment goes from the buyer
+    /// to the seller's building, and at arrival it counts whatever happened to the building.
     function _checkSend(
         CoreState storage s,
         uint64 pid,
-        Player storage p,
         Building storage b,
         uint8 kind,
         uint256[3] memory target,
         uint64 trade
     ) private view {
-        uint64 to = _validateTarget(s, pid, p, b, kind, target, trade);
-        if (trade != 0 && (kind != TRANSPORT || !MarketRules.openFor(s, trade, pid, to))) {
+        uint64 to = _validateTarget(s, pid, b, kind, target);
+        if (trade != 0 && (kind != TRANSPORT || !MarketRules.payable_(s, trade, pid, to))) {
             revert InvalidTrade();
         }
     }
@@ -461,11 +455,9 @@ library Missions {
     function _validateTarget(
         CoreState storage s,
         uint64 pid,
-        Player storage p,
         Building storage b,
         uint8 kind,
-        uint256[3] memory target,
-        uint64 trade
+        uint256[3] memory target
     ) private view returns (uint64 to) {
         _checkTarget(kind, target, [uint256(b.city), b.neighborhood, b.slot]);
         uint64 targetId = s.buildingAt[GameStorage.coordKey(target[0], target[1], target[2])];
@@ -473,13 +465,6 @@ library Missions {
         if (to != 0) {
             if (kind == ATTACK && to == pid) revert OwnTarget();
             if (s.players[to].vacationUntil > block.timestamp) revert TargetOnVacation(); // D-18
-        }
-        // B-11: a player with a registered debt only transports to its own and its creditors'.
-        if (
-            kind == TRANSPORT
-                && !MarketRules.transportAllowed(s, pid, p, to, trade, block.timestamp)
-        ) {
-            revert InDebt();
         }
     }
 

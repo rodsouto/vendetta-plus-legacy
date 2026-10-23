@@ -69,20 +69,25 @@ export interface War {
   offerBy: bigint; // family that made the offer
 }
 
+/**
+ * A market trade (D-19, B-11). From acceptance it holds the seller's goods and the buyer's deposit;
+ * each party withdraws its shares. Its terms (rate, window end, deposit) never change once set.
+ */
 export interface Trade {
   id: bigint;
   seller: bigint;
   buyer: bigint;
+  from: bigint; // the seller's building the goods leave at acceptance
   sold: number; // resource index
   quantity: bigint;
   price: bigint[]; // per resource
-  delivered: bigint;
-  paid: bigint[];
+  rate: bigint[]; // values of the exchange rate the price matched, per resource (B-11)
   accepted: boolean;
-  acceptedAt: bigint;
-  rate: number; // index of the exchange rate the price matched (B-11): values the default (D-19)
-  registered: boolean; // the creditor claimed once: the debt counts in Player.debts and owes
-  returned: bigint[]; // restitution received by the creditor after the window, per resource
+  closesAt: bigint; // the window end, set at acceptance: payments must arrive by then
+  deposit: bigint[]; // the buyer's deposit held at acceptance, per resource
+  paid: bigint[];
+  sellerTook: bigint[]; // withdrawn by the seller, per resource
+  buyerTook: bigint[]; // withdrawn by the buyer, per resource
 }
 
 export interface Building {
@@ -116,9 +121,9 @@ export interface Player {
   family: bigint; // valid only while that family is alive
   rank: number; // CAPO, SUBCAPO, MEMBER
   applications: bigint[]; // families applied to (B-31)
-  offers: bigint[]; // trades where this player is the seller (B-09 cap)
+  offers: bigint[]; // trades as seller: pending, not final, or final with a share left (B-11 cap)
+  purchases: bigint[]; // trades as buyer: not final, or final with a share left (B-11 cap)
   sessionEpoch: bigint; // bumped by transferPlayer and removeController: older sessions stop working (B-15)
-  debts: number; // registered trade debts not yet paid (B-11): restricts market, vacation and transports
   tradeLockUntil: bigint; // latest window end of an accepted trade: no vacation while now ≤ it (D-18)
   /** Controllers whose removal is scheduled → when it can be executed (B-26). */
   removalAt: Map<string, bigint>;
@@ -176,7 +181,6 @@ export interface World {
   activeWar: Map<string, bigint>; // "<low>:<high>" family pair → running war
   nextTrade: bigint;
   trades: Map<bigint, Trade>;
-  owes: Map<string, number>; // "debtor:creditor" → registered unpaid debts between them (B-11)
   sessions: Map<string, Session>; // session address → authorization
   invites: Map<string, Invite>; // inviteKey(address, player) → invitation (B-15, B-26)
 }
@@ -207,7 +211,6 @@ export function newWorld(rs: Ruleset): World {
     activeWar: new Map(),
     nextTrade: 1n,
     trades: new Map(),
-    owes: new Map(),
     sessions: new Map(),
     invites: new Map(),
   };

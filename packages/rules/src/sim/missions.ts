@@ -20,7 +20,7 @@ import {
 } from "./common.js";
 import { fail } from "./errors.js";
 import { warScore } from "./families.js";
-import { settleTrade, tradeOpenFor, transportAllowed } from "./market.js";
+import { settleTrade, tradePayable } from "./market.js";
 import {
   affordable,
   credit,
@@ -208,9 +208,6 @@ function process(w: World, m: Mission): void {
     return finish(w, m);
   }
   if (m.kind === TRANSPORT) {
-    // B-11: a debtor's transport to anyone but itself and its creditors turns back, cargo included.
-    if (!transportAllowed(w, w.players.get(m.owner)!, target?.owner, m.trade, t))
-      return sendBack(w, m, t);
     if (target) {
       settle(w, target, t, m.seq);
       credit(w, target, Object.fromEntries(w.rs.resources.map((r, i) => [r, m.cargo[i]!])));
@@ -345,8 +342,8 @@ function checkTarget(w: World, kind: number, target: Coord, from: Coord): void {
 /**
  * What sendMission checks about the target when it leaves; returns the target's owner (undefined
  * for an empty slot). A hidden mission cannot be checked on-chain until its reveal, so clients run
- * this before sending one: a mission that would bounce on arrival (D-18, B-11) or attack its own
- * sender never leaves.
+ * this before sending one: a mission that would bounce on arrival (D-18) or attack its own sender
+ * never leaves.
  */
 export function checkSendTarget(
   w: World,
@@ -355,7 +352,6 @@ export function checkSendTarget(
   kind: number,
   target: Coord,
   now: bigint,
-  trade = 0n,
 ): bigint | undefined {
   checkTarget(w, kind, target, from);
   const targetId = w.buildingAt.get(coordKey(target));
@@ -364,9 +360,6 @@ export function checkSendTarget(
     if (kind === ATTACK && to === owner) fail("OwnTarget");
     if (onVacation(w.players.get(to)!, now)) fail("TargetOnVacation"); // D-18
   }
-  // B-11: a player with a registered debt only transports to its own and its creditors' buildings.
-  if (kind === TRANSPORT && !transportAllowed(w, w.players.get(owner)!, to, trade, now))
-    fail("InDebt");
   return to;
 }
 
@@ -384,10 +377,10 @@ export const sendMission = atomic(function sendMission(
   drain(w, now);
   const [p, b] = owned(w, controller, buildingId, now);
   const c = w.rs.config;
-  const to = checkSendTarget(w, p.id, b.coord, kind, target, now, trade);
-  // D-26: a trade transport goes to the counterparty's building (the creditor's, after the
-  // window); at arrival it counts whatever happened to the building.
-  if (trade !== 0n && (kind !== TRANSPORT || !tradeOpenFor(w, trade, p.id, to, now)))
+  const to = checkSendTarget(w, p.id, b.coord, kind, target, now);
+  // D-26: a payment goes from the buyer to the seller's building; at arrival it counts whatever
+  // happened to the building.
+  if (trade !== 0n && (kind !== TRANSPORT || !tradePayable(w, trade, p.id, to, now)))
     fail("InvalidTrade");
   if (p.missions >= BigInt(c.maxOutgoingMissions)) fail("TooManyMissions");
   settleForAction(w, p, b, now);
@@ -395,6 +388,8 @@ export const sendMission = atomic(function sendMission(
 
   const cargo = kind === TRANSPORT ? resources : w.rs.resources.map(() => 0n);
   const duration = charge(w, p, b, troops, cargo, distance(w.rs, b.coord, target));
+  // B-11: a payment must arrive within the window, so `paid` is final when it closes.
+  if (trade !== 0n && now + duration > w.trades.get(trade)!.closesAt) fail("InvalidTrade");
   const m = create(w, p, b, troops, cargo, duration, now);
   m.kind = kind;
   m.target = { ...target };

@@ -175,9 +175,11 @@ export interface Config {
   vacationSeconds: bigint;
   vacationCooldownSeconds: bigint;
   marketWindowSeconds: bigint;
-  /** Added to the restitution a defaulter owes, in percent (D-19). */
-  marketPenaltyPercent: bigint;
+  /** The buyer's deposit, in percent of each price resource (D-19). */
+  marketDepositPercent: bigint;
+  /** Trades per player as seller and as buyer (B-11). */
   maxOpenOffers: number;
+  maxPurchases: number;
   maxApplications: number;
   /** Longest session key authorization, in seconds (B-15). */
   maxSessionSeconds: bigint;
@@ -345,8 +347,9 @@ export function loadRuleset(raw: RawRuleset, cfg: typeof gameConfig): Ruleset {
       vacationSeconds: BigInt(cfg.vacation.duration_days) * 86400n,
       vacationCooldownSeconds: BigInt(cfg.vacation.cooldown_days) * 86400n,
       marketWindowSeconds: BigInt(cfg.market.delivery_window_days) * 86400n,
-      marketPenaltyPercent: BigInt(cfg.market.default_penalty_percent),
+      marketDepositPercent: BigInt(cfg.market.deposit_percent),
       maxOpenOffers: cfg.onchain.max_open_market_offers_per_player,
+      maxPurchases: cfg.onchain.max_market_purchases_per_player,
       maxApplications: cfg.onchain.max_family_applications_per_player,
       maxSessionSeconds: BigInt(cfg.onchain.max_session_seconds),
       maxControllers: cfg.onchain.max_controllers_per_player,

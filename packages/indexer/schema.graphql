@@ -1,16 +1,12 @@
-# Market history (B-11, B-18): trades keep every offer, acceptance, delivery, claim and debt,
+# Market history (B-11, B-18): trades keep every offer, acceptance, payment and withdrawal,
 # cancelled ones included (the contract deletes those). The ranking is not here: the client computes
 # it from the world it loads (B-18).
 
 type Player @entity(immutable: false) {
   "Player id (decimal)"
   id: ID!
-  "Accepted trades fully delivered and fully paid, as seller or buyer"
+  "Accepted trades paid in full, as seller or buyer"
   completedTrades: Int!
-  "Debts registered against this player (a creditor claimed), ever (B-11)"
-  defaults: Int!
-  "Registered debts not yet paid back: the on-chain Player.debts (B-11)"
-  openDebts: Int!
   tradesAsSeller: [Trade!]! @derivedFrom(field: "seller")
   tradesAsBuyer: [Trade!]! @derivedFrom(field: "buyer")
 }
@@ -18,7 +14,7 @@ type Player @entity(immutable: false) {
 enum TradeStatus {
   "Offered, not accepted yet"
   PENDING
-  "Accepted: the delivery window runs from acceptedAt (D-19)"
+  "Accepted: the goods and the deposit are held, payments arrive until closesAt (D-19)"
   ACCEPTED
   "A pending offer withdrawn by either party"
   CANCELLED
@@ -30,38 +26,47 @@ type Trade @entity(immutable: false) {
   seller: Player!
   buyer: Player!
   status: TradeStatus!
+  "The seller's building the goods leave at acceptance"
+  from: BigInt!
   "Resource index sold (ruleset order)"
   sold: Int!
   quantity: BigInt!
   "Price per resource index"
   price: [BigInt!]!
-  "Index of the exchange rate the price matched: values a default (B-11)"
-  rate: Int!
+  "Values of the exchange rate the price matched, per resource index (B-11)"
+  rate: [BigInt!]!
   offeredAt: BigInt!
-  "When the buyer accepted; the window closes delivery_window_days later"
   acceptedAt: BigInt
-  "Sold resource delivered inside the window"
-  delivered: BigInt!
-  "Price paid inside the window, per resource index"
+  "The window end: a trade not paid in full by then ends unpaid or partly paid (D-19)"
+  closesAt: BigInt
+  "The buyer's deposit held at acceptance, per resource index"
+  deposit: [BigInt!]!
+  "Price paid so far, per resource index"
   paid: [BigInt!]!
-  "Restitution received by the creditor after the window, per resource index"
-  returned: [BigInt!]!
-  "Fully delivered and fully paid"
+  "Paid in full: final before the window closed"
   complete: Boolean!
-  "The creditor claimed once: the debt counts against the debtor (B-11)"
-  registered: Boolean!
-  debtor: Player
-  creditor: Player
-  "The registered debt was fully returned"
-  debtPaid: Boolean!
-  claims: [Claim!]! @derivedFrom(field: "trade")
+  payments: [Payment!]! @derivedFrom(field: "trade")
+  withdrawals: [Withdrawal!]! @derivedFrom(field: "trade")
 }
 
-type Claim @entity(immutable: true) {
+type Payment @entity(immutable: true) {
   "<transaction hash>-<log index>"
   id: ID!
   trade: Trade!
-  "Collected from the debtor, per resource index"
+  "What this transport counted, per resource index"
+  amount: [BigInt!]!
+  "Price paid after it, per resource index"
+  paid: [BigInt!]!
+  timestamp: BigInt!
+  block: BigInt!
+}
+
+type Withdrawal @entity(immutable: true) {
+  "<transaction hash>-<log index>"
+  id: ID!
+  trade: Trade!
+  player: Player!
+  "Moved into one of the player's buildings, per resource index"
   amount: [BigInt!]!
   timestamp: BigInt!
   block: BigInt!

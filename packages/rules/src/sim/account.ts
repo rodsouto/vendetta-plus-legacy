@@ -15,8 +15,8 @@ import { fail } from "./errors.js";
 import { INVITE_CONTROLLER, INVITE_SESSION, inviteKey, type Player, type World } from "./state.js";
 
 /**
- * 15 days; needs no own missions in flight, 7 days since the last vacation ended, no registered
- * trade debt and no accepted trade whose window is still open (D-19, B-11).
+ * 15 days; needs no own missions in flight, 7 days since the last vacation ended and no accepted
+ * trade whose window is still open (D-18, D-19).
  */
 export const startVacation = atomic(function startVacation(
   w: World,
@@ -28,7 +28,6 @@ export const startVacation = atomic(function startVacation(
   if (p.missions > 0n) fail("MissionsInFlight");
   if (p.vacationUntil > 0n && now < p.vacationUntil + w.rs.config.vacationCooldownSeconds)
     fail("VacationCooldown");
-  if (p.debts > 0) fail("InDebt");
   if (now <= p.tradeLockUntil) fail("TradeOpen");
   p.vacationUntil = now + w.rs.config.vacationSeconds;
   p.vacationStart = now;

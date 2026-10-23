@@ -36,7 +36,7 @@ which network it runs on. Messaging, chat and moderation are off-chain (B-10).
 | B-08 | Chunked settlement | New | Actions process ≤ 10 due missions, else revert `Backlog`; `advance(n)`; one event always fits in a block |
 | B-09 | Hard caps | Adapt | Queue, mission and offer limits, configurable |
 | B-10 | Off-chain social | Adapt | Messaging, chat, moderation off-chain |
-| B-11 | Market | Keep | D-19 as is: no escrow; a defaulter's restitution and penalty are collected on-chain |
+| B-11 | Market | Keep | D-19 as is: seller escrow and buyer deposit from acceptance, shares withdrawn; no debts |
 | B-12 | Starting coordinate | Keep | Player chooses any free coordinate; no randomness needed |
 | B-13 | Multi-accounts and bots | Keep | Everything allowed in v1 |
 | B-14 | Sanctions module | New | `suspend(player, until)` by an `arbiter` role |
@@ -236,7 +236,7 @@ are to be tuned with gas measurements and live in the `onchain` section of
 |-------|-------------|-----|
 | Troop batches queued per building (`boot_camp` / `security`) | 1, or 5 with premium (B-25) | Bounded settle |
 | Missions in flight per player (outbound and returning) | 20 | Bounded state; no cheap spam of the global queue |
-| Open market offers per player | 10 | Bounded state |
+| Market trades per player as seller / as buyer (B-11) | 10 / 10 | Bounded state |
 
 There is no limit on missions **to** one building: with the global mission queue (B-07) each mission
 is processed on its own, so many attacks on one victim do not make any single transaction heavier
@@ -255,71 +255,67 @@ On-chain moderation does not exist: no one can ban an account. The only sanction
 
 ## B-11 — Market — Keep
 
-D-19 as is: offers at fixed rates, delivery by ordinary transport missions, **partial deliveries**
-from any number of buildings, **10-day window** after acceptance, **no escrow**. Each shipment is
-credited on arrival; a party that does not deliver owes **restitution plus a penalty**, which the
-contract computes and collects (D-19, [Default](decisions.md#default)).
+D-19 as is: offers at fixed rates; from acceptance the contract holds the seller's goods and the
+buyer's deposit; the buyer pays with ordinary transport missions (partial, from any number of
+buildings) arriving within a **5-day window**; each party withdraws its shares. Nobody can owe
+anything, so there is nothing to collect and nothing to arbitrate.
 
-Why no escrow: one payment often needs several transports from different buildings (cargo depends on
-the troops sent, [07-missions.md](07-missions.md#salary-and-cargo)), so a trade cannot be settled in
-one step, and an escrow that holds partial deliveries would work as an unlootable vault. Restitution
-starts only when the window closes, so until then nothing is locked or safe from loot.
+Why the escrow: the previous design had none, and a defaulter owed restitution plus a penalty that
+the creditor claimed. Its debt machinery (registration, claims, transport restrictions on debtors,
+bounces at arrival) was the part of the market with most audit findings, and it had to settle a
+changing obligation between two parties that had both received resources. With the escrow the
+contract only splits what it already holds. Every fact is on-chain, so Kleros (B-23) has no role.
 
-Why not Kleros (as first planned): every fact of a default (`delivered`, `paid`, the window) is
-on-chain, so the contract can decide it with rules announced up front, and a jury would cost more
-than most trades. Kleros (B-23) keeps only what the contract cannot see.
-
-Counterparty risk has two answers:
-
-- **Reputation:** every offer, acceptance, delivery, claim and debt emits an event. The indexer
-  (B-18) shows each player's trade history (completed, defaulted, debts still open).
-- **Restitution:** collected on-chain, no arbiter.
+Counterparty risk: the seller's goods cannot be withheld, and a buyer who does not pay gets only
+what it paid for and loses part of its deposit. **Reputation:** every offer, acceptance, payment and
+withdrawal emits an event, and the indexer (B-18) shows each player's trade history (completed,
+unpaid).
 
 On-chain details:
 
-- `offerTrade(buyer, sold, quantity, price)`: the price must equal one of the fixed rates exactly,
-  compared with integers over the common denominator (`quantity / rate[sold] = Σ price[r] / rate[r]`).
-  The converted resource (alcohol) is neither sold nor paid, and a resource is never traded for itself.
-  The trade stores the index of the rate it matched; a price that matches more than one rate is
-  rejected (`InvalidOffer`), so the stored rate is never ambiguous. `quantity` and every
-  `price[r]` must fit in 64 bits (`InvalidOffer`).
-- `acceptTrade` checks the seller again: active (not on vacation nor suspended, B-14) and without
-  a registered debt; otherwise `InvalidTrade`.
-- A seller has at most 10 open trades (pending, or accepted inside the window and not complete, B-09).
-- `sendMission(…, trade)`: a transport names the trade it delivers for (D-19). The target must
-  belong to the counterparty when it leaves (after the window: to the creditor), `InvalidTrade`
-  otherwise. At arrival the cargo **counts in full** for the trade, per resource and up to what
-  remains, whatever happened to the building meanwhile (D-26); what fits is credited and the rest
-  is lost (D-10):
-  - inside the window: seller → buyer, the sold resource adds to `delivered`; buyer → seller, each
-    price resource adds to `paid`;
-  - after the window: debtor → creditor, each owed resource adds to `returned`.
-
-  The rest of the cargo is a plain transport.
-- The debt is a pure function of the trade: `owed` (D-19, penalty included) from `delivered`,
-  `paid`, the rate and `default_penalty_percent`, minus `returned`. No state changes when the
-  window closes.
-- `claimTrade(trade, fromBuilding, toBuilding, amount[RESOURCES])`: creditor only, after the
-  window. `fromBuilding` belongs to the debtor and `toBuilding` to the creditor; both are settled
-  first (B-06). Each `amount[r]` must be ≤ what remains of `owed[r]`, ≤ the stock of `fromBuilding`
-  and ≤ the free capacity of `toBuilding`, alcohol and resources not owed are 0, and at least one
-  is > 0; otherwise it reverts. The resources move directly (no mission) and add to `returned`.
-  Works whether the debtor is active, suspended or on vacation.
-- **Registration:** `registerDebt(trade)` (creditor only, after the window, idempotent: it moves
-  nothing and emits `DebtRegistered` once) or the first claim sets `Trade.registered` and
-  increments the debtor's `Player.debts` and `owes[debtor][creditor]`. When `returned` reaches
-  `owed`, both decrement. Every check below is O(1).
-- **Restrictions** while `Player.debts > 0`: `offerTrade` and `acceptTrade` revert `InDebt`;
-  `startVacation` reverts; `sendMission` of a transport to a building not owned by the sender or
-  by one of its creditors reverts `InDebt`; a transport that names a trade the debtor owes on is
-  always allowed to that trade's creditor, registered or not. Hidden missions (B-22) cannot be checked at send, so at
-  arrival a transport (hidden or not) from a player with debts to such a building **bounces**:
-  it turns back with its troops and cargo.
+- `offerTrade(buyer, fromBuilding, sold, quantity, price)`: the price must equal one of the fixed
+  rates exactly, compared with integers over the common denominator
+  (`quantity / rate[sold] = Σ price[r] / rate[r]`). The converted resource (alcohol) is neither sold
+  nor paid, and a resource is never traded for itself. A price that matches more than one rate is
+  rejected (`InvalidOffer`), so the matched rate is never ambiguous. `quantity` and every `price[r]`
+  must fit in 64 bits (`InvalidOffer`). `fromBuilding` must belong to the seller (`NotOwner`); its
+  stock is not checked. The trade stores the values of the rate the price matched, not an index
+  into the live table (D-19: terms never change).
+- `acceptTrade(trade, depositBuilding)`: buyer only. Checks the seller again: active (not on
+  vacation nor suspended, B-14), otherwise `InvalidTrade`. `fromBuilding` must still belong to the
+  seller and `depositBuilding` to the buyer (`NotOwner`). Both are settled (B-06; queue payments
+  that start during the settle go first), then `quantity` of the sold resource leaves
+  `fromBuilding` and `deposit` (D-19) leaves `depositBuilding`, or the call reverts
+  (`CannotAfford`). The trade stores the window end and the deposit.
+- **Caps** (B-09): a player is party to at most 10 trades as seller and 10 as buyer. As seller a
+  trade counts from the offer while pending, accepted and not final, or final with a seller share
+  left; as buyer, from acceptance while not final, or final with a buyer share left. `offerTrade`
+  checks the seller cap (`TooManyOffers`) and `acceptTrade` the buyer cap (`TooManyTrades`). Both
+  prune the caller's two lists and revert `SharesLeft` if the caller has a share left in a final
+  trade. A list cannot grow while it holds such a trade, so each stays ≤ 10 and every scan is
+  bounded. The rule only gates the caller's own offers and acceptances: a pending offer of a
+  blocked seller can still be accepted, which does not grow the seller's list.
+- `sendMission(…, trade)`: only the buyer names an accepted trade that is not final, on a public
+  transport to a building owned by the seller when it leaves, arriving no later than the window
+  end (inclusion time plus the computed duration); `InvalidTrade` otherwise. At arrival the cargo
+  **counts in full**, per price resource and up to what remains unpaid, whatever happened to the
+  building meanwhile (D-26); what fits is credited and the rest is lost (D-10). The rest of the
+  cargo is a plain transport. A recalled transport pays nothing. A transport that arrives after the
+  price was fully paid counts nothing.
+- **Final** (D-19) is derived: `now > window end`, or the price fully paid. No transaction is needed
+  when the window closes. Every action that reads shares drains the mission queue first (B-07), so
+  a due payment is never missed.
+- `withdrawTrade(trade, toBuilding, amount[RESOURCES])`: the caller must be active (B-14, D-18, as
+  any action) and party to the trade; the counterparty's state does not matter. `toBuilding` must
+  be the caller's and is settled first. Each `amount[r]` must be ≤ the caller's share left of that
+  resource and ≤ the free capacity of `toBuilding` (`⌊(capacity − stock) / STOCK_SCALE⌋`, B-27), and
+  at least one > 0; otherwise `InvalidWithdrawal`. Shares are computed from the totals (`E`, the
+  deposit split) minus what that party already withdrew, never from the remaining escrow.
 - **Vacation lock:** `acceptTrade` sets `tradeLockUntil` of both parties to the latest window end;
   `startVacation` reverts while `now ≤ tradeLockUntil`. A trade completed early still holds the
   lock until its window closes (one timestamp instead of a list of trades per buyer).
-- Events: `TradeSettled` (also after the window, with `returned`), `TradeClaimed(trade, amount)`,
-  `DebtRegistered(trade, debtor, creditor)`, `DebtPaid(trade)`.
+- Events: `TradeOffered`, `TradeCancelled`, `TradeAccepted`, `TradePaid(trade, paid)`,
+  `TradeWithdrawn(trade, player, amount)`.
 
 ## B-12 — Starting coordinate — Keep
 
@@ -459,8 +455,8 @@ Until the freeze, the "trustless rules" goal (Goals) is only partly met. This is
 - **Reports are read straight from the RPC**, only the recent ones: public RPCs cap the block range of
   a log query (Arbitrum One's: 10M blocks, about a month), and the client asks for the last 5M blocks.
   Losing older reports is accepted; they are not worth an index.
-- An **indexer** keeps the **market history** (B-11): every offer, acceptance, delivery, claim and
-  debt, cancelled offers included (the contract deletes those). It is a **Goldsky Subgraph** (The
+- An **indexer** keeps the **market history** (B-11): every offer, acceptance, payment and
+  withdrawal, cancelled offers included (the contract deletes those). It is a **Goldsky Subgraph** (The
   Graph format, `packages/indexer`), queried over GraphQL. Because the format is The Graph's and the
   events are on-chain, anyone can deploy the same subgraph elsewhere. Locally it runs on a
   graph-node in Docker.
@@ -600,9 +596,7 @@ precompile only returns a boolean, so decrypting tlock on-chain is not practical
   the return and be revealed right after it. Not legacy.
 - **Arrival rules** are the usual ones (07-missions.md), plus D-18 checked at arrival: a hidden
   mission bounces if the target's owner was on vacation when it was sent (a vacation started later
-  does not protect, a vacation started in the same second counts by creation order, B-07). A
-  transport from a player in debt to anyone but its own buildings and its creditors also bounces
-  (B-11).
+  does not protect, a vacation started in the same second counts by creation order, B-07).
 - `sendMission` stays public; the client uses it only for transports bound to a trade (D-19), whose
   counterparty is public anyway. Recall works the same on hidden missions.
 - **Fixed arrival.** The round must open after the arrival, by a **head start** that lets the
@@ -652,13 +646,12 @@ A written rulebook for the abuse the contracts cannot see. Anyone can open a cas
 Violations in mind:
 
 - **Pushing:** moving resources to one's own or an allied account abusively: new accounts created
-  for their starting resources, being looted on purpose by one's own account, emptying the
-  buildings to another account before a trade window closes to dodge restitution (B-11).
+  for their starting resources, being looted on purpose by one's own account.
 - **Bashing:** attacking the same player repeatedly beyond a limit the rulebook sets.
 - **Unpaid bounties:** a player offers a reward for attacking someone and does not pay it. There
   is no bounty mechanism yet.
 
-Not delivering an accepted market trade is not here: the contract collects restitution (B-11).
+Not paying an accepted market trade is not here: the escrow and the deposit settle it (B-11).
 Open: the exact rules, the list of sanctions, the court and the cost per case.
 
 ## B-24 — Tokenization — v2
@@ -729,8 +722,7 @@ controllers are recovery codes, so every device labels them right.
 - `revokeSession`, `cancelRemoval`, `cancelTransfer` and `cancelInvite` do not drain the mission
   queue (B-07): they touch no building, so a backlog never delays them. `recall` does.
 - Everything moves with the account: buildings, troops, missions in flight, queues, premium, family
-  membership and role, market trades and debts. A player in debt (B-11) can transfer the account:
-  the creditor collects from it just the same.
+  membership and role, market trades with their shares (B-11).
 - Sanctions and open Kleros cases (B-23) follow the account, not the person.
 - A controller address controls at most one player at a time.
 
@@ -816,7 +808,7 @@ Modules are storage namespaces and libraries inside the single `Game` proxy, not
 | `Queue` | Room, research and troop queues, deferred payment (D-11), duration at start (B-29) |
 | `Mission` | Send, recall, global mission queue (B-07, B-08), arrival rules, salary |
 | `Combat` | Pure library: battle, loot, honor (B-02) |
-| `Market` | Offers, acceptance, settlement by transport, restitution claims (B-11) |
+| `Market` | Offers, acceptance with escrow and deposit, payment by transport, withdrawals (B-11) |
 | `Family` | Families, roles, wars (D-20) |
 | `Sanctions` | Suspension by `arbiter` (B-14) |
 
@@ -844,7 +836,7 @@ Measured with a prototype before the B-03 deviation list and B-09 caps are fixed
 |------------|------------------|
 | Typical action (build, train, send) | **Measured (core, 3a)**: register ~251k, queue a room ~140k (real transactions on anvil, base cost included). Inside a test: queue that waits ~55k, settling 6 queue items ~326k, settling production only ~33k. `forge test --match-contract CoreGas -vv` |
 | Worst-case combat (21 × 21 types, 5 rounds) | **Measured: ~1.24M gas** in memory (`CombatGas`), **~1.37M with storage** (`BattleGas`: survivors, loot, points). Typical raid in memory: ~0.51M |
-| Social actions | **Measured (3c, inside a test)**: createFamily ~177k, applyToFamily ~53k, accept an application ~30k, offerTrade ~128k, acceptTrade ~6k, startVacation ~8k |
+| Social actions | **Measured (3c, inside a test)**: createFamily ~177k, applyToFamily ~53k, accept an application ~30k, offerTrade ~183k, acceptTrade ~185k (settles two buildings and holds the goods and the deposit), startVacation ~12k |
 | Missions | **Measured (3b)**: send an attack ~354k; process one attack (battle, loot, return queued) ~555k; process one return ~82k (`MissionsGasTest`, inside a test) |
 | Storage, not combat, dominates cost | Unmeasured. Decides whether B-02 ever needs Stylus. |
 | Precision vs test vectors | **0 deviations** in every formula, including travel time and salary (exact integer math, B-03) |

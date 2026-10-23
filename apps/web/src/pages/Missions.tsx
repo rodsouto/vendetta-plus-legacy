@@ -88,8 +88,9 @@ function MissionsFor({ b, p }: { b: sim.Building; p: sim.Player }) {
     }
   }, [to, kind, b.id, g.world, g.now]);
 
-  const trades = [...g.world.trades.values()].filter(
-    (x) => x.accepted && sim.tradeCounterparty(g.world, x.id, p.id, g.now) !== undefined,
+  // B-11: only the buyer pays, to the seller, while the trade is not final.
+  const trades = [...g.world.trades.values()].filter((x) =>
+    sim.tradePayable(g.world, x.id, p.id, x.seller, g.now),
   );
   // D-26: what does not fit at the destination is lost; warn the sender before it leaves.
   const scale = sim.stockScale(rs);

@@ -85,10 +85,11 @@ library VendettaRuleset {
 
     uint256 internal constant VACATION_SECONDS = 1296000;
     uint256 internal constant VACATION_COOLDOWN_SECONDS = 604800;
-    uint256 internal constant MARKET_WINDOW_SECONDS = 864000;
-    /// Added to the restitution a defaulter owes, in percent (D-19).
-    uint256 internal constant DEFAULT_PENALTY_PERCENT = 10;
+    uint256 internal constant MARKET_WINDOW_SECONDS = 432000;
+    /// The buyer's deposit, in percent of each price resource (D-19).
+    uint256 internal constant DEPOSIT_PERCENT = 10;
     uint256 internal constant MAX_OPEN_OFFERS = 10;
+    uint256 internal constant MAX_PURCHASES = 10;
     uint256 internal constant MAX_APPLICATIONS = 5;
     uint256 internal constant MAX_SESSION_SECONDS = 2592000;
     uint256 internal constant MAX_CONTROLLERS = 5;

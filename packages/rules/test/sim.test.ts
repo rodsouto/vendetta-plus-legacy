@@ -634,52 +634,6 @@ describe("sim: hidden missions (B-22): parking, reveal at the reveal time, forfe
 });
 
 describe("sim: market (D-19, B-11)", () => {
-  it("checks the fixed rates exactly and settles deliveries by trade id", () => {
-    const w = sim.newWorld(rs);
-    const t = 1_700_000_000n;
-    sim.register(w, "alice", at, t);
-    sim.register(w, "bob", { ...at, slot: 2n }, t);
-    // 3-5-1: 1 dollar = 3 weapons = 5 ammunition. Sell 300 weapons for 100 dollars.
-    expect(() => sim.offerTrade(w, "alice", 2n, 0, 300n, [0n, 0n, 0n, 99n], t)).toThrow(
-      "InvalidOffer",
-    );
-    const id = sim.offerTrade(w, "alice", 2n, 0, 300n, [0n, 0n, 0n, 100n], t);
-    // 2-4-1 works too: 200 weapons = 400 ammunition.
-    sim.offerTrade(w, "alice", 2n, 0, 200n, [0n, 400n, 0n, 0n], t);
-    // A price that fits both rates is rejected (B-11): 10 ammunition for 3 weapons and 1 dollar.
-    expect(() => sim.offerTrade(w, "alice", 2n, 1, 10n, [3n, 0n, 0n, 1n], t)).toThrow(
-      "InvalidOffer",
-    );
-    // Quantities and prices must fit in 64 bits.
-    expect(() =>
-      sim.offerTrade(w, "alice", 2n, 0, 3n * 2n ** 64n, [0n, 0n, 0n, 2n ** 64n], t),
-    ).toThrow("InvalidOffer");
-    sim.acceptTrade(w, "bob", id, t);
-    const tr = w.trades.get(id)!;
-    const m: sim.Mission = {
-      ...({} as sim.Mission),
-      owner: 1n,
-      trade: id,
-      cargo: [120n, 0n, 0n, 0n],
-    };
-    sim.settleTrade(w, m, t + 10n);
-    expect(tr.delivered).toBe(120n);
-    sim.settleTrade(w, { ...m, cargo: [0n, 5n, 0n, 0n] }, t + 10n);
-    expect(tr.delivered).toBe(120n); // wrong resource: a plain transport
-    sim.settleTrade(w, { ...m, owner: 2n, cargo: [0n, 0n, 0n, 100n] }, t + 10n);
-    expect(tr.paid).toEqual([0n, 0n, 0n, 100n]);
-    sim.settleTrade(w, { ...m, cargo: [180n, 0n, 0n, 0n] }, t + 11n * 86400n);
-    expect(tr.delivered).toBe(120n); // after the 10-day window it no longer settles
-    // The counterparty is checked when the transport leaves (D-26).
-    expect(sim.tradeOpenFor(w, id, 1n, 2n, t)).toBe(true);
-    expect(sim.tradeOpenFor(w, id, 1n, 1n, t)).toBe(false);
-    expect(sim.tradeOpenFor(w, id, 1n, undefined, t)).toBe(false);
-    expect(sim.tradeOpenFor(w, id, 2n, 1n, t)).toBe(true);
-    expect(sim.tradeCounterparty(w, id, 1n, t)).toBe(2n);
-  });
-});
-
-describe("sim: market default (D-19 Default, B-11)", () => {
   const t0 = 1_700_000_000n;
   const day = 86400n;
   const ROWDY = rs.troops.findIndex((t) => t.id === "rowdy");
@@ -687,22 +641,25 @@ describe("sim: market default (D-19 Default, B-11)", () => {
   const units = (troop: number, n: bigint) => rs.troops.map((_, i) => (i === troop ? n : 0n));
   const none = [0n, 0n, 0n, 0n];
   const WINDOW = rs.config.marketWindowSeconds;
+  const scale = sim.stockScale(rs);
+  const stock = (w: sim.World, b: bigint, r: number) => w.buildings.get(b)!.stock[r]! / scale;
 
-  /** A trade as stored, for the pure debt function: 300 weapons for 100 dollars at 3-5-1. */
+  /** A trade as stored, for the pure share function: 300 weapons for 100 dollars at 3-5-1. */
   const trade = (over: Partial<sim.Trade>): sim.Trade => ({
     id: 1n,
     seller: 1n,
     buyer: 2n,
+    from: 1n,
     sold: 0,
     quantity: 300n,
     price: [0n, 0n, 0n, 100n],
-    delivered: 0n,
-    paid: none,
+    rate: [3n, 5n, 0n, 1n],
     accepted: true,
-    acceptedAt: t0,
-    rate: 0,
-    registered: false,
-    returned: [...none],
+    closesAt: t0 + WINDOW,
+    deposit: [0n, 0n, 0n, 10n],
+    paid: [...none],
+    sellerTook: [...none],
+    buyerTook: [...none],
     ...over,
   });
 
@@ -722,6 +679,14 @@ describe("sim: market default (D-19 Default, B-11)", () => {
     }
     now += day;
     return { w, now };
+  }
+
+  /** Alice sells Bob 300 weapons for 100 dollars from her building; Bob accepts. */
+  function accepted() {
+    const { w, now } = three();
+    const id = sim.offerTrade(w, "alice", 2n, 1n, 0, 300n, [0n, 0n, 0n, 100n], now);
+    sim.acceptTrade(w, "bob", id, 2n, now);
+    return { w, now, id };
   }
 
   /** Send a transport from `building` to `to` with the mover and process its arrival. */
@@ -750,336 +715,179 @@ describe("sim: market default (D-19 Default, B-11)", () => {
     return m.arrival;
   }
 
-  /** Every mission home. */
-  function allHome(w: sim.World, now: bigint): bigint {
-    while (w.pending.length > 0) {
-      const m = w.missions.get(w.pending[0]!)!;
-      if (m.arrival > now) now = m.arrival;
-      sim.advance(w, 10, now);
-    }
-    return now;
-  }
-
-  it("values both sides at the trade's rate and rounds for the creditor (D-19)", () => {
+  it("checks the fixed rates exactly and the offer's building", () => {
     const w = sim.newWorld(rs);
-    expect(sim.tradeDebt(w, trade({ delivered: 300n, paid: [0n, 0n, 0n, 100n] })).debtor).toBe(0n);
-    expect(sim.tradeDebt(w, trade({})).debtor).toBe(0n); // nothing sent either way
-    // The buyer received everything and paid 40%: it gives back 60% of the weapons plus 10%.
-    let d = sim.tradeDebt(w, trade({ delivered: 300n, paid: [0n, 0n, 0n, 40n] }));
-    expect([d.debtor, d.creditor]).toEqual([2n, 1n]);
-    expect(d.owed).toEqual([198n, 0n, 0n, 0n]);
-    // The seller delivered a third and was paid in full: two thirds of the dollars come back.
-    d = sim.tradeDebt(w, trade({ delivered: 100n, paid: [0n, 0n, 0n, 100n] }));
-    expect([d.debtor, d.creditor]).toEqual([1n, 2n]);
-    expect(d.owed).toEqual([0n, 0n, 0n, 74n]); // ⌈⌈100 × 2/3⌉ × 1.1⌉
-    // Roundings favour the creditor: one weapon short is owed back as two dollars.
-    d = sim.tradeDebt(w, trade({ delivered: 299n, paid: [0n, 0n, 0n, 100n] }));
-    expect(d.owed).toEqual([0n, 0n, 0n, 2n]);
-    d = sim.tradeDebt(w, trade({ delivered: 1n }));
-    expect(d.owed).toEqual([2n, 0n, 0n, 0n]);
-    // A price in two resources, paid in one: the excess comes back in proportion to what was paid.
-    d = sim.tradeDebt(
-      w,
-      trade({
-        quantity: 200n,
-        price: [0n, 200n, 0n, 50n],
-        rate: 1, // 2-4-1: 200 weapons = 100 dollars = 200 ammunition + 50 dollars
-        paid: [0n, 200n, 0n, 0n],
-      }),
+    const t = t0;
+    sim.register(w, "alice", at, t);
+    sim.register(w, "bob", { ...at, slot: 2n }, t);
+    // 3-5-1: 1 dollar = 3 weapons = 5 ammunition. Sell 300 weapons for 100 dollars.
+    expect(() => sim.offerTrade(w, "alice", 2n, 1n, 0, 300n, [0n, 0n, 0n, 99n], t)).toThrow(
+      "InvalidOffer",
     );
-    expect(d.owed).toEqual([0n, 220n, 0n, 0n]);
-    // What was returned no longer remains.
-    d = sim.tradeDebt(
-      w,
-      trade({ delivered: 300n, paid: [0n, 0n, 0n, 40n], returned: [150n, 0n, 0n, 0n] }),
+    expect(() => sim.offerTrade(w, "alice", 2n, 2n, 0, 300n, [0n, 0n, 0n, 100n], t)).toThrow(
+      "NotOwner",
     );
-    expect(d.remaining).toEqual([48n, 0n, 0n, 0n]);
-    expect(sim.inDefault(d)).toBe(true);
-    d = sim.tradeDebt(
-      w,
-      trade({ delivered: 300n, paid: [0n, 0n, 0n, 40n], returned: [198n, 0n, 0n, 0n] }),
+    const id = sim.offerTrade(w, "alice", 2n, 1n, 0, 300n, [0n, 0n, 0n, 100n], t);
+    expect(w.trades.get(id)!.rate).toEqual([3n, 5n, 0n, 1n]); // the values, not an index
+    // 2-4-1 works too: 200 weapons = 400 ammunition.
+    sim.offerTrade(w, "alice", 2n, 1n, 0, 200n, [0n, 400n, 0n, 0n], t);
+    // A price that fits both rates is rejected (B-11): 10 ammunition for 3 weapons and 1 dollar.
+    expect(() => sim.offerTrade(w, "alice", 2n, 1n, 1, 10n, [3n, 0n, 0n, 1n], t)).toThrow(
+      "InvalidOffer",
     );
-    expect(sim.inDefault(d)).toBe(false);
+    // Quantities and prices must fit in 64 bits.
+    expect(() =>
+      sim.offerTrade(w, "alice", 2n, 1n, 0, 3n * 2n ** 64n, [0n, 0n, 0n, 2n ** 64n], t),
+    ).toThrow("InvalidOffer");
   });
 
-  it("a shipment counts per resource up to what remains; the rest is a plain transport", () => {
-    const w = sim.newWorld(rs);
-    sim.register(w, "alice", at, t0);
-    sim.register(w, "bob", { ...at, slot: 2n }, t0);
-    const id = sim.offerTrade(w, "alice", 2n, 0, 300n, [0n, 0n, 0n, 100n], t0);
-    sim.acceptTrade(w, "bob", id, t0);
-    const tr = w.trades.get(id)!;
-    const m = { ...({} as sim.Mission), owner: 1n, trade: id, cargo: [400n, 7n, 0n, 0n] };
-    sim.settleTrade(w, m, t0 + 10n); // 300 count, 100 weapons and 7 ammo do not
-    expect(tr.delivered).toBe(300n);
-    sim.settleTrade(w, { ...m, owner: 2n, cargo: [0n, 0n, 0n, 150n] }, t0 + 10n);
-    expect(tr.paid).toEqual([0n, 0n, 0n, 100n]);
-    // Complete and even: nothing is owed after the window.
-    expect(sim.tradeDebt(w, tr).debtor).toBe(0n);
-  });
-
-  it("after the window a debtor's transport naming the trade returns in kind, up to what remains", () => {
-    const w = sim.newWorld(rs);
-    sim.register(w, "alice", at, t0);
-    sim.register(w, "bob", { ...at, slot: 2n }, t0);
-    const id = sim.offerTrade(w, "alice", 2n, 0, 300n, [0n, 0n, 0n, 100n], t0);
-    sim.acceptTrade(w, "bob", id, t0);
-    const tr = w.trades.get(id)!;
-    tr.delivered = 300n;
-    tr.paid = [0n, 0n, 0n, 40n]; // Bob owes 198 weapons
+  it("splits the goods and the deposit by what was paid, rounding for the seller (D-19)", () => {
+    const shares = (paid: bigint[], now = t0) => sim.tradeShares(trade({ paid }), now);
     const late = t0 + WINDOW + 1n;
-    const m = { ...({} as sim.Mission), owner: 1n, trade: id, cargo: [50n, 0n, 0n, 0n] };
-    sim.settleTrade(w, m, late); // the creditor's shipment is just a transport
-    expect(tr.delivered).toBe(300n);
-    expect(tr.returned).toEqual(none);
-    expect(sim.tradeOpenFor(w, id, 2n, 1n, late)).toBe(true);
-    expect(sim.tradeOpenFor(w, id, 2n, 3n, late)).toBe(false); // only to the creditor
-    sim.settleTrade(w, { ...m, owner: 2n, cargo: [250n, 9n, 0n, 0n] }, late);
-    expect(tr.returned).toEqual([198n, 0n, 0n, 0n]);
-    expect(sim.inDefault(sim.tradeDebt(w, tr))).toBe(false);
-    expect(sim.tradeOpenFor(w, id, 2n, 1n, late)).toBe(false);
+    // Inside the window the buyer earns goods as it pays; nothing else is split yet.
+    expect(shares([0n, 0n, 0n, 40n])).toEqual({ buyer: [120n, 0n, 0n, 0n], seller: none });
+    expect(shares([0n, 0n, 0n, 41n]).buyer[0]).toBe(123n);
+    expect(shares([0n, 0n, 0n, 1n]).buyer[0]).toBe(3n);
+    // Once the window closes: the rest of the goods and ⌈10 × 60 / 100⌉ = 6 dollars to the seller.
+    expect(shares([0n, 0n, 0n, 40n], late)).toEqual({
+      buyer: [120n, 0n, 0n, 4n],
+      seller: [180n, 0n, 0n, 6n],
+    });
+    expect(shares(none, late)).toEqual({ buyer: none, seller: [300n, 0n, 0n, 10n] });
+    // Paid in full: final at once, everything to the buyer.
+    expect(sim.tradeFinal(trade({ paid: [0n, 0n, 0n, 100n] }), t0)).toBe(true);
+    expect(shares([0n, 0n, 0n, 100n])).toEqual({ buyer: [300n, 0n, 0n, 10n], seller: none });
+    // A tiny trade: 9 weapons for 10 ammunition and 1 dollar; 1 ammunition unpaid keeps the
+    // whole rounded deposit for the seller (the unpaid fraction of it, rounded up).
+    const tiny = trade({
+      quantity: 9n,
+      price: [0n, 10n, 0n, 1n],
+      deposit: [0n, 1n, 0n, 1n],
+      paid: [0n, 9n, 0n, 1n],
+    });
+    expect(sim.tradeShares(tiny, late)).toEqual({
+      buyer: [8n, 0n, 0n, 0n],
+      seller: [1n, 1n, 0n, 1n],
+    });
+    // What a party already took is subtracted; a third party gets nothing.
+    const taken = trade({ paid: [0n, 0n, 0n, 40n], buyerTook: [100n, 0n, 0n, 0n] });
+    expect(sim.shareLeft(taken, 2n, t0)).toEqual([20n, 0n, 0n, 0n]);
+    expect(sim.shareLeft(taken, 3n, late)).toEqual(none);
   });
 
-  it("the creditor claims from the debtor's building; the first claim registers the debt", () => {
+  it("acceptance holds the goods and the deposit and fixes the terms", () => {
     let { w, now } = three();
-    // Alice sells Bob 3000 weapons for 1000 dollars, delivers in full; Bob pays 400.
-    const id = sim.offerTrade(w, "alice", 2n, 0, 3000n, [0n, 0n, 0n, 1000n], now);
-    sim.acceptTrade(w, "bob", id, now);
-    expect(sim.tradeOpenFor(w, id, 1n, 2n, now)).toBe(true);
-    now = ship(w, "alice", 1n, 2n, [3000n, 0n, 0n, 0n], id, now);
-    now = ship(w, "bob", 2n, 1n, [0n, 0n, 0n, 400n], id, now);
-    now = allHome(w, now);
-    // A failed action restores the world from a copy (atomic): look entities up again after one.
-    const tr = () => w.trades.get(id)!;
-    const bob = () => w.players.get(2n)!;
-    expect([tr().delivered, tr().paid[3]]).toEqual([3000n, 400n]);
-    expect(() => sim.claimTrade(w, "alice", id, 2n, 1n, [1n, 0n, 0n, 0n], now)).toThrow(
-      "InvalidTrade",
-    ); // window open
+    const big = sim.offerTrade(w, "alice", 2n, 1n, 0, 30_000n, [0n, 0n, 0n, 10_000n], now);
+    expect(() => sim.acceptTrade(w, "bob", big, 2n, now)).toThrow("CannotAfford");
+    const id = sim.offerTrade(w, "alice", 2n, 1n, 0, 300n, [0n, 0n, 0n, 100n], now);
+    expect(() => sim.acceptTrade(w, "bob", id, 1n, now)).toThrow("NotOwner");
+    expect(() => sim.acceptTrade(w, "carol", id, 3n, now)).toThrow("InvalidTrade");
+    sim.poke(w, 1n, now);
+    const weapons = stock(w, 1n, 0);
+    const dollars = stock(w, 2n, 3);
+    sim.acceptTrade(w, "bob", id, 2n, now);
+    const t = w.trades.get(id)!;
+    expect(t.closesAt).toBe(now + WINDOW);
+    expect(t.deposit).toEqual([0n, 0n, 0n, 10n]);
+    expect(stock(w, 1n, 0)).toBe(weapons - 300n);
+    expect(stock(w, 2n, 3)).toBe(dollars - 10n);
+    expect(w.players.get(2n)!.purchases).toEqual([id]);
+    expect(() => sim.acceptTrade(w, "bob", id, 2n, now)).toThrow("InvalidTrade"); // once
+  });
 
-    now = tr().acceptedAt + WINDOW + 1n;
-    const d = sim.tradeDebt(w, tr());
-    expect([d.debtor, d.creditor, d.owed]).toEqual([2n, 1n, [1980n, 0n, 0n, 0n]]); // (3000 − 1200) × 1.1
-    expect(sim.tradeOpenFor(w, id, 1n, 2n, now)).toBe(false); // the creditor has nothing to ship
-    expect(sim.tradeOpenFor(w, id, 2n, 1n, now)).toBe(true); // the debtor can pay
-    expect(() => sim.claimTrade(w, "bob", id, 2n, 1n, [1n, 0n, 0n, 0n], now)).toThrow(
-      "InvalidTrade",
-    );
-    expect(() => sim.claimTrade(w, "carol", id, 2n, 1n, [1n, 0n, 0n, 0n], now)).toThrow(
-      "InvalidTrade",
-    );
-    expect(() => sim.claimTrade(w, "alice", id, 2n, 2n, [1n, 0n, 0n, 0n], now)).toThrow("NotOwner");
-    expect(() => sim.claimTrade(w, "alice", id, 3n, 1n, [1n, 0n, 0n, 0n], now)).toThrow("NotOwner");
-    expect(() => sim.claimTrade(w, "alice", id, 2n, 1n, none, now)).toThrow("InvalidClaim");
-    expect(() => sim.claimTrade(w, "alice", id, 2n, 1n, [1981n, 0n, 0n, 0n], now)).toThrow(
-      "InvalidClaim",
-    );
-    expect(() => sim.claimTrade(w, "alice", id, 2n, 1n, [0n, 0n, 0n, 1n], now)).toThrow(
-      "InvalidClaim",
-    ); // not owed
-    // The most that can be claimed: what remains, the debtor's stock, the creditor's free capacity.
-    const probe = sim.newWorld(rs);
-    Object.assign(probe, structuredClone({ ...w, rs: undefined }), { rs });
-    const [pa, pb] = [probe.buildings.get(1n)!, probe.buildings.get(2n)!];
-    sim.settle(probe, pa, now);
-    sim.settle(probe, pb, now);
-    const scale = sim.stockScale(rs);
-    const free = (sim.capacities(probe, pa)[0]! - pa.stock[0]!) / scale;
-    const stock = pb.stock[0]! / scale;
-    const least = [1980n, stock, free].reduce((m, x) => (x < m ? x : m));
-    expect(sim.claimable(probe, probe.trades.get(id)!, pb, pa)).toEqual([least, 0n, 0n, 0n]);
-    // Fill Alice's building up to 500 weapons short of the cap: her free capacity binds.
-    const a = () => w.buildings.get(1n)!;
-    sim.settle(w, a(), now);
-    a().stock[0] = sim.capacities(w, a())[0]! - 500n * scale;
-    expect(() => sim.claimTrade(w, "alice", id, 2n, 1n, [501n, 0n, 0n, 0n], now)).toThrow(
-      "InvalidClaim",
-    );
-    sim.claimTrade(w, "alice", id, 2n, 1n, [500n, 0n, 0n, 0n], now);
-    expect(sim.visibleStock(w, a())[0]).toBe(sim.capacities(w, a())[0]! / scale);
-    expect(tr().registered).toBe(true);
-    expect(tr().returned).toEqual([500n, 0n, 0n, 0n]);
-    expect(bob().debts).toBe(1);
-    expect(sim.owes(w, 2n, 1n)).toBe(1);
-
-    // Alice makes room (a mob school and three rowdies: 1600 weapons, paid now) and collects the
-    // rest in two more claims; the last one closes the debt.
-    sim.queueRoom(w, "alice", 1n, room("mob_school"), now);
-    sim.train(w, "alice", 1n, ROWDY, 3n, now);
-    sim.claimTrade(w, "alice", id, 2n, 1n, [1479n, 0n, 0n, 0n], now);
-    expect(bob().debts).toBe(1);
-    sim.claimTrade(w, "alice", id, 2n, 1n, [1n, 0n, 0n, 0n], now);
-    expect(tr().returned).toEqual([1980n, 0n, 0n, 0n]);
-    expect(bob().debts).toBe(0);
-    expect(sim.owes(w, 2n, 1n)).toBe(0);
-    expect(() => sim.claimTrade(w, "alice", id, 2n, 1n, [1n, 0n, 0n, 0n], now)).toThrow(
+  it("only the buyer pays, to the seller, arriving within the window; it counts up to what remains", () => {
+    let { w, now, id } = accepted();
+    const alice = w.buildings.get(1n)!.coord;
+    const bob = w.buildings.get(2n)!.coord;
+    const send = (who: string, from: bigint, to: typeof at, cargo: bigint[], when: bigint) =>
+      sim.sendMission(w, who, from, sim.TRANSPORT, to, units(ROWDY, 1n), cargo, id, when);
+    expect(() => send("alice", 1n, bob, [10n, 0n, 0n, 0n], now)).toThrow("InvalidTrade");
+    expect(() => send("bob", 2n, w.buildings.get(3n)!.coord, [0n, 0n, 0n, 10n], now)).toThrow(
       "InvalidTrade",
     );
-    expect(sim.tradeOpenFor(w, id, 2n, 1n, now)).toBe(false);
+    expect(() => send("bob", 2n, alice, [0n, 0n, 0n, 10n], now + WINDOW)).toThrow("InvalidTrade");
+    expect(sim.tradePayable(w, id, 2n, 1n, now)).toBe(true);
+    expect(sim.tradePayable(w, id, 1n, 2n, now)).toBe(false);
+    now = ship(w, "bob", 2n, 1n, [0n, 7n, 0n, 130n], id, now); // 100 count, the rest is plain
+    const t = w.trades.get(id)!;
+    expect(t.paid).toEqual([0n, 0n, 0n, 100n]);
+    expect(sim.tradeFinal(t, now)).toBe(true);
+    expect(sim.tradePayable(w, id, 2n, 1n, now)).toBe(false); // nothing left to pay
   });
 
-  it("the creditor registers the debt without collecting; the restrictions start (B-11)", () => {
-    let { w, now } = three();
-    const id = sim.offerTrade(w, "alice", 2n, 0, 300n, [0n, 0n, 0n, 100n], now);
-    sim.acceptTrade(w, "bob", id, now);
-    now = ship(w, "alice", 1n, 2n, [300n, 0n, 0n, 0n], id, now);
-    now = allHome(w, now);
-    expect(() => sim.registerDebt(w, "alice", id, now)).toThrow("InvalidTrade"); // window open
-    now = w.trades.get(id)!.acceptedAt + WINDOW + 1n;
-    expect(() => sim.registerDebt(w, "bob", id, now)).toThrow("InvalidTrade"); // the debtor
-    expect(() => sim.registerDebt(w, "carol", id, now)).toThrow("InvalidTrade"); // a third party
-    sim.registerDebt(w, "alice", id, now);
-    sim.registerDebt(w, "alice", id, now); // idempotent
-    expect(w.trades.get(id)!.registered).toBe(true);
-    expect(w.players.get(2n)!.debts).toBe(1);
-    expect(sim.owes(w, 2n, 1n)).toBe(1);
-    expect(() => sim.startVacation(w, "bob", now)).toThrow("InDebt");
+  it("a payment counts at the coordinate chosen at send, whatever happened there (D-26)", () => {
+    let { w, now, id } = accepted();
+    now = ship(w, "carol", 3n, 1n, [0n, 0n, 0n, 1000n], 0n, now); // a gift fills Alice's dollars
+    expect(stock(w, 1n, 3)).toBe(10_000n); // at the cap: nothing more fits
+    now = ship(w, "bob", 2n, 1n, [0n, 0n, 0n, 60n], id, now);
+    expect(stock(w, 1n, 3)).toBe(10_000n);
+    expect(w.trades.get(id)!.paid[3]).toBe(60n);
   });
 
-  it("a registered debtor can always pay a trade's creditor, registered or not (B-11)", () => {
-    let { w, now } = three();
-    // Bob owes Alice (registered) and Carol (not registered): 300 weapons received, nothing paid.
-    const first = sim.offerTrade(w, "alice", 2n, 0, 300n, [0n, 0n, 0n, 100n], now);
-    const second = sim.offerTrade(w, "carol", 2n, 0, 300n, [0n, 0n, 0n, 100n], now);
-    sim.acceptTrade(w, "bob", first, now);
-    sim.acceptTrade(w, "bob", second, now);
-    now = ship(w, "alice", 1n, 2n, [300n, 0n, 0n, 0n], first, now);
-    now = ship(w, "carol", 3n, 2n, [300n, 0n, 0n, 0n], second, now);
-    now = allHome(w, now);
-    now = w.trades.get(first)!.acceptedAt + WINDOW + 1n;
-    sim.registerDebt(w, "alice", first, now);
-    const send = (to: bigint, tradeId: bigint) =>
-      sim.sendMission(
-        w,
-        "bob",
-        2n,
-        sim.TRANSPORT,
-        w.buildings.get(to)!.coord,
-        units(ROWDY, 1n),
-        [5n, 0n, 0n, 0n],
-        tradeId,
-        now,
-      );
-    expect(() => send(3n, 0n)).toThrow("InDebt"); // a plain transport to Carol
-    expect(() => send(1n, second)).toThrow("InvalidTrade"); // Carol's trade, not to Carol
-    send(3n, second); // the restitution to Carol leaves, unregistered or not
-  });
-
-  it("a shipment counts at the coordinate chosen at send, whatever happened there (D-26)", () => {
-    let { w, now } = three();
-    const id = sim.offerTrade(w, "alice", 2n, 0, 300n, [0n, 0n, 0n, 100n], now);
-    sim.acceptTrade(w, "bob", id, now);
-    // Bob's weapons are at the cap: nothing fits, the delivery counts in full (D-10).
-    const bob = w.buildings.get(2n)!;
-    sim.settle(w, bob, now);
-    bob.stock[0] = sim.capacities(w, bob)[0]!;
-    const before = sim.visibleStock(w, bob)[0];
-    now = ship(w, "alice", 1n, 2n, [200n, 0n, 0n, 0n], id, now);
-    expect(w.trades.get(id)!.delivered).toBe(200n);
-    expect(sim.visibleStock(w, w.buildings.get(2n)!)[0]).toBe(before);
-    // Only towards the counterparty's building.
-    const toCarol = () =>
-      sim.sendMission(
-        w,
-        "alice",
-        1n,
-        sim.TRANSPORT,
-        w.buildings.get(3n)!.coord,
-        units(ROWDY, 1n),
-        [10n, 0n, 0n, 0n],
-        id,
-        now,
-      );
-    expect(toCarol).toThrow("InvalidTrade");
-  });
-
-  it("a registered debt blocks the market, vacation and transports to third parties; a hidden one bounces", () => {
-    let { w, now } = three();
-    // Bob buys 300 weapons for 100 dollars, receives them and pays nothing: he owes 330 weapons.
-    const id = sim.offerTrade(w, "alice", 2n, 0, 300n, [0n, 0n, 0n, 100n], now);
-    sim.acceptTrade(w, "bob", id, now);
-    now = ship(w, "alice", 1n, 2n, [300n, 0n, 0n, 0n], id, now);
-    now = allHome(w, now);
-    now = w.trades.get(id)!.acceptedAt + WINDOW + 1n;
-    sim.queueRoom(w, "alice", 1n, room("mob_school"), now); // room for the weapons
-    // Not registered yet: Bob is free to act.
-    sim.offerTrade(w, "bob", 3n, 1, 500n, [0n, 0n, 0n, 100n], now);
-    sim.claimTrade(w, "alice", id, 2n, 1n, [30n, 0n, 0n, 0n], now);
-    const bob = () => w.players.get(2n)!; // looked up again after every failed (restored) action
-    expect(bob().debts).toBe(1);
-
-    expect(() => sim.offerTrade(w, "bob", 3n, 1, 500n, [0n, 0n, 0n, 100n], now)).toThrow("InDebt");
-    const offer = sim.offerTrade(w, "carol", 2n, 1, 500n, [0n, 0n, 0n, 100n], now);
-    expect(() => sim.acceptTrade(w, "bob", offer, now)).toThrow("InDebt");
-    expect(() => sim.startVacation(w, "bob", now)).toThrow("InDebt");
-    const carol = w.buildings.get(3n)!.coord;
-    const send = (to: sim.Building["coord"], tradeId = 0n) =>
-      sim.sendMission(
-        w,
-        "bob",
-        2n,
-        sim.TRANSPORT,
-        to,
-        units(ROWDY, 1n),
-        [5n, 0n, 0n, 0n],
-        tradeId,
-        now,
-      );
-    expect(() => send(carol)).toThrow("InDebt");
-    expect(() => send({ ...at, slot: 9n })).toThrow("InDebt"); // an empty slot is no better
-    expect(() =>
-      sim.checkSendTarget(w, 2n, w.buildings.get(2n)!.coord, sim.TRANSPORT, carol, now),
-    ).toThrow("InDebt");
-    expect(sim.checkSendTarget(w, 2n, w.buildings.get(2n)!.coord, sim.ATTACK, carol, now)).toBe(3n);
-    sim.sendMission(w, "bob", 2n, sim.ATTACK, carol, units(ROWDY, 1n), none, 0n, now); // only transports
-    const toCreditor = send(w.buildings.get(1n)!.coord); // plain transport to the creditor
-    const paying = send(w.buildings.get(1n)!.coord, id); // voluntary payment, named
-    // Hidden transports leave unchecked and bounce on arrival (B-22, B-11).
-    const salt = 7n;
-    const commit = sim.hiddenCommit(2n, sim.TRANSPORT, carol, salt);
-    expect(() =>
-      sim.sendHiddenMission(w, "bob", 2n, commit, 3n, units(MOVER, 1n), [5n, 0n, 0n, 0n], now, now),
-    ).toThrow("TooLate"); // the timelock's round would open before the arrival
-    const hidden = sim.sendHiddenMission(
-      w,
-      "bob",
-      2n,
-      commit,
-      3n,
-      units(MOVER, 1n),
-      [5n, 0n, 0n, 0n],
-      0n,
-      now,
+  it("each party withdraws its shares; a share left in a final trade blocks new trades", () => {
+    let { w, now, id } = accepted();
+    now = ship(w, "bob", 2n, 1n, [0n, 0n, 0n, 40n], id, now);
+    sim.queueRoom(w, "bob", 2n, room("mob_school"), now); // room for weapons
+    expect(() => sim.withdrawTrade(w, "bob", id, 2n, [121n, 0n, 0n, 0n], now)).toThrow(
+      "InvalidWithdrawal",
     );
-    const h = w.missions.get(hidden)!;
-    sim.reveal(w, hidden, sim.TRANSPORT, carol, salt, now);
-    // Carol's stock as of the arrival: the bounce must not add to it.
-    sim.settle(w, w.buildings.get(3n)!, h.arrival);
-    const carolBefore = sim.visibleStock(w, w.buildings.get(3n)!)[0]!;
-    sim.advance(w, 10, h.arrival); // the attack, both transports and the hidden one arrive
-    expect(h.returning).toBe(true);
-    expect(h.cargo).toEqual([5n, 0n, 0n, 0n]); // back with the cargo
-    expect(sim.visibleStock(w, w.buildings.get(3n)!)[0]).toBe(carolBefore);
-    expect(w.missions.get(toCreditor)!.returning).toBe(true); // delivered
-    expect(w.missions.get(paying)!.cargo).toEqual(none);
-    const tr = w.trades.get(id)!;
-    expect(tr.returned).toEqual([35n, 0n, 0n, 0n]); // 30 claimed + 5 paid; the plain one did not count
-    expect(bob().debts).toBe(1);
-    // Paying the rest back by transport closes the debt too.
-    now = allHome(w, h.arrival + 10n * day);
-    now = ship(w, "bob", 2n, 1n, [295n, 0n, 0n, 0n], id, now);
-    expect(w.trades.get(id)!.returned).toEqual([330n, 0n, 0n, 0n]);
-    expect(bob().debts).toBe(0);
-    expect(sim.owes(w, 2n, 1n)).toBe(0);
-    now = allHome(w, now);
-    sim.offerTrade(w, "bob", 3n, 1, 500n, [0n, 0n, 0n, 100n], now); // free again
+    expect(() => sim.withdrawTrade(w, "bob", id, 2n, [0n, 0n, 0n, 1n], now)).toThrow(
+      "InvalidWithdrawal",
+    );
+    expect(() => sim.withdrawTrade(w, "bob", id, 2n, none, now)).toThrow("InvalidWithdrawal");
+    expect(() => sim.withdrawTrade(w, "bob", id, 1n, [1n, 0n, 0n, 0n], now)).toThrow("NotOwner");
+    expect(() => sim.withdrawTrade(w, "carol", id, 3n, [1n, 0n, 0n, 0n], now)).toThrow(
+      "InvalidTrade",
+    );
+    expect(() => sim.withdrawTrade(w, "alice", id, 1n, [1n, 0n, 0n, 0n], now)).toThrow(
+      "InvalidWithdrawal",
+    );
+    sim.poke(w, 2n, now);
+    const weapons = stock(w, 2n, 0);
+    sim.withdrawTrade(w, "bob", id, 2n, [100n, 0n, 0n, 0n], now);
+    sim.withdrawTrade(w, "bob", id, 2n, [20n, 0n, 0n, 0n], now);
+    expect(stock(w, 2n, 0)).toBe(weapons + 120n);
+    expect(w.trades.get(id)!.buyerTook).toEqual([120n, 0n, 0n, 0n]);
+
+    now = w.trades.get(id)!.closesAt + 1n;
+    sim.queueRoom(w, "alice", 1n, room("mob_school"), now); // room for weapons and 25 dollars
+    expect(() => sim.offerTrade(w, "alice", 3n, 1n, 0, 300n, [0n, 0n, 0n, 100n], now)).toThrow(
+      "SharesLeft",
+    );
+    const offer = sim.offerTrade(w, "carol", 1n, 3n, 0, 300n, [0n, 0n, 0n, 100n], now);
+    expect(() => sim.acceptTrade(w, "alice", offer, 1n, now)).toThrow("SharesLeft");
+    expect(() => sim.withdrawTrade(w, "alice", id, 1n, [181n, 0n, 0n, 0n], now)).toThrow(
+      "InvalidWithdrawal",
+    );
+    sim.withdrawTrade(w, "alice", id, 1n, [180n, 0n, 0n, 6n], now);
+    sim.acceptTrade(w, "alice", offer, 1n, now); // nothing left: free again
+    expect(w.players.get(1n)!.offers).toEqual([]); // the finished trade left her list
+    expect(() => sim.offerTrade(w, "bob", 3n, 2n, 0, 300n, [0n, 0n, 0n, 100n], now)).toThrow(
+      "SharesLeft",
+    );
+    sim.withdrawTrade(w, "bob", id, 2n, [0n, 0n, 0n, 4n], now);
+    sim.offerTrade(w, "bob", 3n, 2n, 0, 300n, [0n, 0n, 0n, 100n], now);
+    expect(w.players.get(2n)!.purchases).toEqual([]);
+  });
+
+  it("at most maxPurchases trades as buyer", () => {
+    const { w, now } = three();
+    for (let i = 0; i < rs.config.maxOpenOffers; i++)
+      sim.offerTrade(w, "alice", 2n, 1n, 0, 30n, [0n, 0n, 0n, 10n], now);
+    const extra = sim.offerTrade(w, "carol", 2n, 3n, 0, 30n, [0n, 0n, 0n, 10n], now);
+    expect(() => sim.offerTrade(w, "alice", 2n, 1n, 0, 30n, [0n, 0n, 0n, 10n], now)).toThrow(
+      "TooManyOffers",
+    );
+    for (let id = 1n; id <= BigInt(rs.config.maxPurchases); id++)
+      sim.acceptTrade(w, "bob", id, 2n, now);
+    expect(() => sim.acceptTrade(w, "bob", extra, 2n, now)).toThrow("TooManyTrades");
   });
 
   it("nobody starts a vacation while party to a trade whose window is open (D-18)", () => {
-    let { w, now } = three();
-    const id = sim.offerTrade(w, "alice", 2n, 0, 300n, [0n, 0n, 0n, 100n], now);
+    const { w, now } = three();
+    const id = sim.offerTrade(w, "alice", 2n, 1n, 0, 300n, [0n, 0n, 0n, 100n], now);
     sim.startVacation(w, "carol", now); // not a party
-    sim.acceptTrade(w, "bob", id, now);
+    sim.acceptTrade(w, "bob", id, 2n, now);
     expect(w.players.get(1n)!.tradeLockUntil).toBe(now + WINDOW);
     expect(w.players.get(2n)!.tradeLockUntil).toBe(now + WINDOW);
     expect(() => sim.startVacation(w, "alice", now)).toThrow("TradeOpen");
@@ -1087,23 +895,93 @@ describe("sim: market default (D-19 Default, B-11)", () => {
     sim.startVacation(w, "bob", now + WINDOW + 1n);
   });
 
-  it("a claim works against a debtor on vacation or suspended", () => {
+  it("accepting checks the seller again; withdrawing ignores the counterparty's state", () => {
     let { w, now } = three();
-    const id = sim.offerTrade(w, "alice", 2n, 0, 300n, [0n, 0n, 0n, 100n], now);
-    sim.acceptTrade(w, "bob", id, now);
-    now = ship(w, "alice", 1n, 2n, [300n, 0n, 0n, 0n], id, now);
-    now = allHome(w, now);
-    now = w.trades.get(id)!.acceptedAt + WINDOW + 1n;
+    const id = sim.offerTrade(w, "alice", 2n, 1n, 0, 300n, [0n, 0n, 0n, 100n], now);
+    sim.suspend(w, 1n, now + 10n * day);
+    expect(() => sim.acceptTrade(w, "bob", id, 2n, now)).toThrow("InvalidTrade");
+    sim.suspend(w, 1n, 0n);
+    sim.acceptTrade(w, "bob", id, 2n, now);
+    now = w.trades.get(id)!.closesAt + 1n;
     sim.queueRoom(w, "alice", 1n, room("mob_school"), now);
-    sim.startVacation(w, "bob", now); // nothing registered yet
-    sim.claimTrade(w, "alice", id, 2n, 1n, [100n, 0n, 0n, 0n], now);
-    sim.suspend(w, 2n, now + 30n * day);
-    sim.claimTrade(w, "alice", id, 2n, 1n, [100n, 0n, 0n, 0n], now);
-    expect(w.trades.get(id)!.returned).toEqual([200n, 0n, 0n, 0n]);
-    // The creditor itself has to be active.
-    sim.startVacation(w, "alice", now);
-    expect(() => sim.claimTrade(w, "alice", id, 2n, 1n, [100n, 0n, 0n, 0n], now)).toThrow(
-      "OnVacation",
+    sim.startVacation(w, "bob", now);
+    sim.withdrawTrade(w, "alice", id, 1n, [300n, 0n, 0n, 0n], now);
+    sim.suspend(w, 1n, now + 10n * day);
+    expect(() => sim.withdrawTrade(w, "alice", id, 1n, [0n, 0n, 0n, 10n], now)).toThrow(
+      "Suspended",
     );
+  });
+
+  /** A copy of the world: sends on it measure durations without touching the real one. */
+  const copy = (w: sim.World) => {
+    const { rs: ruleset, ...rest } = w;
+    return Object.assign(structuredClone(rest), { rs: ruleset }) as sim.World;
+  };
+
+  it("a payment may arrive at the window's last second, even if processed later; not one after", () => {
+    const { w, now, id } = accepted();
+    const t = w.trades.get(id)!;
+    const alice = w.buildings.get(1n)!.coord;
+    const pay = (world: sim.World, when: bigint) =>
+      sim.sendMission(
+        world,
+        "bob",
+        2n,
+        sim.TRANSPORT,
+        alice,
+        units(ROWDY, 4n),
+        [0n, 0n, 0n, 40n],
+        id,
+        when,
+      );
+    const probe = copy(w);
+    const m = probe.missions.get(pay(probe, now))!;
+    const duration = m.arrival - m.start;
+    expect(() => pay(copy(w), t.closesAt - duration + 1n)).toThrow("InvalidTrade");
+    const sent = pay(w, t.closesAt - duration);
+    expect(w.missions.get(sent)!.arrival).toBe(t.closesAt);
+    sim.advance(w, 10, t.closesAt + day); // processed a day after the window closed
+    expect(t.paid).toEqual([0n, 0n, 0n, 40n]);
+    expect(sim.shareLeft(t, 1n, t.closesAt + day)).toEqual([180n, 0n, 0n, 6n]);
+  });
+
+  it("more payment after a withdrawal earns the rest of the goods", () => {
+    let { w, now, id } = accepted();
+    now = ship(w, "bob", 2n, 1n, [0n, 0n, 0n, 40n], id, now);
+    sim.queueRoom(w, "bob", 2n, room("mob_school"), now);
+    sim.withdrawTrade(w, "bob", id, 2n, [120n, 0n, 0n, 0n], now);
+    now = ship(w, "bob", 2n, 1n, [0n, 0n, 0n, 60n], id, now + rs.config.returnCooldown + day);
+    const t = w.trades.get(id)!;
+    expect(sim.tradeFinal(t, now)).toBe(true);
+    expect(sim.shareLeft(t, 2n, now)).toEqual([180n, 0n, 0n, 10n]);
+    expect(sim.shareLeft(t, 1n, now)).toEqual(none);
+  });
+
+  it("a recalled payment pays nothing", () => {
+    let { w, now, id } = accepted();
+    const m = sim.sendMission(
+      w,
+      "bob",
+      2n,
+      sim.TRANSPORT,
+      w.buildings.get(1n)!.coord,
+      units(ROWDY, 4n),
+      [0n, 0n, 0n, 40n],
+      id,
+      now,
+    );
+    sim.recall(w, "bob", m, now + 1n);
+    sim.advance(w, 10, now + day);
+    expect(w.missions.has(m)).toBe(false);
+    expect(w.trades.get(id)!.paid).toEqual(none);
+  });
+
+  it("a failed acceptance leaves nothing behind, settlement included", () => {
+    const { w, now } = three();
+    const id = sim.offerTrade(w, "alice", 2n, 1n, 0, 300n, [0n, 0n, 0n, 100n], now);
+    w.buildings.get(2n)!.stock[3] = 9n * scale; // Bob cannot cover the 10-dollar deposit
+    const before = copy(w);
+    expect(() => sim.acceptTrade(w, "bob", id, 2n, now + day)).toThrow("CannotAfford");
+    expect(copy(w)).toEqual(before);
   });
 });

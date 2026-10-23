@@ -288,8 +288,8 @@
         "dollar": 1
       }
     },
-    "default_penalty_percent": 10,
-    "delivery_window_days": 10
+    "deposit_percent": 10,
+    "delivery_window_days": 5
   },
   "families": {
     "tag_length": [
@@ -306,6 +306,7 @@
   "onchain": {
     "max_outgoing_missions_per_player": 20,
     "max_open_market_offers_per_player": 10,
+    "max_market_purchases_per_player": 10,
     "max_family_applications_per_player": 5,
     "max_session_seconds": 2592000,
     "max_controllers_per_player": 5,

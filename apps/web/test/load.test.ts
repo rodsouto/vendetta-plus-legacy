@@ -4,7 +4,7 @@ import { execFileSync } from "node:child_process";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { sim, vendetta as rs } from "@vendetta/rules";
 import { gameAbi } from "../src/chain/abi.js";
-import { loadWorld, project } from "../src/chain/load.js";
+import { cloneWorld, controllerKey, loadWorld, project } from "../src/chain/load.js";
 import { CiphertextIndex, timelockFor } from "../src/chain/hidden.js";
 import type { Network } from "../src/chain/networks.js";
 import { startChain } from "./anvil.js";
@@ -144,5 +144,32 @@ describe.skipIf(!hasAnvil)("chain loader", () => {
       expect({ stock: a.stock, troops: a.troops }).toEqual({ stock: b.stock, troops: b.troops });
     }
     expect(chain.missions.get(m!.id)).toMatchObject({ hidden: false, returning: true });
+  }, 60_000);
+
+  // Runs after the tests above. The loader rebuilds a market trade as the simulator would hold it
+  // (D-19, B-11): terms, escrow and both players' trade lists.
+  it("loads an accepted trade as the simulator accepts it", async () => {
+    const buyer = controllerKey(clients.wallet(1).account!.address);
+    await send(2, "offerTrade", [1n, 2n, 0n, 300n, [0n, 0n, 0n, 100n]]);
+    const before = await loadWorld(clients.public, clients.deployment.game);
+    const id = before.world.nextTrade - 1n;
+    expect(before.world.trades.get(id)).toMatchObject({ from: 2n, rate: [3n, 5n, 0n, 1n] });
+
+    // The simulator accepts at the same second the chain will.
+    const at = before.chainTime + 60n;
+    const expected = cloneWorld(project(before.world, at));
+    sim.acceptTrade(expected, buyer, id, 1n, at);
+    await clients.public.request({
+      method: "evm_setNextBlockTimestamp" as never,
+      params: [Number(at)] as never,
+    });
+    await send(1, "acceptTrade", [id, 1n]);
+    const chain = (await loadWorld(clients.public, clients.deployment.game)).world;
+    expect(chain.trades.get(id)).toEqual(expected.trades.get(id));
+    expect(chain.trades.get(id)).toMatchObject({ deposit: [0n, 0n, 0n, 10n], accepted: true });
+    expect(chain.players.get(1n)!.purchases).toEqual([id]);
+    expect(chain.players.get(2n)!.offers).toEqual(expected.players.get(2n)!.offers);
+    for (const b of [1n, 2n])
+      expect(chain.buildings.get(b)!.stock).toEqual(expected.buildings.get(b)!.stock);
   }, 60_000);
 });
