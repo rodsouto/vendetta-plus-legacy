@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Local development: anvil + deploy + indexer (graph-node in Docker, B-18) + keeper (B-22) + web app.
 # Usage: pnpm dev:local. Anvil's well-known development keys are used; account 0 deploys and is the
-# admin. The indexer only serves the market history over GraphQL (the app does not read it); without
-# Docker it is skipped.
+# admin. The indexer serves the market history and the battle reports over GraphQL; the app reads
+# the reports from it (VITE_INDEXER_URL). Without Docker it is skipped and the app reads the logs.
 set -euo pipefail
 
 root="$(git rev-parse --show-toplevel)"
@@ -30,9 +30,12 @@ directory="$(jq -r '[.transactions[] | select(.contractName == "PasskeyDirectory
   broadcast/Deploy.s.sol/31337/run-latest.json)"
 block="$(cast block-number --rpc-url "$rpc")"
 echo "Game deployed at $game (anvil $rpc)"
+# The reports come from the logs unless the indexer runs, whatever the root .env names.
+export VITE_INDEXER_URL=""
 if docker info >/dev/null 2>&1; then
   indexer="$(bash "$indexer_sh" up "$indexer_port" "$port" "$game" "$block" | tail -n 1)"
-  echo "Indexer (market history) at $indexer"
+  echo "Indexer (market history, battle reports) at $indexer"
+  export VITE_INDEXER_URL="$indexer"
 else
   echo "Docker is not available: running without the indexer"
 fi

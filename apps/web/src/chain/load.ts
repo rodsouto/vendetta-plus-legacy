@@ -1,6 +1,6 @@
 // Reads the on-chain state with Game's views and rebuilds the TypeScript simulator's World from it
 // (B-20). Every entity is loaded by id; the ranking (B-18) is computed from this world too.
-import type { Address, PublicClient } from "viem";
+import type { Address, Hex, PublicClient } from "viem";
 import { sim, vendetta as rs, type HiddenPlain } from "@vendetta/rules";
 import { gameAbi } from "./abi.js";
 
@@ -262,14 +262,64 @@ export interface Pending {
 /** Blocks per `eth_getLogs` query: within what public RPCs accept for a filtered topic. */
 const LOG_CHUNK = 5000n;
 
-/** Players that ever invited an address, from the `ControllerInvited` logs, scanned forward only. */
-const inviters = new Map<string, { scanned: bigint; players: Set<bigint> }>();
+/**
+ * Players that ever invited an address, from the `ControllerInvited` logs, scanned forward only, up
+ * to `scanned` (whose hash tells a replaced chain apart: a local chain deployed again).
+ */
+interface Inviters {
+  scanned: bigint;
+  hash: Hex | null;
+  players: Set<bigint>;
+}
+
+const inviters = new Map<string, Inviters>();
+
+const invitersKey = (game: Address, address: Address) =>
+  `inviters:${game.toLowerCase()}:${address.toLowerCase()}`;
+
+/** The scan saved by an earlier visit, so a reload does not read the same logs again. */
+function storedInviters(game: Address, address: Address): Inviters | null {
+  try {
+    const raw = localStorage.getItem(invitersKey(game, address));
+    if (!raw) return null;
+    const v = JSON.parse(raw) as { scanned: string; hash: Hex; players: string[] };
+    return { scanned: BigInt(v.scanned), hash: v.hash, players: new Set(v.players.map(BigInt)) };
+  } catch {
+    return null; // private mode or corrupt: scan again
+  }
+}
+
+function storeInviters(game: Address, address: Address, v: Inviters): void {
+  try {
+    localStorage.setItem(
+      invitersKey(game, address),
+      JSON.stringify({
+        scanned: v.scanned.toString(),
+        hash: v.hash,
+        players: [...v.players].map(String),
+      }),
+    );
+  } catch {
+    /* see storedInviters */
+  }
+}
+
+/** The first block in [lo, hi] whose timestamp is at least `time`; `hi`'s must be. */
+async function firstBlockAt(client: PublicClient, lo: bigint, hi: bigint, time: bigint) {
+  while (lo < hi) {
+    const mid = (lo + hi) / 2n;
+    if ((await client.getBlock({ blockNumber: mid })).timestamp < time) lo = mid + 1n;
+    else hi = mid;
+  }
+  return lo;
+}
 
 /**
  * What is waiting for `address` to accept (B-26): controller invitations still valid and due
  * transfers. Invitations are found through the logs (the contract indexes the invited address),
  * in bounded block ranges that only move forward, then read back from the state, so a stale
- * event never shows.
+ * event never shows. An invitation lasts `inviteTtl`, so the scan starts no earlier than the
+ * blocks of that last stretch: its cost does not grow with the age of the game.
  */
 export async function pendingFor(
   client: PublicClient,
@@ -280,12 +330,31 @@ export async function pendingFor(
   now: bigint,
 ): Promise<Pending[]> {
   const key = `${game.toLowerCase()}:${address.toLowerCase()}`;
-  let seen = inviters.get(key);
-  if (!seen) inviters.set(key, (seen = { scanned: BigInt(fromBlock) - 1n, players: new Set() }));
-  const head = await client.getBlockNumber({ cacheTime: 0 }); // never viem's cached value
-  while (seen.scanned < head) {
+  // Not viem's cached block number: a scan right after a mined invitation must see its block.
+  const head = await client.getBlock({ blockTag: "latest" });
+  // A scan, kept in memory or saved by an earlier visit, holds only while its last block is still on
+  // the chain: a reorg or a replaced chain (a local deploy again) restarts it.
+  let seen = inviters.get(key) ?? storedInviters(game, address);
+  if (seen) {
+    const at =
+      seen.scanned <= head.number ? await client.getBlock({ blockNumber: seen.scanned }) : null;
+    if (at?.hash !== seen.hash) seen = null;
+  }
+  if (!seen) {
+    seen = { scanned: BigInt(fromBlock) - 1n, hash: null, players: new Set() };
+    // Logs older than the TTL hold only expired invitations: skip them.
+    const cutoff = head.timestamp - rs.config.inviteTtl;
+    if (seen.scanned < head.number) {
+      const next = await client.getBlock({ blockNumber: seen.scanned + 1n });
+      if (next.timestamp < cutoff) {
+        seen.scanned = (await firstBlockAt(client, next.number, head.number, cutoff)) - 1n;
+      }
+    }
+  }
+  inviters.set(key, seen);
+  while (seen.scanned < head.number) {
     const from = seen.scanned + 1n;
-    const to = from + LOG_CHUNK - 1n < head ? from + LOG_CHUNK - 1n : head;
+    const to = from + LOG_CHUNK - 1n < head.number ? from + LOG_CHUNK - 1n : head.number;
     const events = (await client.getContractEvents({
       address: game,
       abi: gameAbi,
@@ -297,6 +366,8 @@ export async function pendingFor(
     for (const e of events) seen.players.add(e.args.player);
     seen.scanned = to;
   }
+  seen.hash = head.hash;
+  storeInviters(game, address, seen);
   const out: Pending[] = [];
   for (const player of seen.players) {
     const inv = (await client.readContract({

@@ -20,6 +20,7 @@ dataSources:
         - Trade
         - Payment
         - Withdrawal
+        - Battle
       abis:
         - name: IGameEvents
           file: ../../contracts/out/GameErrors.sol/IGameEvents.json
@@ -35,4 +36,7 @@ dataSources:
           handler: handleTradePaid
         - event: TradeWithdrawn(indexed uint64,indexed uint64,uint64[4])
           handler: handleTradeWithdrawn
+        # Battle reports (B-18). The tuple is BattleReport: TROOPS = 21, RESEARCH = 16, RESOURCES = 4.
+        - event: Battle(indexed uint64,indexed uint64,indexed uint64,uint64,(uint64[21],uint64[21],uint16[16],uint16[16],uint256,uint256,uint256[21],uint256[21],uint256[4]))
+          handler: handleBattle
       file: ./src/mapping.ts

@@ -164,7 +164,8 @@ const deployment: Deployment = {
 console.log(`Game ${deployment.game} on anvil (chain ${chainId}) (${anvilRpc})`);
 console.log(`bundler ${bundlerRpc}, paymaster ${paymasterRpc}`);
 
-const env: NodeJS.ProcessEnv = {};
+// No indexer on this stack: the reports come from the logs, whatever the root .env names.
+const env: NodeJS.ProcessEnv = { VITE_INDEXER_URL: "" };
 const file = values.public
   ? join(web, "public/deployment.local.json")
   : join(mkdtempSync(join(tmpdir(), "vendetta-aa-")), "deployment.json");

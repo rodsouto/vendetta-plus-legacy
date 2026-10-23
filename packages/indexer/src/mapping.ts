@@ -1,13 +1,15 @@
-// Market history (B-11, B-18): every trade with its terms, payments and withdrawals.
+// Market history (B-11, B-18): every trade with its terms, payments and withdrawals. Battle reports
+// (B-18): every combat's inputs and totals.
 import { BigInt } from "@graphprotocol/graph-ts";
 import {
+  Battle as BattleEvent,
   TradeAccepted,
   TradeCancelled,
   TradeOffered,
   TradePaid,
   TradeWithdrawn,
 } from "../generated/Game/IGameEvents";
-import { Payment, Player, Trade, Withdrawal } from "../generated/schema";
+import { Battle, Payment, Player, Trade, Withdrawal } from "../generated/schema";
 
 function player(id: BigInt): Player {
   let p = Player.load(id.toString());
@@ -107,5 +109,33 @@ export function handleTradeWithdrawn(e: TradeWithdrawn): void {
   x.amount = e.params.amount;
   x.timestamp = e.block.timestamp;
   x.block = e.block.number;
+  x.save();
+}
+
+// ------------------------------------------------------------------ battle reports (B-18)
+
+export function handleBattle(e: BattleEvent): void {
+  // Battle.attacker and Battle.defender are required relations, like a trade's parties.
+  player(e.params.attacker).save();
+  player(e.params.defender).save();
+  const r = e.params.report;
+  const x = new Battle(e.transaction.hash.toHexString() + "-" + e.logIndex.toString());
+  x.mission = e.params.mission;
+  x.attacker = e.params.attacker.toString();
+  x.defender = e.params.defender.toString();
+  x.building = e.params.building;
+  x.attackerArmy = r.attacker;
+  x.defenderArmy = r.defender;
+  x.attackerResearch = r.attackerResearch;
+  x.defenderResearch = r.defenderResearch;
+  x.attackerPct = r.attackerPct;
+  x.defenderPct = r.defenderPct;
+  x.attackerSurvivors = r.attackerSurvivors;
+  x.defenderSurvivors = r.defenderSurvivors;
+  x.loot = r.loot;
+  x.timestamp = e.block.timestamp;
+  x.block = e.block.number;
+  x.logIndex = e.logIndex.toI32();
+  x.position = e.block.number.leftShift(32).plus(e.logIndex);
   x.save();
 }

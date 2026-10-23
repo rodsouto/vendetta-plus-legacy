@@ -1,7 +1,7 @@
 # Deploying to Arbitrum One
 
 How to put the game on Arbitrum One (B-01) with passkey accounts and sponsored gas (B-15, B-16),
-and its market-history indexer on Goldsky (B-18).
+and its indexer (market history, battle reports) on Goldsky (B-18).
 There is no testnet stage: the local 4337 stack (`pnpm dev:aa`, `pnpm --filter @vendetta/web e2e:aa`)
 covers testing, and everything here spends real money.
 
@@ -18,6 +18,7 @@ All of it goes in `.env` at the repo root (`cp .env.example .env`; it is git-ign
 | `VITE_PIMLICO_API_KEY` | Pimlico API key: bundler and paymaster | **Public** JS bundle |
 | `VITE_PIMLICO_POLICY_ID` | Sponsorship policy (`sp_...`) that caps spending | **Public** JS bundle |
 | `VITE_RPC_URL` | RPC for reads; empty = the public one in `deployments/arbitrum.json` | **Public** JS bundle |
+| `VITE_INDEXER_URL` | GraphQL endpoint of the subgraph (step 3) for the battle reports; empty = read from the RPC logs, last two weeks only | **Public** JS bundle |
 
 Only `VITE_*` variables reach the browser; the deployer key never does.
 
@@ -64,9 +65,10 @@ if `ADMIN` was empty, transfer ownership to a Safe as soon as possible.
 
 ## 3. Indexer on Goldsky
 
-The market history (B-11: every offer, delivery, claim and debt) is a subgraph (`packages/indexer`,
-The Graph format) hosted on [Goldsky](https://goldsky.com) (B-18). The web app does not read it:
-the ranking is computed in the client from the world it loads, so the game works without this step. Create an account and an API key, install the CLI and log in:
+The market history (B-11: every offer, acceptance, payment and withdrawal) and the battle reports are
+a subgraph (`packages/indexer`, The Graph format) hosted on [Goldsky](https://goldsky.com) (B-18). The
+Reports page reads it; the game works without it (the page then falls back to the RPC logs, only the
+last two weeks, see Known limits). Create an account and an API key, install the CLI and log in:
 
 ```bash
 curl https://goldsky.com | sh
@@ -79,6 +81,8 @@ subgraph, deploys it as `vendetta/1.0.0` and points the `prod` tag at it; its Gr
 `goldsky subgraph list`. A later version (after an upgrade that changes the events) gets a new number
 and the same tag, so the URL stays; the tag moves right away, and the history is incomplete until the
 new version has synced from the first block.
+
+Put that endpoint in `.env` as `VITE_INDEXER_URL` before building the web app (step 4).
 
 ## 4. Build and host the web app
 
@@ -117,8 +121,9 @@ roughly a cent per action, plus Pimlico's surcharge.
 
 ## Known limits
 
-- The Reports page reads `Battle` events straight from the RPC, only the last 5M blocks (about two
-  weeks; the public RPC allows 10M per query). Older reports are not shown.
+- The Reports page shows the latest 100 battles of the player, from the indexer. Built without
+  `VITE_INDEXER_URL` it reads `Battle` events straight from the RPC, only the last 5M blocks (about
+  two weeks; the public RPC allows 10M per query).
 - The client rebuilds the whole world with one call per entity (`loadWorld`), and the ranking is
   sorted from it, so the first load grows with the world. Fine for v1; a batched view later.
 - Hidden missions are encrypted to drand quicknet (League of Entropy). If drand stopped, nobody but

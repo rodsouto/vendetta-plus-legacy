@@ -1,78 +1,36 @@
-// Battle reports (B-18): the Battle event carries inputs and totals; the rounds are recomputed here
-// with the same deterministic engine as the contract.
+// Battle reports (B-18): the Battle event carries inputs and totals (chain/reports.ts reads them);
+// the rounds are recomputed here with the same deterministic engine as the contract.
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { allTroopStats, resolveBattle, vendetta as rs } from "@vendetta/rules";
-import { gameAbi } from "../chain/abi.js";
+import { allTroopStats, resolveBattle, sim, vendetta as rs } from "@vendetta/rules";
+import { readReports, type Report } from "../chain/reports.js";
 import { useGame } from "../state/game.js";
 import { Empty } from "../ui/parts.js";
 import { Icon } from "../ui/icons.js";
 import { amount, clock, playerLabel, troopName } from "../ui/format.js";
 
-interface Report {
-  key: string;
-  time: bigint;
-  attacker: bigint;
-  defender: bigint;
-  target: string;
-  r: {
-    attacker: readonly bigint[];
-    defender: readonly bigint[];
-    attackerResearch: readonly number[];
-    defenderResearch: readonly number[];
-    attackerPct: bigint;
-    defenderPct: bigint;
-    attackerSurvivors: readonly bigint[];
-    defenderSurvivors: readonly bigint[];
-    loot: readonly bigint[];
-  };
-}
-
-// Public RPCs cap the range of a log query (Arbitrum One's: 10M blocks, about a month). Reports
-// are not worth an index: only the recent ones are shown (5M blocks, about two weeks on Arbitrum).
-const LOG_WINDOW = 5_000_000n;
-
 function useBattles() {
   const g = useGame();
+  const player = g.me?.id ?? null;
   return useQuery({
-    queryKey: ["battles", g.clients.deployment.game],
-    queryFn: async (): Promise<Report[]> => {
-      const latest = await g.clients.public.getBlockNumber({ cacheTime: 0 });
-      const start = BigInt(g.clients.deployment.fromBlock);
-      const logs = (await g.clients.public.getContractEvents({
-        address: g.clients.deployment.game,
-        abi: gameAbi,
-        eventName: "Battle",
-        fromBlock: latest - start > LOG_WINDOW ? latest - LOG_WINDOW : start,
-        toBlock: latest,
-      } as never)) as unknown[];
-      const out: Report[] = [];
-      for (const log of logs as unknown as {
-        args: { attacker: bigint; defender: bigint; building: bigint; report: Report["r"] };
-        blockNumber: bigint;
-        logIndex: number;
-      }[]) {
-        const block = await g.clients.public.getBlock({ blockNumber: log.blockNumber });
-        const b = (await g.clients.public.readContract({
-          address: g.clients.deployment.game,
-          abi: gameAbi,
-          functionName: "getBuilding",
-          args: [log.args.building],
-        } as never)) as { city: number; neighborhood: number; slot: number };
-        out.push({
-          key: `${log.blockNumber}-${log.logIndex}`,
-          time: block.timestamp,
-          attacker: log.args.attacker,
-          defender: log.args.defender,
-          target: `${b.city}:${b.neighborhood}:${b.slot}`,
-          r: log.args.report,
-        });
-      }
-      return out.reverse();
-    },
+    // Query keys are hashed as JSON: no bigint in them.
+    queryKey: ["battles", g.clients.deployment.game, player?.toString() ?? null],
+    queryFn: () =>
+      readReports(
+        g.clients.public,
+        g.clients.deployment.game,
+        g.clients.deployment.fromBlock,
+        player,
+      ),
     refetchInterval: 10_000,
   });
+}
+
+/** Where a battle was fought; an abandoned building is no longer in the world, only its id. */
+function target(w: sim.World, building: bigint): string {
+  const c = w.buildings.get(building)?.coord;
+  return c ? `${c.city}:${c.neighborhood}:${c.slot}` : `#${building}`;
 }
 
 export function Reports() {
@@ -80,9 +38,7 @@ export function Reports() {
   const { t } = useTranslation();
   const q = useBattles();
   const [open, setOpen] = useState<string | null>(null);
-  const mine = (q.data ?? []).filter(
-    (x) => !g.me || x.attacker === g.me.id || x.defender === g.me.id,
-  );
+  const mine = q.data ?? [];
   return (
     <>
       <header className="account-head">
@@ -102,7 +58,7 @@ export function Reports() {
           return (
             <section key={x.key}>
               <h3>
-                {t("reports.attackOn")} {x.target}
+                {t("reports.attackOn")} {target(g.world, x.building)}
                 <span className="aside nowrap">{clock(x.time)}</span>
               </h3>
               <p className="report-meta">

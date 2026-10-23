@@ -18,4 +18,5 @@ goldsky subgraph deploy "vendetta/$version" --path build
 # A tag keeps the URL fixed across versions.
 goldsky subgraph tag create "vendetta/$version" --tag prod
 echo
-echo "The market history is served at the GraphQL endpoint of vendetta/prod (goldsky subgraph list)."
+echo "The market history and the battle reports are served at the GraphQL endpoint of vendetta/prod"
+echo "(goldsky subgraph list): put it in .env as VITE_INDEXER_URL."

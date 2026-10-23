@@ -43,7 +43,7 @@ which network it runs on. Messaging, chat and moderation are off-chain (B-10).
 | B-15 | Accounts | New | Kernel smart account, one passkey per device, passkey directory, recovery, native session keys |
 | B-16 | Gas | New | Low sponsored allowance; above it the player pays via credits |
 | B-17 | Upgradeability | New | Proxy, no timelock, admin in a Safe; later frozen, one immutable deploy per world |
-| B-18 | Events and indexer | New | Reports and notices as events (reports read from the RPC); market history in the indexer; ranking from the loaded world |
+| B-18 | Events and indexer | New | Reports and notices as events; market history and battle reports in the indexer; ranking from the loaded world |
 | B-19 | Points on-chain | Adapt | D-24 points kept incrementally on-chain |
 | B-20 | Optimistic client | New | Client runs the same rules engine and projects results |
 | B-21 | Parity tests | New | Foundry against the test vectors with explicit tolerances |
@@ -461,14 +461,17 @@ Until the freeze, the "trustless rules" goal (Goals) is only partly met. This is
   honor percentage, survivors and loot. Combat is deterministic, so the client recomputes the exact
   rounds (deaths per round and troop type, 06-combat.md#battle-report) with `packages/rules`. This
   costs less gas than logging every round.
-- **Reports are read straight from the RPC**, only the recent ones: public RPCs cap the block range of
-  a log query (Arbitrum One's: 10M blocks, about a month), and the client asks for the last 5M blocks.
-  Losing older reports is accepted; they are not worth an index.
 - An **indexer** keeps the **market history** (B-11): every offer, acceptance, payment and
-  withdrawal, cancelled offers included (the contract deletes those). It is a **Goldsky Subgraph** (The
-  Graph format, `packages/indexer`), queried over GraphQL. Because the format is The Graph's and the
-  events are on-chain, anyone can deploy the same subgraph elsewhere. Locally it runs on a
-  graph-node in Docker.
+  withdrawal, cancelled offers included (the contract deletes those); and the **battle reports**, every
+  `Battle` with its inputs and totals. It is a **Goldsky Subgraph** (The Graph format,
+  `packages/indexer`), queried over GraphQL. Because the format is The Graph's and the events are
+  on-chain, anyone can deploy the same subgraph elsewhere. Locally it runs on a graph-node in Docker.
+- **The client reads the reports from the indexer**: the latest 100 of the player, filtered by
+  attacker or defender. The indexer's URL is a build setting (`VITE_INDEXER_URL`). Without it (a
+  local chain without Docker, the e2e runs) the client reads the `Battle` logs straight from the RPC,
+  only the recent ones: public RPCs cap the block range of a log query (Arbitrum One's: 10M blocks,
+  about a month), and the client asks for the last 5M blocks. The game never depends on the indexer:
+  reports are history, not state.
 - The **ranking** (08-progression.md#ranking) is computed by the client from the world it already
   loads through the views (B-20), not by the indexer: it sorts the players, and the families by the
   sum of their members, on the points of the world projected to the current time. The projection
@@ -804,7 +807,8 @@ flowchart LR
         World --> Sanctions
     end
     Contracts -->|views| Client
-    Contracts -->|events| Indexer[Indexer: market history]
+    Contracts -->|events| Indexer[Indexer: market history, battle reports]
+    Indexer -->|reports| Client
     Safe[Admin Safe] -->|upgrade, arbiter v1| Contracts
 ```
 

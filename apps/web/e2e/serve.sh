@@ -12,6 +12,8 @@ cd "$root/contracts"
 forge script script/Deploy.s.sol --rpc-url "$rpc" --private-key "$key0" --broadcast >/dev/null
 game="$(jq -r '[.transactions[] | select(.contractName == "ERC1967Proxy")][0].contractAddress' broadcast/Deploy.s.sol/31337/run-latest.json)"
 directory="$(jq -r '[.transactions[] | select(.contractName == "PasskeyDirectory")][0].contractAddress' broadcast/Deploy.s.sol/31337/run-latest.json)"
+# No indexer here: the reports come from the logs, whatever the root .env names.
+export VITE_INDEXER_URL=""
 export VITE_DEPLOYMENT="{\"chainId\":31337,\"rpc\":\"$rpc\",\"game\":\"$game\",\"directory\":\"$directory\",\"fromBlock\":0}"
 cd "$root/apps/web"
 # The keeper reveals hidden missions as they arrive and processes due ones (B-22), as on a real

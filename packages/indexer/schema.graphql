@@ -1,6 +1,7 @@
 # Market history (B-11, B-18): trades keep every offer, acceptance, payment and withdrawal,
-# cancelled ones included (the contract deletes those). The ranking is not here: the client computes
-# it from the world it loads (B-18).
+# cancelled ones included (the contract deletes those). Battle reports (B-18): the inputs and totals
+# of every combat, read by the web app. The ranking is not here: the client computes it from the
+# world it loads (B-18).
 
 type Player @entity(immutable: false) {
   "Player id (decimal)"
@@ -9,6 +10,8 @@ type Player @entity(immutable: false) {
   completedTrades: Int!
   tradesAsSeller: [Trade!]! @derivedFrom(field: "seller")
   tradesAsBuyer: [Trade!]! @derivedFrom(field: "buyer")
+  battlesAsAttacker: [Battle!]! @derivedFrom(field: "attacker")
+  battlesAsDefender: [Battle!]! @derivedFrom(field: "defender")
 }
 
 enum TradeStatus {
@@ -70,4 +73,39 @@ type Withdrawal @entity(immutable: true) {
   amount: [BigInt!]!
   timestamp: BigInt!
   block: BigInt!
+}
+
+"""
+A battle report (B-18): the event's inputs and totals. Combat is deterministic, so the client
+recomputes the rounds from them with the rules engine.
+"""
+type Battle @entity(immutable: true) {
+  "<transaction hash>-<log index>"
+  id: ID!
+  mission: BigInt!
+  attacker: Player!
+  defender: Player!
+  "The building fought over"
+  building: BigInt!
+  "Troops per troop index (ruleset order)"
+  attackerArmy: [BigInt!]!
+  defenderArmy: [BigInt!]!
+  "Research levels per research index"
+  attackerResearch: [Int!]!
+  defenderResearch: [Int!]!
+  "Honor percentages (06-combat.md#honor)"
+  attackerPct: BigInt!
+  defenderPct: BigInt!
+  attackerSurvivors: [BigInt!]!
+  defenderSurvivors: [BigInt!]!
+  "Taken by the attacker, per resource index"
+  loot: [BigInt!]!
+  timestamp: BigInt!
+  block: BigInt!
+  logIndex: Int!
+  """
+  block × 2^32 + logIndex: the chain order in one sortable value. A query orders and limits by one
+  field, and ties on block would be broken by id, which is not the order of the events.
+  """
+  position: BigInt!
 }
