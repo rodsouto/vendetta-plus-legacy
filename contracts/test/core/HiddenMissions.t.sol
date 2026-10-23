@@ -361,10 +361,10 @@ contract HiddenMissionsTest is GameTestBase {
         assertEq(game.getBuilding(1).troops[ROWDY], 7);
     }
 
-    /// Troops that just came home rest: the building cannot send for RETURN_COOLDOWN (B-22), so
+    /// Troops that just came home rest: the building cannot send for TROOP_ARRIVAL_COOLDOWN (B-22), so
     /// an attack timed to land right after an enemy's return still catches them (the defender's
     /// send in the gap before the reveal would otherwise park the attack and move them out).
-    function test_returnCooldown() public {
+    function test_troopArrivalCooldown() public {
         vm.prank(alice);
         uint64 id = game.sendMission(1, ATTACK, [uint256(1), 1, 2], _rowdies(5), _none(), 0);
         vm.warp(game.getMission(id).arrival);
@@ -373,9 +373,9 @@ contract HiddenMissionsTest is GameTestBase {
         vm.warp(home);
         game.advance(1);
         assertEq(game.getBuilding(1).troops[ROWDY], 7);
-        assertEq(game.getBuilding(1).lastReturn, home);
+        assertEq(game.getBuilding(1).lastTroopArrival, home);
 
-        vm.warp(home + Ruleset.RETURN_COOLDOWN - 1);
+        vm.warp(home + Ruleset.TROOP_ARRIVAL_COOLDOWN - 1);
         vm.startPrank(alice);
         vm.expectRevert(TroopsResting.selector);
         game.sendMission(1, ATTACK, [uint256(1), 1, 2], _rowdies(5), _none(), 0);
@@ -386,7 +386,7 @@ contract HiddenMissionsTest is GameTestBase {
         game.queueRoom(2, BOOT_CAMP); // the world goes on; alice's troops stay home meanwhile
         assertEq(game.getBuilding(1).troops[ROWDY], 7);
 
-        vm.warp(home + Ruleset.RETURN_COOLDOWN);
+        vm.warp(home + Ruleset.TROOP_ARRIVAL_COOLDOWN);
         vm.prank(alice);
         game.sendMission(1, ATTACK, [uint256(1), 1, 2], _rowdies(5), _none(), 0);
         assertEq(game.getBuilding(1).troops[ROWDY], 2);
@@ -429,7 +429,7 @@ contract HiddenMissionsTest is GameTestBase {
         vm.warp(home);
         game.advance(10);
         assertEq(game.getBuilding(2).troops[ROWDY], 5);
-        assertEq(game.getBuilding(2).lastReturn, home);
+        assertEq(game.getBuilding(2).lastTroopArrival, home);
 
         // The keeper's reveal at home+10 is held by the garbage until home+16.
         vm.warp(home + 10);
@@ -449,11 +449,11 @@ contract HiddenMissionsTest is GameTestBase {
         assertEq(game.getBuilding(2).troops[ROWDY], 1);
         assertEq(game.getMission(attack).troops[ROWDY], 1);
         // The rest still rests until the cooldown is over (checked before the troops).
-        vm.warp(home + Ruleset.RETURN_COOLDOWN - 1);
+        vm.warp(home + Ruleset.TROOP_ARRIVAL_COOLDOWN - 1);
         vm.startPrank(bob);
         vm.expectRevert(TroopsResting.selector);
         game.sendMission(2, TRANSPORT, alicesHome, _rowdies(1), _none(), 0);
-        vm.warp(home + Ruleset.RETURN_COOLDOWN);
+        vm.warp(home + Ruleset.TROOP_ARRIVAL_COOLDOWN);
         game.sendMission(2, TRANSPORT, alicesHome, _rowdies(1), _none(), 0);
         vm.stopPrank();
     }
@@ -467,12 +467,12 @@ contract HiddenMissionsTest is GameTestBase {
         vm.warp(home);
         game.advance(10);
         assertEq(game.getBuilding(1).troops[ROWDY], 7);
-        assertEq(game.getBuilding(1).lastReturn, home);
-        vm.warp(home + Ruleset.RETURN_COOLDOWN - 1);
+        assertEq(game.getBuilding(1).lastTroopArrival, home);
+        vm.warp(home + Ruleset.TROOP_ARRIVAL_COOLDOWN - 1);
         vm.prank(alice);
         vm.expectRevert(TroopsResting.selector);
         game.sendHiddenMission(1, _commit(ATTACK, 2, SALT), 3, _rowdies(2), _none(), "", NATURAL);
-        vm.warp(home + Ruleset.RETURN_COOLDOWN);
+        vm.warp(home + Ruleset.TROOP_ARRIVAL_COOLDOWN);
         _sendHiddenN(ATTACK, 2, 3, 2);
     }
 

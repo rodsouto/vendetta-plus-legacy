@@ -104,9 +104,8 @@ struct Building {
     QueueItem[] roomQueue;
     uint64[TROOPS] troops; // units at home
     TrainingItem[][2] training; // attack and defense training rooms
-    // Returning troops came home then; sends wait RETURN_COOLDOWN (B-22). Last, so it has a slot
-    // of its own touched by sends and returns only, and appended for upgrade hygiene.
-    uint40 lastReturn;
+    // Troops last arrived by stationing or return; sends wait TROOP_ARRIVAL_COOLDOWN (B-22).
+    uint40 lastTroopArrival;
 }
 
 struct Player {

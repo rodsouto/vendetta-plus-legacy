@@ -127,6 +127,9 @@ contract MissionsTest is GameTestBase {
         game.advance(1);
         assertTrue(game.getMission(id).returning);
         assertEq(game.getBuilding(2).troops[ROWDY], 0);
+        assertEq(
+            game.getBuilding(2).lastTroopArrival, 0, "foreign station cannot lock the destination"
+        );
     }
 
     function test_recallReturnsAfterTimeTravelled() public {

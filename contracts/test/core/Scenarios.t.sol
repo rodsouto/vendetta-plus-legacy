@@ -23,7 +23,7 @@ contract ScenariosTest is GameTestBase {
     string internal constant DIR = "../packages/rules/generated/scenarios/vendetta/";
 
     string internal constant TYPES = "Scenario(uint256 actors,uint256 seed,Step[] steps)"
-        "BuildingSnap(uint256 centipoints,uint256 id,uint256 last_return,uint256 last_update,uint256[] levels,uint256 owner,uint256[] queue_finish,uint256[] queue_index,uint256[] queue_seq,uint256[] stock,uint256[] training_attack,uint256[] training_defense,uint256[] troops)"
+        "BuildingSnap(uint256 centipoints,uint256 id,uint256 last_troop_arrival,uint256 last_update,uint256[] levels,uint256 owner,uint256[] queue_finish,uint256[] queue_index,uint256[] queue_seq,uint256[] stock,uint256[] training_attack,uint256[] training_defense,uint256[] troops)"
         "InviteSnap(uint256 actor,uint256 epoch,uint256 kind,uint256 player,uint256 recovery,uint256 until)"
         "MissionSnap(uint256[] cargo,uint256[] fields,uint256 id,uint256[] troops)"
         "FamilySnap(bool alive,uint256 id,uint256 members,string name,string tag)"
@@ -37,7 +37,7 @@ contract ScenariosTest is GameTestBase {
     struct BuildingSnap {
         uint256 centipoints;
         uint256 id;
-        uint256 lastReturn;
+        uint256 lastTroopArrival;
         uint256 lastUpdate;
         uint256[] levels;
         uint256 owner;
@@ -151,7 +151,7 @@ contract ScenariosTest is GameTestBase {
     // 0-15: random core scenarios; 16-23: bots (missions, battles, occupations); 24-27: bots with
     // hidden missions (B-22); 28: the scripted market default walk-through; 29-32: market bots
     // (D-19, B-11); 33: the scripted controllers walk-through (B-26); 34: the scripted reveal order
-    // and return cooldown walk-through (B-22).
+    // and return cooldown walk-through; 35: station cooldown and interception (B-22).
     function test_random_00_03() public {
         _run(0, 4);
     }
@@ -244,10 +244,14 @@ contract ScenariosTest is GameTestBase {
         _run(34, 35);
     }
 
+    function test_station_35() public {
+        _run(35, 36);
+    }
+
     function test_allScenariosCovered() public view {
         assertEq(
             vm.parseJsonUint(vm.readFile(string.concat(DIR, "index.json")), ".count"),
-            35,
+            36,
             "update the test groups"
         );
     }
@@ -522,7 +526,7 @@ contract ScenariosTest is GameTestBase {
             Game.BuildingView memory b = game.getBuilding(uint64(e.id));
             if (
                 b.owner != e.owner || b.lastUpdate != e.lastUpdate || b.centipoints != e.centipoints
-                    || b.lastReturn != e.lastReturn
+                    || b.lastTroopArrival != e.lastTroopArrival
             ) {
                 return false;
             }
@@ -805,7 +809,7 @@ contract ScenariosTest is GameTestBase {
             string memory w = string.concat(where, " building ", vm.toString(e.id));
             assertEq(b.owner, e.owner, string.concat(w, " owner"));
             assertEq(b.lastUpdate, e.lastUpdate, string.concat(w, " lastUpdate"));
-            assertEq(b.lastReturn, e.lastReturn, string.concat(w, " lastReturn"));
+            assertEq(b.lastTroopArrival, e.lastTroopArrival, string.concat(w, " lastTroopArrival"));
             assertEq(b.centipoints, e.centipoints, string.concat(w, " centipoints"));
             for (uint256 r; r < ROOMS; ++r) {
                 assertEq(b.levels[r], e.levels[r], string.concat(w, " level"));

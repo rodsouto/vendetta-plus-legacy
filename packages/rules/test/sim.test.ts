@@ -547,8 +547,8 @@ describe("sim: hidden missions (B-22): parking, reveal at the reveal time, forfe
     sim.advance(w, 10, home);
     const b = w.buildings.get(1n)!;
     expect(b.troops[ROWDY]).toBe(7n);
-    expect(b.lastReturn).toBe(home);
-    const resting = home + c.returnCooldown - 1n;
+    expect(b.lastTroopArrival).toBe(home);
+    const resting = home + c.troopArrivalCooldown - 1n;
     expect(() =>
       sim.sendMission(w, "alice", 1n, sim.ATTACK, target, rowdies(5n), none, 0n, resting),
     ).toThrow("TroopsResting");
@@ -587,7 +587,7 @@ describe("sim: hidden missions (B-22): parking, reveal at the reveal time, forfe
     sim.advance(w, 10, R);
     const bob = () => w.buildings.get(2n)!;
     expect(bob().troops[ROWDY]).toBe(5n);
-    expect(bob().lastReturn).toBe(R);
+    expect(bob().lastTroopArrival).toBe(R);
 
     // The keeper's reveal at R+10 is held by the garbage until R+16.
     expect(() => sim.reveal(w, attack, sim.ATTACK, target, salt, R + 10n)).toThrow("OutOfOrder");
@@ -616,9 +616,9 @@ describe("sim: hidden missions (B-22): parking, reveal at the reveal time, forfe
     const home = w.missions.get(id)!.arrival;
     sim.advance(w, 10, home);
     expect(w.buildings.get(1n)!.troops[ROWDY]).toBe(7n);
-    expect(w.buildings.get(1n)!.lastReturn).toBe(home);
-    expect(() => sendHidden(w, home + c.returnCooldown - 1n)).toThrow("TroopsResting");
-    sendHidden(w, home + c.returnCooldown, 2n);
+    expect(w.buildings.get(1n)!.lastTroopArrival).toBe(home);
+    expect(() => sendHidden(w, home + c.troopArrivalCooldown - 1n)).toThrow("TroopsResting");
+    sendHidden(w, home + c.troopArrivalCooldown, 2n);
   });
 
   it("a vacation started in the send second, after the send, does not protect (B-07)", () => {
@@ -950,7 +950,7 @@ describe("sim: market (D-19, B-11)", () => {
     now = ship(w, "bob", 2n, 1n, [0n, 0n, 0n, 40n], id, now);
     sim.queueRoom(w, "bob", 2n, room("mob_school"), now);
     sim.withdrawTrade(w, "bob", id, 2n, [120n, 0n, 0n, 0n], now);
-    now = ship(w, "bob", 2n, 1n, [0n, 0n, 0n, 60n], id, now + rs.config.returnCooldown + day);
+    now = ship(w, "bob", 2n, 1n, [0n, 0n, 0n, 60n], id, now + rs.config.troopArrivalCooldown + day);
     const t = w.trades.get(id)!;
     expect(sim.tradeFinal(t, now)).toBe(true);
     expect(sim.shareLeft(t, 2n, now)).toEqual([180n, 0n, 0n, 10n]);

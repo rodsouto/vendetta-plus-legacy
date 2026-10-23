@@ -363,7 +363,7 @@
     "NoInvite": "There is no valid invitation for this address.",
     "TooLate": "The send took too long to land for the mission's fixed arrival: send it again.",
     "InvalidArrival": "The mission's fixed arrival is too far off: send it again.",
-    "TroopsResting": "The troops that just came home are resting: the building cannot send a mission yet.",
+    "TroopsResting": "The newly arrived troops are resting: the building cannot send a mission yet.",
     "OutOfOrder": "A hidden mission that arrived before this one has to be revealed first: wait a few seconds.",
     "TooEarly": "Too early: the reveal grace of that mission has not passed yet."
   },

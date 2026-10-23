@@ -328,7 +328,7 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
         uint8 neighborhood;
         uint8 slot;
         uint40 lastUpdate;
-        uint40 lastReturn;
+        uint40 lastTroopArrival;
         uint128 centipoints;
         uint16[ROOMS] levels;
         uint128[RESOURCES] stock;
@@ -372,7 +372,7 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
             b.neighborhood,
             b.slot,
             b.lastUpdate,
-            b.lastReturn,
+            b.lastTroopArrival,
             b.centipoints,
             b.levels,
             b.stock,

@@ -162,8 +162,8 @@ export interface Config {
   maxOutgoingMissions: number;
   /** A parked hidden mission (nobody revealed it) can be forfeited from here on (B-22). */
   hiddenRevealGrace: bigint;
-  /** A building that just took returning troops in cannot send a mission this long (B-22). */
-  returnCooldown: bigint;
+  /** A building receiving stationed or returning troops cannot send a mission this long (B-22). */
+  troopArrivalCooldown: bigint;
   /** Reveals go in arrival order: a parked hidden mission holds the ones behind it this long at most (B-22). */
   hiddenOrderWindow: bigint;
   /** A hidden mission's fixed arrival may follow its natural one by this much at most (B-22). */
@@ -339,7 +339,7 @@ export function loadRuleset(raw: RawRuleset, cfg: typeof gameConfig): Ruleset {
       occupationTroopsConsumed: BigInt(cfg.occupation.occupation_troops_consumed),
       maxOutgoingMissions: cfg.onchain.max_outgoing_missions_per_player,
       hiddenRevealGrace: BigInt(cfg.onchain.hidden_reveal_grace_seconds),
-      returnCooldown: BigInt(cfg.onchain.return_cooldown_seconds),
+      troopArrivalCooldown: BigInt(cfg.onchain.troop_arrival_cooldown_seconds),
       hiddenOrderWindow: BigInt(cfg.onchain.hidden_order_window_seconds),
       hiddenArrivalSlack: BigInt(cfg.onchain.hidden_arrival_slack_seconds),
       inviteTtl: BigInt(cfg.onchain.invite_ttl_seconds),

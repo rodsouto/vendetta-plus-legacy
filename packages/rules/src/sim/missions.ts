@@ -183,7 +183,7 @@ function process(w: World, m: Mission): void {
     if (origin && origin.owner === m.owner) {
       settle(w, origin, t, m.seq);
       origin.troops = origin.troops.map((n, i) => n + m.troops[i]!);
-      origin.lastReturn = t; // the troops rest before they can leave again (B-22)
+      origin.lastTroopArrival = t; // the troops rest before they can leave again (B-22)
       credit(w, origin, Object.fromEntries(w.rs.resources.map((r, i) => [r, m.cargo[i]!])));
     } else {
       p.centipoints -= troopCentipoints(w, m.troops); // the building was abandoned: troops are lost
@@ -205,6 +205,7 @@ function process(w: World, m: Mission): void {
     if (!target || target.owner !== m.owner) return sendBack(w, m, t);
     settle(w, target, t, m.seq);
     target.troops = target.troops.map((n, i) => n + m.troops[i]!);
+    target.lastTroopArrival = t; // stationing starts the same rest as a return (B-22)
     return finish(w, m);
   }
   if (m.kind === TRANSPORT) {
@@ -384,7 +385,7 @@ export const sendMission = atomic(function sendMission(
     fail("InvalidTrade");
   if (p.missions >= BigInt(c.maxOutgoingMissions)) fail("TooManyMissions");
   settleForAction(w, p, b, now);
-  if (now < b.lastReturn + c.returnCooldown) fail("TroopsResting");
+  if (now < b.lastTroopArrival + c.troopArrivalCooldown) fail("TroopsResting");
 
   const cargo = kind === TRANSPORT ? resources : w.rs.resources.map(() => 0n);
   const duration = charge(w, p, b, troops, cargo, distance(w.rs, b.coord, target));
@@ -512,7 +513,7 @@ export const sendHiddenMission = atomic(function sendHiddenMission(
   if (cover < 1n || cover * c.distanceUnit > maxDistanceFrom(w.rs, b.coord)) fail("InvalidCover");
   if (p.missions >= BigInt(c.maxOutgoingMissions)) fail("TooManyMissions");
   settleForAction(w, p, b, now);
-  if (now < b.lastReturn + c.returnCooldown) fail("TroopsResting");
+  if (now < b.lastTroopArrival + c.troopArrivalCooldown) fail("TroopsResting");
 
   const duration = charge(w, p, b, troops, resources, cover * c.distanceUnit);
   // The round the ciphertext was made for opens a head start after `arrival` (B-22).

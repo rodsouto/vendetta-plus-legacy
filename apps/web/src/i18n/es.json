@@ -363,7 +363,7 @@
     "NoInvite": "No hay una invitación vigente para esta dirección.",
     "TooLate": "El envío tardó demasiado en confirmarse para la llegada fija de la misión: volvé a enviarla.",
     "InvalidArrival": "La llegada fija de la misión está demasiado lejos: volvé a enviarla.",
-    "TroopsResting": "Las tropas que acaban de volver descansan: el edificio todavía no puede enviar misiones.",
+    "TroopsResting": "Las tropas recién llegadas descansan: el edificio todavía no puede enviar misiones.",
     "OutOfOrder": "Otra misión oculta llegó antes y tiene que revelarse primero: esperá unos segundos.",
     "TooEarly": "Todavía no: no pasó la gracia de reveal de esa misión."
   },

@@ -97,7 +97,7 @@ export interface Building {
   levels: bigint[];
   stock: bigint[]; // per resource, in units of 1/STOCK_SCALE
   lastUpdate: bigint;
-  lastReturn: bigint; // returning troops came home then; sends wait returnCooldown (B-22)
+  lastTroopArrival: bigint; // last station or return arrival; sends wait troopArrivalCooldown (B-22)
   roomQueue: QueueItem[];
   centipoints: bigint; // rooms only (per-building ranking)
   troops: bigint[]; // units at home

@@ -2,6 +2,10 @@
 
 Fully on-chain rewrite of the legacy Vendetta PHP game (EVM, Arbitrum One).
 
+Pre-deployment: no worlds have been deployed on any network yet. Backward compatibility with
+earlier storage layouts, ABIs or configuration names is not required. Keep all consumers and
+generated artifacts in sync when changing them.
+
 ## Where the rules live
 
 - `docs/spec/` is the game specification. Precedence when they disagree:

@@ -470,7 +470,7 @@ export const gameAbi = [
             "internalType": "uint40"
           },
           {
-            "name": "lastReturn",
+            "name": "lastTroopArrival",
             "type": "uint40",
             "internalType": "uint40"
           },

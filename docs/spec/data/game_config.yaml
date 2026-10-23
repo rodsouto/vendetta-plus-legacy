@@ -113,8 +113,9 @@ onchain:
   max_controllers_per_player: 5         # devices (passkeys) and recovery codes that manage an account (B-26)
   controller_removal_delay_seconds: 259200 # removing another controller or transferring the account completes after 3 days; any controller can cancel meanwhile (B-26)
   hidden_reveal_grace_seconds: 60       # a parked hidden mission (nobody revealed it) can be forfeited from here on (B-22)
-  return_cooldown_seconds: 30           # a building that just took returning troops in cannot send a mission this long (B-22):
-                                        # ≥ arrival gap (3) + hidden_order_window (15) + reveal latency (~5) with slack
+  # A building receiving stationed or returning troops cannot send a mission this long (B-22).
+  # ≥ arrival gap (3) + hidden_order_window (15) + reveal latency (~5), with slack.
+  troop_arrival_cooldown_seconds: 30
   hidden_order_window_seconds: 15       # reveals go in arrival order: a parked hidden mission holds the ones behind it this long at most (B-22):
                                         # > the keeper's latency, head start (8, client) + drand and the keeper's tick (~3)
   hidden_arrival_slack_seconds: 30      # a hidden mission's fixed arrival may follow its natural one (inclusion + duration) by this much at most (B-22)

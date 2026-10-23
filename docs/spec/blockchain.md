@@ -592,8 +592,17 @@ precompile only returns a boolean, so decrypting tlock on-chain is not practical
   with the head start (below). Public missions (returns, trade transports) still resolve at their
   arrival, so one can land before a parked hidden mission that arrived earlier: accepted, as the
   legacy cron resolved at minute granularity.
-- **Return cooldown.** A building that just took returning troops in cannot send a mission for
-  `return_cooldown_seconds` (30 s, [game_config.yaml](data/game_config.yaml)): `TroopsResting`.
+- **Arrival cooldown.** A building that receives troops by stationing at an owned building or by
+  return cannot send a mission for `troop_arrival_cooldown_seconds` (30 s,
+  [game_config.yaml](data/game_config.yaml)): `TroopsResting`. Every arrival restarts the cooldown
+  for the **whole building**, including troops already there; public and hidden sends are both
+  blocked until `arrival + cooldown` (allowed at that exact second). This also prevents an atomic
+  station-and-send operation from keeping an army continuously in transit between owned buildings.
+  Training does not start or restart this cooldown, and construction, research and training remain
+  available while troops rest. The clock starts at the mission's **effective arrival**: its scheduled
+  arrival for a public mission (or a hidden one revealed early), its reveal time for a hidden one
+  revealed late. Processing an old arrival late does not start a fresh cooldown at processing time.
+  The storage/view field `lastTroopArrival` records the last station or return arrival.
   It keeps the legacy interception alive: an attack timed to land right after the enemy's troops
   come home catches them. Without it the defender's own send in the seconds between the arrival
   and the reveal of the parked attack would park the attack and let the troops leave again; the

@@ -186,6 +186,7 @@ library Missions {
             for (uint256 i; i < TROOPS; ++i) {
                 b.troops[i] += m.troops[i];
             }
+            b.lastTroopArrival = uint40(t); // stationing starts the same rest as a return (B-22)
             return _finish(s, id);
         }
         if (kind == TRANSPORT) {
@@ -230,7 +231,7 @@ library Missions {
             for (uint256 i; i < TROOPS; ++i) {
                 origin.troops[i] += m.troops[i];
             }
-            origin.lastReturn = uint40(t); // the troops rest before they can leave again (B-22)
+            origin.lastTroopArrival = uint40(t); // the troops rest before they can leave again (B-22)
             Settlement.credit(origin, _cargo(m));
         } else {
             // The building was abandoned: troops are lost.
@@ -341,9 +342,9 @@ library Missions {
         m.cover = cover;
     }
 
-    /// A building that just took returning troops in cannot send for RETURN_COOLDOWN (B-22).
+    /// A building that received stationed or returning troops cannot send for TROOP_ARRIVAL_COOLDOWN.
     function _checkRested(Building storage b) private view {
-        if (block.timestamp < uint256(b.lastReturn) + Ruleset.RETURN_COOLDOWN) {
+        if (block.timestamp < uint256(b.lastTroopArrival) + Ruleset.TROOP_ARRIVAL_COOLDOWN) {
             revert TroopsResting();
         }
     }

@@ -120,7 +120,7 @@ export async function loadWorld(
       levels: b.levels.map(big),
       stock: [...b.stock],
       lastUpdate: big(b.lastUpdate),
-      lastReturn: big(b.lastReturn),
+      lastTroopArrival: big(b.lastTroopArrival),
       roomQueue: queue(b.roomQueue),
       centipoints: b.centipoints,
       troops: [...b.troops],

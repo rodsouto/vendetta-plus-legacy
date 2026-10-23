@@ -189,7 +189,7 @@ export function newBuilding(
     levels,
     stock: w.rs.resources.map(() => 0n),
     lastUpdate: now,
-    lastReturn: 0n,
+    lastTroopArrival: 0n,
     roomQueue: [],
     centipoints: levels.reduce((s, l, i) => s + l * w.rs.buildings[i]!.centipoints, 0n),
     troops: w.rs.troops.map(() => 0n),

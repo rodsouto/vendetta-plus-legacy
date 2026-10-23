@@ -55,8 +55,8 @@ library VendettaRuleset {
     uint256 internal constant MAX_OUTGOING_MISSIONS = 20;
     /// A parked hidden mission (nobody revealed it) can be forfeited from here on (B-22).
     uint256 internal constant HIDDEN_REVEAL_GRACE = 60;
-    /// A building that just took returning troops in cannot send a mission this long (B-22).
-    uint256 internal constant RETURN_COOLDOWN = 30;
+    /// A building receiving stationed or returning troops cannot send a mission this long (B-22).
+    uint256 internal constant TROOP_ARRIVAL_COOLDOWN = 30;
     /// Reveals go in arrival order: a parked hidden mission holds the ones behind it this long at
     /// most (B-22).
     uint256 internal constant HIDDEN_ORDER_WINDOW = 15;

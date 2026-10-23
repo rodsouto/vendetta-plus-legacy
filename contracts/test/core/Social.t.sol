@@ -121,7 +121,7 @@ contract SocialTest is GameTestBase {
         for (;;) {
             uint64[] memory ids = game.pendingMissions();
             if (ids.length == 0) {
-                vm.warp(block.timestamp + Ruleset.RETURN_COOLDOWN);
+                vm.warp(block.timestamp + Ruleset.TROOP_ARRIVAL_COOLDOWN);
                 return;
             }
             uint256 next = type(uint256).max;

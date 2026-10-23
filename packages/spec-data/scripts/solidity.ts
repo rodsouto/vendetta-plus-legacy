@@ -90,7 +90,7 @@ interface GameConfig {
     max_controllers_per_player: number;
     controller_removal_delay_seconds: number;
     hidden_reveal_grace_seconds: number;
-    return_cooldown_seconds: number;
+    troop_arrival_cooldown_seconds: number;
     hidden_order_window_seconds: number;
     hidden_arrival_slack_seconds: number;
     invite_ttl_seconds: number;
@@ -302,8 +302,8 @@ library ${name} {
     uint256 internal constant MAX_OUTGOING_MISSIONS = ${config.onchain.max_outgoing_missions_per_player};
     /// A parked hidden mission (nobody revealed it) can be forfeited from here on (B-22).
     uint256 internal constant HIDDEN_REVEAL_GRACE = ${config.onchain.hidden_reveal_grace_seconds};
-    /// A building that just took returning troops in cannot send a mission this long (B-22).
-    uint256 internal constant RETURN_COOLDOWN = ${config.onchain.return_cooldown_seconds};
+    /// A building receiving stationed or returning troops cannot send a mission this long (B-22).
+    uint256 internal constant TROOP_ARRIVAL_COOLDOWN = ${config.onchain.troop_arrival_cooldown_seconds};
     /// Reveals go in arrival order: a parked hidden mission holds the ones behind it this long at
     /// most (B-22).
     uint256 internal constant HIDDEN_ORDER_WINDOW = ${config.onchain.hidden_order_window_seconds};
