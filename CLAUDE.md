@@ -1,6 +1,6 @@
 # Vendetta on-chain
 
-Fully on-chain rewrite of the legacy Vendetta PHP game (EVM, Arbitrum One).
+Fully on-chain rewrite of the legacy Vendetta PHP game (EVM, Gnosis Chain).
 
 Pre-deployment: no worlds have been deployed on any network yet. Backward compatibility with
 earlier storage layouts, ABIs or configuration names is not required. Keep all consumers and
@@ -23,7 +23,7 @@ generated artifacts in sync when changing them.
 | `packages/rules` | Rules engine in TypeScript: exact formulas on `bigint` (B-03) and `src/sim/`, the reference simulator of the on-chain state (B-20). `scripts/scenarios.ts` writes `generated/scenarios/` for the differential tests |
 | `contracts` | Foundry project. `src/Game.sol`: the single UUPS proxy; logic in linked libraries (`src/core/`), formulas in `src/rules/` and `src/combat/`. Deps come from `node_modules` (pnpm), not submodules |
 | `packages/indexer` | Subgraph for the market history (B-11, B-18: trades, payments, withdrawals) and the battle reports, which the web app reads when built with `VITE_INDEXER_URL` (else from the RPC logs, `src/chain/reports.ts`); the ranking comes from the loaded world. `subgraph.template.yaml` is filled per deployment by `scripts/manifest.sh`; `scripts/local.sh` runs it on a graph-node in Docker (`pnpm dev:local`), `deploy:goldsky` on Goldsky |
-| `apps/web` | Vite + React SPA (viem, TanStack Query), i18n es/en. `src/chain/load.ts` rebuilds the simulator World from the contract views; the UI projects it live and validates actions in the simulator before sending (B-20). `src/account/` signs: anvil dev accounts, or a passkey Kernel account plus a per-device session (B-15); a player may have several controllers (devices, recovery codes: B-26); network picked by `VITE_NETWORK`. `src/chain/hidden.ts`: hidden missions (B-22: tlock on Arbitrum, plaintext on local chains); `scripts/keeper.ts` reveals them. Design context in `apps/web/PRODUCT.md` / `DESIGN.md` |
+| `apps/web` | Vite + React SPA (viem, TanStack Query), i18n es/en. `src/chain/load.ts` rebuilds the simulator World from the contract views; the UI projects it live and validates actions in the simulator before sending (B-20). `src/account/` signs: anvil dev accounts, or a passkey Kernel account plus a per-device session (B-15); a player may have several controllers (devices, recovery codes: B-26); network picked by `VITE_NETWORK`. `src/chain/hidden.ts`: hidden missions (B-22: tlock on Gnosis, plaintext on local chains); `scripts/keeper.ts` reveals them. Design context in `apps/web/PRODUCT.md` / `DESIGN.md` |
 | `application/`, `library/`, … | Legacy PHP. Read-only reference |
 
 ## Commands
@@ -39,12 +39,12 @@ pnpm format             # prettier; forge fmt inside contracts/
 scripts/ci-local.sh     # the CI steps on a fresh clone of HEAD (no GitHub needed)
 pnpm dev:local          # anvil + deploy + indexer (market history; graph-node in Docker, :8500, skipped without Docker) + keeper (reveals hidden missions, B-22) + web app on :5173 (dev accounts, time travel in the Workshop page)
 pnpm --filter @vendetta/web e2e   # Playwright flow on its own fresh chain (e2e/serve.sh, :5199)
-pnpm dev:aa             # anvil + Arbitrum One's 4337 contracts + Alto + mock paymaster + web app: passkey accounts locally
+pnpm dev:aa             # anvil + Gnosis Chain's 4337 contracts + Alto + mock paymaster + web app: passkey accounts locally
 pnpm --filter @vendetta/web e2e:aa   # Playwright passkey flow (virtual WebAuthn authenticator) on its own 4337 stack (:5198)
-pnpm deploy:arbitrum    # real deploy to Arbitrum One from .env; writes deployments/arbitrum.json (docs/deploy-arbitrum.md)
-pnpm --filter @vendetta/indexer deploy:goldsky <version>   # subgraph to Goldsky for deployments/arbitrum.json
-pnpm build:arbitrum     # web app for Arbitrum One (static, apps/web/dist)
-pnpm --filter @vendetta/web keeper <deployment.json> [local|arbitrum]   # reveals hidden missions as they arrive and processes due ones
+pnpm deploy:gnosis    # real deploy to Gnosis Chain from .env; writes deployments/gnosis.json (docs/deploy-gnosis.md)
+pnpm --filter @vendetta/indexer deploy:goldsky <version>   # subgraph to Goldsky for deployments/gnosis.json
+pnpm build:gnosis     # web app for Gnosis Chain (static, apps/web/dist)
+pnpm --filter @vendetta/web keeper <deployment.json> [local|gnosis]   # reveals hidden missions as they arrive and processes due ones
 ```
 
 ## Rules

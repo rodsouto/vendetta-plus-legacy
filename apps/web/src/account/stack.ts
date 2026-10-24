@@ -52,6 +52,17 @@ function pimlico(url: string) {
   return p;
 }
 
+/** A reveal's calldata must never reach the ordinary public submission path on Gnosis. */
+export function operationBundler(network: Network, calls: Call[]): string {
+  const { deployment } = network;
+  const reveals = calls.some(
+    (c) => c.to.toLowerCase() === deployment.game.toLowerCase() && c.functionName === "reveal",
+  );
+  if (network.id === "gnosis" && reveals && !deployment.revealBundler)
+    throw new Error("Private reveal submission is not configured");
+  return reveals ? (deployment.revealBundler ?? deployment.bundler!) : deployment.bundler!;
+}
+
 /**
  * Sends the calls as one sponsored operation from the passkey's Kernel account (`identity`) or a
  * session account (`key`), waits for it and throws a RevertedError on a revert.
@@ -63,6 +74,7 @@ export async function sendOperation(
   calls: Call[],
 ) {
   const { deployment } = network;
+  const bundler = operationBundler(network, calls);
   const paymaster = pimlico(deployment.paymaster ?? deployment.bundler!);
   const account =
     "identity" in from
@@ -72,7 +84,7 @@ export async function sendOperation(
     account,
     chain: network.chain as Chain,
     client,
-    bundlerTransport: http(deployment.bundler!),
+    bundlerTransport: http(bundler),
     paymaster,
     paymasterContext: deployment.sponsorshipPolicy
       ? { sponsorshipPolicyId: deployment.sponsorshipPolicy }

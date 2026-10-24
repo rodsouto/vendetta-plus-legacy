@@ -9,9 +9,20 @@ import {
   SEND_MARGIN,
   checkQuicknet,
   quicknetPrepare,
+  timelockFor,
 } from "../src/chain/hidden.js";
+import type { Network } from "../src/chain/networks.js";
 
 describe("quicknetPrepare", () => {
+  it("encrypts production missions and leaves plaintext only on the local chain", () => {
+    expect(timelockFor({ id: "gnosis" } as Network).hides).toBe(true);
+    expect(timelockFor({ id: "local" } as Network).hides).toBe(false);
+    const natural = 1_800_000_000n;
+    const { arrival, round } = timelockFor({ id: "gnosis" } as Network).prepare(natural);
+    expect(arrival - natural).toBeGreaterThanOrEqual(20n);
+    expect(arrival - natural).toBeLessThanOrEqual(30n);
+    expect(BigInt(roundTime(defaultChainInfo, Number(round)) / 1000) - arrival).toBe(15n);
+  });
   // A natural arrival whose target time falls on a round, one second after it and two after.
   const onRound = QUICKNET.genesis + 1000n * QUICKNET.period - SEND_MARGIN - HEAD_START;
   for (const phase of [0n, 1n, 2n]) {

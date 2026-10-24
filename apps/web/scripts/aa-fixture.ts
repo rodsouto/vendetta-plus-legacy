@@ -1,8 +1,8 @@
-// Snapshots, from Arbitrum One, the ERC-4337 contracts the passkey accounts use, so the local stack
+// Snapshots, from Gnosis Chain, the ERC-4337 contracts the passkey accounts use, so the local stack
 // (aa-stack.ts) can install them on a plain anvil at the same addresses: no fork, no network.
 // Output: scripts/aa-contracts.json (committed). Re-run only to pick up new contract versions.
 //
-//   tsx scripts/aa-fixture.ts   (ARBITRUM_RPC_URL overrides the public RPC)
+//   tsx scripts/aa-fixture.ts   (GNOSIS_RPC_URL overrides the public RPC)
 import { writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -14,12 +14,13 @@ import {
   type Address,
   type Hex,
 } from "viem";
-import { arbitrum } from "viem/chains";
+import { gnosis } from "viem/chains";
 
 const client = createPublicClient({
-  chain: arbitrum,
-  transport: http(process.env.ARBITRUM_RPC_URL ?? "https://arb1.arbitrum.io/rpc"),
+  chain: gnosis,
+  transport: http(process.env.GNOSIS_RPC_URL ?? "https://rpc.gnosischain.com"),
 });
+if ((await client.getChainId()) !== gnosis.id) throw new Error("Expected Gnosis Chain (100)");
 
 const KERNEL_FACTORY: Address = "0xaac5D4240AF87249B3f71BC8E4A2cae074A3E419"; // Kernel v3.1
 const META_FACTORY: Address = "0xd703aaE79538628d27099B8c4f621bE4CCd142d5";
@@ -65,11 +66,11 @@ const storage: Record<Address, Record<Hex, Hex>> = {
 
 const block = await client.getBlockNumber();
 const out = {
-  source: `Arbitrum One, block ${block}`,
+  source: `Gnosis Chain, block ${block}`,
   contracts: await Promise.all(
     contracts.map(async ([name, address]) => {
       const code = await client.getCode({ address, blockNumber: block });
-      if (!code) throw new Error(`${name} has no code at ${address}`);
+      if (!code || code === "0x") throw new Error(`${name} has no code at ${address}`);
       return { name, address, code, storage: storage[address] ?? {} };
     }),
   ),

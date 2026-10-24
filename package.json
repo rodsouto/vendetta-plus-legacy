@@ -14,8 +14,8 @@
     "format:check": "prettier --check \"packages/**/*.{ts,tsx,json}\" \"apps/**/*.{ts,tsx,json}\" --ignore-path .prettierignore",
     "dev:local": "bash scripts/dev-local.sh",
     "dev:aa": "pnpm --filter @vendetta/web aa",
-    "deploy:arbitrum": "bash scripts/deploy-arbitrum.sh",
-    "build:arbitrum": "pnpm --filter @vendetta/web build:arbitrum"
+    "deploy:gnosis": "bash scripts/deploy-gnosis.sh",
+    "build:gnosis": "pnpm --filter @vendetta/web build:gnosis"
   },
   "devDependencies": {
     "prettier": "^3.6.0",

@@ -4,7 +4,7 @@
   "private": true,
   "description": "Subgraph for the market history and the battle reports (B-11, B-18). Runs on Goldsky in production and on a local graph-node in Docker for development.",
   "scripts": {
-    "build": "bash scripts/manifest.sh arbitrum-one 0x0000000000000000000000000000000000000000 0 && graph codegen && graph build",
+    "build": "bash scripts/manifest.sh gnosis 0x0000000000000000000000000000000000000000 0 && graph codegen && graph build",
     "local": "bash scripts/local.sh",
     "deploy:goldsky": "bash scripts/deploy-goldsky.sh"
   },

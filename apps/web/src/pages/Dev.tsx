@@ -1,4 +1,4 @@
-// Local workshop (anvil only, never Arbitrum One): switch dev accounts (dev mode), move the chain
+// Local workshop (anvil only, never Gnosis Chain): switch dev accounts (dev mode), move the chain
 // clock, process missions, admin actions with the deployer's dev key.
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

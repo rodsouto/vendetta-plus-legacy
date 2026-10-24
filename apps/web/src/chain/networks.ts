@@ -2,15 +2,14 @@
 //
 // - local: anvil started by `pnpm dev:local`, which writes public/deployment.local.json. Players are
 //   anvil's development accounts, unless the deployment names a bundler (a local 4337 stack): then
-//   it plays with passkeys like Arbitrum One.
-// - arbitrum: Arbitrum One, the deployment committed in deployments/arbitrum.json; players sign in
-//   with passkeys and Pimlico bundles and sponsors their operations (B-15, B-16). There is no
-//   testnet stage: Arbitrum One is cheap enough, and the local 4337 stack covers testing.
+//   it plays with passkeys like Gnosis.
+// - gnosis: Gnosis Chain (100), deployments/gnosis.json, passkeys and sponsored gas (B-15, B-16).
+//   Reveals require a separate bundler with private executor submission (B-22).
 import type { Address, Chain } from "viem";
-import { arbitrum } from "viem/chains";
+import { gnosis } from "viem/chains";
 import { anvilChain } from "./config.js";
 
-export type NetworkId = "local" | "arbitrum";
+export type NetworkId = "local" | "gnosis";
 
 export interface Deployment {
   chainId: number;
@@ -24,6 +23,8 @@ export interface Deployment {
   paymaster?: string;
   /** Pimlico sponsorship policy that sets the limits (B-16); without it, the project's defaults. */
   sponsorshipPolicy?: string;
+  /** Bundler whose executor keeps reveal transactions out of the public mempool (B-22). */
+  revealBundler?: string;
 }
 
 /** How players sign: anvil's development keys, or passkey accounts with per-device sessions. */
@@ -37,7 +38,8 @@ export interface Network {
 }
 
 /** Why the app cannot connect, as an i18n key under `connect.` */
-export type ConnectProblem = "noLocal" | "notDeployed" | "noPimlicoKey";
+export type ConnectProblem =
+  "noLocal" | "notDeployed" | "noPimlicoKey" | "invalidDeployment" | "noPrivateReveal";
 
 export const networkId = (): NetworkId =>
   (import.meta.env.VITE_NETWORK as NetworkId | undefined) ?? "local";
@@ -52,23 +54,29 @@ export async function loadNetwork(): Promise<Network | ConnectProblem> {
   const id = networkId();
   // Isolated runs (e2e) pass the deployment at build time instead of through public/.
   const injected = import.meta.env.VITE_DEPLOYMENT as string | undefined;
-  if (id === "arbitrum") {
-    const file = committed["../../../../deployments/arbitrum.json"];
+  if (id !== "local" && id !== "gnosis") return "invalidDeployment";
+  if (id === "gnosis") {
+    const file = committed["../../../../deployments/gnosis.json"];
     const base = injected ? (JSON.parse(injected) as Deployment) : file;
     if (!base) return "notDeployed";
+    if (base.chainId !== gnosis.id || !base.directory) return "invalidDeployment";
     const key = import.meta.env.VITE_PIMLICO_API_KEY as string | undefined;
     if (!key) return "noPimlicoKey";
-    const pimlico = `https://api.pimlico.io/v2/${arbitrum.id}/rpc?apikey=${key}`;
+    const revealBundler =
+      (import.meta.env.VITE_REVEAL_BUNDLER_URL as string | undefined) || undefined;
+    if (!revealBundler) return "noPrivateReveal";
+    const pimlico = `https://api.pimlico.io/v2/${gnosis.id}/rpc?apikey=${key}`;
     const deployment: Deployment = {
       ...base,
       // Empty values (an unfilled .env) count as unset.
       rpc: (import.meta.env.VITE_RPC_URL as string | undefined) || base.rpc,
       bundler: pimlico,
       paymaster: pimlico,
+      revealBundler,
       sponsorshipPolicy:
         (import.meta.env.VITE_PIMLICO_POLICY_ID as string | undefined) || undefined,
     };
-    return { id, chain: arbitrum, deployment, accounts: "passkey" };
+    return { id, chain: gnosis, deployment, accounts: "passkey" };
   }
   let deployment: Deployment | null = null;
   if (injected) deployment = JSON.parse(injected) as Deployment;

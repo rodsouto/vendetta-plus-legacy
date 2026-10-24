@@ -54,6 +54,44 @@ describe("readReports from the subgraph", () => {
 });
 
 describe("readReports from the logs", () => {
+  it("queries bounded chunks from newest to oldest, without gaps", async () => {
+    vi.stubEnv("VITE_INDEXER_URL", "");
+    const ranges: [bigint, bigint][] = [];
+    const client = {
+      getBlockNumber: async () => 12_000n,
+      getContractEvents: async ({ fromBlock, toBlock }: { fromBlock: bigint; toBlock: bigint }) => {
+        ranges.push([fromBlock, toBlock]);
+        return [];
+      },
+    };
+    expect(await readReports(client as never, GAME, 10, null)).toEqual([]);
+    expect(ranges).toEqual([
+      [7001n, 12000n],
+      [2001n, 7000n],
+      [10n, 2000n],
+    ]);
+  });
+  it("stops after finding the latest page and avoids reading older history", async () => {
+    vi.stubEnv("VITE_INDEXER_URL", "");
+    let queries = 0;
+    const client = {
+      getBlockNumber: async () => 20_000n,
+      getContractEvents: async () => {
+        queries++;
+        return Array.from({ length: 120 }, (_, logIndex) => ({
+          blockNumber: 20_000n,
+          logIndex,
+          args: { attacker: 1n, defender: 2n, building: 1n, report: {} },
+        }));
+      },
+      getBlock: async () => ({ timestamp: 1n }),
+    };
+    const out = await readReports(client as never, GAME, 0, null);
+    expect(queries).toBe(1);
+    expect(out).toHaveLength(100);
+    expect(out[0]!.key).toBe("20000-119");
+    expect(out[99]!.key).toBe("20000-20");
+  });
   it("merges both sides of the player, newest first, one block read per block", async () => {
     vi.stubEnv("VITE_INDEXER_URL", "");
     const log = (block: bigint, index: number, attacker: bigint, defender: bigint) => ({

@@ -45,7 +45,9 @@
     "title": "No line to the city",
     "noLocal": "Can't find the local deployment. Run “pnpm dev:local” at the repository root and reload.",
     "notDeployed": "The game is not published on this network yet.",
-    "noPimlicoKey": "The key for the service that pays for operations is missing (VITE_PIMLICO_API_KEY)."
+    "noPimlicoKey": "The key for the service that pays for operations is missing (VITE_PIMLICO_API_KEY).",
+    "invalidDeployment": "The city configuration is invalid.",
+    "noPrivateReveal": "The city is not ready for players yet."
   },
   "register": {
     "title": "Open an account",

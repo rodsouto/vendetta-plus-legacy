@@ -26,7 +26,7 @@ which network it runs on. Messaging, chat and moderation are off-chain (B-10).
 
 | ID | Topic | Status | Summary |
 |----|-------|--------|---------|
-| B-01 | Network | New | Arbitrum One public L2, no own chain; code network-agnostic |
+| B-01 | Network | New | Gnosis Chain (100), gas in xDAI; code network-agnostic |
 | B-02 | Language | New | Solidity; combat as an isolated library; no Stylus |
 | B-03 | Integer math | Adapt | Every formula in exact integer arithmetic, no fixed point; 0 deviations from the vectors |
 | B-04 | No tokens in v1 | New | Resources, troops and buildings live inside the contracts |
@@ -62,19 +62,26 @@ which network it runs on. Messaging, chat and moderation are off-chain (B-10).
 
 ## B-01 — Network — New
 
-**Arbitrum One.** No own chain or app-chain. Reasons:
+**Gnosis Chain (chain ID 100).** No own chain or app-chain. Gas is paid in xDAI.
+The decision prioritizes the operating cost of sponsored player actions and direct keeper calls.
+The [measured comparison](../benchmarks/gas-networks-2026-10-23.json) reuses local full-transaction
+measurements and live fee quotes; it is a projection, not paid mainnet receipts.
 
-- Sub-cent cost for a typical action (estimated, see [assumptions](#assumptions-to-validate)).
-- Kleros v2 runs on Arbitrum One, so the future arbiter (B-23) is a direct contract call, with no
-  bridge.
-- The RIP-7212 P-256 precompile exists, so passkeys are cheap to verify (B-15).
+- Passkeys still use Kernel v3.1, the Solidity WebAuthn/P-256 verifier and SimpleAccount sessions
+  (B-15). Their Gnosis deployments are captured in the local account fixture; no P-256 precompile
+  is required by this integration.
+- Gnosis has a public mempool. Reveals require private submission from both the browser's bundler
+  executor and the keeper (B-22). The production app refuses to connect without a configured
+  private reveal bundler; the keeper requires a private raw-transaction RPC. Their privacy and
+  inclusion latency must be verified before launch; ordinary Pimlico routing is insufficient.
+- The live block gas limit observed on 2026-10-23 was 17M. The keeper uses one mission per
+  transaction, retaining B-08's 7M reserve; the four-mission protocol cap is not a guarantee that
+  four heavy missions fit a transaction or sponsored operation.
+- Kleros arbitration on Arbitrum would require a separately designed cross-chain integration
+  (B-23); it is not part of v1.
 
-Gnosis Chain was evaluated (stable gas priced in xDAI). It was rejected because Kleros there needs a
-cross-chain bridge and P-256 support is unconfirmed. It stays as plan B.
-
-The contracts must not depend on Arbitrum-specific features (no Stylus, no ArbOS precompiles in game
-logic), so the world can be deployed on another EVM network. The **network is invisible to the
-player**: no network names, no bridging, no "get ETH" steps in the UI.
+Game logic must not depend on chain-specific precompiles. The **network is invisible to the
+player**: no network names, bridging or native-token acquisition steps in the UI.
 
 ## B-02 — Language — New
 
@@ -229,10 +236,11 @@ transaction can process. So:
   found (`forge test --match-contract BattleGas -vv`), but a mission also settles up to four
   buildings (origin, target and both research buildings): with full premium queues an attack
   costs **~4–6.4M** (`forge test --match-contract MissionGas -vv`), so the reserve is 7M and the
-  batch 4 (4 × 7M fits Arbitrum's 32M transaction limit). 7M is provisional until a
+  protocol cap 4. Gnosis's observed 17M block limit does not guarantee that four heavy
+  missions fit, so the production keeper advances one at a time. 7M is provisional until a
   reachable-state measurement (a long trip with queue items that finish during it) confirms it.
-  The 32M limit holds for the keeper's plain transactions; an ERC-4337 operation also has its
-  bundler's cap (the local Alto's default is 16M), which may fit fewer heavy missions per action.
+  An ERC-4337 operation also has its bundler's cap (the local Alto's default is 16M), which may
+  fit fewer heavy missions per action.
 
 ## B-09 — Hard caps — Adapt
 
@@ -416,7 +424,7 @@ vacation or suspended can only end the vacation. In v1 `suspend(player, until)` 
   it; both steps kill every session, so each re-authorizes this device's session in the same
   operation.
   Kernel v3.1 (the last version with a WebAuthn validator in permissionless.js) and the
-  SimpleAccount factory for the session, both already deployed on Arbitrum One. permissionless.js
+  SimpleAccount factory for the session, both already deployed on Gnosis Chain. permissionless.js
   0.4 always signs with `usePrecompiled = false`, so the passkey signature is checked by the
   Solidity P-256 verifier instead of RIP-7212: passkey operations cost ~0.3M gas more, but they are
   rare (create, renew, manage).
@@ -424,24 +432,25 @@ vacation or suspended can only end the vacation. In v1 `suspend(player, until)` 
   way: B-06, B-07), so the client gives the bundler's `callGasLimit` estimate 50% + 100k of
   headroom before the paymaster signs.
 - **Local testing** (`pnpm dev:aa`, `e2e:aa`): a plain anvil with the account contracts copied
-  from Arbitrum One at their addresses (`apps/web/scripts/aa-contracts.json`), Alto and Pimlico's
+  from Gnosis Chain at their addresses (`apps/web/scripts/aa-contracts.json`), Alto and Pimlico's
   mock paymaster; Playwright drives a virtual WebAuthn authenticator. No fork: public RPCs drop old
   state within minutes.
 
 ## B-16 — Gas — New
 
 - A game **paymaster** (ERC-4337 / EIP-7702) sponsors a **low** allowance per account and day.
-  Bundler and paymaster: **Pimlico** (paid plan), with a sponsorship policy that sets the limits;
-  no relayer of our own.
+  Ordinary bundler and paymaster: **Pimlico** (paid plan), with a sponsorship policy that sets
+  the limits. Browser reveals use a separately provisioned private bundler, with the same
+  Pimlico paymaster; the keeper uses a private raw-transaction RPC (B-22).
 - Above it the player pays. The payment path is **credits bought by card** (on-ramp into the smart
-  account, or a paymaster that charges credits), never "get ETH on Arbitrum".
+  account, or a paymaster that charges credits), never "get xDAI".
 - Credits pay for gas only. **Premium** is separate (B-25).
 - Network selection in the client: `VITE_NETWORK` (`local` with anvil's development accounts, or
-  `arbitrum` for Arbitrum One), Pimlico's key in `VITE_PIMLICO_API_KEY` and its sponsorship policy in
+  `gnosis` for Gnosis Chain), Pimlico's key in `VITE_PIMLICO_API_KEY` and its sponsorship policy in
   `VITE_PIMLICO_POLICY_ID`. The key ships in the static bundle, so the sponsorship policy (and
   Pimlico's allowed origins) is what bounds spending, not the key.
-- Deploy and operation (Pimlico setup, limits, `.env`, `pnpm deploy:arbitrum`):
-  [../deploy-arbitrum.md](../deploy-arbitrum.md).
+- Deploy and operation (Pimlico setup, limits, `.env`, `pnpm deploy:gnosis`):
+  [../deploy-gnosis.md](../deploy-gnosis.md).
 
 ## B-17 — Upgradeability — New
 
@@ -469,9 +478,9 @@ Until the freeze, the "trustless rules" goal (Goals) is only partly met. This is
 - **The client reads the reports from the indexer**: the latest 100 of the player, filtered by
   attacker or defender. The indexer's URL is a build setting (`VITE_INDEXER_URL`). Without it (a
   local chain without Docker, the e2e runs) the client reads the `Battle` logs straight from the RPC,
-  only the recent ones: public RPCs cap the block range of a log query (Arbitrum One's: 10M blocks,
-  about a month), and the client asks for the last 5M blocks. The game never depends on the indexer:
-  reports are history, not state.
+  only the latest 100 reports within 241,920 recent blocks (about two weeks on Gnosis), scanned
+  newest first in chunks of at most 5,000 blocks to respect public RPC limits. The game never
+  depends on the indexer: reports are history, not state.
 - The **ranking** (08-progression.md#ranking) is computed by the client from the world it already
   loads through the views (B-20), not by the indexer: it sorts the players, and the families by the
   sum of their members, on the points of the world projected to the current time. The projection
@@ -629,15 +638,16 @@ precompile only returns a boolean, so decrypting tlock on-chain is not practical
   `TooLate` below (the send landed too late: sending again encrypts anew), `InvalidArrival` above.
   `arrival = 0` takes the natural arrival. The way back keeps the duration. Whatever the inclusion
   latency, the head start stays whole; the trip is a few seconds longer than a public one.
-- **Timelock per network.** On Arbitrum One, tlock for drand quicknet (a round every 3 s): the
-  client takes the first round at or after `now + duration + 10 s` (the inclusion margin) plus the
-  head start, encrypts for it and sends `arrival = round time − 8 s`, with `now` a fresh block's
+- **Timelock per network.** On Gnosis Chain, tlock for drand quicknet (a round every 3 s): the
+  client takes the first round at or after `now + duration + 20 s` (the inclusion margin) plus the
+  head start, encrypts for it and sends `arrival = round time − 15 s`, with `now` a fresh block's
   time, not the device clock. Rounds are computed from quicknet's genesis and period, which are
   part of its identity; the client checks the chain info drand serves against them before
   encrypting, since another schedule could open the ciphertext early (or past the grace). The head
-  start (8 s) is a client constant per network: it must exceed the inclusion latency of the
-  sender's reveal (a chain with 5 s blocks would need ~10 s), and the order window and the return
-  cooldown follow it. On local chains the plaintext travels as is ("plain") with `arrival = 0`:
+  start (15 s on Gnosis) is a client constant per network: it must exceed the inclusion latency
+  of the sender's reveal. Gnosis has five-second slots; validate actual private inclusion and
+  the existing reveal-order window before launch. On local chains the plaintext travels as is
+  ("plain") with `arrival = 0`:
   anvil's clock jumps (time travel) and drand's does not.
 - **No reveal before the arrival.** The contract accepts a reveal before the arrival (it resolves
   at the arrival), but it would show the target in time to dodge, and a reverted one would too:
@@ -646,13 +656,14 @@ precompile only returns a boolean, so decrypting tlock on-chain is not practical
   is measured against the chain when each snapshot's block arrives, so a device clock that runs
   ahead never makes it act early.
 - **Clock alignment.** drand rounds follow UTC, arrivals follow chain time. With chain time
-  lagging UTC by `L` seconds, the head start is about `8 − L` seconds of real time, before polling
-  and inclusion delays. Arbitrum's sequencer stamps blocks with its wall clock, though the
-  protocol allows much wider bounds: an operating assumption, like the keeper's latency.
+  lagging UTC by `L` seconds, the head start is about `15 − L` seconds of real time, before polling
+  and inclusion delays. On Gnosis, missed slots, stale RPC blocks and private submission delays
+  consume this budget. The margin is a configuration assumption, not a measured latency guarantee.
 - **Public mempools.** A reveal waiting for inclusion shows the target. Where pending transactions
   are public and ordered by fee, a defender's bot can see it and get its own send in first, which
-  defeats the hidden target. Arbitrum's sequencer does not expose them; elsewhere the reveal needs
-  a private relay.
+  defeats the hidden target. Gnosis therefore requires a private reveal path: a separately configured
+  ERC-4337 bundler for browser reveals, and a private raw-transaction RPC for the keeper. Neither
+  route may fall back to public submission; an encrypting raw RPC is not an ERC-4337 bundler.
 - **Measured:** `sendHiddenMission` ~400k gas with a 400-byte ciphertext, `reveal` ~16k before
   the arrival and ~48k on a parked mission (it re-enters the queue; the order check reads its
   predecessor only, whatever the length of the parked list), plus whatever its drain processes;
@@ -663,7 +674,9 @@ precompile only returns a boolean, so decrypting tlock on-chain is not practical
 ## B-23 — Arbitration — v2
 
 A written rulebook for the abuse the contracts cannot see. Anyone can open a case on **Kleros v2**
-(Arbitrum One, B-01) by paying the arbitration cost. The ruling calls B-14 (`suspend` for X days).
+(currently deployed on Arbitrum One) by paying the arbitration cost. Gnosis would need a
+separately specified bridge/relay for rulings; direct calls across chains are not supported. A
+future ruling would call B-14 (`suspend` for X days).
 Violations in mind:
 
 - **Pushing:** moving resources to one's own or an allied account abusively: new accounts created
@@ -863,7 +876,7 @@ Measured with a prototype before the B-03 deviation list and B-09 caps are fixed
 | Missions | **Measured (3b)**: send an attack ~354k; process one attack (battle, loot, return queued) ~555k; process one return ~82k (`MissionsGasTest`, inside a test) |
 | Storage, not combat, dominates cost | Unmeasured. Decides whether B-02 ever needs Stylus. |
 | Precision vs test vectors | **0 deviations** in every formula, including travel time and salary (exact integer math, B-03) |
-| Missions processed per transaction | `MAX_MISSIONS_PER_TX` = 4 and a 7M reserve per mission (B-08): an attack that settles four buildings with full premium queues measured ~4–6.4M (`MissionGas`), so 4 × 7M fits Arbitrum's 32M transaction limit. Unverified for ERC-4337: the bundler's cap per operation (16M by default in the local Alto) is below 4 × 7M, and Pimlico's on Arbitrum must be checked before deploy |
+| Missions processed per transaction | `MAX_MISSIONS_PER_TX` = 4 and a 7M reserve per mission (B-08): an attack that settles four buildings with full premium queues measured ~4–6.4M (`MissionGas`), four heavy missions are not guaranteed to fit Gnosis's observed 17M block limit. The keeper advances one mission per transaction. ERC-4337 admission and padded limits must also fit the provider's budget (16M by default in the local Alto) |
 | Daily sponsored allowance per account | Set from the measured costs and budget |
 | Smart account provider supports multi-passkey + session keys + paymaster | **Chosen (4b)**: Kernel with a passkey owner (permissionless.js), native game sessions (B-15), Pimlico paymaster. Multi-ecosystem devices and recovery still to verify |
 | Session management | **Measured (4b, inside a test)**: authorize a session ~41k (a new storage slot); an action through a session costs the same as through the controller plus about two storage reads |

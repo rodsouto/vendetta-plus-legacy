@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -p tsconfig.json && vite build",
-    "build:arbitrum": "VITE_NETWORK=arbitrum pnpm build",
+    "build:gnosis": "VITE_NETWORK=gnosis pnpm build",
     "preview": "vite preview",
     "abi": "tsx scripts/abi.ts",
     "test": "vitest run",
@@ -14,6 +14,7 @@
     "e2e:aa": "playwright test -c playwright.aa.config.ts",
     "aa": "tsx scripts/aa-stack.ts --public",
     "aa:fixture": "tsx scripts/aa-fixture.ts",
+    "benchmark:gas": "tsx scripts/benchmark-gas.ts",
     "keeper": "tsx scripts/keeper.ts"
   },
   "dependencies": {

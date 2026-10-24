@@ -1,7 +1,7 @@
 // Hidden missions on the client (B-22): the timelock that keeps (kind, target, salt) secret until
 // the mission arrives, this device's own plaintexts, and the ciphertexts the keeper opens.
 //
-// - drand: tlock for a drand quicknet round, and a fixed arrival a head start before it: the
+// - drand: production tlock for a drand quicknet round, and a fixed arrival a head start before it: the
 //   sender's reveal lands while nobody else can decrypt. The rounds are computed from quicknet's
 //   fixed parameters; tlock-js loads on first use, like the passkey stack.
 // - plain: local chains only. Anvil's clock jumps (the Workshop's time travel) and drand's does
@@ -40,10 +40,10 @@ export interface Timelock {
  * Seconds between the arrival and the round: the sender's reveal must land in them, before anyone
  * else can open the ciphertext (B-22). More than the reveal's inclusion latency on this network.
  */
-export const HEAD_START = 8n;
+export const HEAD_START = 15n;
 
 /** Seconds the send may take to be included before its fixed arrival is too early (TooLate). */
-export const SEND_MARGIN = 10n;
+export const SEND_MARGIN = 20n;
 
 /** drand quicknet, tlock-js's mainnetClient: its genesis and period are part of its identity. */
 export const QUICKNET = {
@@ -134,7 +134,7 @@ const drandTimelock: Timelock = {
 };
 
 export const timelockFor = (network: Network): Timelock =>
-  network.id === "arbitrum" ? drandTimelock : plainTimelock;
+  network.id === "local" ? plainTimelock : drandTimelock;
 
 /** A random 256-bit salt. */
 export function randomSalt(): bigint {

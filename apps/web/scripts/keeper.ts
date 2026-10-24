@@ -3,13 +3,13 @@
 // global queue does not wait for a player to act. It holds no secret: anyone may run one, and
 // clients reveal on their own when it is down.
 //
-// Usage: tsx scripts/keeper.ts <deployment.json> [local|arbitrum]
+// Usage: tsx scripts/keeper.ts <deployment.json> [local|gnosis]
 //   KEEPER_PRIVATE_KEY  the account that pays the gas (default: anvil's account 9, local only)
 //   RPC_URL             overrides the deployment's rpc
 import { readFileSync } from "node:fs";
 import { createPublicClient, createWalletClient, http, type Hex, type PublicClient } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { arbitrum } from "viem/chains";
+import { gnosis } from "viem/chains";
 import { sim, vendetta as rs } from "@vendetta/rules";
 import { gameAbi } from "../src/chain/abi.js";
 import { anvilChain } from "../src/chain/config.js";
@@ -22,18 +22,34 @@ const TICK_MS = 2000;
 const DECRYPT_CONCURRENCY = 4;
 
 const [file, id = "local"] = process.argv.slice(2);
-if (!file) throw new Error("usage: keeper.ts <deployment.json> [local|arbitrum]");
+if (!file) throw new Error("usage: keeper.ts <deployment.json> [local|gnosis]");
+if (id !== "local" && id !== "gnosis") throw new Error(`Unsupported network: ${id}`);
 const base = JSON.parse(readFileSync(file, "utf8")) as Deployment;
 const deployment: Deployment = { ...base, rpc: process.env.RPC_URL || base.rpc };
-const chain = id === "arbitrum" ? arbitrum : anvilChain(deployment);
+const chain = id === "gnosis" ? gnosis : anvilChain(deployment);
+if (deployment.chainId !== chain.id)
+  throw new Error("Deployment chain does not match the keeper network");
 const key = (process.env.KEEPER_PRIVATE_KEY || (id === "local" ? ANVIL_KEY_9 : "")) as Hex;
 if (!key) throw new Error("KEEPER_PRIVATE_KEY is required off local chains");
 
 // Batched: a tick reads every pending mission.
 const transport = http(deployment.rpc, { batch: { batchSize: 100 } });
 const client = createPublicClient({ chain, transport }) as PublicClient;
+if ((await client.getChainId()) !== chain.id) throw new Error("Keeper RPC is on the wrong chain");
 const account = privateKeyToAccount(key);
 const wallet = createWalletClient({ chain, transport, account });
+// Only raw transaction submission uses the private RPC; reads stay on the regular provider.
+const revealRpc = process.env.REVEAL_RPC_URL;
+if (id === "gnosis" && !revealRpc)
+  throw new Error("REVEAL_RPC_URL is required for private reveals on Gnosis (B-22)");
+if (
+  revealRpc &&
+  (await createPublicClient({ transport: http(revealRpc) }).getChainId()) !== chain.id
+)
+  throw new Error("Private reveal RPC is on the wrong chain");
+const revealWallet = revealRpc
+  ? createWalletClient({ chain, transport: http(revealRpc), account })
+  : wallet;
 const timelock = timelockFor({ id: id as NetworkId } as Network);
 const game = deployment.game;
 const ciphertexts = new CiphertextIndex(client, game, deployment.fromBlock);
@@ -58,7 +74,8 @@ const gameError = (e: unknown): string | undefined => {
 };
 
 async function call(functionName: string, args: unknown[]): Promise<void> {
-  const hash = await wallet.writeContract({
+  const sender = functionName === "reveal" ? revealWallet : wallet;
+  const hash = await sender.writeContract({
     address: game,
     abi: gameAbi,
     functionName,
@@ -192,14 +209,15 @@ async function tick(): Promise<void> {
  * long backlog) falls back to one mission per transaction until the queue is caught up.
  */
 async function advance(): Promise<void> {
+  const batch = id === "gnosis" ? 1 : sim.MAX_MISSIONS_PER_TX;
   try {
-    await call("advance", [BigInt(sim.MAX_MISSIONS_PER_TX)]);
+    await call("advance", [BigInt(batch)]);
     console.log("advanced the mission queue");
     return;
   } catch (e) {
     console.warn("advance in a batch failed, one at a time:", (e as Error).message.split("\n")[0]);
   }
-  for (let i = 0; i < sim.MAX_MISSIONS_PER_TX; i++) {
+  for (let i = 0; i < batch; i++) {
     try {
       await call("advance", [1n]);
       console.log("advanced one mission");
@@ -211,7 +229,7 @@ async function advance(): Promise<void> {
 }
 
 console.log(
-  `keeper ${account.address} for ${game} on ${chain.name} (${deployment.rpc}), timelock ${id === "arbitrum" ? "drand" : "plain"}`,
+  `keeper ${account.address} for ${game} on ${chain.name} (${deployment.rpc}), timelock ${id === "local" ? "plain" : "drand"}`,
 );
 for (;;) {
   try {

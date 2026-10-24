@@ -1,0 +1,1087 @@
+{
+  "quotedAt": "2026-10-23T16:54:43.254Z",
+  "benchmarkMeasuredAt": "2026-10-23T16:49:55.012Z",
+  "revision": "e31270a11bfdca7612a17167a5642c55f2637ec8",
+  "methodology": "Reuses local charged gas and transaction calldata. Execution gas is projected unchanged on each chain. OP Stack data fees are read from GasPriceOracle.getL1Fee using an estimated unsigned EIP-1559 envelope; operator fees use L1Block scalars and the active Jovian formula. Arbitrum data fees use NodeInterface. No transactions submitted. Includes the previous local API-call service cost and 10% gas surcharge for sponsored rows; excludes monthly included credits. This is a point-in-time projection, not a mainnet benchmark or proof of account/provider compatibility.",
+  "priceSource": "https://api.coingecko.com/api/v3/simple/price?ids=ethereum,polygon-ecosystem-token&vs_currencies=usd",
+  "prices": {
+    "ethereum": {
+      "usd": 2405.74
+    },
+    "polygon-ecosystem-token": {
+      "usd": 0.091503
+    }
+  },
+  "sources": [
+    "https://docs.optimism.io/op-stack/transactions/fees",
+    "https://docs.base.org/specifications/transactions/network-fees",
+    "https://docs.pimlico.io/guides/pricing"
+  ],
+  "networks": [
+    {
+      "chain": "Arbitrum One",
+      "chainId": 42161,
+      "rpc": "https://arb1.arbitrum.io/rpc",
+      "block": "517593199",
+      "timestamp": "1792774475",
+      "rpcGasPriceWei": "20120000",
+      "budgetGasPriceWei": "20120000",
+      "nativeUsd": 2405.74,
+      "operatorScalar": "0",
+      "operatorConstant": "0",
+      "isJovian": false,
+      "rows": [
+        {
+          "name": "create_account_passkey_publish_register_invite",
+          "executionWei": "24141464880000",
+          "dataWei": "61240000000",
+          "operatorWei": "0",
+          "networkUsd": 0.0582254152380112,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.08144795676181232
+        },
+        {
+          "name": "first_action_deploy_session_accept_build",
+          "executionWei": "10229490880000",
+          "dataWei": "37840000000",
+          "operatorWei": "0",
+          "networkUsd": 0.024700528591251197,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.04457058145037632
+        },
+        {
+          "name": "train_7_rowdies_settle_build",
+          "executionWei": "7358648560000",
+          "dataWei": "32780000000",
+          "operatorWei": "0",
+          "networkUsd": 0.017781855343934398,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.03696004087832784
+        },
+        {
+          "name": "settle_training",
+          "executionWei": "5803090880000",
+          "dataWei": "32420000000",
+          "operatorWei": "0",
+          "networkUsd": 0.014038721944451198,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.03284259413889632
+        },
+        {
+          "name": "renew_session_passkey",
+          "executionWei": "12208111800000",
+          "dataWei": "44580000000",
+          "operatorWei": "0",
+          "networkUsd": 0.029476790770931998,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.0498244698480252
+        },
+        {
+          "name": "accept_renewed_session_and_build",
+          "executionWei": "6796173840000",
+          "dataWei": "34700000000",
+          "operatorWei": "0",
+          "networkUsd": 0.0164333064318416,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.035476637075025755
+        },
+        {
+          "name": "queue_build_waiting",
+          "executionWei": "5539015880000",
+          "dataWei": "32580000000",
+          "operatorWei": "0",
+          "networkUsd": 0.013403811072351198,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.03214419217958632
+        },
+        {
+          "name": "queue_build_settle_two_completed",
+          "executionWei": "7712599600000",
+          "dataWei": "32940000000",
+          "operatorWei": "0",
+          "networkUsd": 0.018633754437303997,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.0378971298810344
+        },
+        {
+          "name": "send_public_attack_5_rowdies",
+          "executionWei": "11472544720000",
+          "dataWei": "33220000000",
+          "operatorWei": "0",
+          "networkUsd": 0.0276798784174928,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.047847866259242075
+        },
+        {
+          "name": "keeper_resolve_undefended_attack",
+          "executionWei": "11574875040000",
+          "dataWei": "9440000000",
+          "operatorWei": "0",
+          "networkUsd": 0.027868850064329598,
+          "serviceUsd": 0,
+          "totalUsd": 0.027868850064329598
+        },
+        {
+          "name": "keeper_return_5_rowdies",
+          "executionWei": "4547280960000",
+          "dataWei": "9440000000",
+          "operatorWei": "0",
+          "networkUsd": 0.010962285882310399,
+          "serviceUsd": 0,
+          "totalUsd": 0.010962285882310399
+        },
+        {
+          "name": "send_hidden_attack_tlock",
+          "executionWei": "11996670720000",
+          "dataWei": "66640000000",
+          "operatorWei": "0",
+          "networkUsd": 0.029021189131532798,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.04932330804468608
+        },
+        {
+          "name": "keeper_reveal_arrived_hidden_attack",
+          "executionWei": "1858242960000",
+          "dataWei": "15120000000",
+          "operatorWei": "0",
+          "networkUsd": 0.0045068242073903995,
+          "serviceUsd": 0,
+          "totalUsd": 0.0045068242073903995
+        },
+        {
+          "name": "keeper_resolve_revealed_attack",
+          "executionWei": "11610648400000",
+          "dataWei": "9440000000",
+          "operatorWei": "0",
+          "networkUsd": 0.027954911467415997,
+          "serviceUsd": 0,
+          "totalUsd": 0.027954911467415997
+        },
+        {
+          "name": "keeper_return_hidden_attack",
+          "executionWei": "3450720840000",
+          "dataWei": "9440000000",
+          "operatorWei": "0",
+          "networkUsd": 0.0083242473392216,
+          "serviceUsd": 0,
+          "totalUsd": 0.0083242473392216
+        },
+        {
+          "name": "send_typical_3v2_stacks",
+          "executionWei": "12074696080000",
+          "dataWei": "33740000000",
+          "operatorWei": "0",
+          "networkUsd": 0.029129749015099196,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.049442723916609116
+        },
+        {
+          "name": "keeper_resolve_typical_3v2_stacks",
+          "executionWei": "14722769760000",
+          "dataWei": "9440000000",
+          "operatorWei": "0",
+          "networkUsd": 0.0354418663080224,
+          "serviceUsd": 0,
+          "totalUsd": 0.0354418663080224
+        },
+        {
+          "name": "send_heavy_16v21_stacks_5_rounds",
+          "executionWei": "15005314920000",
+          "dataWei": "33160000000",
+          "operatorWei": "0",
+          "networkUsd": 0.036178660654040795,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.057196526719444876
+        },
+        {
+          "name": "keeper_resolve_heavy_16v21_stacks_5_rounds",
+          "executionWei": "30499405000000",
+          "dataWei": "9440000000",
+          "operatorWei": "0",
+          "networkUsd": 0.07339634877029999,
+          "serviceUsd": 0,
+          "totalUsd": 0.07339634877029999
+        },
+        {
+          "name": "player_build_drains_heavy_battle",
+          "executionWei": "55946094520000",
+          "dataWei": "32200000000",
+          "operatorWei": "0",
+          "networkUsd": 0.1346692222585448,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.1655361444843993
+        }
+      ],
+      "scenarios": {
+        "onboardingAndFirstBuild": {
+          "networkUsd": 0.0829259438292624,
+          "totalUsd": 0.12601853821218864
+        },
+        "simpleBuild": {
+          "networkUsd": 0.013403811072351198,
+          "totalUsd": 0.03214419217958632
+        },
+        "hiddenMissionFullCycle": {
+          "networkUsd": 0.0698071721455608,
+          "totalUsd": 0.09010929105871407
+        },
+        "keeperHeavyBattle": {
+          "networkUsd": 0.07339634877029999,
+          "totalUsd": 0.07339634877029999
+        }
+      }
+    },
+    {
+      "chain": "OP Mainnet",
+      "chainId": 10,
+      "rpc": "https://mainnet.optimism.io",
+      "block": "158587849",
+      "timestamp": "1792774475",
+      "rpcGasPriceWei": "1000291",
+      "budgetGasPriceWei": "1000291",
+      "nativeUsd": 2405.74,
+      "operatorScalar": "0",
+      "operatorConstant": "0",
+      "isJovian": true,
+      "rows": [
+        {
+          "name": "create_account_passkey_publish_register_invite",
+          "executionWei": "1200223163334",
+          "dataWei": "30840051669",
+          "operatorWei": "0",
+          "networkUsd": 0.002961618018861317,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.020657779820747447
+        },
+        {
+          "name": "first_action_deploy_session_accept_build",
+          "executionWei": "508571951384",
+          "dataWei": "17183068606",
+          "operatorWei": "0",
+          "networkUsd": 0.0012648298817907425,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.018791312869969816
+        },
+        {
+          "name": "train_7_rowdies_settle_build",
+          "executionWei": "365844429758",
+          "dataWei": "14038176984",
+          "operatorWei": "0",
+          "networkUsd": 0.0009138987823434989,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.018405288660577848
+        },
+        {
+          "name": "settle_training",
+          "executionWei": "288507931384",
+          "dataWei": "13805222049",
+          "operatorWei": "0",
+          "networkUsd": 0.0007272868457399052,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.018200015530313893
+        },
+        {
+          "name": "renew_session_passkey",
+          "executionWei": "606941568615",
+          "dataWei": "20881228199",
+          "operatorWei": "0",
+          "networkUsd": 0.0015103784152073123,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.019061416256728043
+        },
+        {
+          "name": "accept_renewed_session_and_build",
+          "executionWei": "337880294562",
+          "dataWei": "15610622795",
+          "operatorWei": "0",
+          "networkUsd": 0.0008504072395224291,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.01833544796347467
+        },
+        {
+          "name": "queue_build_waiting",
+          "executionWei": "275379112009",
+          "dataWei": "14009057617",
+          "operatorWei": "0",
+          "networkUsd": 0.0006961926951960532,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.01816581196471566
+        },
+        {
+          "name": "queue_build_settle_two_completed",
+          "executionWei": "383441549030",
+          "dataWei": "13863460783",
+          "operatorWei": "0",
+          "networkUsd": 0.0009558125543075265,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.01845139380973828
+        },
+        {
+          "name": "send_public_attack_5_rowdies",
+          "executionWei": "570371929946",
+          "dataWei": "14562325588",
+          "operatorWei": "0",
+          "networkUsd": 0.001407199735908365,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.0189479197094992
+        },
+        {
+          "name": "keeper_resolve_undefended_attack",
+          "executionWei": "575459409972",
+          "dataWei": "3481095860",
+          "operatorWei": "0",
+          "networkUsd": 0.0013927803325002755,
+          "serviceUsd": 0,
+          "totalUsd": 0.0013927803325002755
+        },
+        {
+          "name": "keeper_return_5_rowdies",
+          "executionWei": "226073768328",
+          "dataWei": "3481095860",
+          "operatorWei": "0",
+          "networkUsd": 0.000552249318971639,
+          "serviceUsd": 0,
+          "totalUsd": 0.000552249318971639
+        },
+        {
+          "name": "send_hidden_attack_tlock",
+          "executionWei": "596429510496",
+          "dataWei": "35877702138",
+          "operatorWei": "0",
+          "networkUsd": 0.001521166753722119,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.01907328342909433
+        },
+        {
+          "name": "keeper_reveal_arrived_hidden_attack",
+          "executionWei": "92384876178",
+          "dataWei": "3496966176",
+          "operatorWei": "0",
+          "networkUsd": 0.00023066678342471193,
+          "serviceUsd": 0,
+          "totalUsd": 0.00023066678342471193
+        },
+        {
+          "name": "keeper_resolve_revealed_attack",
+          "executionWei": "577237927370",
+          "dataWei": "3481095860",
+          "operatorWei": "0",
+          "networkUsd": 0.0013970589829453402,
+          "serviceUsd": 0,
+          "totalUsd": 0.0013970589829453402
+        },
+        {
+          "name": "keeper_return_hidden_attack",
+          "executionWei": "171556908537",
+          "dataWei": "3481095860",
+          "operatorWei": "0",
+          "networkUsd": 0.00042109592869803874,
+          "serviceUsd": 0,
+          "totalUsd": 0.00042109592869803874
+        },
+        {
+          "name": "send_typical_3v2_stacks",
+          "executionWei": "600308638994",
+          "dataWei": "14882638623",
+          "operatorWei": "0",
+          "networkUsd": 0.0014799902642143215,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.019027989290635754
+        },
+        {
+          "name": "keeper_resolve_typical_3v2_stacks",
+          "executionWei": "731960938668",
+          "dataWei": "3481095860",
+          "operatorWei": "0",
+          "networkUsd": 0.0017692823201453905,
+          "serviceUsd": 0,
+          "totalUsd": 0.0017692823201453905
+        },
+        {
+          "name": "send_heavy_16v21_stacks_5_rounds",
+          "executionWei": "746008025181",
+          "dataWei": "14562325588",
+          "operatorWei": "0",
+          "networkUsd": 0.001829734515659014,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.019412707967224913
+        },
+        {
+          "name": "keeper_resolve_heavy_16v21_stacks_5_rounds",
+          "executionWei": "1516316119625",
+          "dataWei": "3481095860",
+          "operatorWei": "0",
+          "networkUsd": 0.003656236953180884,
+          "serviceUsd": 0,
+          "totalUsd": 0.003656236953180884
+        },
+        {
+          "name": "player_build_drains_heavy_battle",
+          "executionWei": "2781430160711",
+          "dataWei": "13834341416",
+          "operatorWei": "0",
+          "networkUsd": 0.006724679623347008,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.024797147585681707
+        }
+      ],
+      "scenarios": {
+        "onboardingAndFirstBuild": {
+          "networkUsd": 0.004226447900652059,
+          "totalUsd": 0.039449092690717266
+        },
+        "simpleBuild": {
+          "networkUsd": 0.0006961926951960532,
+          "totalUsd": 0.01816581196471566
+        },
+        "hiddenMissionFullCycle": {
+          "networkUsd": 0.00356998844879021,
+          "totalUsd": 0.02112210512416242
+        },
+        "keeperHeavyBattle": {
+          "networkUsd": 0.003656236953180884,
+          "totalUsd": 0.003656236953180884
+        }
+      }
+    },
+    {
+      "chain": "Base",
+      "chainId": 8453,
+      "rpc": "https://mainnet.base.org",
+      "block": "52992564",
+      "timestamp": "1792774475",
+      "rpcGasPriceWei": "6000000",
+      "budgetGasPriceWei": "6000000",
+      "nativeUsd": 2405.74,
+      "operatorScalar": "0",
+      "operatorConstant": "0",
+      "isJovian": true,
+      "rows": [
+        {
+          "name": "create_account_passkey_publish_register_invite",
+          "executionWei": "7199244000000",
+          "dataWei": "24240036097",
+          "operatorWei": "0",
+          "networkUsd": 0.017377824484999995,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.03651560693349999
+        },
+        {
+          "name": "first_action_deploy_session_accept_build",
+          "executionWei": "3050544000000",
+          "dataWei": "13525988229",
+          "operatorWei": "0",
+          "networkUsd": 0.007371355733482034,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.025508491306830236
+        },
+        {
+          "name": "train_7_rowdies_settle_build",
+          "executionWei": "2194428000000",
+          "dataWei": "11058787440",
+          "operatorWei": "0",
+          "networkUsd": 0.005305827784015905,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.023236410562417494
+        },
+        {
+          "name": "settle_training",
+          "executionWei": "1730544000000",
+          "dataWei": "10876031826",
+          "operatorWei": "0",
+          "networkUsd": 0.0041894038273650805,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.022008344210101588
+        },
+        {
+          "name": "renew_session_passkey",
+          "executionWei": "3640590000000",
+          "dataWei": "16427233600",
+          "operatorWei": "0",
+          "networkUsd": 0.008797832639560863,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.027077615903516948
+        },
+        {
+          "name": "accept_renewed_session_and_build",
+          "executionWei": "2026692000000",
+          "dataWei": "12292387835",
+          "operatorWei": "0",
+          "networkUsd": 0.004905266301190173,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.022795792931309188
+        },
+        {
+          "name": "queue_build_waiting",
+          "executionWei": "1651794000000",
+          "dataWei": "11035942989",
+          "operatorWei": "0",
+          "networkUsd": 0.0040003365070463565,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.021800370157750992
+        },
+        {
+          "name": "queue_build_settle_two_completed",
+          "executionWei": "2299980000000",
+          "dataWei": "10921720730",
+          "operatorWei": "0",
+          "networkUsd": 0.00555942870562899,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.02351537157619189
+        },
+        {
+          "name": "send_public_attack_5_rowdies",
+          "executionWei": "3421236000000",
+          "dataWei": "11469987572",
+          "operatorWei": "0",
+          "networkUsd": 0.008258198102541463,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.02648401791279561
+        },
+        {
+          "name": "keeper_resolve_undefended_attack",
+          "executionWei": "3451752000000",
+          "dataWei": "2730956574",
+          "operatorWei": "0",
+          "networkUsd": 0.008310587827948334,
+          "serviceUsd": 0,
+          "totalUsd": 0.008310587827948334
+        },
+        {
+          "name": "keeper_return_5_rowdies",
+          "executionWei": "1356048000000",
+          "dataWei": "2730956574",
+          "operatorWei": "0",
+          "networkUsd": 0.0032688688869883346,
+          "serviceUsd": 0,
+          "totalUsd": 0.0032688688869883346
+        },
+        {
+          "name": "send_hidden_attack_tlock",
+          "executionWei": "3577536000000",
+          "dataWei": "28192126249",
+          "operatorWei": "0",
+          "networkUsd": 0.008674444382442269,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.026941888820686495
+        },
+        {
+          "name": "keeper_reveal_arrived_hidden_attack",
+          "executionWei": "554148000000",
+          "dataWei": "2789095908",
+          "operatorWei": "0",
+          "networkUsd": 0.0013398458491097117,
+          "serviceUsd": 0,
+          "totalUsd": 0.0013398458491097117
+        },
+        {
+          "name": "keeper_resolve_revealed_attack",
+          "executionWei": "3462420000000",
+          "dataWei": "2730956574",
+          "operatorWei": "0",
+          "networkUsd": 0.008336252262268334,
+          "serviceUsd": 0,
+          "totalUsd": 0.008336252262268334
+        },
+        {
+          "name": "keeper_return_hidden_attack",
+          "executionWei": "1029042000000",
+          "dataWei": "2730956574",
+          "operatorWei": "0",
+          "networkUsd": 0.0024821774725483346,
+          "serviceUsd": 0,
+          "totalUsd": 0.0024821774725483346
+        },
+        {
+          "name": "send_typical_3v2_stacks",
+          "executionWei": "3600804000000",
+          "dataWei": "11721276541",
+          "operatorWei": "0",
+          "networkUsd": 0.008690796558785744,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.026959876214664318
+        },
+        {
+          "name": "keeper_resolve_typical_3v2_stacks",
+          "executionWei": "4390488000000",
+          "dataWei": "2730956574",
+          "operatorWei": "0",
+          "networkUsd": 0.010568942572588334,
+          "serviceUsd": 0,
+          "totalUsd": 0.010568942572588334
+        },
+        {
+          "name": "send_heavy_16v21_stacks_5_rounds",
+          "executionWei": "4474746000000",
+          "dataWei": "11469987572",
+          "operatorWei": "0",
+          "networkUsd": 0.010792669249941461,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.029271936174935606
+        },
+        {
+          "name": "keeper_resolve_heavy_16v21_stacks_5_rounds",
+          "executionWei": "9095250000000",
+          "dataWei": "2730956574",
+          "operatorWei": "0",
+          "networkUsd": 0.021887376706468332,
+          "serviceUsd": 0,
+          "totalUsd": 0.021887376706468332
+        },
+        {
+          "name": "player_build_drains_heavy_battle",
+          "executionWei": "16683726000000",
+          "dataWei": "10898876278",
+          "operatorWei": "0",
+          "networkUsd": 0.040162926849857034,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.06157921953484274
+        }
+      ],
+      "scenarios": {
+        "onboardingAndFirstBuild": {
+          "networkUsd": 0.02474918021848203,
+          "totalUsd": 0.06202409824033023
+        },
+        "simpleBuild": {
+          "networkUsd": 0.0040003365070463565,
+          "totalUsd": 0.021800370157750992
+        },
+        "hiddenMissionFullCycle": {
+          "networkUsd": 0.02083271996636865,
+          "totalUsd": 0.03910016440461288
+        },
+        "keeperHeavyBattle": {
+          "networkUsd": 0.021887376706468332,
+          "totalUsd": 0.021887376706468332
+        }
+      }
+    },
+    {
+      "chain": "Gnosis",
+      "chainId": 100,
+      "rpc": "https://rpc.gnosischain.com",
+      "block": "48904433",
+      "timestamp": "1792774475",
+      "rpcGasPriceWei": "15",
+      "budgetGasPriceWei": "1500000000",
+      "nativeUsd": 1,
+      "operatorScalar": "0",
+      "operatorConstant": "0",
+      "isJovian": false,
+      "rows": [
+        {
+          "name": "create_account_passkey_publish_register_invite",
+          "executionWei": "1799811000000000",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.001799811,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.019379792099999998
+        },
+        {
+          "name": "first_action_deploy_session_accept_build",
+          "executionWei": "762636000000000",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.000762636,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.0182388996
+        },
+        {
+          "name": "train_7_rowdies_settle_build",
+          "executionWei": "548607000000000",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.000548607,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.018003467699999998
+        },
+        {
+          "name": "settle_training",
+          "executionWei": "432636000000000",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.000432636,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.017875899599999998
+        },
+        {
+          "name": "renew_session_passkey",
+          "executionWei": "910147500000000",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.0009101475,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.01840116225
+        },
+        {
+          "name": "accept_renewed_session_and_build",
+          "executionWei": "506673000000000",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.000506673,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.0179573403
+        },
+        {
+          "name": "queue_build_waiting",
+          "executionWei": "412948500000000",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.0004129485,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.01785424335
+        },
+        {
+          "name": "queue_build_settle_two_completed",
+          "executionWei": "574995000000000",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.000574995,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.0180324945
+        },
+        {
+          "name": "send_public_attack_5_rowdies",
+          "executionWei": "855309000000000",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.000855309,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.0183408399
+        },
+        {
+          "name": "keeper_resolve_undefended_attack",
+          "executionWei": "862938000000000",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.000862938,
+          "serviceUsd": 0,
+          "totalUsd": 0.000862938
+        },
+        {
+          "name": "keeper_return_5_rowdies",
+          "executionWei": "339012000000000",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.000339012,
+          "serviceUsd": 0,
+          "totalUsd": 0.000339012
+        },
+        {
+          "name": "send_hidden_attack_tlock",
+          "executionWei": "894384000000000",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.000894384,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.0183838224
+        },
+        {
+          "name": "keeper_reveal_arrived_hidden_attack",
+          "executionWei": "138537000000000",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.000138537,
+          "serviceUsd": 0,
+          "totalUsd": 0.000138537
+        },
+        {
+          "name": "keeper_resolve_revealed_attack",
+          "executionWei": "865605000000000",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.000865605,
+          "serviceUsd": 0,
+          "totalUsd": 0.000865605
+        },
+        {
+          "name": "keeper_return_hidden_attack",
+          "executionWei": "257260500000000",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.0002572605,
+          "serviceUsd": 0,
+          "totalUsd": 0.0002572605
+        },
+        {
+          "name": "send_typical_3v2_stacks",
+          "executionWei": "900201000000000",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.000900201,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.0183902211
+        },
+        {
+          "name": "keeper_resolve_typical_3v2_stacks",
+          "executionWei": "1097622000000000",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.001097622,
+          "serviceUsd": 0,
+          "totalUsd": 0.001097622
+        },
+        {
+          "name": "send_heavy_16v21_stacks_5_rounds",
+          "executionWei": "1118686500000000",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.0011186865,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.01863055515
+        },
+        {
+          "name": "keeper_resolve_heavy_16v21_stacks_5_rounds",
+          "executionWei": "2273812500000000",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.0022738125,
+          "serviceUsd": 0,
+          "totalUsd": 0.0022738125
+        },
+        {
+          "name": "player_build_drains_heavy_battle",
+          "executionWei": "4170931500000000",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.0041709315,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.02198802465
+        }
+      ],
+      "scenarios": {
+        "onboardingAndFirstBuild": {
+          "networkUsd": 0.002562447,
+          "totalUsd": 0.0376186917
+        },
+        "simpleBuild": {
+          "networkUsd": 0.0004129485,
+          "totalUsd": 0.01785424335
+        },
+        "hiddenMissionFullCycle": {
+          "networkUsd": 0.0021557865,
+          "totalUsd": 0.019645224899999997
+        },
+        "keeperHeavyBattle": {
+          "networkUsd": 0.0022738125,
+          "totalUsd": 0.0022738125
+        }
+      }
+    },
+    {
+      "chain": "Polygon",
+      "chainId": 137,
+      "rpc": "https://polygon-bor-rpc.publicnode.com",
+      "block": "96046070",
+      "timestamp": "1792774476",
+      "rpcGasPriceWei": "266810935995",
+      "budgetGasPriceWei": "266810935995",
+      "nativeUsd": 0.091503,
+      "operatorScalar": "0",
+      "operatorConstant": "0",
+      "isJovian": false,
+      "rows": [
+        {
+          "name": "create_account_passkey_publish_register_invite",
+          "executionWei": "320139505016064630",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.029293725127484963,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.04962309764023346
+        },
+        {
+          "name": "first_action_deploy_session_accept_build",
+          "executionWei": "135653083322321880",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.01241266408324242,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.031053930491566663
+        },
+        {
+          "name": "train_7_rowdies_settle_build",
+          "executionWei": "97582898108939310",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.008929127925662275,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.0272220407182285
+        },
+        {
+          "name": "settle_training",
+          "executionWei": "76954677403421880",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.007041583846445314,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.025145742231089844
+        },
+        {
+          "name": "renew_session_passkey",
+          "executionWei": "161891537579006175",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.014813561363091803,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.033694917499400984
+        },
+        {
+          "name": "accept_renewed_session_and_build",
+          "executionWei": "90123931582263090",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.00824661011157182,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.026471271122728998
+        },
+        {
+          "name": "queue_build_waiting",
+          "executionWei": "73452783868487505",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.006721150082318212,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.02479326509055003
+        },
+        {
+          "name": "queue_build_settle_two_completed",
+          "executionWei": "102276636094963350",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.009358619032597432,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.027694480935857177
+        },
+        {
+          "name": "send_public_attack_5_rowdies",
+          "executionWei": "152137196569964970",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.013921009897741504,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.032713110887515655
+        },
+        {
+          "name": "keeper_resolve_undefended_attack",
+          "executionWei": "153494196990435540",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.014045179507215823,
+          "serviceUsd": 0,
+          "totalUsd": 0.014045179507215823
+        },
+        {
+          "name": "keeper_return_5_rowdies",
+          "executionWei": "60301406022357960",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.00551775955526382,
+          "serviceUsd": 0,
+          "totalUsd": 0.00551775955526382
+        },
+        {
+          "name": "send_hidden_attack_tlock",
+          "executionWei": "159087621452634720",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.014556994625780435,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.03341269408835848
+        },
+        {
+          "name": "keeper_reveal_arrived_hidden_attack",
+          "executionWei": "24642124426626210",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.0022548283114095778,
+          "serviceUsd": 0,
+          "totalUsd": 0.0022548283114095778
+        },
+        {
+          "name": "keeper_resolve_revealed_attack",
+          "executionWei": "153968586834634650",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.014088587601129575,
+          "serviceUsd": 0,
+          "totalUsd": 0.014088587601129575
+        },
+        {
+          "name": "keeper_return_hidden_attack",
+          "executionWei": "45759943199694465",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.004187172082601643,
+          "serviceUsd": 0,
+          "totalUsd": 0.004187172082601643
+        },
+        {
+          "name": "send_typical_3v2_stacks",
+          "executionWei": "160122314262423330",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.014651672121954522,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.03351683933414998
+        },
+        {
+          "name": "keeper_resolve_typical_3v2_stacks",
+          "executionWei": "195238368792469260",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.017864896459617315,
+          "serviceUsd": 0,
+          "totalUsd": 0.017864896459617315
+        },
+        {
+          "name": "send_heavy_16v21_stacks_5_rounds",
+          "executionWei": "198985194766647045",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.018207742276732504,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.037428516504405755
+        },
+        {
+          "name": "keeper_resolve_heavy_16v21_stacks_5_rounds",
+          "executionWei": "404452027601420625",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.03700857388161279,
+          "serviceUsd": 0,
+          "totalUsd": 0.03700857388161279
+        },
+        {
+          "name": "player_build_drains_heavy_battle",
+          "executionWei": "741900091657352895",
+          "dataWei": "0",
+          "operatorWei": "0",
+          "networkUsd": 0.06788608408692276,
+          "serviceUsd": 0.0174,
+          "totalUsd": 0.09207469249561503
+        }
+      ],
+      "scenarios": {
+        "onboardingAndFirstBuild": {
+          "networkUsd": 0.04170638921072738,
+          "totalUsd": 0.08067702813180012
+        },
+        "simpleBuild": {
+          "networkUsd": 0.006721150082318212,
+          "totalUsd": 0.02479326509055003
+        },
+        "hiddenMissionFullCycle": {
+          "networkUsd": 0.03508758262092123,
+          "totalUsd": 0.05394328208349928
+        },
+        "keeperHeavyBattle": {
+          "networkUsd": 0.03700857388161279,
+          "totalUsd": 0.03700857388161279
+        }
+      }
+    }
+  ]
+}

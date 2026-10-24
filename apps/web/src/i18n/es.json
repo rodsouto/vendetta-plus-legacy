@@ -45,7 +45,9 @@
     "title": "Sin conexión con la ciudad",
     "noLocal": "No encuentro el despliegue local. Corré «pnpm dev:local» en la raíz del repositorio y recargá.",
     "notDeployed": "El juego todavía no está publicado en esta red.",
-    "noPimlicoKey": "Falta la clave del servicio que paga las operaciones (VITE_PIMLICO_API_KEY)."
+    "noPimlicoKey": "Falta la clave del servicio que paga las operaciones (VITE_PIMLICO_API_KEY).",
+    "invalidDeployment": "La configuración de la ciudad no es válida.",
+    "noPrivateReveal": "La ciudad todavía no está lista para recibir jugadores."
   },
   "register": {
     "title": "Abrir una cuenta",

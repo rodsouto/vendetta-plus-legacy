@@ -1,5 +1,5 @@
 // Local ERC-4337 stack for passkey accounts (4b.3): a plain anvil with the account contracts of
-// Arbitrum One installed at their real addresses (EntryPoint 0.7, Kernel v3.1 and its WebAuthn
+// Gnosis Chain installed at their real addresses (EntryPoint 0.7, Kernel v3.1 and its WebAuthn
 // validator, the P-256 verifier, SimpleAccount; snapshot in aa-contracts.json, see aa-fixture.ts),
 // the Game deployed, the Alto bundler and Pimlico's mock paymaster (sponsors everything), and the
 // keeper (B-08, B-22). Then the web app, pointed at it. No fork: public RPCs drop old state within minutes, and this way it runs
@@ -28,6 +28,8 @@ const { values } = parseArgs({
     base: { type: "string", default: "8545" },
     vite: { type: "string", default: "5173" },
     public: { type: "boolean", default: false },
+    "no-keeper": { type: "boolean", default: false },
+    "deployment-file": { type: "string" },
   },
 });
 const base = Number(values.base);
@@ -101,6 +103,9 @@ for (const c of fixture.contracts) {
     await anvil("anvil_setStorageAt", [c.address, slot, value]);
 }
 
+const broadcastRoot = values["deployment-file"]
+  ? join(dirname(values["deployment-file"]), "broadcast")
+  : join(contracts, "broadcast");
 execFileSync(
   "forge",
   [
@@ -112,11 +117,11 @@ execFileSync(
     DEV_KEYS[0],
     "--broadcast",
   ],
-  { cwd: contracts, stdio: "ignore" },
+  { cwd: contracts, stdio: "ignore", env: { ...process.env, FOUNDRY_BROADCAST: broadcastRoot } },
 );
 const chainId = await client.getChainId();
 const broadcast = JSON.parse(
-  readFileSync(join(contracts, `broadcast/Deploy.s.sol/${chainId}/run-latest.json`), "utf8"),
+  readFileSync(join(broadcastRoot, `Deploy.s.sol/${chainId}/run-latest.json`), "utf8"),
 ) as { transactions: { contractName: string; contractAddress: `0x${string}` }[] };
 const deployed = (name: string) =>
   broadcast.transactions.find((t) => t.contractName === name)!.contractAddress;
@@ -166,13 +171,16 @@ console.log(`bundler ${bundlerRpc}, paymaster ${paymasterRpc}`);
 
 // No indexer on this stack: the reports come from the logs, whatever the root .env names.
 const env: NodeJS.ProcessEnv = { VITE_INDEXER_URL: "" };
-const file = values.public
-  ? join(web, "public/deployment.local.json")
-  : join(mkdtempSync(join(tmpdir(), "vendetta-aa-")), "deployment.json");
+const file =
+  values["deployment-file"] ??
+  (values.public
+    ? join(web, "public/deployment.local.json")
+    : join(mkdtempSync(join(tmpdir(), "vendetta-aa-")), "deployment.json"));
 writeFileSync(file, JSON.stringify(deployment, null, 2));
 if (!values.public) env.VITE_DEPLOYMENT = JSON.stringify(deployment);
 // The keeper reveals hidden missions and catches up the mission queue, as on a real deployment.
-run(join(web, "node_modules/.bin/tsx"), ["scripts/keeper.ts", file, "local"], {
-  KEEPER_PRIVATE_KEY: KEEPER_KEY,
-});
+if (!values["no-keeper"])
+  run(join(web, "node_modules/.bin/tsx"), ["scripts/keeper.ts", file, "local"], {
+    KEEPER_PRIVATE_KEY: KEEPER_KEY,
+  });
 run(join(web, "node_modules/.bin/vite"), ["--port", values.vite!, "--strictPort"], env, false);

@@ -32,9 +32,9 @@ export const indexerUrl = (): string | undefined =>
 /** Reports the subgraph returns per query, newest first. */
 const PAGE = 100;
 
-// Public RPCs cap the range of a log query (Arbitrum One's: 10M blocks, about a month). Without the
-// indexer only the recent reports are shown (5M blocks, about two weeks on Arbitrum).
-const LOG_WINDOW = 5_000_000n;
+// About two weeks at Gnosis's five-second slots. Bound each query for public RPCs.
+const LOG_WINDOW = 241_920n;
+const LOG_CHUNK = 5_000n;
 
 /** The latest battles, newest first: those of `player`, or everyone's without one. */
 export async function readReports(
@@ -111,31 +111,40 @@ async function fromLogs(
 ): Promise<Report[]> {
   const latest = await client.getBlockNumber({ cacheTime: 0 });
   const start = BigInt(fromBlock);
+  const lower = latest - start > LOG_WINDOW ? latest - LOG_WINDOW : start;
   const range = {
     address: game,
     abi: gameAbi,
     eventName: "Battle",
-    fromBlock: latest - start > LOG_WINDOW ? latest - LOG_WINDOW : start,
-    toBlock: latest,
   };
-  // attacker and defender are indexed: one query per side, then merged.
-  const queries =
-    player === null
-      ? [client.getContractEvents(range as never)]
-      : [
-          client.getContractEvents({ ...range, args: { attacker: player } } as never),
-          client.getContractEvents({ ...range, args: { defender: player } } as never),
-        ];
-  const logs = (await Promise.all(queries)).flat() as unknown as {
+  type Log = {
     args: { attacker: bigint; defender: bigint; building: bigint; report: BattleReport };
     blockNumber: bigint;
     logIndex: number;
-  }[];
-  const seen = new Map<string, (typeof logs)[number]>();
-  for (const log of logs) seen.set(`${log.blockNumber}-${log.logIndex}`, log);
+  };
+  const seen = new Map<string, Log>();
+  // Scan newest first and finish after a whole chunk, so the latest PAGE reports stay ordered.
+  for (let to = latest; to >= lower;) {
+    const from = to - lower + 1n > LOG_CHUNK ? to - LOG_CHUNK + 1n : lower;
+    const chunk = { ...range, fromBlock: from, toBlock: to };
+    const queries =
+      player === null
+        ? [client.getContractEvents(chunk as never)]
+        : [
+            client.getContractEvents({ ...chunk, args: { attacker: player } } as never),
+            client.getContractEvents({ ...chunk, args: { defender: player } } as never),
+          ];
+    const logs = (await Promise.all(queries)).flat() as unknown as Log[];
+    for (const log of logs) seen.set(`${log.blockNumber}-${log.logIndex}`, log);
+    if (seen.size >= PAGE || from === lower) break;
+    to = from - 1n;
+  }
+  const newest = [...seen.entries()]
+    .sort(([, a], [, b]) => Number(b.blockNumber - a.blockNumber) || b.logIndex - a.logIndex)
+    .slice(0, PAGE);
   const times = new Map<bigint, bigint>();
   const out: Report[] = [];
-  for (const [key, log] of seen) {
+  for (const [key, log] of newest) {
     let time = times.get(log.blockNumber);
     if (time === undefined) {
       time = (await client.getBlock({ blockNumber: log.blockNumber })).timestamp;
