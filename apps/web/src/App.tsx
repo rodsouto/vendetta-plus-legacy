@@ -5,6 +5,7 @@ import { GameProvider, useNetwork, useGame } from "./state/game.js";
 import { makeClients } from "./chain/config.js";
 import { useRoute } from "./router.js";
 import { Toasts } from "./ui/parts.js";
+import { GameGuide } from "./ui/Guide.js";
 import { Book } from "./pages/Book.js";
 import { MapPage } from "./pages/MapPage.js";
 import { Missions } from "./pages/Missions.js";
@@ -139,6 +140,7 @@ function Game() {
         )}
       </Spine>
       <main className="page" id="page">
+        <GameGuide />
         <Page key={`${path}-${g.address ?? ""}`} />
       </main>
       <nav className="thumb-index" aria-label="Índice">

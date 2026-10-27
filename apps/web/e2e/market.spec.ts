@@ -29,7 +29,10 @@ async function register(page: Page, slot: number) {
 test("offer, accept with a deposit, pay by transport and withdraw", async ({ page }) => {
   test.setTimeout(180_000);
   page.on("pageerror", (e) => console.log(`[pageerror] ${e.stack ?? e.message}`));
-  await page.addInitScript(() => localStorage.setItem("lang", "es"));
+  await page.addInitScript(() => {
+    localStorage.setItem("lang", "es");
+    localStorage.setItem("vendetta.guide.seen.v1", "1");
+  });
   const slot = 160;
   await as(page, 5);
   await register(page, slot);

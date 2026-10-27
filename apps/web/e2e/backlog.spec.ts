@@ -38,7 +38,10 @@ test("an action retries with advance() when missions piled up", async ({ page })
     if (m.type() === "warning" || m.type() === "error") console.log(`[browser] ${m.text()}`);
   });
   page.on("pageerror", (e) => console.log(`[pageerror] ${e.stack ?? e.message}`));
-  await page.addInitScript(() => localStorage.setItem("lang", "es"));
+  await page.addInitScript(() => {
+    localStorage.setItem("lang", "es");
+    localStorage.setItem("vendetta.guide.seen.v1", "1");
+  });
   // Above MAX_MISSIONS_PER_TX (4), so drain() alone cannot catch up.
   const missions = 11;
   const slot = 120;

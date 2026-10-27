@@ -388,7 +388,9 @@ h3 .aside {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: background 0.15s var(--ease-out), color 0.15s var(--ease-out);
+  transition:
+    background 0.15s var(--ease-out),
+    color 0.15s var(--ease-out);
 }
 .btn:hover:not(:disabled) {
   background: var(--ink);
@@ -912,4 +914,164 @@ details.locked li {
 .join-link {
   font-size: 0.8rem;
   overflow-wrap: anywhere;
+}
+
+/* Optional first-visit help and the read-only expansion recommendations. */
+.guide-tools,
+.guide-dialog-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
+}
+.guide-tools {
+  margin-bottom: 1rem;
+}
+.guide-dialog {
+  color: var(--ink);
+  background: var(--page);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  padding: 0;
+  width: min(42rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  overflow: hidden;
+  box-shadow: none;
+}
+.guide-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+.guide-dialog::backdrop {
+  background: rgb(0 0 0 / 65%);
+}
+body:has(.guide-dialog[open]) {
+  overflow: hidden;
+}
+.guide-dialog h2 {
+  margin: 0;
+}
+.guide-topics {
+  display: grid;
+  gap: 1rem;
+}
+.guide-topics dt {
+  font-weight: 700;
+}
+.guide-topics dd {
+  margin: 0.25rem 0 0;
+  color: var(--ink-2);
+}
+.guide-recommendation {
+  margin-block: 1.5rem;
+}
+.guide-steps {
+  padding-left: 1.5rem;
+}
+.guide-steps li {
+  padding: 0.3rem 0;
+}
+.guide-steps [aria-current="step"] {
+  font-weight: 700;
+}
+.guide-next {
+  border-bottom: 1px solid var(--rule);
+  padding-block: 0.75rem;
+}
+.guide-next p {
+  margin-block: 0.4rem;
+}
+.guide-next .inline-list {
+  margin-block: 0.35rem;
+}
+.guide-next .btn {
+  margin-top: 0.75rem;
+}
+tr[id]:focus {
+  outline: 2px solid var(--blue);
+  outline-offset: -2px;
+}
+
+.guide-recommendation h3 {
+  margin-top: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.guide-path {
+  margin: 1rem 0;
+}
+.guide-path summary {
+  cursor: pointer;
+  color: var(--blue);
+}
+
+.guide-dialog-head,
+.guide-dialog-footer {
+  padding: 1rem 1.25rem;
+  flex-shrink: 0;
+}
+.guide-dialog-head {
+  border-bottom: 1px solid var(--rule-strong);
+}
+.guide-dialog-body {
+  padding: 0 1.25rem;
+  overflow-y: auto;
+  min-height: 0;
+  overscroll-behavior: contain;
+}
+.guide-dialog-footer {
+  border-top: 3px double var(--rule-strong);
+}
+.guide-dialog-footer .btn {
+  width: 100%;
+  min-height: 2.75rem;
+}
+.guide-dialog-head .btn {
+  min-height: 2.75rem;
+}
+.guide-basics {
+  padding-left: 1.4rem;
+}
+.guide-basics li {
+  padding-left: 0.35rem;
+  margin-block: 1rem;
+}
+.guide-basics li::marker {
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.guide-basics p {
+  margin-block: 0.25rem 0;
+}
+.guide-reference {
+  border-top: 1px solid var(--rule);
+  padding-top: 0.75rem;
+}
+.guide-reference summary,
+.guide-reason summary {
+  cursor: pointer;
+  color: var(--blue);
+}
+.guide-reference summary,
+.guide-path summary,
+.guide-reason summary {
+  padding-block: 0.5rem;
+}
+.guide-phase {
+  color: var(--ink-2);
+  font-size: 0.875rem;
+  margin-block: 0.5rem;
+}
+.guide-timing {
+  color: var(--blue);
+}
+.guide-reason {
+  margin-top: 0.5rem;
+}
+.guide-recommendation .btn {
+  min-height: 2.75rem;
 }

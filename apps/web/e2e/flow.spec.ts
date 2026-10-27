@@ -29,7 +29,10 @@ test("register, build, train, attack and read the report", async ({ page }) => {
   page.on("request", (r) => {
     if (/permissionless|\/ox[./]|uqr/.test(r.url())) passkeyStack.push(r.url());
   });
-  await page.addInitScript(() => localStorage.setItem("lang", "es"));
+  await page.addInitScript(() => {
+    localStorage.setItem("lang", "es");
+    localStorage.setItem("vendetta.guide.seen.v1", "1");
+  });
   const slotA = 100;
   await page.goto("/#/dev");
   await page.getByRole("button", { name: "Premium global 30 días" }).click();

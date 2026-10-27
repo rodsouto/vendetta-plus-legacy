@@ -8,7 +8,10 @@ const stamp = (page: Page) => page.locator(".stamp-toast").last();
 
 async function device(context: BrowserContext) {
   const page = await context.newPage();
-  await page.addInitScript(() => localStorage.setItem("lang", "es"));
+  await page.addInitScript(() => {
+    localStorage.setItem("lang", "es");
+    localStorage.setItem("vendetta.guide.seen.v1", "1");
+  });
   page.on("dialog", (d) => void d.accept());
   const cdp = await context.newCDPSession(page);
   await cdp.send("WebAuthn.enable");

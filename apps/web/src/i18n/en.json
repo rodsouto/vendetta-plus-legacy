@@ -435,5 +435,93 @@
   },
   "recovery": {
     "done": "Account recovered"
+  },
+  "guide": {
+    "help": "How to play",
+    "show": "Show recommendations",
+    "hide": "Hide recommendations",
+    "close": "Close",
+    "welcome": "Your first business",
+    "intro": "Build, produce, recruit and expand your territory. Here are the basics to get started.",
+    "office": "Upgrade the Boss Office to reduce room construction times in that building.",
+    "school": "The Mob School enables research. Higher levels shorten research times in that building.",
+    "camp": "The camp lets you recruit troops. Upgrade it to shorten training times in that building.",
+    "resourcesTitle": "Production and storage",
+    "resources": "Production rooms generate resources over time. Upgrade storage rooms to increase capacity: when storage is full, you stop accumulating that resource.",
+    "alcohol": "The brewery produces alcohol. The bar consumes it to generate dollars; without enough alcohol, income drops or stops. Upgrade the brewery to keep it supplied.",
+    "expansion": "An occupation troop lets you occupy an empty lot and is usually sent alone, without a combat escort. One unit is consumed on success. You can then send resource transports to develop the new building.",
+    "optional": "Play your own way. These steps are optional, and you can reopen this guide from “How to play”.",
+    "start": "Start playing",
+    "nextBuilding": "Your next building",
+    "recommendation": "A suggested path to expand from {{coord}}. Keep playing your own way; the steps reflect your current progress.",
+    "complete": "You already own more than one building. You can keep expanding with more occupation troops.",
+    "occupy": "Occupy an empty lot",
+    "done": "Complete",
+    "pending": "In progress",
+    "waiting": "In progress: {{name}}",
+    "next": "Next recommendation: {{name}}",
+    "cost": "Cost of the next upgrade or unit:",
+    "researchElsewhere": "You have research in another building. You can finish it there before continuing here.",
+    "capacity": "The {{resource}} cost exceeds your capacity. Next step toward more storage:",
+    "short": "You need {{amount}} more {{resource}}. Wait for production or upgrade its production room:",
+    "chooseLot": "Choose an empty lot on the map and send one occupation troop alone. Check the salary and travel time. To supply the new building, send a separate resource transport afterward: it must arrive once the lot has been occupied.",
+    "travel": "Your expedition is on its way. Occupation succeeds if the lot is still empty on arrival.",
+    "follow": "View missions",
+    "map": "Choose a lot on the map",
+    "go": "View in my building",
+    "path": "View the full path",
+    "phases": {
+      "0": {
+        "title": "A productive start",
+        "why": "Prioritize ammunition and upgrade the office to 2 to speed up early construction without spending too much on it."
+      },
+      "1": {
+        "title": "Invest in production",
+        "why": "Raise ammunition production to 12 first; then open the bar and strengthen weapons production."
+      },
+      "2": {
+        "title": "Production and capacity",
+        "why": "Work toward ammunition 14 and weapons 9. Build storage rooms and the safe at level 1 to afford large upgrades and the occupation troop."
+      },
+      "3": {
+        "title": "Income for expansion",
+        "why": "Brewery 8 and office 5 unlock Smuggle. Upgrade it to 2 and weapons production to 10 before focusing on expansion."
+      },
+      "4": {
+        "title": "Prepare for occupation",
+        "why": "Once your economy is established, build the school at level 1. Research Routing to 5 while upgrading the camp to 2 to shorten troop training."
+      },
+      "5": {
+        "title": "Your first expansion",
+        "why": "Gather 20,000 weapons, 10,000 ammunition and 20,000 dollars. Train one occupation troop and send it alone to an empty lot. You can then supply the new building with resource transports."
+      }
+    },
+    "parallel": "In parallel: use the other queue.",
+    "upgradeCost": "Cost of the next upgrade, to level {{level}}:",
+    "shortWait": "You need {{amount}} more {{resource}}. Your current production will accumulate it; you do not need to exceed the recommended levels for this goal.",
+    "queued": "Queued",
+    "queuedAction": "Queued: {{name}}",
+    "smuggle": "Smuggle also consumes alcohol to generate dollars, more efficiently than the bar. To unlock it you need {{requirements}}. Upgrade the brewery to supply both and maintain your income.",
+    "raiding": "You can change this order to raid: build the training camp earlier and recruit some rowdies and transport units to attack other players and bring back their resources. Raiding can greatly accelerate early growth; results depend on the targets you find and combat losses.",
+    "learnMore": "Rooms, economy and expansion",
+    "why": "Why this step · requirements",
+    "finishesIn": "Current job finishes in",
+    "queueWait": "Waiting for earlier jobs in this queue.",
+    "goTo": "View {{name}} in my building",
+    "progress": "Phase {{phase}} of {{total}} · {{done}}/{{count}} milestones complete",
+    "basics": {
+      "build": {
+        "title": "Build your economy",
+        "body": "Start with ammunition production. Follow the recommendation in your building to find the next room upgrade."
+      },
+      "produce": {
+        "title": "Keep resources flowing",
+        "body": "Resources accumulate over time. Increase storage before it fills up, or production will stop accumulating."
+      },
+      "return": {
+        "title": "Queue work, then come back",
+        "body": "Room upgrades take time. Check the balance and upcoming entries when you return; research and troops come as you grow."
+      }
+    }
   }
 }

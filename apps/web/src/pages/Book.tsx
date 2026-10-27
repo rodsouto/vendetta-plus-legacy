@@ -1,5 +1,5 @@
 // The account page of one building: balance, next entries, rooms, research and troops.
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { distance, productionRates, sim, troopStats, vendetta as rs } from "@vendetta/rules";
 import { useGame } from "../state/game.js";
@@ -18,11 +18,25 @@ import {
   troopName,
   whole,
 } from "../ui/format.js";
+import { useRoute } from "../router.js";
+import { BuildingGuide } from "../ui/Guide.js";
 import { Register } from "./Register.js";
 
 export function Book() {
   const g = useGame();
   const { t } = useTranslation();
+  const { params } = useRoute();
+  const focus = params.get("focus");
+  useEffect(() => {
+    if (!focus || !/^(room|research|troop)-\d+$/.test(focus)) return;
+    const target =
+      document.getElementById(focus) ??
+      document.getElementById(
+        focus.startsWith("room-") ? "rooms" : focus.startsWith("research-") ? "research" : "troops",
+      );
+    target?.scrollIntoView({ block: "center" });
+    target?.focus({ preventScroll: true });
+  }, [focus, g.building?.id]);
   if (!g.me || !g.building) return <Register />;
   const b = g.building;
   return (
@@ -49,6 +63,7 @@ export function Book() {
       </header>
       <Balance b={b} />
       <NextEntries b={b} />
+      <BuildingGuide />
       {b.levels[rs.roles.researchSpeedRoom]! >= 1n ? (
         <div className="cols two">
           <Rooms b={b} />
@@ -260,7 +275,7 @@ function Rooms({ b }: { b: sim.Building }) {
   const p = g.me!;
   return (
     <section aria-labelledby="rooms">
-      <h3 id="rooms">
+      <h3 id="rooms" tabIndex={-1}>
         {t("book.rooms")}
         <span className="aside">
           {t("common.queue")}: {b.roomQueue.length}/
@@ -315,7 +330,7 @@ function Rooms({ b }: { b: sim.Building }) {
                 const job = sim.roomJob(g.world, b, room.index);
                 const missing = unmet(g.world, p, b, room.requirements);
                 return (
-                  <tr key={room.id}>
+                  <tr key={room.id} id={`room-${room.index}`} tabIndex={-1}>
                     <td className="c-name">
                       <span className="entry-name">{roomName(room.index)}</span>
                       <Requirements list={missing} />
@@ -368,7 +383,7 @@ function Research({ b }: { b: sim.Building }) {
   const elsewhere = p.researchBuilding !== 0n && p.researchBuilding !== b.id;
   return (
     <section aria-labelledby="research">
-      <h3 id="research">
+      <h3 id="research" tabIndex={-1}>
         {t("book.research")}
         <span className="aside">
           {t("common.queue")}: {elsewhere ? 0 : p.researchQueue.length}/
@@ -430,7 +445,7 @@ function Research({ b }: { b: sim.Building }) {
                     const job = sim.researchJob(g.world, p, b, r.index);
                     const missing = unmet(g.world, p, b, r.requirements);
                     return (
-                      <tr key={r.id}>
+                      <tr key={r.id} id={`research-${r.index}`} tabIndex={-1}>
                         <td className="c-name">
                           <span className="entry-name">{researchName(r.index)}</span>
                           <Requirements list={missing} />
@@ -484,7 +499,9 @@ function Troops({ b }: { b: sim.Building }) {
   const [qty, setQty] = useState<Record<number, string>>({});
   return (
     <section aria-labelledby="troops">
-      <h3 id="troops">{t("book.troops")}</h3>
+      <h3 id="troops" tabIndex={-1}>
+        {t("book.troops")}
+      </h3>
       {b.training.map((q, queue) =>
         q.length === 0 ? null : (
           <ul className="entries" key={queue}>
@@ -544,7 +561,7 @@ function Troops({ b }: { b: sim.Building }) {
                 const roomLevel = b.levels[tr.trainedAt]!;
                 const n = BigInt(Math.max(0, Math.floor(Number(qty[tr.index] ?? "1")) || 0));
                 return (
-                  <tr key={tr.id}>
+                  <tr key={tr.id} id={`troop-${tr.index}`} tabIndex={-1}>
                     <td className="c-name">
                       <span className="entry-name">{troopName(tr.index)}</span>
                       {roomLevel < 1n ? (

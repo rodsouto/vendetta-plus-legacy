@@ -31,7 +31,10 @@ test("create an account with a passkey, play without prompts, sign in on another
   browser,
 }) => {
   const a = await device(await browser.newContext());
-  await a.page.addInitScript(() => localStorage.setItem("lang", "es"));
+  await a.page.addInitScript(() => {
+    localStorage.setItem("lang", "es");
+    localStorage.setItem("vendetta.guide.seen.v1", "1");
+  });
 
   // Device A: entry screen → pick a lot → create the account (passkey + one operation).
   // The entry screen does not download the passkey stack: it loads on the first passkey.
@@ -75,7 +78,10 @@ test("create an account with a passkey, play without prompts, sign in on another
   // Device B holds the same passkey (synced), but no account and no session yet.
   const [synced] = await a.credentials();
   const b = await device(await browser.newContext());
-  await b.page.addInitScript(() => localStorage.setItem("lang", "es"));
+  await b.page.addInitScript(() => {
+    localStorage.setItem("lang", "es");
+    localStorage.setItem("vendetta.guide.seen.v1", "1");
+  });
   await b.cdp.send("WebAuthn.addCredential", {
     authenticatorId: b.authenticatorId,
     credential: synced!,

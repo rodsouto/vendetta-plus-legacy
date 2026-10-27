@@ -30,7 +30,10 @@ async function ensureRegistered(page: Page, slot: number) {
 test("the ranking rises without the player acting: the projection settles finished queues", async ({
   page,
 }) => {
-  await page.addInitScript(() => localStorage.setItem("lang", "es"));
+  await page.addInitScript(() => {
+    localStorage.setItem("lang", "es");
+    localStorage.setItem("vendetta.guide.seen.v1", "1");
+  });
   await asAdmin(page);
   await ensureRegistered(page, 140);
   await page.goto("/#/book");
