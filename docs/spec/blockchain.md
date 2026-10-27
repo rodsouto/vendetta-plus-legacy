@@ -504,6 +504,12 @@ against the same vectors. It shows the projected result of an action immediately
 when the transaction confirms. This is possible because the simulation is deterministic (D-08) and
 has no randomness (B-12).
 
+**Combat forecast.** Before an attack is sent, the client shows the battle it would fight: it sends
+the attack on a copy of the projected world, with the arrival it will take (B-22), and runs the copy
+to that arrival (`sim.forecastAttack`). Production, queues, research and every known mission that
+resolves first are counted; hidden missions the client cannot reveal and actions taken after the
+send are not, so it is a forecast, not a promise. It changes no rule and has no contract counterpart.
+
 ## B-21 — Parity tests — New
 
 - Contracts are tested with **Foundry** against [data/test_vectors.yaml](data/test_vectors.yaml) and

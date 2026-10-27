@@ -985,3 +985,70 @@ describe("sim: market (D-19, B-11)", () => {
     expect(copy(w)).toEqual(before);
   });
 });
+
+describe("sim: attack forecast (B-20)", () => {
+  const ROWDY = rs.troops.findIndex((t) => t.id === "rowdy");
+  const rowdies = (n: bigint) => rs.troops.map((_, i) => (i === ROWDY ? n : 0n));
+  const none = [0n, 0n, 0n, 0n];
+  const target = { ...at, slot: 2n };
+
+  // Both players with a boot camp; alice has 7 rowdies, bob has 2 in training that finish at `now + 1`.
+  function ready() {
+    const w = sim.newWorld(rs);
+    let now = 1_700_000_000n;
+    sim.setGlobalPremium(w, now + 3650n * 86400n);
+    sim.register(w, "alice", at, now);
+    sim.register(w, "bob", target, now);
+    sim.queueRoom(w, "alice", 1n, room("boot_camp"), now);
+    sim.queueRoom(w, "bob", 2n, room("boot_camp"), now);
+    now += 86400n;
+    sim.train(w, "alice", 1n, ROWDY, 7n, now);
+    now += 86400n;
+    sim.train(w, "bob", 2n, ROWDY, 2n, now);
+    now = w.buildings.get(2n)!.training[0]![0]!.finishAt - 1n;
+    sim.poke(w, 1n, now);
+    return { w, now };
+  }
+
+  const copy = (w: sim.World) => {
+    const { rs: ruleset, ...rest } = w;
+    return Object.assign(structuredClone(rest), { rs: ruleset }) as sim.World;
+  };
+
+  it("matches the battle the hidden attack fights, with the defender's troops at the arrival", () => {
+    const { w, now } = ready();
+    const commit = sim.hiddenCommit(1n, sim.ATTACK, target, 5n);
+    const send = (x: sim.World) =>
+      sim.sendHiddenMission(x, "alice", 1n, commit, 3n, rowdies(5n), none, 0n, now);
+    const s = copy(w);
+    const arrival = s.missions.get(send(s))!.arrival;
+    const before = copy(w);
+    const f = sim.forecastAttack(w, "alice", 1n, target, rowdies(5n), now, arrival)!;
+    expect(w).toEqual(before); // the forecast runs on its own copy
+
+    expect(w.buildings.get(2n)!.troops[ROWDY]).toBe(0n);
+    expect(f.arrival).toBe(arrival);
+    expect(f.attacker).toEqual(rowdies(5n));
+    expect(f.defender).toEqual(rowdies(2n)); // trained before the attack arrives
+
+    const id = send(w);
+    const m = w.missions.get(id)!;
+    sim.reveal(w, id, sim.ATTACK, target, 5n, now);
+    sim.advance(w, 1, arrival);
+    expect(f.attackerLeft).toEqual(m.troops);
+    expect(f.defenderLeft).toEqual(w.buildings.get(2n)!.troops);
+    expect(f.loot).toEqual(m.cargo);
+    expect(f.attackerLeft).toEqual(rowdies(4n)); // a real fight: losses, a wipe and loot
+    expect(f.defenderLeft).toEqual(rowdies(0n));
+    expect(f.loot.every((r) => r > 0n)).toBe(true);
+  });
+
+  it("no battle on an empty slot; a send that would revert throws", () => {
+    const { w, now } = ready();
+    expect(sim.forecastAttack(w, "alice", 1n, { ...at, slot: 9n }, rowdies(1n), now)).toBeNull();
+    expect(() => sim.forecastAttack(w, "alice", 1n, target, rowdies(0n), now)).toThrow("NoUnits");
+    expect(() => sim.forecastAttack(w, "alice", 1n, target, rowdies(8n), now)).toThrow(
+      "InvalidTroops",
+    );
+  });
+});

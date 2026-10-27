@@ -163,7 +163,9 @@
     "publicNote": "Los transportes de una orden del mercado viajan a la vista.",
     "revealing": "llegó, esperando el reveal",
     "noRoom": "Al destino no le cabe: {{list}}. Lo que no quepa se pierde: tener lugar es responsabilidad de quien recibe.",
-    "incomingOverflow": "no te cabe todo: hacé lugar antes de que llegue"
+    "incomingOverflow": "no te cabe todo: hacé lugar antes de que llegue",
+    "forecast": "Previsión del combate",
+    "forecastNote": "Calculada para la llegada con lo que se sabe hoy: producción, colas y misiones conocidas. No cuenta las misiones ocultas de otros ni lo que hagan los jugadores antes."
   },
   "reports": {
     "title": "Informes de batalla",

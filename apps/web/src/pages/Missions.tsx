@@ -128,6 +128,28 @@ function MissionsFor({ b, p }: { b: sim.Building; p: sim.Player }) {
   // a head start before its round (B-22); 0 without a timelock means the natural one.
   const arrivalOf = (natural: bigint) => (hidden && g.timelock.prepare(natural).arrival) || natural;
 
+  // B-20: the battle the attack would fight at its arrival, on a copy of the world; the error code
+  // when the send itself would revert.
+  const forecast = useMemo(() => {
+    const secs = plan && "secs" in plan ? plan.secs : undefined;
+    if (kind !== sim.ATTACK || !target || targetError || secs === undefined) return null;
+    if (!destination || destination.owner === p.id) return null;
+    try {
+      return sim.forecastAttack(
+        g.world,
+        g.owner,
+        b.id,
+        target,
+        counts,
+        g.now,
+        arrivalOf(g.now + secs),
+      );
+    } catch (e) {
+      if (e instanceof sim.GameError) return e.code;
+      throw e;
+    }
+  }, [kind, to, troops, plan, targetError, g.world, g.now, g.owner, g.timelock, b.id]);
+
   const send = async () => {
     if (!target || targetError) return;
     if (!hidden) {
@@ -299,6 +321,13 @@ function MissionsFor({ b, p }: { b: sim.Building; p: sim.Player }) {
             </tbody>
           </table>
         )}
+        {typeof forecast === "string" ? (
+          <p className="note red" role="alert">
+            {t(`errors.${forecast}`)}
+          </p>
+        ) : (
+          forecast && <Forecast f={forecast} />
+        )}
         <p className="note">{t(hidden ? "missions.hiddenNote" : "missions.publicNote")}</p>
         {noRoom.length > 0 && (
           <p className="note red" role="alert">
@@ -396,5 +425,60 @@ function MissionsFor({ b, p }: { b: sim.Building; p: sim.Player }) {
         )}
       </section>
     </>
+  );
+}
+
+/** The forecast battle of the attack being prepared (B-20), laid out like a battle report. */
+function Forecast({ f }: { f: sim.AttackForecast }) {
+  const { t } = useTranslation();
+  const won = f.defenderLeft.every((n) => n === 0n) && f.attackerLeft.some((n) => n > 0n);
+  const used = rs.troops.filter((tr) => f.attacker[tr.index]! > 0n || f.defender[tr.index]! > 0n);
+  const cell = (before: bigint, after: bigint) =>
+    before === 0n ? null : (
+      <>
+        {amount(after)}
+        {after < before && <small className="red"> −{amount(before - after)}</small>}
+      </>
+    );
+  return (
+    <div style={{ marginTop: "0.75rem" }}>
+      <p className="form-row">
+        <strong>{t("missions.forecast")}</strong>
+        <span className={`stamp${won ? " ink" : ""}`}>
+          {won ? t("reports.won") : t("reports.lostBattle")}
+        </span>
+        {f.loot.some((v) => v > 0n) && (
+          <span>
+            {t("reports.loot")}:{" "}
+            {rs.resources.map((res, i) =>
+              f.loot[i]! > 0n ? (
+                <span key={res} style={{ marginRight: "0.6rem" }}>
+                  <Icon name={res} /> {amount(f.loot[i]!)}
+                </span>
+              ) : null,
+            )}
+          </span>
+        )}
+      </p>
+      <table className="ledger">
+        <thead>
+          <tr>
+            <th>{t("missions.troops")}</th>
+            <th className="num">{t("reports.attacker")}</th>
+            <th className="num">{t("reports.defender")}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {used.map((tr) => (
+            <tr key={tr.id}>
+              <td className="entry-name">{troopName(tr.index)}</td>
+              <td className="num">{cell(f.attacker[tr.index]!, f.attackerLeft[tr.index]!)}</td>
+              <td className="num">{cell(f.defender[tr.index]!, f.defenderLeft[tr.index]!)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="note">{t("missions.forecastNote")}</p>
+    </div>
   );
 }

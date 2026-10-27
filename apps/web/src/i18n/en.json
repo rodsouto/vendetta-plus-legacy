@@ -163,7 +163,9 @@
     "publicNote": "Transports for a market order travel in the open.",
     "revealing": "arrived, waiting for its reveal",
     "noRoom": "The destination cannot store: {{list}}. What does not fit is lost: having room is the receiver's responsibility.",
-    "incomingOverflow": "not everything fits: make room before it lands"
+    "incomingOverflow": "not everything fits: make room before it lands",
+    "forecast": "Battle forecast",
+    "forecastNote": "Computed for the arrival from what is known today: production, queues and known missions. It does not count other players' hidden missions or what anyone does before then."
   },
   "reports": {
     "title": "Battle reports",
