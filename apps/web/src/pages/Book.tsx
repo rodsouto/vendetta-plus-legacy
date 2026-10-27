@@ -1,9 +1,16 @@
 // The account page of one building: balance, next entries, rooms, research and troops.
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { distance, productionRates, sim, troopStats, vendetta as rs } from "@vendetta/rules";
+import {
+  distance,
+  productionRates,
+  researchUpgrade,
+  sim,
+  troopStats,
+  vendetta as rs,
+} from "@vendetta/rules";
 import { useGame } from "../state/game.js";
-import { CostCells, CostHeads, Countdown, Empty, Locked } from "../ui/parts.js";
+import { CostCells, CostHeads, Countdown, Empty } from "../ui/parts.js";
 import { Icon } from "../ui/icons.js";
 import {
   RATE_DEN,
@@ -28,7 +35,7 @@ export function Book() {
   const { params } = useRoute();
   const focus = params.get("focus");
   useEffect(() => {
-    if (!focus || !/^(room|research|troop)-\d+$/.test(focus)) return;
+    if (!focus || !/^(rooms|research|troops|(room|research|troop)-\d+)$/.test(focus)) return;
     const target =
       document.getElementById(focus) ??
       document.getElementById(
@@ -64,17 +71,15 @@ export function Book() {
       <Balance b={b} />
       <NextEntries b={b} />
       <BuildingGuide />
-      {b.levels[rs.roles.researchSpeedRoom]! >= 1n ? (
-        <div className="cols two">
-          <Rooms b={b} />
-          <Research b={b} />
-        </div>
-      ) : (
-        <>
-          <Research b={b} />
-          <Rooms b={b} />
-        </>
-      )}
+      <nav className="book-sections" aria-label={t("book.sections")}>
+        {(["rooms", "research", "troops"] as const).map((section) => (
+          <a key={section} href={`#/book?focus=${section}`}>
+            {t(`book.${section}`)}
+          </a>
+        ))}
+      </nav>
+      <Rooms b={b} />
+      <Research b={b} />
       <Troops b={b} />
       {g.myBuildings.length > 1 && (
         <p>
@@ -250,12 +255,6 @@ function unmet(
   );
 }
 
-function reqText(list: { kind: string; index: number; level: bigint }[]) {
-  return list
-    .map((r) => `${r.kind === "room" ? roomName(r.index) : researchName(r.index)} ${r.level}`)
-    .join(", ");
-}
-
 function Requirements({ list }: { list: { kind: string; index: number; level: bigint }[] }) {
   const { t } = useTranslation();
   if (list.length === 0) return null;
@@ -324,53 +323,42 @@ function Rooms({ b }: { b: sim.Building }) {
             </tr>
           </thead>
           <tbody>
-            {rs.buildings
-              .filter((room) => unmet(g.world, p, b, room.requirements).length === 0)
-              .map((room) => {
-                const job = sim.roomJob(g.world, b, room.index);
-                const missing = unmet(g.world, p, b, room.requirements);
-                return (
-                  <tr key={room.id} id={`room-${room.index}`} tabIndex={-1}>
-                    <td className="c-name">
-                      <span className="entry-name">{roomName(room.index)}</span>
-                      <Requirements list={missing} />
-                    </td>
-                    <td className="num c-fig" data-label={t("common.level")}>
-                      {String(b.levels[room.index])}
-                    </td>
-                    <CostCells cost={job.cost} stock={b.stock} />
-                    <td className="num c-time">{duration(job.seconds)}</td>
-                    <td className="num c-act">
-                      <button
-                        className="btn"
-                        disabled={g.busy || missing.length > 0}
-                        onClick={() =>
-                          void g.act({
-                            done: t("book.queued"),
-                            check: (w, c, n) => sim.queueRoom(w, c, b.id, room.index, n),
-                            functionName: "queueRoom",
-                            args: [b.id, BigInt(room.index)],
-                          })
-                        }
-                      >
-                        {t("book.queueRoom")}
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
+            {rs.buildings.map((room) => {
+              const job = sim.roomJob(g.world, b, room.index);
+              const missing = unmet(g.world, p, b, room.requirements);
+              return (
+                <tr key={room.id} id={`room-${room.index}`} tabIndex={-1}>
+                  <td className="c-name">
+                    <span className="entry-name">{roomName(room.index)}</span>
+                    <Requirements list={missing} />
+                  </td>
+                  <td className="num c-fig" data-label={t("common.level")}>
+                    {String(b.levels[room.index])}
+                  </td>
+                  <CostCells cost={job.cost} stock={b.stock} />
+                  <td className="num c-time">{duration(job.seconds)}</td>
+                  <td className="num c-act">
+                    <button
+                      className="btn"
+                      disabled={g.busy || missing.length > 0}
+                      onClick={() =>
+                        void g.act({
+                          done: t("book.queued"),
+                          check: (w, c, n) => sim.queueRoom(w, c, b.id, room.index, n),
+                          functionName: "queueRoom",
+                          args: [b.id, BigInt(room.index)],
+                        })
+                      }
+                    >
+                      {t("book.queueRoom")}
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
-      <Locked
-        items={rs.buildings
-          .filter((room) => unmet(g.world, p, b, room.requirements).length > 0)
-          .map((room) => ({
-            key: room.id,
-            name: roomName(room.index),
-            why: reqText(unmet(g.world, p, b, room.requirements)),
-          }))}
-      />
     </section>
   );
 }
@@ -425,69 +413,59 @@ function Research({ b }: { b: sim.Building }) {
           ))}
         </ul>
       )}
-      {school >= 1n && (
-        <>
-          <div className="scroll-x">
-            <table className="ledger stack">
-              <thead>
-                <tr>
-                  <th>{t("book.research")}</th>
-                  <th className="num">{t("common.level")}</th>
-                  <CostHeads />
-                  <th className="num">{t("common.time")}</th>
-                  <th />
+      <div className="scroll-x">
+        <table className="ledger stack">
+          <thead>
+            <tr>
+              <th>{t("book.research")}</th>
+              <th className="num">{t("common.level")}</th>
+              <CostHeads />
+              <th className="num">{t("common.time")}</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {rs.research.map((r) => {
+              const job = researchUpgrade(
+                g.world.rs,
+                r,
+                p.research[r.index]!,
+                school > 0n ? school : 1n,
+              );
+              const missing = unmet(g.world, p, b, r.requirements);
+              return (
+                <tr key={r.id} id={`research-${r.index}`} tabIndex={-1}>
+                  <td className="c-name">
+                    <span className="entry-name">{researchName(r.index)}</span>
+                    <Requirements list={missing} />
+                  </td>
+                  <td className="num c-fig" data-label={t("common.level")}>
+                    {String(p.research[r.index])}
+                  </td>
+                  <CostCells cost={job.cost} stock={b.stock} />
+                  <td className="num c-time">{school > 0n ? duration(job.seconds) : "—"}</td>
+                  <td className="num c-act">
+                    <button
+                      className="btn"
+                      disabled={g.busy || missing.length > 0 || school < 1n || elsewhere}
+                      onClick={() =>
+                        void g.act({
+                          done: t("book.queued"),
+                          check: (w, c, n) => sim.queueResearch(w, c, b.id, r.index, n),
+                          functionName: "queueResearch",
+                          args: [b.id, BigInt(r.index)],
+                        })
+                      }
+                    >
+                      {t("book.queueResearch")}
+                    </button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {rs.research
-                  .filter((r) => unmet(g.world, p, b, r.requirements).length === 0)
-                  .map((r) => {
-                    const job = sim.researchJob(g.world, p, b, r.index);
-                    const missing = unmet(g.world, p, b, r.requirements);
-                    return (
-                      <tr key={r.id} id={`research-${r.index}`} tabIndex={-1}>
-                        <td className="c-name">
-                          <span className="entry-name">{researchName(r.index)}</span>
-                          <Requirements list={missing} />
-                        </td>
-                        <td className="num c-fig" data-label={t("common.level")}>
-                          {String(p.research[r.index])}
-                        </td>
-                        <CostCells cost={job.cost} stock={b.stock} />
-                        <td className="num c-time">{duration(job.seconds)}</td>
-                        <td className="num c-act">
-                          <button
-                            className="btn"
-                            disabled={g.busy || missing.length > 0 || elsewhere}
-                            onClick={() =>
-                              void g.act({
-                                done: t("book.queued"),
-                                check: (w, c, n) => sim.queueResearch(w, c, b.id, r.index, n),
-                                functionName: "queueResearch",
-                                args: [b.id, BigInt(r.index)],
-                              })
-                            }
-                          >
-                            {t("book.queueResearch")}
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-              </tbody>
-            </table>
-          </div>
-          <Locked
-            items={rs.research
-              .filter((r) => unmet(g.world, p, b, r.requirements).length > 0)
-              .map((r) => ({
-                key: r.id,
-                name: researchName(r.index),
-                why: reqText(unmet(g.world, p, b, r.requirements)),
-              }))}
-          />
-        </>
-      )}
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </section>
   );
 }
@@ -502,6 +480,7 @@ function Troops({ b }: { b: sim.Building }) {
       <h3 id="troops" tabIndex={-1}>
         {t("book.troops")}
       </h3>
+      <p className="note">{t("book.perUnit")}</p>
       {b.training.map((q, queue) =>
         q.length === 0 ? null : (
           <ul className="entries" key={queue}>
@@ -549,85 +528,64 @@ function Troops({ b }: { b: sim.Building }) {
             </tr>
           </thead>
           <tbody>
-            {rs.troops
-              .filter(
-                (tr) =>
-                  unmet(g.world, p, b, tr.requirements).length === 0 &&
-                  b.levels[tr.trainedAt]! >= 1n,
-              )
-              .map((tr) => {
-                const s = troopStats(rs, tr, p.research);
-                const missing = unmet(g.world, p, b, tr.requirements);
-                const roomLevel = b.levels[tr.trainedAt]!;
-                const n = BigInt(Math.max(0, Math.floor(Number(qty[tr.index] ?? "1")) || 0));
-                return (
-                  <tr key={tr.id} id={`troop-${tr.index}`} tabIndex={-1}>
-                    <td className="c-name">
-                      <span className="entry-name">{troopName(tr.index)}</span>
-                      {roomLevel < 1n ? (
-                        <span className="entry-sub red">
-                          {t("common.requires")}: {roomName(tr.trainedAt)} 1
-                        </span>
-                      ) : (
-                        <Requirements list={missing} />
-                      )}
-                    </td>
-                    <td className="num c-fig">{amount(b.troops[tr.index]!)}</td>
-                    <td className="num c-meta" data-label="Atk / Def">
-                      {amount(s.attack)} / {amount(s.defense)}
-                    </td>
-                    <CostCells cost={tr.cost} />
-                    <td className="num c-time">
-                      {roomLevel > 0n ? duration(tr.trainingSeconds / roomLevel) : "—"}
-                    </td>
-                    <td className="num c-act">
-                      <input
-                        className="cell"
-                        inputMode="numeric"
-                        aria-label={`${t("book.quantity")} ${troopName(tr.index)}`}
-                        value={qty[tr.index] ?? "1"}
-                        onChange={(e) =>
-                          setQty({ ...qty, [tr.index]: e.target.value.replace(/\D/g, "") })
-                        }
-                      />
-                      <button
-                        className="btn"
-                        disabled={g.busy || missing.length > 0 || roomLevel < 1n || n < 1n}
-                        onClick={() =>
-                          void g.act({
-                            done: t("book.trained"),
-                            check: (w, c, now) => sim.train(w, c, b.id, tr.index, n, now),
-                            functionName: "train",
-                            args: [b.id, BigInt(tr.index), n],
-                          })
-                        }
-                      >
-                        {t("book.train")}
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
+            {rs.troops.map((tr) => {
+              const s = troopStats(rs, tr, p.research);
+              const missing = unmet(g.world, p, b, tr.requirements);
+              const roomLevel = b.levels[tr.trainedAt]!;
+              if (
+                roomLevel < 1n &&
+                !missing.some((r) => r.kind === "room" && r.index === tr.trainedAt && r.level >= 1n)
+              ) {
+                missing.unshift({ kind: "room", index: tr.trainedAt, level: 1n });
+              }
+              const locked = missing.length > 0;
+              const n = BigInt(Math.max(0, Math.floor(Number(qty[tr.index] ?? "1")) || 0));
+              return (
+                <tr key={tr.id} id={`troop-${tr.index}`} tabIndex={-1}>
+                  <td className="c-name">
+                    <span className="entry-name">{troopName(tr.index)}</span>
+                    <Requirements list={missing} />
+                  </td>
+                  <td className="num c-fig">{amount(b.troops[tr.index]!)}</td>
+                  <td className="num c-meta" data-label="Atk / Def">
+                    {amount(s.attack)} / {amount(s.defense)}
+                  </td>
+                  <CostCells cost={tr.cost} stock={b.stock} />
+                  <td className="num c-time">
+                    {roomLevel > 0n ? duration(tr.trainingSeconds / roomLevel) : "—"}
+                  </td>
+                  <td className="num c-act">
+                    <input
+                      className="cell"
+                      disabled={g.busy || locked}
+                      inputMode="numeric"
+                      aria-label={`${t("book.quantity")} ${troopName(tr.index)}`}
+                      value={qty[tr.index] ?? "1"}
+                      onChange={(e) =>
+                        setQty({ ...qty, [tr.index]: e.target.value.replace(/\D/g, "") })
+                      }
+                    />
+                    <button
+                      className="btn"
+                      disabled={g.busy || locked || n < 1n}
+                      onClick={() =>
+                        void g.act({
+                          done: t("book.trained"),
+                          check: (w, c, now) => sim.train(w, c, b.id, tr.index, n, now),
+                          functionName: "train",
+                          args: [b.id, BigInt(tr.index), n],
+                        })
+                      }
+                    >
+                      {t("book.train")}
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
-      <Locked
-        items={rs.troops
-          .filter(
-            (tr) =>
-              unmet(g.world, p, b, tr.requirements).length > 0 || b.levels[tr.trainedAt]! < 1n,
-          )
-          .map((tr) => ({
-            key: tr.id,
-            name: troopName(tr.index),
-            why: reqText([
-              ...(b.levels[tr.trainedAt]! < 1n
-                ? [{ kind: "room", index: tr.trainedAt, level: 1n }]
-                : []),
-              ...unmet(g.world, p, b, tr.requirements),
-            ]),
-          }))}
-      />
     </section>
   );
 }

@@ -88,6 +88,8 @@
     "signOut": "Salir"
   },
   "book": {
+    "sections": "Secciones del ledger",
+    "perUnit": "Los costos y tiempos son por tropa.",
     "balance": "Saldo",
     "next": "Próximos asientos",
     "rooms": "Habitaciones",

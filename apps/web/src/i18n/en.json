@@ -88,6 +88,8 @@
     "signOut": "Sign out"
   },
   "book": {
+    "sections": "Ledger sections",
+    "perUnit": "Costs and times are per troop.",
     "balance": "Balance",
     "next": "Next entries",
     "rooms": "Rooms",

@@ -372,6 +372,29 @@ h3 .aside {
   font-size: 0.75rem;
   color: var(--ink-3);
 }
+/* Keep the three ledger catalogs within reach during long reading sessions. */
+.book-sections {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1rem;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid var(--rule-strong);
+  background: var(--page);
+}
+.book-sections a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+:is(#rooms, #research, #troops, [id^="room-"], [id^="research-"], [id^="troop-"]) {
+  scroll-margin-top: 4rem;
+}
+
 /* ------------------------------------------------------------------ controls */
 .btn {
   display: inline-flex;
