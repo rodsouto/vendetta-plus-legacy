@@ -15,7 +15,7 @@ set -a
 source "$root/.env"
 set +a
 # An unfilled line (NAME=) counts as unset; forge would fail parsing it.
-for v in DEPLOYER_PRIVATE_KEY ADMIN GNOSIS_RPC_URL; do
+for v in DEPLOYER_PRIVATE_KEY ADMIN OPERATOR ARBITER GNOSIS_RPC_URL; do
   [[ -n "${!v:-}" ]] || unset "$v"
 done
 [[ -n "${DEPLOYER_PRIVATE_KEY:-}" ]] || { echo "DEPLOYER_PRIVATE_KEY is empty in .env" >&2; exit 1; }
@@ -41,6 +41,8 @@ deployer="$(cast wallet address --private-key "$DEPLOYER_PRIVATE_KEY")"
 balance="$(cast balance "$deployer" --rpc-url "$rpc" --ether)"
 echo "Deployer: $deployer ($balance xDAI)"
 echo "Admin:    ${ADMIN:-$deployer (the deployer)}"
+echo "Operator: ${OPERATOR:-${ADMIN:-$deployer} (the admin)}"
+echo "Arbiter:  ${ARBITER:-${ADMIN:-$deployer} (the admin)}"
 echo "Commit:   $(git -C "$root" rev-parse --short HEAD)"
 
 cd "$root/contracts"

@@ -26,6 +26,7 @@ for (const [file, name] of [
   ["Families.sol", "Families"],
   ["Market.sol", "Market"],
   ["Settlement.sol", "SettleLib"],
+  ["Roles.sol", "Roles"],
 ]) {
   for (const entry of artifact(file!, name!)) {
     if (entry.type !== "error" && entry.type !== "event") continue;

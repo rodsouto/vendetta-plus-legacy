@@ -23,7 +23,10 @@ for _ in $(seq 1 50); do
 done
 
 cd "$root/contracts"
-forge script script/Deploy.s.sol --rpc-url "$rpc" --private-key "$key0" --broadcast >/dev/null
+# Local chain: every role is account 0, which the Workshop signs with (B-17); exported
+# ADMIN/OPERATOR/ARBITER are for real deploys.
+env -u ADMIN -u OPERATOR -u ARBITER \
+  forge script script/Deploy.s.sol --rpc-url "$rpc" --private-key "$key0" --broadcast >/dev/null
 game="$(jq -r '[.transactions[] | select(.contractName == "ERC1967Proxy")][0].contractAddress' \
   broadcast/Deploy.s.sol/31337/run-latest.json)"
 directory="$(jq -r '[.transactions[] | select(.contractName == "PasskeyDirectory")][0].contractAddress' \

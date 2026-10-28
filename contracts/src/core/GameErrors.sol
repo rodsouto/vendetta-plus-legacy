@@ -93,6 +93,8 @@ interface IGameEvents {
     event ResearchCompleted(uint64 indexed player, uint8 research, uint16 level);
     event ResearchCancelled(uint64 indexed player, uint8 research, uint256 position);
     event GlobalPremiumSet(uint40 until);
+    event RoleProposed(uint8 indexed role, address account);
+    event RoleTransferred(uint8 indexed role, address account);
     event TroopsQueued(uint64 indexed building, uint8 troop, uint64 quantity, uint64 seq);
     event TroopsTrained(uint64 indexed building, uint8 troop, uint64 quantity);
     event TrainingCancelled(uint64 indexed building, uint256 queue, uint256 position);

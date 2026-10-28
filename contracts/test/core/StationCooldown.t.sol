@@ -40,7 +40,7 @@ contract StationCooldownTest is GameTestBase {
     function setUp() public {
         vm.warp(T0);
         game = deployGame();
-        vm.prank(admin);
+        vm.prank(operator);
         game.setGlobalPremium(T0 + 100 * YEAR);
         vm.prank(alice);
         game.register(1, 1, 1);

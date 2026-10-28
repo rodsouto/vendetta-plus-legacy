@@ -91,7 +91,7 @@ contract CoreTest is GameTestBase, IGameEvents {
     /// D-11: later items are paid when they start and dropped if unaffordable then.
     /// mob_school costs 1000, 4000, 9000 weapons for levels 1, 2, 3 (base × (n+1)²).
     function test_deferredPaymentDropsUnaffordable() public {
-        vm.prank(admin);
+        vm.prank(operator);
         game.setGlobalPremium(T0 + 365 days);
         vm.startPrank(alice);
         game.queueRoom(1, SCHOOL);
@@ -109,7 +109,7 @@ contract CoreTest is GameTestBase, IGameEvents {
 
     /// B-29: an item's duration is computed when it starts, with the build-speed level of that moment.
     function test_durationComputedAtStart() public {
-        vm.prank(admin);
+        vm.prank(operator);
         game.setGlobalPremium(T0 + 365 days);
         vm.startPrank(alice);
         game.queueRoom(1, BOSS); // boss 1 → 2: round(4 × 900 / 1 / 3) = 1200 s

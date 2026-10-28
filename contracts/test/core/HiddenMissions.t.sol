@@ -40,7 +40,7 @@ contract HiddenMissionsTest is GameTestBase {
     function setUp() public {
         vm.warp(T0);
         game = deployGame();
-        vm.prank(admin);
+        vm.prank(operator);
         game.setGlobalPremium(T0 + 3650 days);
         vm.prank(alice);
         game.register(1, 1, 1);

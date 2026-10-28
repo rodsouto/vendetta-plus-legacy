@@ -1,0 +1,1060 @@
+{
+  "root": "t_struct(CoreState)_storage",
+  "types": {
+    "t_address": {
+      "label": "address",
+      "encoding": "inplace",
+      "numberOfBytes": "20"
+    },
+    "t_array(t_address)dyn_storage": {
+      "label": "address[]",
+      "encoding": "dynamic_array",
+      "numberOfBytes": "32",
+      "base": "t_address"
+    },
+    "t_array(t_array(t_struct(TrainingItem)_storage)dyn_storage)2_storage": {
+      "label": "struct TrainingItem[][2]",
+      "encoding": "inplace",
+      "numberOfBytes": "64",
+      "base": "t_array(t_struct(TrainingItem)_storage)dyn_storage"
+    },
+    "t_array(t_struct(QueueItem)_storage)dyn_storage": {
+      "label": "struct QueueItem[]",
+      "encoding": "dynamic_array",
+      "numberOfBytes": "32",
+      "base": "t_struct(QueueItem)_storage"
+    },
+    "t_array(t_struct(TrainingItem)_storage)dyn_storage": {
+      "label": "struct TrainingItem[]",
+      "encoding": "dynamic_array",
+      "numberOfBytes": "32",
+      "base": "t_struct(TrainingItem)_storage"
+    },
+    "t_array(t_uint128)4_storage": {
+      "label": "uint128[4]",
+      "encoding": "inplace",
+      "numberOfBytes": "64",
+      "base": "t_uint128"
+    },
+    "t_array(t_uint16)15_storage": {
+      "label": "uint16[15]",
+      "encoding": "inplace",
+      "numberOfBytes": "32",
+      "base": "t_uint16"
+    },
+    "t_array(t_uint16)16_storage": {
+      "label": "uint16[16]",
+      "encoding": "inplace",
+      "numberOfBytes": "32",
+      "base": "t_uint16"
+    },
+    "t_array(t_uint64)21_storage": {
+      "label": "uint64[21]",
+      "encoding": "inplace",
+      "numberOfBytes": "192",
+      "base": "t_uint64"
+    },
+    "t_array(t_uint64)4_storage": {
+      "label": "uint64[4]",
+      "encoding": "inplace",
+      "numberOfBytes": "32",
+      "base": "t_uint64"
+    },
+    "t_array(t_uint64)dyn_storage": {
+      "label": "uint64[]",
+      "encoding": "dynamic_array",
+      "numberOfBytes": "32",
+      "base": "t_uint64"
+    },
+    "t_bool": {
+      "label": "bool",
+      "encoding": "inplace",
+      "numberOfBytes": "1"
+    },
+    "t_bytes32": {
+      "label": "bytes32",
+      "encoding": "inplace",
+      "numberOfBytes": "32"
+    },
+    "t_mapping(t_address,t_mapping(t_uint64,t_struct(Invite)_storage))": {
+      "label": "mapping(address => mapping(uint64 => struct Invite))",
+      "encoding": "mapping",
+      "numberOfBytes": "32",
+      "key": "t_address",
+      "value": "t_mapping(t_uint64,t_struct(Invite)_storage)"
+    },
+    "t_mapping(t_address,t_struct(ControllerInfo)_storage)": {
+      "label": "mapping(address => struct ControllerInfo)",
+      "encoding": "mapping",
+      "numberOfBytes": "32",
+      "key": "t_address",
+      "value": "t_struct(ControllerInfo)_storage"
+    },
+    "t_mapping(t_address,t_struct(Session)_storage)": {
+      "label": "mapping(address => struct Session)",
+      "encoding": "mapping",
+      "numberOfBytes": "32",
+      "key": "t_address",
+      "value": "t_struct(Session)_storage"
+    },
+    "t_mapping(t_address,t_uint64)": {
+      "label": "mapping(address => uint64)",
+      "encoding": "mapping",
+      "numberOfBytes": "32",
+      "key": "t_address",
+      "value": "t_uint64"
+    },
+    "t_mapping(t_bytes32,t_uint64)": {
+      "label": "mapping(bytes32 => uint64)",
+      "encoding": "mapping",
+      "numberOfBytes": "32",
+      "key": "t_bytes32",
+      "value": "t_uint64"
+    },
+    "t_mapping(t_uint256,t_uint64)": {
+      "label": "mapping(uint256 => uint64)",
+      "encoding": "mapping",
+      "numberOfBytes": "32",
+      "key": "t_uint256",
+      "value": "t_uint64"
+    },
+    "t_mapping(t_uint64,t_struct(Building)_storage)": {
+      "label": "mapping(uint64 => struct Building)",
+      "encoding": "mapping",
+      "numberOfBytes": "32",
+      "key": "t_uint64",
+      "value": "t_struct(Building)_storage"
+    },
+    "t_mapping(t_uint64,t_struct(Family)_storage)": {
+      "label": "mapping(uint64 => struct Family)",
+      "encoding": "mapping",
+      "numberOfBytes": "32",
+      "key": "t_uint64",
+      "value": "t_struct(Family)_storage"
+    },
+    "t_mapping(t_uint64,t_struct(Invite)_storage)": {
+      "label": "mapping(uint64 => struct Invite)",
+      "encoding": "mapping",
+      "numberOfBytes": "32",
+      "key": "t_uint64",
+      "value": "t_struct(Invite)_storage"
+    },
+    "t_mapping(t_uint64,t_struct(Mission)_storage)": {
+      "label": "mapping(uint64 => struct Mission)",
+      "encoding": "mapping",
+      "numberOfBytes": "32",
+      "key": "t_uint64",
+      "value": "t_struct(Mission)_storage"
+    },
+    "t_mapping(t_uint64,t_struct(Player)_storage)": {
+      "label": "mapping(uint64 => struct Player)",
+      "encoding": "mapping",
+      "numberOfBytes": "32",
+      "key": "t_uint64",
+      "value": "t_struct(Player)_storage"
+    },
+    "t_mapping(t_uint64,t_struct(Trade)_storage)": {
+      "label": "mapping(uint64 => struct Trade)",
+      "encoding": "mapping",
+      "numberOfBytes": "32",
+      "key": "t_uint64",
+      "value": "t_struct(Trade)_storage"
+    },
+    "t_mapping(t_uint64,t_struct(War)_storage)": {
+      "label": "mapping(uint64 => struct War)",
+      "encoding": "mapping",
+      "numberOfBytes": "32",
+      "key": "t_uint64",
+      "value": "t_struct(War)_storage"
+    },
+    "t_mapping(t_uint64,t_uint256)": {
+      "label": "mapping(uint64 => uint256)",
+      "encoding": "mapping",
+      "numberOfBytes": "32",
+      "key": "t_uint64",
+      "value": "t_uint256"
+    },
+    "t_mapping(t_uint64,t_uint64)": {
+      "label": "mapping(uint64 => uint64)",
+      "encoding": "mapping",
+      "numberOfBytes": "32",
+      "key": "t_uint64",
+      "value": "t_uint64"
+    },
+    "t_mapping(t_uint8,t_address)": {
+      "label": "mapping(uint8 => address)",
+      "encoding": "mapping",
+      "numberOfBytes": "32",
+      "key": "t_uint8",
+      "value": "t_address"
+    },
+    "t_string_storage": {
+      "label": "string",
+      "encoding": "bytes",
+      "numberOfBytes": "32"
+    },
+    "t_struct(Building)_storage": {
+      "label": "struct Building",
+      "encoding": "inplace",
+      "numberOfBytes": "448",
+      "members": [
+        {
+          "label": "owner",
+          "slot": "0",
+          "offset": 0,
+          "type": "t_uint64"
+        },
+        {
+          "label": "city",
+          "slot": "0",
+          "offset": 8,
+          "type": "t_uint8"
+        },
+        {
+          "label": "neighborhood",
+          "slot": "0",
+          "offset": 9,
+          "type": "t_uint8"
+        },
+        {
+          "label": "slot",
+          "slot": "0",
+          "offset": 10,
+          "type": "t_uint8"
+        },
+        {
+          "label": "lastUpdate",
+          "slot": "0",
+          "offset": 11,
+          "type": "t_uint40"
+        },
+        {
+          "label": "centipoints",
+          "slot": "0",
+          "offset": 16,
+          "type": "t_uint128"
+        },
+        {
+          "label": "levels",
+          "slot": "1",
+          "offset": 0,
+          "type": "t_array(t_uint16)15_storage"
+        },
+        {
+          "label": "stock",
+          "slot": "2",
+          "offset": 0,
+          "type": "t_array(t_uint128)4_storage"
+        },
+        {
+          "label": "roomQueue",
+          "slot": "4",
+          "offset": 0,
+          "type": "t_array(t_struct(QueueItem)_storage)dyn_storage"
+        },
+        {
+          "label": "troops",
+          "slot": "5",
+          "offset": 0,
+          "type": "t_array(t_uint64)21_storage"
+        },
+        {
+          "label": "training",
+          "slot": "11",
+          "offset": 0,
+          "type": "t_array(t_array(t_struct(TrainingItem)_storage)dyn_storage)2_storage"
+        },
+        {
+          "label": "lastTroopArrival",
+          "slot": "13",
+          "offset": 0,
+          "type": "t_uint40"
+        }
+      ]
+    },
+    "t_struct(ControllerInfo)_storage": {
+      "label": "struct ControllerInfo",
+      "encoding": "inplace",
+      "numberOfBytes": "32",
+      "members": [
+        {
+          "label": "recovery",
+          "slot": "0",
+          "offset": 0,
+          "type": "t_bool"
+        },
+        {
+          "label": "removalAt",
+          "slot": "0",
+          "offset": 1,
+          "type": "t_uint40"
+        }
+      ]
+    },
+    "t_struct(CoreState)_storage": {
+      "label": "struct CoreState",
+      "encoding": "inplace",
+      "numberOfBytes": "832",
+      "members": [
+        {
+          "label": "seq",
+          "slot": "0",
+          "offset": 0,
+          "type": "t_uint64"
+        },
+        {
+          "label": "globalPremiumUntil",
+          "slot": "0",
+          "offset": 8,
+          "type": "t_uint40"
+        },
+        {
+          "label": "roles",
+          "slot": "1",
+          "offset": 0,
+          "type": "t_mapping(t_uint8,t_address)"
+        },
+        {
+          "label": "pendingRoles",
+          "slot": "2",
+          "offset": 0,
+          "type": "t_mapping(t_uint8,t_address)"
+        },
+        {
+          "label": "nextPlayer",
+          "slot": "3",
+          "offset": 0,
+          "type": "t_uint64"
+        },
+        {
+          "label": "nextBuilding",
+          "slot": "3",
+          "offset": 8,
+          "type": "t_uint64"
+        },
+        {
+          "label": "players",
+          "slot": "4",
+          "offset": 0,
+          "type": "t_mapping(t_uint64,t_struct(Player)_storage)"
+        },
+        {
+          "label": "buildings",
+          "slot": "5",
+          "offset": 0,
+          "type": "t_mapping(t_uint64,t_struct(Building)_storage)"
+        },
+        {
+          "label": "playerOf",
+          "slot": "6",
+          "offset": 0,
+          "type": "t_mapping(t_address,t_uint64)"
+        },
+        {
+          "label": "buildingAt",
+          "slot": "7",
+          "offset": 0,
+          "type": "t_mapping(t_uint256,t_uint64)"
+        },
+        {
+          "label": "nextMission",
+          "slot": "8",
+          "offset": 0,
+          "type": "t_uint64"
+        },
+        {
+          "label": "activeMissions",
+          "slot": "8",
+          "offset": 8,
+          "type": "t_uint64"
+        },
+        {
+          "label": "missions",
+          "slot": "9",
+          "offset": 0,
+          "type": "t_mapping(t_uint64,t_struct(Mission)_storage)"
+        },
+        {
+          "label": "heap",
+          "slot": "10",
+          "offset": 0,
+          "type": "t_array(t_uint64)dyn_storage"
+        },
+        {
+          "label": "heapPos",
+          "slot": "11",
+          "offset": 0,
+          "type": "t_mapping(t_uint64,t_uint256)"
+        },
+        {
+          "label": "parkedHead",
+          "slot": "12",
+          "offset": 0,
+          "type": "t_uint64"
+        },
+        {
+          "label": "parkedTail",
+          "slot": "12",
+          "offset": 8,
+          "type": "t_uint64"
+        },
+        {
+          "label": "parkedPrev",
+          "slot": "13",
+          "offset": 0,
+          "type": "t_mapping(t_uint64,t_uint64)"
+        },
+        {
+          "label": "parkedNext",
+          "slot": "14",
+          "offset": 0,
+          "type": "t_mapping(t_uint64,t_uint64)"
+        },
+        {
+          "label": "nextFamily",
+          "slot": "15",
+          "offset": 0,
+          "type": "t_uint64"
+        },
+        {
+          "label": "families",
+          "slot": "16",
+          "offset": 0,
+          "type": "t_mapping(t_uint64,t_struct(Family)_storage)"
+        },
+        {
+          "label": "familyNames",
+          "slot": "17",
+          "offset": 0,
+          "type": "t_mapping(t_bytes32,t_uint64)"
+        },
+        {
+          "label": "nextWar",
+          "slot": "18",
+          "offset": 0,
+          "type": "t_uint64"
+        },
+        {
+          "label": "wars",
+          "slot": "19",
+          "offset": 0,
+          "type": "t_mapping(t_uint64,t_struct(War)_storage)"
+        },
+        {
+          "label": "activeWar",
+          "slot": "20",
+          "offset": 0,
+          "type": "t_mapping(t_bytes32,t_uint64)"
+        },
+        {
+          "label": "nextTrade",
+          "slot": "21",
+          "offset": 0,
+          "type": "t_uint64"
+        },
+        {
+          "label": "trades",
+          "slot": "22",
+          "offset": 0,
+          "type": "t_mapping(t_uint64,t_struct(Trade)_storage)"
+        },
+        {
+          "label": "sessions",
+          "slot": "23",
+          "offset": 0,
+          "type": "t_mapping(t_address,t_struct(Session)_storage)"
+        },
+        {
+          "label": "controllerInfo",
+          "slot": "24",
+          "offset": 0,
+          "type": "t_mapping(t_address,t_struct(ControllerInfo)_storage)"
+        },
+        {
+          "label": "invites",
+          "slot": "25",
+          "offset": 0,
+          "type": "t_mapping(t_address,t_mapping(t_uint64,t_struct(Invite)_storage))"
+        }
+      ]
+    },
+    "t_struct(Family)_storage": {
+      "label": "struct Family",
+      "encoding": "inplace",
+      "numberOfBytes": "96",
+      "members": [
+        {
+          "label": "alive",
+          "slot": "0",
+          "offset": 0,
+          "type": "t_bool"
+        },
+        {
+          "label": "members",
+          "slot": "0",
+          "offset": 1,
+          "type": "t_uint64"
+        },
+        {
+          "label": "tag",
+          "slot": "1",
+          "offset": 0,
+          "type": "t_string_storage"
+        },
+        {
+          "label": "name",
+          "slot": "2",
+          "offset": 0,
+          "type": "t_string_storage"
+        }
+      ]
+    },
+    "t_struct(Invite)_storage": {
+      "label": "struct Invite",
+      "encoding": "inplace",
+      "numberOfBytes": "32",
+      "members": [
+        {
+          "label": "kind",
+          "slot": "0",
+          "offset": 0,
+          "type": "t_uint8"
+        },
+        {
+          "label": "recovery",
+          "slot": "0",
+          "offset": 1,
+          "type": "t_bool"
+        },
+        {
+          "label": "until",
+          "slot": "0",
+          "offset": 2,
+          "type": "t_uint40"
+        },
+        {
+          "label": "epoch",
+          "slot": "0",
+          "offset": 7,
+          "type": "t_uint32"
+        }
+      ]
+    },
+    "t_struct(Mission)_storage": {
+      "label": "struct Mission",
+      "encoding": "inplace",
+      "numberOfBytes": "352",
+      "members": [
+        {
+          "label": "owner",
+          "slot": "0",
+          "offset": 0,
+          "type": "t_uint64"
+        },
+        {
+          "label": "origin",
+          "slot": "0",
+          "offset": 8,
+          "type": "t_uint64"
+        },
+        {
+          "label": "kind",
+          "slot": "0",
+          "offset": 16,
+          "type": "t_uint8"
+        },
+        {
+          "label": "returning",
+          "slot": "0",
+          "offset": 17,
+          "type": "t_bool"
+        },
+        {
+          "label": "city",
+          "slot": "0",
+          "offset": 18,
+          "type": "t_uint8"
+        },
+        {
+          "label": "neighborhood",
+          "slot": "0",
+          "offset": 19,
+          "type": "t_uint8"
+        },
+        {
+          "label": "slot",
+          "slot": "0",
+          "offset": 20,
+          "type": "t_uint8"
+        },
+        {
+          "label": "start",
+          "slot": "0",
+          "offset": 21,
+          "type": "t_uint40"
+        },
+        {
+          "label": "arrival",
+          "slot": "0",
+          "offset": 26,
+          "type": "t_uint40"
+        },
+        {
+          "label": "duration",
+          "slot": "1",
+          "offset": 0,
+          "type": "t_uint40"
+        },
+        {
+          "label": "seq",
+          "slot": "1",
+          "offset": 5,
+          "type": "t_uint64"
+        },
+        {
+          "label": "troops",
+          "slot": "2",
+          "offset": 0,
+          "type": "t_array(t_uint64)21_storage"
+        },
+        {
+          "label": "cargo",
+          "slot": "8",
+          "offset": 0,
+          "type": "t_array(t_uint64)4_storage"
+        },
+        {
+          "label": "trade",
+          "slot": "9",
+          "offset": 0,
+          "type": "t_uint64"
+        },
+        {
+          "label": "fromCity",
+          "slot": "9",
+          "offset": 8,
+          "type": "t_uint8"
+        },
+        {
+          "label": "fromNeighborhood",
+          "slot": "9",
+          "offset": 9,
+          "type": "t_uint8"
+        },
+        {
+          "label": "fromSlot",
+          "slot": "9",
+          "offset": 10,
+          "type": "t_uint8"
+        },
+        {
+          "label": "hidden",
+          "slot": "9",
+          "offset": 11,
+          "type": "t_bool"
+        },
+        {
+          "label": "cover",
+          "slot": "9",
+          "offset": 12,
+          "type": "t_uint32"
+        },
+        {
+          "label": "commit",
+          "slot": "10",
+          "offset": 0,
+          "type": "t_bytes32"
+        }
+      ]
+    },
+    "t_struct(Player)_storage": {
+      "label": "struct Player",
+      "encoding": "inplace",
+      "numberOfBytes": "352",
+      "members": [
+        {
+          "label": "controllers",
+          "slot": "0",
+          "offset": 0,
+          "type": "t_array(t_address)dyn_storage"
+        },
+        {
+          "label": "researchBuilding",
+          "slot": "1",
+          "offset": 0,
+          "type": "t_uint64"
+        },
+        {
+          "label": "buildings",
+          "slot": "1",
+          "offset": 8,
+          "type": "t_uint32"
+        },
+        {
+          "label": "centipoints",
+          "slot": "1",
+          "offset": 12,
+          "type": "t_uint128"
+        },
+        {
+          "label": "missions",
+          "slot": "1",
+          "offset": 28,
+          "type": "t_uint32"
+        },
+        {
+          "label": "research",
+          "slot": "2",
+          "offset": 0,
+          "type": "t_array(t_uint16)16_storage"
+        },
+        {
+          "label": "researchQueue",
+          "slot": "3",
+          "offset": 0,
+          "type": "t_array(t_struct(QueueItem)_storage)dyn_storage"
+        },
+        {
+          "label": "vacationUntil",
+          "slot": "4",
+          "offset": 0,
+          "type": "t_uint40"
+        },
+        {
+          "label": "suspendedUntil",
+          "slot": "4",
+          "offset": 5,
+          "type": "t_uint40"
+        },
+        {
+          "label": "premiumUntil",
+          "slot": "4",
+          "offset": 10,
+          "type": "t_uint40"
+        },
+        {
+          "label": "family",
+          "slot": "4",
+          "offset": 15,
+          "type": "t_uint64"
+        },
+        {
+          "label": "rank",
+          "slot": "4",
+          "offset": 23,
+          "type": "t_uint8"
+        },
+        {
+          "label": "applications",
+          "slot": "5",
+          "offset": 0,
+          "type": "t_array(t_uint64)dyn_storage"
+        },
+        {
+          "label": "offers",
+          "slot": "6",
+          "offset": 0,
+          "type": "t_array(t_uint64)dyn_storage"
+        },
+        {
+          "label": "sessionEpoch",
+          "slot": "7",
+          "offset": 0,
+          "type": "t_uint32"
+        },
+        {
+          "label": "vacationStart",
+          "slot": "7",
+          "offset": 4,
+          "type": "t_uint40"
+        },
+        {
+          "label": "tradeLockUntil",
+          "slot": "7",
+          "offset": 9,
+          "type": "t_uint40"
+        },
+        {
+          "label": "transferTo",
+          "slot": "8",
+          "offset": 0,
+          "type": "t_address"
+        },
+        {
+          "label": "transferAt",
+          "slot": "8",
+          "offset": 20,
+          "type": "t_uint40"
+        },
+        {
+          "label": "vacationSeq",
+          "slot": "9",
+          "offset": 0,
+          "type": "t_uint64"
+        },
+        {
+          "label": "purchases",
+          "slot": "10",
+          "offset": 0,
+          "type": "t_array(t_uint64)dyn_storage"
+        }
+      ]
+    },
+    "t_struct(QueueItem)_storage": {
+      "label": "struct QueueItem",
+      "encoding": "inplace",
+      "numberOfBytes": "32",
+      "members": [
+        {
+          "label": "index",
+          "slot": "0",
+          "offset": 0,
+          "type": "t_uint8"
+        },
+        {
+          "label": "seq",
+          "slot": "0",
+          "offset": 1,
+          "type": "t_uint64"
+        },
+        {
+          "label": "finishAt",
+          "slot": "0",
+          "offset": 9,
+          "type": "t_uint40"
+        }
+      ]
+    },
+    "t_struct(Session)_storage": {
+      "label": "struct Session",
+      "encoding": "inplace",
+      "numberOfBytes": "32",
+      "members": [
+        {
+          "label": "player",
+          "slot": "0",
+          "offset": 0,
+          "type": "t_uint64"
+        },
+        {
+          "label": "until",
+          "slot": "0",
+          "offset": 8,
+          "type": "t_uint40"
+        },
+        {
+          "label": "epoch",
+          "slot": "0",
+          "offset": 13,
+          "type": "t_uint32"
+        }
+      ]
+    },
+    "t_struct(Trade)_storage": {
+      "label": "struct Trade",
+      "encoding": "inplace",
+      "numberOfBytes": "256",
+      "members": [
+        {
+          "label": "seller",
+          "slot": "0",
+          "offset": 0,
+          "type": "t_uint64"
+        },
+        {
+          "label": "buyer",
+          "slot": "0",
+          "offset": 8,
+          "type": "t_uint64"
+        },
+        {
+          "label": "from",
+          "slot": "0",
+          "offset": 16,
+          "type": "t_uint64"
+        },
+        {
+          "label": "sold",
+          "slot": "0",
+          "offset": 24,
+          "type": "t_uint8"
+        },
+        {
+          "label": "accepted",
+          "slot": "0",
+          "offset": 25,
+          "type": "t_bool"
+        },
+        {
+          "label": "closesAt",
+          "slot": "0",
+          "offset": 26,
+          "type": "t_uint40"
+        },
+        {
+          "label": "quantity",
+          "slot": "1",
+          "offset": 0,
+          "type": "t_uint64"
+        },
+        {
+          "label": "price",
+          "slot": "2",
+          "offset": 0,
+          "type": "t_array(t_uint64)4_storage"
+        },
+        {
+          "label": "rate",
+          "slot": "3",
+          "offset": 0,
+          "type": "t_array(t_uint64)4_storage"
+        },
+        {
+          "label": "deposit",
+          "slot": "4",
+          "offset": 0,
+          "type": "t_array(t_uint64)4_storage"
+        },
+        {
+          "label": "paid",
+          "slot": "5",
+          "offset": 0,
+          "type": "t_array(t_uint64)4_storage"
+        },
+        {
+          "label": "sellerTook",
+          "slot": "6",
+          "offset": 0,
+          "type": "t_array(t_uint64)4_storage"
+        },
+        {
+          "label": "buyerTook",
+          "slot": "7",
+          "offset": 0,
+          "type": "t_array(t_uint64)4_storage"
+        }
+      ]
+    },
+    "t_struct(TrainingItem)_storage": {
+      "label": "struct TrainingItem",
+      "encoding": "inplace",
+      "numberOfBytes": "32",
+      "members": [
+        {
+          "label": "troop",
+          "slot": "0",
+          "offset": 0,
+          "type": "t_uint8"
+        },
+        {
+          "label": "seq",
+          "slot": "0",
+          "offset": 1,
+          "type": "t_uint64"
+        },
+        {
+          "label": "finishAt",
+          "slot": "0",
+          "offset": 9,
+          "type": "t_uint40"
+        },
+        {
+          "label": "quantity",
+          "slot": "0",
+          "offset": 14,
+          "type": "t_uint64"
+        }
+      ]
+    },
+    "t_struct(War)_storage": {
+      "label": "struct War",
+      "encoding": "inplace",
+      "numberOfBytes": "96",
+      "members": [
+        {
+          "label": "a",
+          "slot": "0",
+          "offset": 0,
+          "type": "t_uint64"
+        },
+        {
+          "label": "b",
+          "slot": "0",
+          "offset": 8,
+          "type": "t_uint64"
+        },
+        {
+          "label": "lostA",
+          "slot": "0",
+          "offset": 16,
+          "type": "t_uint128"
+        },
+        {
+          "label": "lostB",
+          "slot": "1",
+          "offset": 0,
+          "type": "t_uint128"
+        },
+        {
+          "label": "ended",
+          "slot": "1",
+          "offset": 16,
+          "type": "t_bool"
+        },
+        {
+          "label": "winner",
+          "slot": "1",
+          "offset": 17,
+          "type": "t_uint64"
+        },
+        {
+          "label": "offer",
+          "slot": "1",
+          "offset": 25,
+          "type": "t_uint8"
+        },
+        {
+          "label": "offerBy",
+          "slot": "2",
+          "offset": 0,
+          "type": "t_uint64"
+        }
+      ]
+    },
+    "t_uint128": {
+      "label": "uint128",
+      "encoding": "inplace",
+      "numberOfBytes": "16"
+    },
+    "t_uint16": {
+      "label": "uint16",
+      "encoding": "inplace",
+      "numberOfBytes": "2"
+    },
+    "t_uint256": {
+      "label": "uint256",
+      "encoding": "inplace",
+      "numberOfBytes": "32"
+    },
+    "t_uint32": {
+      "label": "uint32",
+      "encoding": "inplace",
+      "numberOfBytes": "4"
+    },
+    "t_uint40": {
+      "label": "uint40",
+      "encoding": "inplace",
+      "numberOfBytes": "5"
+    },
+    "t_uint64": {
+      "label": "uint64",
+      "encoding": "inplace",
+      "numberOfBytes": "8"
+    },
+    "t_uint8": {
+      "label": "uint8",
+      "encoding": "inplace",
+      "numberOfBytes": "1"
+    }
+  }
+}

@@ -9,10 +9,17 @@ import {Game} from "../../src/Game.sol";
 abstract contract GameTestBase is Test {
     uint256 internal constant T0 = 1_700_000_000;
     address internal admin = makeAddr("admin");
+    address internal operator = makeAddr("operator");
+    address internal arbiter = makeAddr("arbiter");
 
     function deployGame() internal returns (Game) {
         Game impl = new Game();
-        return
-            Game(address(new ERC1967Proxy(address(impl), abi.encodeCall(Game.initialize, (admin)))));
+        return Game(
+            address(
+                new ERC1967Proxy(
+                    address(impl), abi.encodeCall(Game.initialize, (admin, operator, arbiter))
+                )
+            )
+        );
     }
 }

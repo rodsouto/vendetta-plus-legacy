@@ -38,19 +38,19 @@ which network it runs on. Messaging, chat and moderation are off-chain (B-10).
 | B-10 | Off-chain social | Adapt | Messaging, chat, moderation off-chain |
 | B-11 | Market | Keep | D-19 as is: seller escrow and buyer deposit from acceptance, shares withdrawn; no debts |
 | B-12 | Starting coordinate | Keep | Player chooses any free coordinate; no randomness needed |
-| B-13 | Multi-accounts and bots | Keep | Everything allowed in v1 |
+| B-13 | Multi-accounts and bots | Keep | Allowed; the [rulebook](rulebook.md) forbids pushing between accounts, bashing and bug abuse from launch |
 | B-14 | Sanctions module | New | `suspend(player, until)` by an `arbiter` role |
 | B-15 | Accounts | New | Kernel smart account, one passkey per device, passkey directory, recovery, native session keys |
 | B-16 | Gas | New | Low sponsored allowance; above it the player pays via credits |
-| B-17 | Upgradeability | New | Proxy, no timelock, admin in a Safe; later frozen, one immutable deploy per world |
+| B-17 | Upgradeability | New | Proxy, no timelock; admin, operator and arbiter roles; later frozen, one immutable deploy per world |
 | B-18 | Events and indexer | New | Reports and notices as events; market history and battle reports in the indexer; ranking from the loaded world |
 | B-19 | Points on-chain | Adapt | D-24 points kept incrementally on-chain |
 | B-20 | Optimistic client | New | Client runs the same rules engine and projects results |
 | B-21 | Parity tests | New | Foundry against the test vectors with explicit tolerances |
 | B-22 | Hidden information | New | Hidden mission **kind and target** (v1), revealed by timelock encryption, with a random cover distance; hidden building state (FHE) only as research |
-| B-23 | Arbitration | v2 | Kleros v2 as `arbiter`, under a written rulebook (pushing, bashing, bounties) |
+| B-23 | Arbitration | v2 | Kleros v2 as `arbiter`, under the [rulebook](rulebook.md) |
 | B-24 | Tokenization | v2 | One ERC-721 per **account** wrapping B-26; no per-building or per-troop tokens |
-| B-25 | Premium | New | Longer queues and vacations; granted by the admin per player (paid off-chain) or to everyone |
+| B-25 | Premium | New | Longer queues and vacations; granted by the operator per player (paid off-chain) or to everyone |
 | B-26 | Player identity | New | State keyed by `playerId`; up to 5 controllers (devices, recovery code) that can change; accounts can be given away |
 | B-27 | Exact stocks | New | Resources stored in 1/100800 units: per-hour rate ×28 = per-second increment (D-12) |
 | B-28 | Alcohol depletion | New | Regime change (D-07) at the whole second `t0 + ⌈stock / net consumption⌉` |
@@ -345,19 +345,21 @@ randomness** (no VRF).
 
 ## B-13 — Multi-accounts and bots — Keep
 
-Everything is allowed in v1:
+Both are allowed:
 
 - The contracts are a public API, and automation is legitimate.
 - Multiple accounts are not prevented, even though each new account gets the `new_player` starting
   resources ([game_config.yaml](data/game_config.yaml)) and can send them to another account.
 
-A written rulebook (pushing, bashing and similar abuse) and arbitration come later (B-23).
+The [rulebook](rulebook.md) ([es](rulebook.es.md)) applies from launch to the abuse the contracts
+cannot see: pushing (also between one's own accounts), bashing, bug abuse and offensive content.
+In v1 the arbiter Safe judges reports and suspends (B-14); Kleros takes over later (B-23).
 
 ## B-14 — Sanctions module — New
 
 A `Sanctions` module exposes `suspend(player, until)` (`until` = 0 lifts it), callable only by the
-`arbiter` role. In v1 the arbiter is the admin Safe (B-17); later it is a Kleros arbitrable contract
-(B-23).
+`arbiter` role (B-17). In v1 the arbiter is a Safe; later it is a Kleros arbitrable contract (B-23),
+which takes the role through `proposeRole` / `acceptRole` or the admin's `setRole`.
 
 A suspended player:
 
@@ -457,8 +459,36 @@ vacation or suspended can only end the vacation. In v1 `suspend(player, until)` 
 - **v1:** contracts behind upgradeable proxies, **with no timelock**, so bugs can be fixed quickly
   while the game matures.
 - **Admin = a Safe multisig** (e.g. 2-of-3), never a single key.
+- **Roles** (`contracts/src/core/Roles.sol`), each held by one address:
+
+  | Role | Value | Powers |
+  |------|-------|--------|
+  | admin | 1 | upgrades; assigns any role |
+  | operator | 2 | `grantPremium`, `setGlobalPremium` (B-25) |
+  | arbiter | 3 | `suspend` (B-14) |
+
+  The admin assigns a role at once with `setRole(role, account)`, which also drops the old holder's
+  pending proposal (to replace a lost or compromised key). A holder hands its own role over in two
+  steps, `proposeRole(role, successor)` and the successor's `acceptRole(role)`; the admin moves to a
+  new Safe this way. The admin holds none of the other powers: the operator can be a lighter Safe or
+  a backend that grants premium on payment without touching upgrades or suspensions. Unauthorized
+  calls revert with `NotAllowed`.
 - **Later:** the contracts are frozen, then each world is an **immutable deploy**. A ruleset
   (`vendetta.yaml`, `space4k.yaml`) maps to one world.
+- **Freeze:** the admin calls `setRole(ADMIN, address(0))`. Irreversible: no more upgrades or role
+  assignments. The operator and the arbiter keep their powers and still hand them over themselves,
+  so a role can later point to a contract (e.g. Kleros as arbiter, B-23).
+- **Storage across upgrades:** the ruleset's room, troop, research and resource counts are final,
+  so the arrays they size never change. A new implementation keeps every field of the ERC-7201
+  namespace (`CoreState`) at its position, name and type: new fields only at the end of a struct,
+  and a struct stored inline (array element, field of another struct) keeps its size. Mapping values
+  and `CoreState` itself may grow. `contracts/storage-layout.json` records the accepted layout and
+  `pnpm test` checks it (`contracts/scripts/storage-layout.mjs`); a compatible change is recorded
+  with `pnpm --filter @vendetta/contracts layout`.
+- **Stored codes:** no enums in storage (the check rejects them: solc does not report their
+  variants). Codes are `uint8` constants (`ATTACK`, `CAPO`, `INVITE_SESSION`…): a value keeps its
+  meaning forever and is never reused for another, even after its constant is removed; new codes take
+  new values. Review enforces this, the layout check cannot see it.
 
 Until the freeze, the "trustless rules" goal (Goals) is only partly met. This is accepted.
 
@@ -679,20 +709,15 @@ precompile only returns a boolean, so decrypting tlock on-chain is not practical
 
 ## B-23 — Arbitration — v2
 
-A written rulebook for the abuse the contracts cannot see. Anyone can open a case on **Kleros v2**
+Arbitration under the [rulebook](rulebook.md), in force from launch with the arbiter Safe (B-13,
+B-14). In v2 anyone can open a case on **Kleros v2**
 (currently deployed on Arbitrum One) by paying the arbitration cost. Gnosis would need a
 separately specified bridge/relay for rulings; direct calls across chains are not supported. A
 future ruling would call B-14 (`suspend` for X days).
-Violations in mind:
-
-- **Pushing:** moving resources to one's own or an allied account abusively: new accounts created
-  for their starting resources, being looted on purpose by one's own account.
-- **Bashing:** attacking the same player repeatedly beyond a limit the rulebook sets.
-- **Unpaid bounties:** a player offers a reward for attacking someone and does not pay it. There
-  is no bounty mechanism yet.
 
 Not paying an accepted market trade is not here: the escrow and the deposit settle it (B-11).
-Open: the exact rules, the list of sanctions, the court and the cost per case.
+Unpaid bounties would join the rulebook if a bounty mechanism is added.
+Open: the court and the cost per case.
 
 ## B-24 — Tokenization — v2
 
@@ -716,10 +741,10 @@ longer queues. Target:
 Values live in the `premium` section of [data/game_config.yaml](data/game_config.yaml). The legacy
 `queues` values become the premium limits.
 
-- **Purchase:** off-chain (card, credits). The contract holds no funds: the admin (Safe) records it
-  with `grantPremium(player, until)`.
+- **Purchase:** off-chain (card, credits). The contract holds no funds: the operator (B-17) records
+  it with `grantPremium(player, until)`.
 - **State:** `premiumUntil` per player. `isPremium(p) = premiumUntil[p] > now || globalPremiumUntil > now`.
-- **Global premium:** the admin (Safe, B-17) can call `setGlobalPremium(until)` to give premium to
+- **Global premium:** the operator (B-17) can call `setGlobalPremium(until)` to give premium to
   every player for a while (events, launch, compensation).
 - **Expiry** (own or global): items already queued finish normally; new items can only be queued
   while the queue is below the limit without premium. A vacation keeps the end fixed when it
@@ -840,7 +865,9 @@ flowchart LR
     Contracts -->|views| Client
     Contracts -->|events| Indexer[Indexer: market history, battle reports]
     Indexer -->|reports| Client
-    Safe[Admin Safe] -->|upgrade, arbiter v1| Contracts
+    Safe[Admin Safe] -->|upgrade, roles| Contracts
+    Operator[Operator] -->|premium| Contracts
+    Arbiter[Arbiter Safe, Kleros in v2] -->|suspend| Contracts
 ```
 
 Modules are storage namespaces and libraries inside the single `Game` proxy, not separate contracts.

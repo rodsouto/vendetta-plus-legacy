@@ -34,6 +34,7 @@ pnpm codegen            # regenerate JSON, fixtures, Solidity constants and diff
 python3 scripts/generate_target_vectors.py   # regenerate target combat vectors (needs PHP 7.4 + PyYAML)
 pnpm test               # all workspaces (needs Foundry: also runs forge test)
 pnpm test:contracts     # forge test only
+pnpm --filter @vendetta/contracts layout   # record a compatible storage layout change (B-17; pnpm test checks it)
 pnpm --filter @vendetta/web dev
 pnpm format             # prettier; forge fmt inside contracts/
 scripts/ci-local.sh     # the CI steps on a fresh clone of HEAD (no GitHub needed)
@@ -50,6 +51,11 @@ pnpm --filter @vendetta/web keeper <deployment.json> [local|gnosis]   # reveals 
 ## Rules
 
 - Gotcha: if `forge test` suddenly runs only a few suites after `pnpm codegen`, run `forge clean` (stale build cache).
+
+- Storage (`contracts/src/core/GameStorage.sol`) must stay upgrade-compatible (B-17): new fields only at the
+  end of a struct, no enums, and a stored constant code (`ATTACK`, `CAPO`…) never changes or gets
+  reused. Before the first deploy a reordering can be recorded with
+  `node contracts/scripts/storage-layout.mjs --update --force`; never after.
 
 - Never edit generated files by hand (`packages/spec-data/generated/`, `contracts/src/generated/`, generated YAML/MD in `docs/spec/`).
 - Code, comments and identifiers in English. UI texts go through i18n (es, en).

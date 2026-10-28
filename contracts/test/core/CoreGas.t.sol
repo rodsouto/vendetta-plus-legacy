@@ -13,7 +13,7 @@ contract CoreGasTest is GameTestBase {
     function setUp() public {
         vm.warp(T0);
         game = deployGame();
-        vm.prank(admin);
+        vm.prank(operator);
         game.setGlobalPremium(T0 + 365 days);
     }
 

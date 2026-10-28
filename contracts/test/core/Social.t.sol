@@ -189,7 +189,7 @@ contract SocialTest is GameTestBase {
         vm.prank(bob);
         vm.expectRevert(VacationCooldown.selector);
         game.startVacation();
-        vm.prank(admin);
+        vm.prank(operator);
         game.grantPremium(2, end + 10 days);
         vm.warp(end + 7 days);
         vm.prank(bob);
@@ -217,14 +217,14 @@ contract SocialTest is GameTestBase {
 
     function test_suspendedCannotActButCanBeAttacked() public {
         _army(3);
-        vm.prank(admin);
+        vm.prank(arbiter);
         game.suspend(2, block.timestamp + 10 days);
         vm.prank(bob);
         vm.expectRevert(Suspended.selector);
         game.queueRoom(2, 0);
         vm.prank(alice);
         game.sendMission(1, ATTACK, [uint256(1), 1, 2], _rowdies(3), _none(), 0); // allowed (B-14)
-        vm.prank(admin);
+        vm.prank(arbiter);
         game.suspend(2, 0);
         vm.prank(bob);
         game.queueRoom(2, 0);
@@ -236,7 +236,7 @@ contract SocialTest is GameTestBase {
         vm.expectRevert(QueueFull.selector);
         game.queueRoom(1, 2);
         vm.stopPrank();
-        vm.prank(admin);
+        vm.prank(operator);
         game.grantPremium(1, block.timestamp + 30 days);
         vm.prank(alice);
         game.queueRoom(1, 2);
@@ -549,7 +549,7 @@ contract SocialTest is GameTestBase {
         uint64 t = _accepted();
         _ship(bob, 2, [uint256(1), 1, 1], 3, _only(DOLLAR, 40), t);
         _afterWindow(t);
-        vm.prank(admin);
+        vm.prank(arbiter);
         game.suspend(2, block.timestamp + 10 days);
         vm.prank(alice);
         game.queueRoom(1, MOB_SCHOOL);
@@ -648,12 +648,12 @@ contract MarketRulesTest is SocialTest {
     function test_marketAcceptChecksTheSeller() public {
         vm.prank(alice);
         uint64 t = game.offerTrade(2, 1, WEAPONS, 300, _only(DOLLAR, 100));
-        vm.prank(admin);
+        vm.prank(arbiter);
         game.suspend(1, block.timestamp + 10 days);
         vm.prank(bob);
         vm.expectRevert(InvalidTrade.selector);
         game.acceptTrade(t, 2);
-        vm.prank(admin);
+        vm.prank(arbiter);
         game.suspend(1, 0);
         vm.prank(alice);
         game.startVacation();

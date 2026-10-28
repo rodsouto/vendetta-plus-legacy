@@ -66,7 +66,6 @@ try {
         ...process.env,
         VITE_NETWORK: "local",
         DEPLOYER_PRIVATE_KEY: "0",
-        ADMIN: devAccount(0).address,
       },
       stdio: ["ignore", "pipe", "pipe"],
     },

@@ -384,7 +384,7 @@ contract ControllersTest is GameTestBase {
         // suspended: no scheduling nor accepting, but cancelling works
         vm.prank(alice);
         game.transferPlayer(dave);
-        vm.prank(admin);
+        vm.prank(arbiter);
         game.suspend(1, block.timestamp + 10 * DAY);
         vm.prank(alice);
         vm.expectRevert(Suspended.selector);
@@ -401,7 +401,7 @@ contract ControllersTest is GameTestBase {
     }
 
     function test_managingWorksWhileSuspended() public {
-        vm.prank(admin);
+        vm.prank(arbiter);
         game.suspend(1, T0 + DAY);
         _add(alice, laptop, false);
         vm.startPrank(alice);

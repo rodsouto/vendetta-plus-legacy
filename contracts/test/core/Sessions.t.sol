@@ -228,7 +228,7 @@ contract SessionsTest is GameTestBase {
         vm.prank(key);
         game.endVacation();
 
-        vm.prank(admin);
+        vm.prank(arbiter);
         game.suspend(1, T0 + DAY);
         vm.prank(key);
         vm.expectRevert(Suspended.selector);

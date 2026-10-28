@@ -289,7 +289,8 @@ contract ScenariosTest is GameTestBase {
     function _act(Game game, Step memory st) internal returns (string memory) {
         bool byAdmin = st.action == 6 || st.action == 15 || st.action == 16 || st.action == 48
             || st.action == 49;
-        address who = byAdmin ? admin : address(uint160(0x1000 + st.actor));
+        address who =
+            !byAdmin ? address(uint160(0x1000 + st.actor)) : st.action == 15 ? arbiter : operator;
         uint256[] memory a = st.args;
         bytes memory call;
         uint256 act = st.action;

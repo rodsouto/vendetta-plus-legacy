@@ -4,9 +4,6 @@ pragma solidity 0.8.28;
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {
-    Ownable2StepUpgradeable
-} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
-import {
     ROOMS,
     RESEARCH,
     RESOURCES,
@@ -32,25 +29,49 @@ import {
     ControllerInfo,
     Session,
     Invite,
-    GameStorage
+    GameStorage,
+    ROLE_ADMIN
 } from "./core/GameStorage.sol";
 import {Access} from "./core/Access.sol";
 import {FamilyRules} from "./core/Families.sol";
 import {IGameEvents} from "./core/GameErrors.sol";
+import {Roles} from "./core/Roles.sol";
 
 /// The game: one UUPS proxy (B-17) whose logic lives in linked libraries (blockchain.md,
-/// "Implementation stack"). The owner is the admin Safe.
-contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameEvents {
+/// "Implementation stack"). The admin (a Safe), the operator and the arbiter are roles (Roles.sol).
+contract Game is Initializable, UUPSUpgradeable, IGameEvents {
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
     }
 
-    function initialize(address admin) external initializer {
-        __Ownable_init(admin);
+    function initialize(address admin, address operator, address arbiter) external initializer {
+        Roles.init(admin, operator, arbiter);
     }
 
-    function _authorizeUpgrade(address) internal override onlyOwner {}
+    /// The admin upgrades; once it sets its own role to address(0) the implementation is final.
+    function _authorizeUpgrade(address) internal view override {
+        Roles.check(msg.sender, ROLE_ADMIN);
+    }
+
+    // ------------------------------------------------------------------ roles (B-17, Roles.sol)
+
+    function setRole(uint8 role, address account) external {
+        Roles.set(msg.sender, role, account);
+    }
+
+    function proposeRole(uint8 role, address account) external {
+        Roles.propose(msg.sender, role, account);
+    }
+
+    function acceptRole(uint8 role) external {
+        Roles.accept(msg.sender, role);
+    }
+
+    function roleHolder(uint8 role) external view returns (address holder, address pending) {
+        CoreState storage s = GameStorage.core();
+        return (s.roles[role], s.pendingRoles[role]);
+    }
 
     // ------------------------------------------------------------------ actions
     // Every player action first catches up the global mission queue (B-07); with a backlog larger
@@ -149,8 +170,9 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
         return Missions.advance(max);
     }
 
-    function setGlobalPremium(uint256 until) external onlyOwner {
-        Core.setGlobalPremium(until);
+    /// Operator (B-25): premium for every player until `until`.
+    function setGlobalPremium(uint256 until) external {
+        Core.setGlobalPremium(msg.sender, until);
     }
 
     function poke(uint64 building) external drained {
@@ -167,14 +189,14 @@ contract Game is Initializable, UUPSUpgradeable, Ownable2StepUpgradeable, IGameE
         Account.endVacation(msg.sender);
     }
 
-    /// Arbiter (admin Safe in v1, B-14): suspend a player until `until`; 0 lifts it.
-    function suspend(uint64 player, uint256 until) external onlyOwner {
-        Account.suspend(player, until);
+    /// Arbiter (B-14): suspend a player until `until`; 0 lifts it.
+    function suspend(uint64 player, uint256 until) external {
+        Account.suspend(msg.sender, player, until);
     }
 
-    /// Admin: premium for one player until `until`, paid off-chain (B-25).
-    function grantPremium(uint64 player, uint256 until) external onlyOwner {
-        Account.grantPremium(player, until);
+    /// Operator: premium for one player until `until`, paid off-chain (B-25).
+    function grantPremium(uint64 player, uint256 until) external {
+        Account.grantPremium(msg.sender, player, until);
     }
 
     /// B-26: schedules giving the account to `to`; once due, `to` accepts with acceptTransfer.

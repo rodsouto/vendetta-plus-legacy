@@ -21,6 +21,12 @@ import { paymaster } from "@pimlico/mock-paymaster";
 import { DEV_KEYS } from "../src/chain/config.js";
 import type { Deployment } from "../src/chain/networks.js";
 
+// Local chain: every role is account 0 (B-17); exported ADMIN/OPERATOR/ARBITER are for real deploys.
+const localDeployEnv = () =>
+  Object.fromEntries(
+    Object.entries(process.env).filter(([k]) => !["ADMIN", "OPERATOR", "ARBITER"].includes(k)),
+  );
+
 const web = join(dirname(fileURLToPath(import.meta.url)), "..");
 const contracts = join(web, "../../contracts");
 const { values } = parseArgs({
@@ -117,7 +123,11 @@ execFileSync(
     DEV_KEYS[0],
     "--broadcast",
   ],
-  { cwd: contracts, stdio: "ignore", env: { ...process.env, FOUNDRY_BROADCAST: broadcastRoot } },
+  {
+    cwd: contracts,
+    stdio: "ignore",
+    env: { ...localDeployEnv(), FOUNDRY_BROADCAST: broadcastRoot },
+  },
 );
 const chainId = await client.getChainId();
 const broadcast = JSON.parse(

@@ -8,9 +8,17 @@ import {
     VendettaRuleset as Ruleset
 } from "../generated/VendettaRuleset.sol";
 import {Costs} from "../rules/Costs.sol";
-import {Building, Player, QueueItem, CoreState, GameStorage} from "./GameStorage.sol";
+import {
+    Building,
+    Player,
+    QueueItem,
+    CoreState,
+    GameStorage,
+    ROLE_OPERATOR
+} from "./GameStorage.sol";
 import {Settlement, SettleLib} from "./Settlement.sol";
 import {Access} from "./Access.sol";
+import {Roles} from "./Roles.sol";
 import {
     AlreadyRegistered,
     InvalidCoordinate,
@@ -150,8 +158,9 @@ library Core {
         emit IGameEvents.ResearchCancelled(pid, research, position);
     }
 
-    /// Admin only (checked by Game): premium for every player until `until` (B-25).
-    function setGlobalPremium(uint256 until) external {
+    /// Operator only: premium for every player until `until` (B-25).
+    function setGlobalPremium(address caller, uint256 until) external {
+        Roles.check(caller, ROLE_OPERATOR);
         GameStorage.core().globalPremiumUntil = uint40(until);
         emit IGameEvents.GlobalPremiumSet(uint40(until));
     }

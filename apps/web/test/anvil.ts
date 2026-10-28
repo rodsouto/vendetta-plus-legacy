@@ -6,6 +6,12 @@ import { fileURLToPath } from "node:url";
 import type { Address } from "viem";
 import { DEV_KEYS, makeClients, type Clients } from "../src/chain/config.js";
 
+// Local chain: every role is account 0 (B-17); exported ADMIN/OPERATOR/ARBITER are for real deploys.
+const localDeployEnv = () =>
+  Object.fromEntries(
+    Object.entries(process.env).filter(([k]) => !["ADMIN", "OPERATOR", "ARBITER"].includes(k)),
+  );
+
 const contracts = join(dirname(fileURLToPath(import.meta.url)), "../../../contracts");
 
 export async function startChain(port: number): Promise<{ clients: Clients; stop: () => void }> {
@@ -32,7 +38,7 @@ export async function startChain(port: number): Promise<{ clients: Clients; stop
       DEV_KEYS[0],
       "--broadcast",
     ],
-    { cwd: contracts, stdio: "ignore" },
+    { cwd: contracts, stdio: "ignore", env: localDeployEnv() },
   );
   const run = JSON.parse(
     readFileSync(join(contracts, "broadcast/Deploy.s.sol/31337/run-latest.json"), "utf8"),

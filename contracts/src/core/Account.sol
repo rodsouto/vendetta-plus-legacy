@@ -10,9 +10,12 @@ import {
     CoreState,
     GameStorage,
     INVITE_SESSION,
-    INVITE_CONTROLLER
+    INVITE_CONTROLLER,
+    ROLE_OPERATOR,
+    ROLE_ARBITER
 } from "./GameStorage.sol";
 import {Access} from "./Access.sol";
+import {Roles} from "./Roles.sol";
 import {
     NotRegistered,
     NotAllowed,
@@ -68,15 +71,17 @@ library Account {
         emit IGameEvents.VacationEnded(pid);
     }
 
-    /// Arbiter (admin in v1, checked by Game): suspend until `until`; 0 lifts it.
-    function suspend(uint64 player, uint256 until) external {
+    /// Arbiter only (B-14): suspend until `until`; 0 lifts it.
+    function suspend(address caller, uint64 player, uint256 until) external {
+        Roles.check(caller, ROLE_ARBITER);
         Player storage p = _player(player);
         p.suspendedUntil = uint40(until);
         emit IGameEvents.PlayerSuspended(player, uint40(until));
     }
 
-    /// Admin (checked by Game): premium for one player until `until` (paid off-chain).
-    function grantPremium(uint64 player, uint256 until) external {
+    /// Operator only (B-25): premium for one player until `until` (paid off-chain).
+    function grantPremium(address caller, uint64 player, uint256 until) external {
+        Roles.check(caller, ROLE_OPERATOR);
         Player storage p = _player(player);
         p.premiumUntil = uint40(until);
         emit IGameEvents.PremiumGranted(player, uint40(until));

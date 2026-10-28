@@ -12,7 +12,9 @@ Copy `.env.example` to `.env` at the repository root. The file is git-ignored.
 | Variable | Purpose |
 |----------|---------|
 | `DEPLOYER_PRIVATE_KEY` | A dedicated deployer funded with xDAI on Gnosis |
-| `ADMIN` | Owner of Game; use a Safe in production. Empty means the deployer |
+| `ADMIN` | Admin role of Game: upgrades and assigns roles (B-17); use a Safe in production. Empty means the deployer |
+| `OPERATOR` | Operator role: grants premium (B-25). Empty means `ADMIN` |
+| `ARBITER` | Arbiter role: suspends players (B-14). Empty means `ADMIN` |
 | `GNOSIS_RPC_URL` | Deployment RPC; defaults to `https://rpc.gnosischain.com` |
 | `VITE_PIMLICO_API_KEY` | Public browser key for sponsorship and ordinary bundling on chain 100 |
 | `VITE_PIMLICO_POLICY_ID` | Sponsorship policy restricted to Gnosis and the intended spending limits |
@@ -85,8 +87,24 @@ verification through [Gnosis Blockscout](https://gnosis.blockscout.com) without 
 The script writes `deployments/gnosis.json`: chain ID, public RPC, Game/directory addresses, first
 receipt block and commit. It writes this before explorer verification, so a verification outage
 does not lose a successful deployment record. It refuses to overwrite an existing deployment. Commit that file. The
-deployer has no continuing role unless it is also the admin; transfer ownership to the intended
-Safe if `ADMIN` was empty.
+deployer has no continuing role unless it holds one; if `ADMIN` was empty, hand the admin role to
+the intended Safe with `proposeRole(1, safe)` and, from the Safe, `acceptRole(1)` (and the same for
+the operator, 2, and the arbiter, 3, if they defaulted to the deployer).
+
+## Roles, upgrades and freeze (B-17)
+
+Three roles, read with `roleHolder(role)`: admin (1), operator (2), arbiter (3). The admin Safe
+assigns any role at once with `setRole(role, account)`, for example to replace a lost or compromised
+operator key. A holder hands its own role over with `proposeRole(role, successor)` and the
+successor's `acceptRole(role)`; the admin Safe moves to a new Safe this way, never with `setRole`,
+so a mistyped address cannot lose it.
+
+The admin Safe upgrades with `upgradeToAndCall(newImplementation, data)` on the Game proxy. Before
+proposing one, `pnpm test` must pass on the commit being deployed: it includes the storage layout
+check against `contracts/storage-layout.json`. After the first deploy, never record a layout with
+`--force`. When the game is final, the Safe calls `setRole(1, address(0))`: the freeze. It cannot be
+undone: no more upgrades or role assignments, while the operator and the arbiter keep their powers
+and can still hand them over.
 
 ## Indexer on Goldsky
 

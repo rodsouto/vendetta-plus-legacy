@@ -142,6 +142,12 @@ struct Session {
 uint8 constant INVITE_SESSION = 1;
 uint8 constant INVITE_CONTROLLER = 2;
 
+// Privileged roles (B-17, Roles.sol): the admin upgrades and assigns roles, the operator grants
+// premium (B-25), the arbiter suspends (B-14).
+uint8 constant ROLE_ADMIN = 1;
+uint8 constant ROLE_OPERATOR = 2;
+uint8 constant ROLE_ARBITER = 3;
+
 /// An invitation to play for a player as a session, or to manage it as a controller (B-15, B-26):
 /// the invited address binds itself by accepting, nobody binds it. Dies with the player's epoch.
 struct Invite {
@@ -161,7 +167,9 @@ struct ControllerInfo {
 /// Core state (ERC-7201 namespace "vendetta.storage.core").
 struct CoreState {
     uint64 seq;
-    uint40 globalPremiumUntil; // B-25: the admin can give premium to every player for a while
+    uint40 globalPremiumUntil; // B-25: the operator can give premium to every player for a while
+    mapping(uint8 => address) roles; // ROLE_* → holder (B-17)
+    mapping(uint8 => address) pendingRoles; // ROLE_* → proposed holder, until it accepts
     uint64 nextPlayer;
     uint64 nextBuilding;
     mapping(uint64 => Player) players;

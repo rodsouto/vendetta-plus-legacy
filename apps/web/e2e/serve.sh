@@ -9,7 +9,10 @@ anvil --port 8555 --silent &
 trap 'kill %1 2>/dev/null || true' EXIT
 for _ in $(seq 1 50); do cast block-number --rpc-url "$rpc" >/dev/null 2>&1 && break; sleep 0.2; done
 cd "$root/contracts"
-forge script script/Deploy.s.sol --rpc-url "$rpc" --private-key "$key0" --broadcast >/dev/null
+# Local chain: every role is account 0, which the Workshop signs with (B-17); exported
+# ADMIN/OPERATOR/ARBITER are for real deploys.
+env -u ADMIN -u OPERATOR -u ARBITER \
+  forge script script/Deploy.s.sol --rpc-url "$rpc" --private-key "$key0" --broadcast >/dev/null
 game="$(jq -r '[.transactions[] | select(.contractName == "ERC1967Proxy")][0].contractAddress' broadcast/Deploy.s.sol/31337/run-latest.json)"
 directory="$(jq -r '[.transactions[] | select(.contractName == "PasskeyDirectory")][0].contractAddress' broadcast/Deploy.s.sol/31337/run-latest.json)"
 # No indexer here: the reports come from the logs, whatever the root .env names.
