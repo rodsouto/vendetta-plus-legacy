@@ -19,7 +19,6 @@
     "dollar": "Dólares"
   },
   "common": {
-    "level": "Nivel",
     "cost": "Costo",
     "time": "Tiempo",
     "queue": "Cola",
@@ -104,8 +103,9 @@
     "research": "Entrenamientos",
     "troops": "Tropas",
     "train": "Entrenar",
-    "queueRoom": "Asentar",
-    "queueResearch": "Estudiar",
+    "build": "Construir",
+    "upgradeTo": "Ampliar a nivel {{level}}",
+    "startResearch": "Empezar entrenamiento",
     "atHome": "En el edificio",
     "training": "En entrenamiento",
     "building": "Edificio",
@@ -114,8 +114,8 @@
     "noRoom": "Hace falta la sala de entrenamiento para estas tropas.",
     "quantity": "Cantidad",
     "points": "Puntos del edificio",
-    "queued": "Asentado",
-    "trained": "Entrenamiento asentado",
+    "queued": "En cola",
+    "trained": "Entrenamiento en cola",
     "cancelled": "Anulado",
     "finishes": "termina",
     "incoming": "Llega a tu edificio",
@@ -227,7 +227,7 @@
     "families": "Familias",
     "offerPending": "Oferta pendiente",
     "created": "Familia fundada",
-    "done": "Asentado"
+    "done": "Hecho"
   },
   "market": {
     "title": "Mercado",
@@ -245,7 +245,7 @@
     "pay": "Pagar",
     "paid": "Pagado",
     "window": "Vence",
-    "offered": "Orden asentada",
+    "offered": "Oferta enviada",
     "rates": "1 dólar = 3 armas = 5 municiones (3-5-1) o 2 armas = 4 municiones (2-4-1)",
     "vacationLocked": "Sin vacaciones mientras una orden aceptada tenga la ventana abierta:",
     "seller": "Vendedor",
@@ -265,7 +265,7 @@
     "withdrawMax": "Máximo ahora",
     "withdrawNote": "Cada monto tiene que caber en tu parte y en la capacidad libre del edificio; si no, la transacción revierte.",
     "withdrawNone": "Ahora no entra nada en ese edificio: hacé lugar o elegí otro.",
-    "withdrawn": "Retiro asentado"
+    "withdrawn": "Retiro realizado"
   },
   "account": {
     "title": "Cuenta",

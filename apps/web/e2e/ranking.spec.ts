@@ -20,7 +20,9 @@ async function warp(page: Page, label: string) {
 async function ensureRegistered(page: Page, slot: number) {
   await page.goto("/#/book");
   const open = page.getByRole("heading", { name: "Abrir una cuenta" });
-  await expect(open.or(page.getByRole("button", { name: "Asentar" }).first())).toBeVisible();
+  await expect(
+    open.or(page.getByRole("button", { name: /^(Construir|Ampliar a nivel \d+)$/ }).first()),
+  ).toBeVisible();
   if (!(await open.isVisible())) return;
   await page.getByRole("button", { name: new RegExp(`^25:25:${slot} `) }).click();
   await page.getByRole("button", { name: "Fundar aquí" }).click();
@@ -39,9 +41,9 @@ test("the ranking rises without the player acting: the projection settles finish
   await page.goto("/#/book");
   await page
     .getByRole("row", { name: /^Campo de entrenamiento/ })
-    .getByRole("button", { name: "Asentar" })
+    .getByRole("button", { name: /^(Construir|Ampliar a nivel \d+)$/ })
     .click();
-  await expect(stamp(page)).toContainText("Asentado");
+  await expect(stamp(page)).toContainText("En cola");
 
   // The player's own row (bold) and its points before the room finishes.
   await page.goto("/#/ranking");

@@ -47,16 +47,16 @@ test("register, build, train, attack and read the report", async ({ page }) => {
   await page.goto("/#/book");
   await page
     .getByRole("row", { name: /^Campo de entrenamiento/ })
-    .getByRole("button", { name: "Asentar" })
+    .getByRole("button", { name: "Construir" })
     .click();
-  await expect(stamp(page)).toContainText("Asentado");
+  await expect(stamp(page)).toContainText("En cola");
   await warp(page, "+1 d");
 
   await page.goto("/#/book?tab=troops");
   const rowdy = page.getByRole("row", { name: /^Maton/ });
   await rowdy.getByRole("textbox").fill("5");
   await rowdy.getByRole("button", { name: "Entrenar" }).click();
-  await expect(stamp(page)).toContainText("Entrenamiento asentado");
+  await expect(stamp(page)).toContainText("Entrenamiento en cola");
   await warp(page, "+1 d");
 
   await page.goto("/#/map");

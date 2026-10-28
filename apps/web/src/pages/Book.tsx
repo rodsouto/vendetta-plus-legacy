@@ -5,6 +5,7 @@ import {
   distance,
   productionRates,
   researchUpgrade,
+  roomUpgrade,
   sim,
   troopStats,
   vendetta as rs,
@@ -365,6 +366,14 @@ function Requirements({ list }: { list: { kind: string; index: number; level: bi
   );
 }
 
+/** Upgrades of `index` waiting in `queue`: the next one starts from the level they leave. */
+const inQueue = (queue: readonly sim.QueueItem[], index: number) =>
+  BigInt(queue.filter((q) => q.index === index).length);
+
+/** The level the `i`-th queue item reaches, from the level its entity has now. */
+const reaches = (queue: readonly sim.QueueItem[], i: number, level: bigint) =>
+  level + inQueue(queue.slice(0, i + 1), queue[i]!.index);
+
 function Rooms({ b }: { b: sim.Building }) {
   const g = useGame();
   const { t } = useTranslation();
@@ -389,7 +398,9 @@ function Rooms({ b }: { b: sim.Building }) {
                   <span className="stamp ink">{t("common.waiting")}</span>
                 )}
               </span>
-              <span className="what">{roomName(q.index)}</span>
+              <span className="what">
+                {roomName(q.index)} → {String(reaches(b.roomQueue, i, b.levels[q.index]!))}
+              </span>
               <button
                 className="btn quiet"
                 disabled={g.busy}
@@ -413,7 +424,6 @@ function Rooms({ b }: { b: sim.Building }) {
           <thead>
             <tr>
               <th>{t("book.rooms")}</th>
-              <th className="num">{t("common.level")}</th>
               <CostHeads />
               <th className="num">{t("common.time")}</th>
               <th />
@@ -421,7 +431,16 @@ function Rooms({ b }: { b: sim.Building }) {
           </thead>
           <tbody>
             {rs.buildings.map((room) => {
-              const job = sim.roomJob(g.world, b, room.index);
+              const level = b.levels[room.index]!;
+              // Priced like the contract will when it starts: after what is already queued.
+              const from = level + inQueue(b.roomQueue, room.index);
+              const speed = rs.roles.buildSpeedRoom;
+              const job = roomUpgrade(
+                g.world.rs,
+                room,
+                from,
+                b.levels[speed]! + inQueue(b.roomQueue, speed),
+              );
               const missing = unmet(g.world, p, b, room.requirements);
               return (
                 <tr key={room.id} id={`room-${room.index}`} tabIndex={-1}>
@@ -429,10 +448,8 @@ function Rooms({ b }: { b: sim.Building }) {
                     <span className={missing.length > 0 ? "entry-name red" : "entry-name"}>
                       {roomName(room.index)}
                     </span>
+                    {level > 0n && <span className="entry-level"> ({String(level)})</span>}
                     <Requirements list={missing} />
-                  </td>
-                  <td className="num c-fig" data-label={t("common.level")}>
-                    {String(b.levels[room.index])}
                   </td>
                   <CostCells cost={job.cost} stock={b.stock} />
                   <td className="num c-time">{duration(job.seconds)}</td>
@@ -449,7 +466,9 @@ function Rooms({ b }: { b: sim.Building }) {
                         })
                       }
                     >
-                      {t("book.queueRoom")}
+                      {from === 0n
+                        ? t("book.build")
+                        : t("book.upgradeTo", { level: String(from + 1n) })}
                     </button>
                   </td>
                 </tr>
@@ -493,7 +512,10 @@ function Research({ b }: { b: sim.Building }) {
                   <span className="stamp ink">{t("common.waiting")}</span>
                 )}
               </span>
-              <span className="what">{researchName(q.index)}</span>
+              <span className="what">
+                {researchName(q.index)} →{" "}
+                {String(reaches(p.researchQueue, i, p.research[q.index]!))}
+              </span>
               <button
                 className="btn quiet"
                 disabled={g.busy}
@@ -517,7 +539,6 @@ function Research({ b }: { b: sim.Building }) {
           <thead>
             <tr>
               <th>{t("book.research")}</th>
-              <th className="num">{t("common.level")}</th>
               <CostHeads />
               <th className="num">{t("common.time")}</th>
               <th />
@@ -525,12 +546,9 @@ function Research({ b }: { b: sim.Building }) {
           </thead>
           <tbody>
             {rs.research.map((r) => {
-              const job = researchUpgrade(
-                g.world.rs,
-                r,
-                p.research[r.index]!,
-                school > 0n ? school : 1n,
-              );
+              const level = p.research[r.index]!;
+              const from = level + inQueue(p.researchQueue, r.index);
+              const job = researchUpgrade(g.world.rs, r, from, school > 0n ? school : 1n);
               const missing = unmet(g.world, p, b, r.requirements);
               return (
                 <tr key={r.id} id={`research-${r.index}`} tabIndex={-1}>
@@ -542,10 +560,8 @@ function Research({ b }: { b: sim.Building }) {
                     >
                       {researchName(r.index)}
                     </span>
+                    {level > 0n && <span className="entry-level"> ({String(level)})</span>}
                     <Requirements list={missing} />
-                  </td>
-                  <td className="num c-fig" data-label={t("common.level")}>
-                    {String(p.research[r.index])}
                   </td>
                   <CostCells cost={job.cost} stock={b.stock} />
                   <td className="num c-time">{school > 0n ? duration(job.seconds) : "—"}</td>
@@ -562,7 +578,9 @@ function Research({ b }: { b: sim.Building }) {
                         })
                       }
                     >
-                      {t("book.queueResearch")}
+                      {from === 0n
+                        ? t("book.startResearch")
+                        : t("book.upgradeTo", { level: String(from + 1n) })}
                     </button>
                   </td>
                 </tr>

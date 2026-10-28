@@ -57,17 +57,18 @@ test("optional help, persistent dismissal and live expansion recommendations", a
   await guide.getByRole("link", { name: "Ver Almacén de munición en mi edificio" }).click();
   const production = page.locator('[id^="room-"]').filter({ hasText: /^Almacén de munición/ });
   await expect(production).toBeFocused();
-  await production.getByRole("button", { name: "Asentar" }).click();
+  await production.getByRole("button", { name: "Construir" }).click();
   await expect(guide).toContainText("En curso: Almacén de munición");
   await expect(guide.locator(".guide-timing")).toContainText("La tarea actual termina en");
   await page
     .getByRole("row", { name: /^Oficina del Jefe/ })
-    .getByRole("button", { name: "Asentar" })
+    .getByRole("button", { name: "Ampliar a nivel 2" })
     .click();
-  await production.getByRole("button", { name: "Asentar" }).click();
+  // The second upgrade of a queued room is priced and named from the level the first one leaves.
+  await production.getByRole("button", { name: "Ampliar a nivel 2" }).click();
   await page
     .getByRole("row", { name: /^Armería/ })
-    .getByRole("button", { name: "Asentar" })
+    .getByRole("button", { name: "Construir" })
     .click();
   await guide.getByText("Ver el camino completo", { exact: true }).click();
   await expect(guide.getByText("En curso", { exact: true })).toHaveCount(1);

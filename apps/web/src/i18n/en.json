@@ -19,7 +19,6 @@
     "dollar": "Dollars"
   },
   "common": {
-    "level": "Level",
     "cost": "Cost",
     "time": "Time",
     "queue": "Queue",
@@ -104,8 +103,9 @@
     "research": "Training",
     "troops": "Troops",
     "train": "Train",
-    "queueRoom": "Enter",
-    "queueResearch": "Study",
+    "build": "Build",
+    "upgradeTo": "Expand to level {{level}}",
+    "startResearch": "Start training",
     "atHome": "In the building",
     "training": "In training",
     "building": "Building",
@@ -114,8 +114,8 @@
     "noRoom": "The training room for these troops is needed.",
     "quantity": "Quantity",
     "points": "Building points",
-    "queued": "Entered",
-    "trained": "Training entered",
+    "queued": "Queued",
+    "trained": "Training queued",
     "cancelled": "Voided",
     "finishes": "finishes",
     "incoming": "Arriving at your building",
@@ -227,7 +227,7 @@
     "families": "Families",
     "offerPending": "Offer pending",
     "created": "Family founded",
-    "done": "Entered"
+    "done": "Done"
   },
   "market": {
     "title": "Market",
@@ -245,7 +245,7 @@
     "pay": "Pay",
     "paid": "Paid",
     "window": "Expires",
-    "offered": "Trade entered",
+    "offered": "Offer sent",
     "rates": "1 dollar = 3 weapons = 5 ammunition (3-5-1) or 2 weapons = 4 ammunition (2-4-1)",
     "vacationLocked": "No vacation while an accepted trade's window is open:",
     "seller": "Seller",
@@ -265,7 +265,7 @@
     "withdrawMax": "Most right now",
     "withdrawNote": "Each amount has to fit in your share and in the building's free capacity; otherwise the transaction reverts.",
     "withdrawNone": "Nothing fits in that building right now: make room or choose another one.",
-    "withdrawn": "Withdrawal entered"
+    "withdrawn": "Withdrawal made"
   },
   "account": {
     "title": "Account",

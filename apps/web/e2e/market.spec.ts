@@ -43,15 +43,15 @@ test("offer, accept with a deposit, pay by transport and withdraw", async ({ pag
   await page.goto("/#/book");
   await page
     .getByRole("row", { name: /^Campo de entrenamiento/ })
-    .getByRole("button", { name: "Asentar" })
+    .getByRole("button", { name: "Construir" })
     .click();
-  await expect(stamp(page)).toContainText("Asentado");
+  await expect(stamp(page)).toContainText("En cola");
   await warp(page, "+1 d");
   await page.goto("/#/book?tab=troops");
   const rowdy = page.getByRole("row", { name: /^Maton/ });
   await rowdy.getByRole("textbox").fill("5");
   await rowdy.getByRole("button", { name: "Entrenar" }).click();
-  await expect(stamp(page)).toContainText("Entrenamiento asentado");
+  await expect(stamp(page)).toContainText("Entrenamiento en cola");
   await warp(page, "+1 d");
 
   // The seller offers 300 weapons for 100 dollars (the form's defaults) from its building.
@@ -62,7 +62,7 @@ test("offer, accept with a deposit, pay by transport and withdraw", async ({ pag
   await select.selectOption({ value: (await option.getAttribute("value"))! });
   await expect(page.getByText("Precio justo según las tasas fijas")).toBeVisible();
   await page.getByRole("button", { name: "Ofrecer", exact: true }).click();
-  await expect(stamp(page)).toContainText("Orden asentada");
+  await expect(stamp(page)).toContainText("Oferta enviada");
 
   // The buyer accepts: 10 dollars of deposit leave its building.
   await as(page, 6);
@@ -70,7 +70,7 @@ test("offer, accept with a deposit, pay by transport and withdraw", async ({ pag
   const row = page.getByRole("row", { name: /300 Armas/ });
   await expect(row).toContainText("Fianza 10 Dólares");
   await row.getByRole("button", { name: "Aceptar" }).click();
-  await expect(stamp(page)).toContainText("Asentado");
+  await expect(stamp(page)).toContainText("Hecho");
   await expect(row).toContainText("Aceptada");
 
   // It pays with a transport that names the trade, prefilled from the trade row.
@@ -99,12 +99,12 @@ test("offer, accept with a deposit, pay by transport and withdraw", async ({ pag
   await row.getByRole("textbox", { name: /Armas · Máximo/ }).fill("100");
   await row.getByRole("textbox", { name: /Dólares · Máximo/ }).fill("10");
   await row.getByRole("button", { name: "Retirar" }).click();
-  await expect(stamp(page)).toContainText("Retiro asentado");
+  await expect(stamp(page)).toContainText("Retiro realizado");
   await expect(row).toContainText("Para retirar: 200 Armas");
   await expect(row.getByRole("textbox", { name: /Dólares · Máximo/ })).toHaveCount(0);
   await expect(row.getByRole("textbox", { name: /Armas · Máximo/ })).toHaveValue("200");
   await row.getByRole("button", { name: "Retirar" }).click();
-  await expect(page.locator(".stamp-toast", { hasText: "Retiro asentado" })).toBeVisible();
+  await expect(page.locator(".stamp-toast", { hasText: "Retiro realizado" })).toBeVisible();
   await expect(row).not.toContainText("Para retirar");
 
   // The seller has nothing left to withdraw and can offer again.

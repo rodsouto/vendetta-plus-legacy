@@ -361,6 +361,11 @@ h3 .aside {
 .ledger .entry-name {
   font-weight: 600;
 }
+/* The level an entry has now, beside its name as in the original game: "Armería (3)". */
+.ledger .entry-level {
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums lining-nums;
+}
 .ledger .entry-sub {
   display: block;
   font-size: 0.78rem;
@@ -611,14 +616,19 @@ input.cell {
 }
 
 /* ------------------------------------------------------------------ entries (next events) */
+/* One grid per list: the "when" column takes its widest entry (a stamp like "En espera"), so every
+   row's name starts on the same line without the stamp running into it. */
 .entries {
+  display: grid;
+  grid-template-columns: minmax(4.75rem, max-content) minmax(0, 1fr) auto;
   list-style: none;
   margin: 0;
   padding: 0;
 }
 .entries li {
+  grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: 4.75rem 1fr auto;
+  grid-template-columns: subgrid;
   gap: 0.6rem;
   align-items: center;
   min-height: var(--row);
@@ -764,6 +774,10 @@ input.cell {
   }
   .ledger.stack .c-name {
     grid-column: 1;
+  }
+  /* Without a figure beside it the name takes the whole line, not the width the action leaves. */
+  .ledger.stack tr:not(:has(.c-fig)) .c-name {
+    grid-column: 1 / -1;
   }
   .ledger.stack .c-fig {
     grid-column: 2;

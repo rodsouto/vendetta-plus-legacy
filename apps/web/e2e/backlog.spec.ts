@@ -28,7 +28,7 @@ async function train(page: Page, quantity: number, timeout = 5_000) {
   const rowdy = page.getByRole("row", { name: /^Maton/ });
   await rowdy.getByRole("textbox").fill(String(quantity));
   await rowdy.getByRole("button", { name: "Entrenar" }).click();
-  await expect(stamp(page)).toContainText("Entrenamiento asentado", { timeout });
+  await expect(stamp(page)).toContainText("Entrenamiento en cola", { timeout });
 }
 
 test("an action retries with advance() when missions piled up", async ({ page }) => {
@@ -64,9 +64,9 @@ test("an action retries with advance() when missions piled up", async ({ page })
     await page.goto("/#/book");
     await page
       .getByRole("row", { name: /^Campo de entrenamiento/ })
-      .getByRole("button", { name: "Asentar" })
+      .getByRole("button", { name: "Construir" })
       .click();
-    await expect(stamp(page)).toContainText("Asentado");
+    await expect(stamp(page)).toContainText("En cola");
   }
   await warp(page, "+1 d");
   for (const s of sides) {
