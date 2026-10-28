@@ -47,7 +47,7 @@ test("offer, accept with a deposit, pay by transport and withdraw", async ({ pag
     .click();
   await expect(stamp(page)).toContainText("Asentado");
   await warp(page, "+1 d");
-  await page.goto("/#/book");
+  await page.goto("/#/book?tab=troops");
   const rowdy = page.getByRole("row", { name: /^Maton/ });
   await rowdy.getByRole("textbox").fill("5");
   await rowdy.getByRole("button", { name: "Entrenar" }).click();

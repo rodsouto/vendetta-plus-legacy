@@ -24,7 +24,7 @@ async function register(page: Page, slot: number) {
 }
 
 async function train(page: Page, quantity: number, timeout = 5_000) {
-  await page.goto("/#/book");
+  await page.goto("/#/book?tab=troops");
   const rowdy = page.getByRole("row", { name: /^Maton/ });
   await rowdy.getByRole("textbox").fill(String(quantity));
   await rowdy.getByRole("button", { name: "Entrenar" }).click();
