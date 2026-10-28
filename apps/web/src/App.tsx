@@ -14,6 +14,7 @@ import { Family } from "./pages/Family.js";
 import { Market } from "./pages/Market.js";
 import { Account } from "./pages/Account.js";
 import { Ranking } from "./pages/Ranking.js";
+import { Rules } from "./pages/Rules.js";
 import { Dev } from "./pages/Dev.js";
 import { useMemo, useState } from "react";
 import { applyTheme, storedTheme, type Theme } from "./theme.js";
@@ -29,6 +30,7 @@ const PAGES = [
   ["market", "C", Market],
   ["account", "A", Account],
   ["ranking", "R", Ranking],
+  ["rules", "§", Rules],
   ["dev", "T", Dev],
 ] as const;
 
@@ -125,12 +127,23 @@ function Game() {
   // The workshop drives anvil (time travel, the deployer's admin key): local only, never on
   // Gnosis Chain. With passkeys (`pnpm dev:aa`) it shows too, without the account switcher.
   const pages = PAGES.filter(([id]) => id !== "dev" || g.network.id === "local");
+  // The rules are reference, opened from the spine: the thumb index keeps the game's sections.
+  const tabs = pages.filter(([id]) => id !== "rules");
   const page = pages.find(([id]) => id === path) ?? pages[0]!;
   const Page = page[2];
   const signedOut = g.signer.mode === "passkey" && !g.address;
   return (
     <div className="binding">
       <Spine>
+        <a
+          className="spine-link"
+          href="#/rules"
+          aria-label={t("nav.rules")}
+          aria-current={page[0] === "rules" ? "page" : undefined}
+        >
+          <span aria-hidden="true">§</span>
+          <span className="label">{t("nav.rules")}</span>
+        </a>
         {signedOut ? (
           <button className="btn quiet" disabled={g.busy} onClick={() => void g.signIn()}>
             {t("entry.signIn")}
@@ -144,7 +157,7 @@ function Game() {
         <Page key={`${path}-${g.address ?? ""}`} />
       </main>
       <nav className="thumb-index" aria-label="Índice">
-        {pages.map(([id, letter]) => (
+        {tabs.map(([id, letter]) => (
           <a key={id} href={`#/${id}`} aria-current={page[0] === id ? "page" : undefined}>
             <span className="letter" aria-hidden="true">
               {letter}

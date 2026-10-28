@@ -9,6 +9,7 @@
     "market": "Market",
     "account": "Account",
     "ranking": "Ranking",
+    "rules": "Rules",
     "dev": "Workshop"
   },
   "resources": {
@@ -57,7 +58,9 @@
     "slot": "Lot",
     "submit": "Found here",
     "pick": "Tap an empty lot on the plat.",
-    "done": "Account opened"
+    "done": "Account opened",
+    "accept": "Opening an account means accepting the",
+    "rulesLink": "rules"
   },
   "entry": {
     "title": "Enter the city",
@@ -296,6 +299,105 @@
     "players": "Players",
     "families": "Families",
     "buildings": "Buildings"
+  },
+  "rules": {
+    "title": "Rules",
+    "intro": "The contracts enforce most of the game by themselves. These rules cover the abuse they can't see. The arbiter judges reports and can suspend accounts; it never takes away resources, troops or buildings.",
+    "sections": [
+      {
+        "title": "What is allowed",
+        "body": [
+          "Anything the game lets you do is allowed unless a rule below forbids it. In particular:",
+          {
+            "ul": [
+              "Several accounts per person. What is forbidden is passing resources between them (pushing).",
+              "Scripts and bots: the game is a public contract and automating it is legitimate.",
+              "Sharing an account between devices or people, giving it away and selling it."
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Bug abuse",
+        "body": [
+          "Using a bug in the game, the contracts or the servers to gain an advantage is forbidden. The rules are the game's specification, not whatever the code happens to accept: a transaction that goes through but contradicts the rules is using a bug.",
+          "If you find a bug, report it privately to the team; don't publish it or use it. Knowingly keeping quiet about a bug you used or saw used is sanctioned too.",
+          "Sanction: from 1 day of suspension to a permanent one."
+        ]
+      },
+      {
+        "title": "Pushing",
+        "body": [
+          "Pushing is getting resources from another account without giving back their value. It is forbidden, also during a war.",
+          "A gift (a transport that pays for nothing) is only allowed if all of this holds:",
+          {
+            "ol": [
+              "When it arrives, the receiver has at most half your points.",
+              "The receiver stays at or below half your points for the next 14 days.",
+              "Everything you give that player in any 24 hours is less than half your daily production of each resource you send: 24 times your hourly production, adding up all your buildings."
+            ]
+          },
+          "Alcohol is never traded: any alcohol you send to another player counts as a gift.",
+          "To trade, use the market: its trades are at fixed rates and are never pushing. A trade outside the market (transports both ways) is only allowed if the return arrives within 48 hours of the first shipment and at a market rate (3-5-1 or 2-4-1); otherwise each shipment is judged as a gift.",
+          "Also pushing:",
+          {
+            "ul": [
+              "Leaving resources in a building for another account to take with attacks.",
+              "Opening accounts to send their starting resources or their production to another account.",
+              "Accepting market trades you don't mean to pay, so that your deposit goes to the seller.",
+              "Loans: resources given now to be paid back later.",
+              "Extortion: resources paid under threat of attack that don't meet the gift conditions."
+            ]
+          },
+          "The sender is sanctioned, and so is the receiver if they knew."
+        ]
+      },
+      {
+        "title": "Bashing",
+        "body": [
+          "Attacking the same building more than 5 times in 24 hours is forbidden: your sixth attack to arrive at one building within any 24 hours breaks the rule.",
+          {
+            "ul": [
+              "Every attack that ends in a battle counts, whatever it carries, except one that carries only spies.",
+              "Attacks from all your buildings add up.",
+              "Attacks between two families at war don't count, as long as both have at least 2 members and the war isn't abusive (see Wars)."
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Wars",
+        "body": [
+          "Wars are declared and ended in the game, and the chain is their register: no admin has to acknowledge them. During a war the bashing limit doesn't apply between the two families; pushing is still forbidden.",
+          "Abusive wars: the exemption is for rivals, not for harassing a much weaker family. The arbiter can judge a war abusive and count its attacks as bashing, looking at the gap in points and members, whether the weaker family offered to surrender or a draw and was refused or ignored, how long the attacks go on, and whether they gain the attacker anything or only keep the victims from playing."
+        ]
+      },
+      {
+        "title": "Names and content",
+        "body": [
+          "Family names and tags, messages, chat, family boards and anything else shown in the game can't be pornographic, offensive, racist or illegal, infringe someone else's rights or advertise other games.",
+          "A family's name can't be changed or erased once it is on the chain: the game hides it, and whoever created the family can be suspended."
+        ]
+      },
+      {
+        "title": "No rollbacks",
+        "body": [
+          "Nobody gets back what they lost to a bug, an outage or an update of the game. Bugs are fixed going forward."
+        ]
+      },
+      {
+        "title": "Sanctions",
+        "body": [
+          "The only sanction is suspension. A suspended account can't build, research, train, send missions, trade, change family or be transferred, but it keeps producing, whatever was already running finishes, and it can still be attacked. The length depends on the gain, the harm and repetition."
+        ]
+      },
+      {
+        "title": "Reports",
+        "body": [
+          "A report names the player, the rule and the transactions that prove it. Game events (battles, transports, trades, points) are the strongest evidence; screenshots and chats count when they match them or cover what the game doesn't record."
+        ]
+      }
+    ]
   },
   "dev": {
     "title": "Workshop (local only)",

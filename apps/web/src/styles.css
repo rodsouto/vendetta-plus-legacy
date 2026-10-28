@@ -144,6 +144,31 @@ select {
   font-size: 0.85rem;
   color: var(--binding-text);
 }
+.spine-link {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2rem;
+  padding: 0 0.6rem;
+  background: var(--leather-2);
+  border: 1px solid var(--leather-edge);
+  border-radius: var(--radius);
+  color: var(--binding-text);
+  text-decoration: none;
+}
+.spine-link > span:first-child {
+  font: 700 1.05rem/1 var(--display);
+  color: var(--gilt);
+}
+.spine-link[aria-current="page"] {
+  border-color: var(--gilt);
+}
+/* On a phone the section sign stands alone (the link keeps its name for screen readers). */
+@media (max-width: 30rem) {
+  .spine-link .label {
+    display: none;
+  }
+}
 .spine select {
   background: var(--leather-2);
   border: 1px solid var(--leather-edge);
@@ -280,6 +305,22 @@ h3 .aside {
 }
 .muted {
   color: var(--ink-3);
+}
+
+/* The rulebook: running text, kept to a readable measure. */
+.rules {
+  max-width: 68ch;
+}
+.rules p,
+.rules li {
+  line-height: 1.5;
+}
+.rules ol,
+.rules ul {
+  padding-left: 1.4rem;
+}
+.rules li + li {
+  margin-top: 0.3rem;
 }
 .red {
   color: var(--red);
@@ -876,11 +917,12 @@ details.locked li {
   white-space: nowrap;
 }
 
-/* Phone thumb index: all nine tabs fit at 390px. */
+/* Phone thumb index: every tab (nine with the local Workshop) fits in one row at 390px. */
 @media (max-width: 59.99rem) {
   .thumb-index {
     display: grid;
-    grid-template-columns: repeat(9, minmax(0, 1fr));
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
     overflow: visible;
     gap: 1px;
     padding-inline: 0.25rem;

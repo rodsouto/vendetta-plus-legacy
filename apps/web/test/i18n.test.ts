@@ -1,5 +1,5 @@
 // Every custom error the game contracts declare has a message in both languages, so a revert is
-// never shown as a raw `errors.X` key.
+// never shown as a raw `errors.X` key; the rulebook has the same sections in both.
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import en from "../src/i18n/en.json";
@@ -19,5 +19,13 @@ describe("i18n", () => {
       const errors = dict.errors as Record<string, string>;
       expect(declared.filter((n) => !errors[n])).toEqual([]);
     }
+  });
+
+  it("has the same rulebook shape in both languages", () => {
+    const shape = (dict: typeof en) =>
+      dict.rules.sections.map((s) =>
+        s.body.map((b) => (typeof b === "string" ? "p" : "ol" in b ? b.ol.length : -b.ul.length)),
+      );
+    expect(shape(es)).toEqual(shape(en));
   });
 });

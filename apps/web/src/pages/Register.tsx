@@ -58,6 +58,9 @@ export function Register() {
         </button>
       </p>
       {signedOut && <p className="muted">{t("entry.passkeyNote")}</p>}
+      <p className="muted">
+        {t("register.accept")} <a href="#/rules">{t("register.rulesLink")}</a>.
+      </p>
       {signedOut && <OtherWays />}
     </>
   );

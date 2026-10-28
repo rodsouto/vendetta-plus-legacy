@@ -9,6 +9,7 @@
     "market": "Mercado",
     "account": "Cuenta",
     "ranking": "Ranking",
+    "rules": "Reglas",
     "dev": "Taller"
   },
   "resources": {
@@ -57,7 +58,9 @@
     "slot": "Lote",
     "submit": "Fundar aquí",
     "pick": "Tocá un lote vacío en el plano.",
-    "done": "Cuenta abierta"
+    "done": "Cuenta abierta",
+    "accept": "Abrir una cuenta implica aceptar las",
+    "rulesLink": "reglas"
   },
   "entry": {
     "title": "Entrar a la ciudad",
@@ -296,6 +299,105 @@
     "players": "Jugadores",
     "families": "Familias",
     "buildings": "Edificios"
+  },
+  "rules": {
+    "title": "Reglas",
+    "intro": "Los contratos hacen cumplir casi todo el juego por sí solos. Estas reglas cubren los abusos que no pueden ver. El árbitro juzga las denuncias y puede suspender cuentas; nunca quita recursos, tropas ni edificios.",
+    "sections": [
+      {
+        "title": "Qué está permitido",
+        "body": [
+          "Todo lo que el juego te deja hacer está permitido, salvo que una regla de abajo lo prohíba. En particular:",
+          {
+            "ul": [
+              "Varias cuentas por persona. Lo prohibido es pasar recursos entre ellas (pushing).",
+              "Scripts y bots: el juego es un contrato público y automatizarlo es legítimo.",
+              "Compartir una cuenta entre dispositivos o personas, regalarla y venderla."
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Abuso de bugs",
+        "body": [
+          "Usar un bug del juego, de los contratos o de los servidores para sacar ventaja está prohibido. Las reglas son la especificación del juego, no lo que el código acepte: una transacción que pasa pero contradice las reglas es usar un bug.",
+          "Si encontrás un bug, reportalo en privado al equipo; no lo publiques ni lo uses. Callar a sabiendas un bug que usaste o viste usar también se sanciona.",
+          "Sanción: desde 1 día de suspensión hasta una permanente."
+        ]
+      },
+      {
+        "title": "Pushing",
+        "body": [
+          "Pushing es recibir recursos de otra cuenta sin devolver su valor. Está prohibido, también durante una guerra.",
+          "Un regalo (un transporte que no paga nada) solo está permitido si se cumple todo esto:",
+          {
+            "ol": [
+              "Cuando llega, el receptor tiene como mucho la mitad de tus puntos.",
+              "El receptor se mantiene en la mitad de tus puntos o menos durante los 14 días siguientes.",
+              "Todo lo que le das a ese jugador en cualquier lapso de 24 horas es menos de la mitad de tu producción diaria de cada recurso que mandás: 24 veces tu producción por hora, sumando todos tus edificios."
+            ]
+          },
+          "El alcohol nunca se intercambia: todo alcohol que mandes a otro jugador cuenta como regalo.",
+          "Para intercambiar, usá el mercado: sus intercambios son a tasas fijas y nunca son pushing. Un intercambio fuera del mercado (transportes en los dos sentidos) solo está permitido si la devolución llega dentro de las 48 horas del primer envío y a una tasa del mercado (3-5-1 o 2-4-1); si no, cada envío se juzga como regalo.",
+          "También es pushing:",
+          {
+            "ul": [
+              "Dejar recursos en un edificio para que otra cuenta se los lleve atacando.",
+              "Abrir cuentas para mandar sus recursos iniciales o su producción a otra cuenta.",
+              "Aceptar intercambios del mercado que no pensás pagar, para que tu depósito quede para el vendedor.",
+              "Préstamos: recursos dados ahora para devolverlos más adelante.",
+              "Extorsión: recursos pagados bajo amenaza de ataque que no cumplen las condiciones de un regalo."
+            ]
+          },
+          "Se sanciona al que envía, y también al receptor si lo sabía."
+        ]
+      },
+      {
+        "title": "Bashing",
+        "body": [
+          "Atacar el mismo edificio más de 5 veces en 24 horas está prohibido: tu sexto ataque que llega a un edificio dentro de cualquier lapso de 24 horas rompe la regla.",
+          {
+            "ul": [
+              "Cuenta todo ataque que termina en batalla, lleve lo que lleve, salvo uno que lleva solo espías.",
+              "Se suman los ataques de todos tus edificios.",
+              "No cuentan los ataques entre dos familias en guerra, siempre que las dos tengan al menos 2 miembros y la guerra no sea abusiva (ver Guerras)."
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Guerras",
+        "body": [
+          "Las guerras se declaran y terminan en el juego, y la cadena es su registro: ningún admin tiene que reconocerlas. Durante una guerra no rige el límite de bashing entre las dos familias; el pushing sigue prohibido.",
+          "Guerras abusivas: la exención es para rivales, no para hostigar a una familia mucho más débil. El árbitro puede juzgar que una guerra es abusiva y contar sus ataques como bashing, mirando la diferencia de puntos y de miembros, si la familia más débil ofreció rendirse o un empate y se lo rechazaron o ignoraron, cuánto duran los ataques y si le sirven de algo al atacante o solo impiden jugar a las víctimas."
+        ]
+      },
+      {
+        "title": "Nombres y contenido",
+        "body": [
+          "Los nombres y tags de familia, los mensajes, el chat, los tablones de familia y cualquier otra cosa que se muestre en el juego no pueden ser pornográficos, ofensivos, racistas ni ilegales, infringir derechos de otros ni hacer publicidad de otros juegos.",
+          "El nombre de una familia no se puede cambiar ni borrar una vez en la cadena: el juego lo oculta, y quien creó la familia puede ser suspendido."
+        ]
+      },
+      {
+        "title": "Sin reversiones",
+        "body": [
+          "Nadie recupera lo que perdió por un bug, una caída o una actualización del juego. Los bugs se corrigen hacia adelante."
+        ]
+      },
+      {
+        "title": "Sanciones",
+        "body": [
+          "La única sanción es la suspensión. Una cuenta suspendida no puede construir, investigar, entrenar, enviar misiones, intercambiar, cambiar de familia ni transferirse, pero sigue produciendo, lo que ya estaba en curso termina y se la puede seguir atacando. La duración depende de la ganancia, el daño y la reincidencia."
+        ]
+      },
+      {
+        "title": "Denuncias",
+        "body": [
+          "Una denuncia nombra al jugador, la regla y las transacciones que lo prueban. Los eventos del juego (batallas, transportes, intercambios, puntos) son la prueba más fuerte; las capturas y los chats cuentan si coinciden con ellos o tratan de lo que el juego no registra."
+        ]
+      }
+    ]
   },
   "dev": {
     "title": "Taller (solo local)",

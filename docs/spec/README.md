@@ -33,6 +33,7 @@ Conventions: player-facing text in English; IDs in English `snake_case`; legacy 
 | [10-space4k-variant.md](10-space4k-variant.md) | Space4k as a second ruleset |
 | [decisions.md](decisions.md) | Legacy → target decisions (D-01 … D-25) |
 | [blockchain.md](blockchain.md) | Fully on-chain EVM implementation decisions (B-01 … B-31) |
+| [rulebook.md](rulebook.md) | Player rules judged by the arbiter: pushing, bashing, bug abuse, content ([es](rulebook.es.md)) |
 
 ### Appendix
 
