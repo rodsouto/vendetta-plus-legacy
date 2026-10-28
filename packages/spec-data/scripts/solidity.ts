@@ -95,7 +95,6 @@ interface GameConfig {
     hidden_arrival_slack_seconds: number;
     invite_ttl_seconds: number;
   };
-  vacation: { duration_days: number; cooldown_days: number };
   market: {
     exchange_rates: Record<string, Record<string, number>>;
     deposit_percent: number;
@@ -330,8 +329,11 @@ library ${name} {
     uint256 internal constant SALARY_EXP_DEN = ${salExpDen};
     uint256 internal constant SALARY_DIVISOR = ${config.missions.salary_divisor};
 
-    uint256 internal constant VACATION_SECONDS = ${config.vacation.duration_days * 86400};
-    uint256 internal constant VACATION_COOLDOWN_SECONDS = ${config.vacation.cooldown_days * 86400};
+    /// Vacation length and cooldown since the last one ended, without and with premium (D-18, B-25).
+    uint256 internal constant VACATION_SECONDS = ${q("vacation_days", false) * 86400};
+    uint256 internal constant VACATION_SECONDS_PREMIUM = ${q("vacation_days", true) * 86400};
+    uint256 internal constant VACATION_COOLDOWN_SECONDS = ${q("vacation_cooldown_days", false) * 86400};
+    uint256 internal constant VACATION_COOLDOWN_SECONDS_PREMIUM = ${q("vacation_cooldown_days", true) * 86400};
     uint256 internal constant MARKET_WINDOW_SECONDS = ${config.market.delivery_window_days * 86400};
     /// The buyer's deposit, in percent of each price resource (D-19).
     uint256 internal constant DEPOSIT_PERCENT = ${config.market.deposit_percent};

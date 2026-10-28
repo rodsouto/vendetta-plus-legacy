@@ -30,7 +30,7 @@ of these; when they disagree, blockchain.md wins for that implementation.
 | D-15 | Loss ratio precision | Keep | Rounded to 3 decimals |
 | D-16 | Double fight per round | Keep | Each pairing fights in both phases |
 | D-17 | Honor > 100 buildings | Fix | Cap honor at 8 before every branch |
-| D-18 | Vacation | Keep + Fix | Legacy rules; cooldown enforced server-side |
+| D-18 | Vacation | Keep + Fix | Legacy rules; cooldown enforced server-side; duration and cooldown depend on premium (B-25) |
 | D-19 | Market | Keep + Fix + New | Legacy offers with bugs fixed; the seller's goods and a buyer deposit held from acceptance, shares withdrawn |
 | D-20 | Families & wars | Keep + Fix | Legacy mechanics with authorization fixed |
 | D-21 | Space4k | — | Second ruleset: same mechanics, own data |
@@ -186,10 +186,16 @@ buildings reads an undefined table cell. **Target:** `honor = min(honor, 8)` fir
 
 ## D-18 — Vacation — Keep + Fix
 
-Keep the legacy rules ([09-social.md](09-social.md#vacation-mode)): 15 days, account locked, cannot
-be targeted by new missions, production and queues keep running, missions already travelling resolve.
-**Fix:** enforce the 7-day cooldown on the server, and compute it from the actual end time even if the
+Keep the legacy rules ([09-social.md](09-social.md#vacation-mode)): account locked, cannot be
+targeted by new missions, production and queues keep running, missions already travelling resolve.
+**Fix:** enforce the cooldown on the server, and compute it from the actual end time even if the
 player never logged in after an automatic expiry.
+
+**Duration and cooldown depend on premium** ([B-25](blockchain.md#b-25--premium--new)): 7 days with
+a 14-day cooldown without premium, 30 days with a 7-day cooldown with it (legacy: 15 and 7). Both
+use the premium state when the vacation starts: the end is fixed then and premium expiring later
+does not shorten it, and the cooldown since the previous vacation is the one of the player's
+current state.
 
 ## D-19 — Market — Keep + Fix + New
 

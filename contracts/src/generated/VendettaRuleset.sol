@@ -83,8 +83,11 @@ library VendettaRuleset {
     uint256 internal constant SALARY_EXP_DEN = 5;
     uint256 internal constant SALARY_DIVISOR = 2512;
 
-    uint256 internal constant VACATION_SECONDS = 1296000;
-    uint256 internal constant VACATION_COOLDOWN_SECONDS = 604800;
+    /// Vacation length and cooldown since the last one ended, without and with premium (D-18, B-25).
+    uint256 internal constant VACATION_SECONDS = 604800;
+    uint256 internal constant VACATION_SECONDS_PREMIUM = 2592000;
+    uint256 internal constant VACATION_COOLDOWN_SECONDS = 1209600;
+    uint256 internal constant VACATION_COOLDOWN_SECONDS_PREMIUM = 604800;
     uint256 internal constant MARKET_WINDOW_SECONDS = 432000;
     /// The buyer's deposit, in percent of each price resource (D-19).
     uint256 internal constant DEPOSIT_PERCENT = 10;

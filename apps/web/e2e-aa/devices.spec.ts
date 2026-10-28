@@ -113,7 +113,7 @@ test("recover with a code, remove the lost device, add a device from another eco
   expect(await fresh.prompts()).toBe(recovered + 4);
   await expect(fresh.page.getByRole("button", { name: "Quitar", exact: true })).toHaveCount(2);
   await expect(fresh.page.getByText(/^Hasta /)).toBeVisible();
-  await fresh.page.getByRole("button", { name: "Irse de vacaciones (15 días)" }).click();
+  await fresh.page.getByRole("button", { name: /^Irse de vacaciones \(\d+ días\)$/ }).click();
   await expect(stamp(fresh.page)).toContainText("Irse de vacaciones", { timeout: 60_000 });
   expect(await fresh.prompts()).toBe(recovered + 4);
 

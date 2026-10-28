@@ -20,6 +20,12 @@ export function Account() {
   const premium = sim.isPremium(g.world, p, g.now);
   // D-18, D-19: no vacation while an accepted trade's window is open.
   const tradeLocked = !vacation && g.now <= p.tradeLockUntil;
+  // D-18, B-25: length and cooldown follow premium at the start.
+  const cfg = g.world.rs.config;
+  const toDays = (s: bigint) => Number(s / 86400n);
+  const cooldownEnd =
+    p.vacationUntil > 0n ? p.vacationUntil + cfg.vacationCooldownSeconds[premium ? 1 : 0] : 0n;
+  const cooling = !vacation && g.now < cooldownEnd;
   const days = Number(g.world.rs.config.controllerRemovalDelay / 86400n);
   const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
   return (
@@ -66,6 +72,19 @@ export function Account() {
       {g.signer.mode === "passkey" && <Devices />}
 
       <h3>{t("account.vacation")}</h3>
+      <p className="note">
+        {t("account.vacationNote", {
+          free: toDays(cfg.vacationSeconds[0]),
+          freeCooldown: toDays(cfg.vacationCooldownSeconds[0]),
+          premium: toDays(cfg.vacationSeconds[1]),
+          premiumCooldown: toDays(cfg.vacationCooldownSeconds[1]),
+        })}
+      </p>
+      {cooling && (
+        <p className="note">
+          {t("account.vacationCooldown")} {clock(cooldownEnd)}
+        </p>
+      )}
       {tradeLocked && (
         <p className="note">
           {t("market.vacationLocked")} {clock(p.tradeLockUntil)}
@@ -89,17 +108,19 @@ export function Account() {
       ) : (
         <button
           className="btn"
-          disabled={g.busy || tradeLocked}
+          disabled={g.busy || tradeLocked || cooling}
           onClick={() =>
             void g.act({
-              done: t("account.startVacation"),
+              done: t("account.startVacation", {
+                days: toDays(cfg.vacationSeconds[premium ? 1 : 0]),
+              }),
               check: (w, c, n) => sim.startVacation(w, c, n),
               functionName: "startVacation",
               args: [],
             })
           }
         >
-          {t("account.startVacation")}
+          {t("account.startVacation", { days: toDays(cfg.vacationSeconds[premium ? 1 : 0]) })}
         </button>
       )}
 

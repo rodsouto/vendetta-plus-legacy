@@ -5,6 +5,7 @@ import {
   active,
   atomic,
   controllerOnly,
+  isPremium,
   onVacation,
   resolve,
   sessionPlayer,
@@ -15,8 +16,8 @@ import { fail } from "./errors.js";
 import { INVITE_CONTROLLER, INVITE_SESSION, inviteKey, type Player, type World } from "./state.js";
 
 /**
- * 15 days; needs no own missions in flight, 7 days since the last vacation ended and no accepted
- * trade whose window is still open (D-18, D-19).
+ * Needs no own missions in flight, the cooldown since the last vacation ended and no accepted trade
+ * whose window is still open (D-18, D-19). Length and cooldown follow premium now (B-25).
  */
 export const startVacation = atomic(function startVacation(
   w: World,
@@ -26,10 +27,11 @@ export const startVacation = atomic(function startVacation(
   drain(w, now);
   const p = active(w, controller, now);
   if (p.missions > 0n) fail("MissionsInFlight");
-  if (p.vacationUntil > 0n && now < p.vacationUntil + w.rs.config.vacationCooldownSeconds)
+  const premium = isPremium(w, p, now) ? 1 : 0;
+  if (p.vacationUntil > 0n && now < p.vacationUntil + w.rs.config.vacationCooldownSeconds[premium])
     fail("VacationCooldown");
   if (now <= p.tradeLockUntil) fail("TradeOpen");
-  p.vacationUntil = now + w.rs.config.vacationSeconds;
+  p.vacationUntil = now + w.rs.config.vacationSeconds[premium];
   p.vacationStart = now;
   p.vacationSeq = w.seq++; // ordered against sends in the same second (B-07, B-22)
 });

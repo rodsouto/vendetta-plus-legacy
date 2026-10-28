@@ -172,8 +172,6 @@ export interface Config {
   inviteTtl: bigint;
   /** Honor power never drops below this percentage (D-27). */
   honorMinPercent: bigint;
-  vacationSeconds: bigint;
-  vacationCooldownSeconds: bigint;
   marketWindowSeconds: bigint;
   /** The buyer's deposit, in percent of each price resource (D-19). */
   marketDepositPercent: bigint;
@@ -195,6 +193,9 @@ export interface Config {
   roomQueue: [number, number];
   researchQueue: [number, number];
   troopQueue: [number, number];
+  /** Vacation length and cooldown since the last one ended, without and with premium (D-18, B-25). */
+  vacationSeconds: [bigint, bigint];
+  vacationCooldownSeconds: [bigint, bigint];
 }
 
 /** Decimal with at most two places → integer hundredths (points). */
@@ -344,8 +345,6 @@ export function loadRuleset(raw: RawRuleset, cfg: typeof gameConfig): Ruleset {
       hiddenArrivalSlack: BigInt(cfg.onchain.hidden_arrival_slack_seconds),
       inviteTtl: BigInt(cfg.onchain.invite_ttl_seconds),
       honorMinPercent: BigInt(cfg.honor.min_power_percent),
-      vacationSeconds: BigInt(cfg.vacation.duration_days) * 86400n,
-      vacationCooldownSeconds: BigInt(cfg.vacation.cooldown_days) * 86400n,
       marketWindowSeconds: BigInt(cfg.market.delivery_window_days) * 86400n,
       marketDepositPercent: BigInt(cfg.market.deposit_percent),
       maxOpenOffers: cfg.onchain.max_open_market_offers_per_player,
@@ -370,6 +369,14 @@ export function loadRuleset(raw: RawRuleset, cfg: typeof gameConfig): Ruleset {
       troopQueue: [
         cfg.premium.without_premium.max_troop_batches_per_queue,
         cfg.premium.with_premium.max_troop_batches_per_queue,
+      ],
+      vacationSeconds: [
+        BigInt(cfg.premium.without_premium.vacation_days) * 86400n,
+        BigInt(cfg.premium.with_premium.vacation_days) * 86400n,
+      ],
+      vacationCooldownSeconds: [
+        BigInt(cfg.premium.without_premium.vacation_cooldown_days) * 86400n,
+        BigInt(cfg.premium.with_premium.vacation_cooldown_days) * 86400n,
       ],
     },
   };

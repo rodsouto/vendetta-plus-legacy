@@ -50,7 +50,7 @@ which network it runs on. Messaging, chat and moderation are off-chain (B-10).
 | B-22 | Hidden information | New | Hidden mission **kind and target** (v1), revealed by timelock encryption, with a random cover distance; hidden building state (FHE) only as research |
 | B-23 | Arbitration | v2 | Kleros v2 as `arbiter`, under a written rulebook (pushing, bashing, bounties) |
 | B-24 | Tokenization | v2 | One ERC-721 per **account** wrapping B-26; no per-building or per-troop tokens |
-| B-25 | Premium | New | Longer queues; granted by the admin per player (paid off-chain) or to everyone |
+| B-25 | Premium | New | Longer queues and vacations; granted by the admin per player (paid off-chain) or to everyone |
 | B-26 | Player identity | New | State keyed by `playerId`; up to 5 controllers (devices, recovery code) that can change; accounts can be given away |
 | B-27 | Exact stocks | New | Resources stored in 1/100800 units: per-hour rate ×28 = per-second increment (D-12) |
 | B-28 | Alcohol depletion | New | Regime change (D-07) at the whole second `t0 + ⌈stock / net consumption⌉` |
@@ -705,11 +705,13 @@ resources are **not** tokenized individually (B-04 stays).
 The premium module in the legacy code is an empty stub. In the original game premium unlocked
 longer queues. Target:
 
-| Queue | Without premium | With premium |
+| Limit | Without premium | With premium |
 |-------|-----------------|--------------|
-| Rooms, per building | 1 | 6 (legacy value, [05-formulas.md](05-formulas.md#queues)) |
-| Research, per player | 1 | 6 (legacy value) |
-| Troop batches, per training room | 1 | 5 (B-09) |
+| Rooms queued, per building | 1 | 6 (legacy value, [05-formulas.md](05-formulas.md#queues)) |
+| Research queued, per player | 1 | 6 (legacy value) |
+| Troop batches queued, per training room | 1 | 5 (B-09) |
+| Vacation length (D-18) | 7 days | 30 days (legacy 15) |
+| Vacation cooldown, since the last one ended (D-18) | 14 days | 7 days (legacy value) |
 
 Values live in the `premium` section of [data/game_config.yaml](data/game_config.yaml). The legacy
 `queues` values become the premium limits.
@@ -720,7 +722,8 @@ Values live in the `premium` section of [data/game_config.yaml](data/game_config
 - **Global premium:** the admin (Safe, B-17) can call `setGlobalPremium(until)` to give premium to
   every player for a while (events, launch, compensation).
 - **Expiry** (own or global): items already queued finish normally; new items can only be queued
-  while the queue is below the limit without premium.
+  while the queue is below the limit without premium. A vacation keeps the end fixed when it
+  started; the cooldown before the next one is the one without premium.
 
 ## B-26 — Player identity — New
 

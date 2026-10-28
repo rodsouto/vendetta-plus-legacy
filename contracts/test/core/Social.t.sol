@@ -175,9 +175,35 @@ contract SocialTest is GameTestBase {
         vm.prank(bob);
         vm.expectRevert(VacationCooldown.selector);
         game.startVacation();
-        vm.warp(block.timestamp + 1 days);
+    }
+
+    /// D-18, B-25: 7 days and 14 of cooldown without premium, 30 and 7 with it; the end is fixed
+    /// at the start, the cooldown follows premium at the next start.
+    function test_premiumVacation() public {
+        uint256 t = block.timestamp;
         vm.prank(bob);
         game.startVacation();
+        assertEq(game.getPlayer(2).vacationUntil, t + 7 days);
+        uint256 end = t + 7 days;
+        vm.warp(end + 14 days - 1);
+        vm.prank(bob);
+        vm.expectRevert(VacationCooldown.selector);
+        game.startVacation();
+        vm.prank(admin);
+        game.grantPremium(2, end + 10 days);
+        vm.warp(end + 7 days);
+        vm.prank(bob);
+        game.startVacation();
+        assertEq(game.getPlayer(2).vacationUntil, end + 37 days);
+        uint256 end2 = end + 37 days;
+        vm.warp(end2 + 14 days - 1);
+        vm.prank(bob);
+        vm.expectRevert(VacationCooldown.selector);
+        game.startVacation();
+        vm.warp(end2 + 14 days);
+        vm.prank(bob);
+        game.startVacation();
+        assertEq(game.getPlayer(2).vacationUntil, end2 + 21 days);
     }
 
     function test_noVacationWithMissionsInFlight() public {

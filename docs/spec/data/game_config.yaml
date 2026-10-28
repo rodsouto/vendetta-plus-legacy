@@ -85,6 +85,7 @@ honor:
     100: [1, 1, 2, 3, 6, 9, 14, 20, 29]
 
 vacation:
+  # Legacy values, kept for reference: the rules read the `premium` section below (D-18, B-25).
   duration_days: 15
   cooldown_days: 7                      # D-18: enforced server-side (legacy only hid the link)
 
@@ -122,13 +123,18 @@ onchain:
   invite_ttl_seconds: 604800            # a controller or transfer invitation lasts 7 days (B-26)
 
 premium:
-  # NOT legacy (blockchain.md, B-25). The legacy `queues` limits above become the premium limits.
+  # NOT legacy (blockchain.md, B-25). The legacy `queues` limits above become the premium limits;
+  # vacation is shorter and less frequent without premium, longer than legacy with it.
   duration_days: 30                     # per purchase; buying before expiry adds days
   without_premium:
     max_room_queue_per_building: 1
     max_research_queue: 1
     max_troop_batches_per_queue: 1      # per building, for each of boot_camp and security
+    vacation_days: 7
+    vacation_cooldown_days: 14          # since the last vacation ended
   with_premium:
     max_room_queue_per_building: 6
     max_research_queue: 6
     max_troop_batches_per_queue: 5      # on-chain cap (B-09); unlimited in legacy
+    vacation_days: 30                   # legacy 15
+    vacation_cooldown_days: 7

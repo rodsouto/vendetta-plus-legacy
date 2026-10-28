@@ -4,7 +4,8 @@
 // Deterministic (seeded); output committed. Run with `pnpm codegen`.
 //
 // Four kinds:
-//  - random: random core actions (queues, cancels, premium) by a few players, mostly reverts and edges;
+//  - random: random core actions (queues, cancels, premium, vacation) by a few players, mostly
+//    reverts and edges;
 //  - bots: players that grow, train, attack, transport, station, occupy, recall and abandon over
 //    months of game time, so battles, loot, occupations and returns to lost buildings happen;
 //  - hidden: bots that send hidden missions (B-22) and reveal them on time, late, wrongly or never;
@@ -116,9 +117,9 @@ const num = (x: bigint) => {
 };
 
 const queueSnap = (q: sim.QueueItem[]) => ({
-  queue_finish: q.map((i) => num(i.finishAt)),
-  queue_index: q.map((i) => i.index),
-  queue_seq: q.map((i) => num(i.seq)),
+  queueFinish: q.map((i) => num(i.finishAt)),
+  queueIndex: q.map((i) => i.index),
+  queueSeq: q.map((i) => num(i.seq)),
 });
 
 const trainingSnap = (q: sim.TrainingItem[]) =>
@@ -163,14 +164,14 @@ function snapshot(w: sim.World) {
     buildings: [...w.buildings.values()].map((b) => ({
       centipoints: num(b.centipoints),
       id: num(b.id),
-      last_troop_arrival: num(b.lastTroopArrival),
-      last_update: num(b.lastUpdate),
+      lastTroopArrival: num(b.lastTroopArrival),
+      lastUpdate: num(b.lastUpdate),
       levels: b.levels.map(num),
       owner: num(b.owner),
       ...queueSnap(b.roomQueue),
       stock: b.stock.map(num),
-      training_attack: trainingSnap(b.training[0]),
-      training_defense: trainingSnap(b.training[1]),
+      trainingAttack: trainingSnap(b.training[0]),
+      trainingDefense: trainingSnap(b.training[1]),
       troops: b.troops.map(num),
     })),
     missions: [...w.missions.values()].map((m) => ({
@@ -205,10 +206,10 @@ function snapshot(w: sim.World) {
       missions: num(p.missions),
       ...queueSnap(p.researchQueue),
       research: p.research.map(num),
-      research_building: num(p.researchBuilding),
+      researchBuilding: num(p.researchBuilding),
       // Parallel to controllers: a recovery code (B-15), and when a scheduled removal is due (B-26).
       recovery: p.controllers.map((c) => (p.recovery.has(c) ? 1 : 0)),
-      removal_at: p.controllers.map((c) => num(p.removalAt.get(c) ?? 0n)),
+      removalAt: p.controllers.map((c) => num(p.removalAt.get(c) ?? 0n)),
       social: [
         p.vacationUntil,
         p.suspendedUntil,
@@ -247,7 +248,7 @@ function snapshot(w: sim.World) {
       id: num(x.id),
     })),
     trades: [...w.trades.values()].map((t) => ({
-      buyer_took: t.buyerTook.map(num),
+      buyerTook: t.buyerTook.map(num),
       deposit: t.deposit.map(num),
       fields: [
         t.seller,
@@ -262,7 +263,7 @@ function snapshot(w: sim.World) {
       paid: t.paid.map(num),
       price: t.price.map(num),
       rate: t.rate.map(num),
-      seller_took: t.sellerTook.map(num),
+      sellerTook: t.sellerTook.map(num),
     })),
   };
 }
@@ -476,6 +477,11 @@ function randomScenario(seed: number) {
         action: ACTION.register,
         args: [1 + Math.floor(r() * 3), 1 + Math.floor(r() * 2), 1 + Math.floor(r() * 40)],
       };
+    } else if (sim.onVacation(w.players.get(pid)!, now) && r() < 0.3) {
+      a = { action: ACTION.endVacation, args: [] };
+    } else if (r() < 0.03) {
+      // Length and cooldown follow premium, which the admin toggles above (D-18, B-25).
+      a = { action: ACTION.startVacation, args: [] };
     } else {
       const b = pick(own);
       const k = r();

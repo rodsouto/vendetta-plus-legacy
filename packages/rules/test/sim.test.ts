@@ -182,7 +182,7 @@ describe("sim: missions (same cases as contracts/test/core/Missions.t.sol)", () 
 
 describe("sim: account (D-18, B-14, B-25, B-26)", () => {
   const day = 86400n;
-  it("vacation locks the account, blocks new missions to it and has a 7-day cooldown", () => {
+  it("vacation locks the account, blocks new missions to it and has a cooldown", () => {
     const w = sim.newWorld(rs);
     const t = 1_700_000_000n;
     sim.register(w, "alice", at, t);
@@ -204,7 +204,28 @@ describe("sim: account (D-18, B-14, B-25, B-26)", () => {
     ).toThrow("TargetOnVacation");
     sim.endVacation(w, "bob", t + day);
     expect(() => sim.startVacation(w, "bob", t + day + 6n * day)).toThrow("VacationCooldown");
-    sim.startVacation(w, "bob", t + day + 7n * day);
+  });
+
+  it("premium makes vacations longer and the cooldown shorter (D-18, B-25)", () => {
+    const w = sim.newWorld(rs);
+    const t = 1_700_000_000n;
+    sim.register(w, "bob", at, t);
+    const bob = () => w.players.get(1n)!; // actions replace the player (atomic)
+    // Without premium: 7 days, then 14 days of cooldown.
+    sim.startVacation(w, "bob", t);
+    expect(bob().vacationUntil).toBe(t + 7n * day);
+    const end = t + 7n * day;
+    expect(() => sim.startVacation(w, "bob", end + 14n * day - 1n)).toThrow("VacationCooldown");
+    // With premium the cooldown is 7 days and the vacation lasts 30.
+    sim.grantPremium(w, 1n, end + 10n * day);
+    sim.startVacation(w, "bob", end + 7n * day);
+    expect(bob().vacationUntil).toBe(end + 37n * day);
+    // Premium ran out meanwhile: the end stays, the next cooldown is the one without premium.
+    expect(sim.onVacation(bob(), end + 37n * day - 1n)).toBe(true);
+    const end2 = end + 37n * day;
+    expect(() => sim.startVacation(w, "bob", end2 + 14n * day - 1n)).toThrow("VacationCooldown");
+    sim.startVacation(w, "bob", end2 + 14n * day);
+    expect(bob().vacationUntil).toBe(end2 + 21n * day);
   });
 
   it("a suspended player cannot act; premium raises queue limits; transfer moves the account", () => {

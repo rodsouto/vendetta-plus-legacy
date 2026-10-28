@@ -96,7 +96,7 @@ test("create an account with a passkey, play without prompts, sign in on another
   // The first action authorizes B's session (one prompt), the next ones need none.
   await b.page.goto("/#/account");
   await expect(b.page.getByText("Vencido: la próxima orden te pide la passkey")).toBeVisible();
-  await b.page.getByRole("button", { name: "Irse de vacaciones (15 días)" }).click();
+  await b.page.getByRole("button", { name: /^Irse de vacaciones \(\d+ días\)$/ }).click();
   await expect(stamp(b.page)).toContainText("Irse de vacaciones", { timeout: 60_000 });
   expect(await b.prompts()).toBe(before + 2);
   await expect(b.page.getByText(/^Hasta /)).toBeVisible();

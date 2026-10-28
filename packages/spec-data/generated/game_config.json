@@ -322,12 +322,16 @@
     "without_premium": {
       "max_room_queue_per_building": 1,
       "max_research_queue": 1,
-      "max_troop_batches_per_queue": 1
+      "max_troop_batches_per_queue": 1,
+      "vacation_days": 7,
+      "vacation_cooldown_days": 14
     },
     "with_premium": {
       "max_room_queue_per_building": 6,
       "max_research_queue": 6,
-      "max_troop_batches_per_queue": 5
+      "max_troop_batches_per_queue": 5,
+      "vacation_days": 30,
+      "vacation_cooldown_days": 7
     }
   }
 }

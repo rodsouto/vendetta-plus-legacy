@@ -39,18 +39,22 @@ import {
 /// (B-15, B-26). An address joins an account only by accepting an invitation itself: nobody binds
 /// an address it does not hold. Linked external library. Mirrors packages/rules/src/sim/account.ts.
 library Account {
-    /// 15 days; needs no own missions in flight, 7 days since the last vacation ended and no
-    /// accepted trade whose window is still open (D-18, D-19).
+    /// Needs no own missions in flight, the cooldown since the last vacation ended and no accepted
+    /// trade whose window is still open (D-18, D-19). Length and cooldown follow premium now (B-25).
     function startVacation(address caller) external {
         CoreState storage s = GameStorage.core();
         (uint64 pid, Player storage p) = Access.active(s, caller);
         if (p.missions > 0) revert MissionsInFlight();
-        if (
-            p.vacationUntil > 0
-                && block.timestamp < p.vacationUntil + Ruleset.VACATION_COOLDOWN_SECONDS
-        ) revert VacationCooldown();
+        bool premium = Access.isPremium(s, p);
+        uint256 cooldown =
+            premium ? Ruleset.VACATION_COOLDOWN_SECONDS_PREMIUM : Ruleset.VACATION_COOLDOWN_SECONDS;
+        if (p.vacationUntil > 0 && block.timestamp < p.vacationUntil + cooldown) {
+            revert VacationCooldown();
+        }
         if (block.timestamp <= p.tradeLockUntil) revert TradeOpen();
-        p.vacationUntil = uint40(block.timestamp + Ruleset.VACATION_SECONDS);
+        p.vacationUntil = uint40(
+            block.timestamp + (premium ? Ruleset.VACATION_SECONDS_PREMIUM : Ruleset.VACATION_SECONDS)
+        );
         p.vacationStart = uint40(block.timestamp);
         p.vacationSeq = s.seq++; // ordered against sends in the same second (B-07, B-22)
         emit IGameEvents.VacationStarted(pid, p.vacationUntil);

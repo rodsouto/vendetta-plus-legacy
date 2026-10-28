@@ -23,14 +23,14 @@ contract ScenariosTest is GameTestBase {
     string internal constant DIR = "../packages/rules/generated/scenarios/vendetta/";
 
     string internal constant TYPES = "Scenario(uint256 actors,uint256 seed,Step[] steps)"
-        "BuildingSnap(uint256 centipoints,uint256 id,uint256 last_troop_arrival,uint256 last_update,uint256[] levels,uint256 owner,uint256[] queue_finish,uint256[] queue_index,uint256[] queue_seq,uint256[] stock,uint256[] training_attack,uint256[] training_defense,uint256[] troops)"
+        "BuildingSnap(uint256 centipoints,uint256 id,uint256 lastTroopArrival,uint256 lastUpdate,uint256[] levels,uint256 owner,uint256[] queueFinish,uint256[] queueIndex,uint256[] queueSeq,uint256[] stock,uint256[] trainingAttack,uint256[] trainingDefense,uint256[] troops)"
         "InviteSnap(uint256 actor,uint256 epoch,uint256 kind,uint256 player,uint256 recovery,uint256 until)"
         "MissionSnap(uint256[] cargo,uint256[] fields,uint256 id,uint256[] troops)"
         "FamilySnap(bool alive,uint256 id,uint256 members,string name,string tag)"
-        "PlayerSnap(uint256[] applications,uint256 buildings,uint256 centipoints,uint256[] controllers,uint256 id,uint256 missions,uint256[] offers,uint256[] purchases,uint256[] queue_finish,uint256[] queue_index,uint256[] queue_seq,uint256[] recovery,uint256[] removal_at,uint256[] research,uint256 research_building,uint256[] social)"
+        "PlayerSnap(uint256[] applications,uint256 buildings,uint256 centipoints,uint256[] controllers,uint256 id,uint256 missions,uint256[] offers,uint256[] purchases,uint256[] queueFinish,uint256[] queueIndex,uint256[] queueSeq,uint256[] recovery,uint256[] removalAt,uint256[] research,uint256 researchBuilding,uint256[] social)"
         "SessionSnap(uint256 actor,uint256 epoch,uint256 player,uint256 until)"
         "State(BuildingSnap[] buildings,FamilySnap[] families,InviteSnap[] invites,MissionSnap[] missions,uint256[] parked,PlayerSnap[] players,SessionSnap[] sessions,TradeSnap[] trades,WarSnap[] wars)"
-        "TradeSnap(uint256[] buyer_took,uint256[] deposit,uint256[] fields,uint256 id,uint256[] paid,uint256[] price,uint256[] rate,uint256[] seller_took)"
+        "TradeSnap(uint256[] buyerTook,uint256[] deposit,uint256[] fields,uint256 id,uint256[] paid,uint256[] price,uint256[] rate,uint256[] sellerTook)"
         "WarSnap(uint256[] fields,uint256 id)"
         "Step(uint256 action,uint256 actor,uint256[] args,string error,State state,uint256 time)";
 

@@ -47,7 +47,7 @@ game people remember, with no crypto friction.
   21 troops (16 attack, 5 defense); map city 1–50 : neighborhood 1–50 : slot 1–255 (17 × 15 grid).
 - Families have three ranks (Capo, SubCapo, Member); messaging, board and chat are off-chain and
   out of scope for now (B-10).
-- Premium (longer queues) is granted by the admin; no payments in the client.
+- Premium (longer queues and vacations) is granted by the admin; no payments in the client.
 - Terminology follows the original game; entity names come from the legacy language files
   (packages/spec-data/generated/i18n).
 
