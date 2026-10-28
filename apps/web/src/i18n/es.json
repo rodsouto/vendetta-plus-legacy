@@ -88,6 +88,11 @@
     "signOut": "Salir"
   },
   "book": {
+    "abandonTitle": "¿Abandonar el edificio {{coord}}?",
+    "abandonWarning": "Perderás los recursos, las habitaciones y las tropas que hay aquí. Se cancelarán las construcciones, los entrenamientos de tropas y la investigación pendiente de este edificio. Esta acción no se puede deshacer.",
+    "abandonReturningWarning": "La parcela quedará libre. Las tropas que regresen a este edificio después de abandonarlo se perderán.",
+    "keepBuilding": "Conservar edificio",
+    "confirmAbandon": "Sí, abandonar edificio",
     "sections": "Secciones del ledger",
     "perUnit": "Los costos y tiempos son por tropa.",
     "balance": "Saldo",

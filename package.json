@@ -13,6 +13,7 @@
     "format": "prettier --write \"packages/**/*.{ts,tsx,json}\" \"apps/**/*.{ts,tsx,json}\" --ignore-path .prettierignore",
     "format:check": "prettier --check \"packages/**/*.{ts,tsx,json}\" \"apps/**/*.{ts,tsx,json}\" --ignore-path .prettierignore",
     "dev:local": "bash scripts/dev-local.sh",
+    "prepare:occupation": "pnpm --filter @vendetta/web prepare:occupation",
     "dev:aa": "pnpm --filter @vendetta/web aa",
     "deploy:gnosis": "bash scripts/deploy-gnosis.sh",
     "build:gnosis": "pnpm --filter @vendetta/web build:gnosis"

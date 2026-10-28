@@ -372,24 +372,39 @@ h3 .aside {
   font-size: 0.75rem;
   color: var(--ink-3);
 }
-/* Keep the three ledger catalogs within reach during long reading sessions. */
+/* Keep the active ledger catalog and its section index within reach. */
 .book-sections {
   position: sticky;
   top: 0;
   z-index: 2;
   display: flex;
   flex-wrap: wrap;
-  gap: 0 1rem;
+  gap: 0 0.5rem;
   padding: 0.25rem 0;
   border-bottom: 1px solid var(--rule-strong);
   background: var(--page);
 }
-.book-sections a {
+.book-sections [role="tab"] {
   display: inline-flex;
   align-items: center;
   min-height: 2.75rem;
   font-size: 0.85rem;
   font-weight: 600;
+  font-family: inherit;
+  padding: 0.35rem 0.5rem;
+  color: var(--blue);
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+}
+.book-sections [role="tab"][aria-selected="true"] {
+  color: var(--ink);
+  border-bottom-color: var(--red-deep);
+}
+.book-sections [role="tab"]:hover {
+  color: var(--ink);
+  background: var(--page-2);
 }
 :is(#rooms, #research, #troops, [id^="room-"], [id^="research-"], [id^="troop-"]) {
   scroll-margin-top: 4rem;

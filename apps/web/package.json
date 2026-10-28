@@ -15,7 +15,8 @@
     "aa": "tsx scripts/aa-stack.ts --public",
     "aa:fixture": "tsx scripts/aa-fixture.ts",
     "benchmark:gas": "tsx scripts/benchmark-gas.ts",
-    "keeper": "tsx scripts/keeper.ts"
+    "keeper": "tsx scripts/keeper.ts",
+    "prepare:occupation": "tsx scripts/prepare-occupation.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.104.0",

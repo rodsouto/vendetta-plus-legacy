@@ -1,5 +1,5 @@
 // The account page of one building: balance, next entries, rooms, research and troops.
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   distance,
@@ -25,15 +25,27 @@ import {
   troopName,
   whole,
 } from "../ui/format.js";
-import { useRoute } from "../router.js";
+import { go, useRoute } from "../router.js";
 import { BuildingGuide } from "../ui/Guide.js";
 import { Register } from "./Register.js";
+
+const bookSections = ["rooms", "research", "troops"] as const;
+type BookSection = (typeof bookSections)[number];
+
+const sectionFor = (value: string | null): BookSection | undefined => {
+  if (value === "rooms" || value?.startsWith("room-")) return "rooms";
+  if (value === "research" || value?.startsWith("research-")) return "research";
+  if (value === "troops" || value?.startsWith("troop-")) return "troops";
+  return undefined;
+};
 
 export function Book() {
   const g = useGame();
   const { t } = useTranslation();
   const { params } = useRoute();
   const focus = params.get("focus");
+  const activeSection = sectionFor(focus) ?? sectionFor(params.get("tab")) ?? "rooms";
+  const selectSection = (section: BookSection) => go(`book?tab=${section}`);
   useEffect(() => {
     if (!focus || !/^(rooms|research|troops|(room|research|troop)-\d+)$/.test(focus)) return;
     const target =
@@ -71,33 +83,118 @@ export function Book() {
       <Balance b={b} />
       <NextEntries b={b} />
       <BuildingGuide />
-      <nav className="book-sections" aria-label={t("book.sections")}>
-        {(["rooms", "research", "troops"] as const).map((section) => (
-          <a key={section} href={`#/book?focus=${section}`}>
-            {t(`book.${section}`)}
-          </a>
-        ))}
-      </nav>
-      <Rooms b={b} />
-      <Research b={b} />
-      <Troops b={b} />
-      {g.myBuildings.length > 1 && (
-        <p>
+      <div className="book-sections" role="tablist" aria-label={t("book.sections")}>
+        {bookSections.map((section, index) => (
           <button
-            className="btn quiet"
-            disabled={g.busy}
-            onClick={() =>
-              void g.act({
-                done: t("book.abandoned"),
-                check: (w, c, n) => sim.abandon(w, c, b.id, n),
-                functionName: "abandon",
-                args: [b.id],
-              })
-            }
+            key={section}
+            id={`book-tab-${section}`}
+            type="button"
+            role="tab"
+            aria-selected={activeSection === section}
+            aria-controls={`book-panel-${section}`}
+            tabIndex={activeSection === section ? 0 : -1}
+            onClick={() => selectSection(section)}
+            onKeyDown={(event) => {
+              let next: number;
+              if (event.key === "ArrowRight") next = (index + 1) % bookSections.length;
+              else if (event.key === "ArrowLeft")
+                next = (index + bookSections.length - 1) % bookSections.length;
+              else if (event.key === "Home") next = 0;
+              else if (event.key === "End") next = bookSections.length - 1;
+              else return;
+              event.preventDefault();
+              const section = bookSections[next]!;
+              selectSection(section);
+              document.getElementById(`book-tab-${section}`)?.focus({ preventScroll: true });
+            }}
           >
-            {t("book.abandon")}
+            {t(`book.${section}`)}
           </button>
-        </p>
+        ))}
+      </div>
+      {bookSections.map((section) => (
+        <div
+          key={section}
+          id={`book-panel-${section}`}
+          role="tabpanel"
+          aria-labelledby={`book-tab-${section}`}
+          hidden={activeSection !== section}
+          tabIndex={0}
+        >
+          {section === "rooms" ? (
+            <Rooms b={b} />
+          ) : section === "research" ? (
+            <Research b={b} />
+          ) : (
+            <Troops b={b} />
+          )}
+        </div>
+      ))}
+      {g.myBuildings.length > 1 && <AbandonBuilding key={String(b.id)} b={b} />}
+    </>
+  );
+}
+
+function AbandonBuilding({ b }: { b: sim.Building }) {
+  const g = useGame();
+  const { t } = useTranslation();
+  const dialog = useRef<HTMLDialogElement>(null);
+  const cancel = useRef<HTMLButtonElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    dialog.current?.showModal();
+    cancel.current?.focus();
+  }, [open]);
+  const close = () => {
+    dialog.current?.close();
+    setOpen(false);
+    trigger.current?.focus();
+  };
+  return (
+    <>
+      <p>
+        <button ref={trigger} className="btn quiet" disabled={g.busy} onClick={() => setOpen(true)}>
+          {t("book.abandon")}
+        </button>
+      </p>
+      {open && (
+        <dialog
+          ref={dialog}
+          className="guide-dialog"
+          aria-labelledby="abandon-title"
+          aria-describedby="abandon-description"
+          onCancel={close}
+        >
+          <div className="guide-dialog-head">
+            <h2 id="abandon-title">{t("book.abandonTitle", { coord: coord(b.coord) })}</h2>
+          </div>
+          <div className="guide-dialog-body" id="abandon-description">
+            <p>{t("book.abandonWarning")}</p>
+            <p>{t("book.abandonReturningWarning")}</p>
+          </div>
+          <footer className="guide-dialog-footer">
+            <button ref={cancel} className="btn" onClick={close}>
+              {t("book.keepBuilding")}
+            </button>
+            <button
+              className="btn primary"
+              disabled={g.busy}
+              onClick={() => {
+                close();
+                void g.act({
+                  done: t("book.abandoned"),
+                  check: (w, c, n) => sim.abandon(w, c, b.id, n),
+                  functionName: "abandon",
+                  args: [b.id],
+                });
+              }}
+            >
+              {t("book.confirmAbandon")}
+            </button>
+          </footer>
+        </dialog>
       )}
     </>
   );
@@ -329,7 +426,9 @@ function Rooms({ b }: { b: sim.Building }) {
               return (
                 <tr key={room.id} id={`room-${room.index}`} tabIndex={-1}>
                   <td className="c-name">
-                    <span className="entry-name">{roomName(room.index)}</span>
+                    <span className={missing.length > 0 ? "entry-name red" : "entry-name"}>
+                      {roomName(room.index)}
+                    </span>
                     <Requirements list={missing} />
                   </td>
                   <td className="num c-fig" data-label={t("common.level")}>
@@ -436,7 +535,13 @@ function Research({ b }: { b: sim.Building }) {
               return (
                 <tr key={r.id} id={`research-${r.index}`} tabIndex={-1}>
                   <td className="c-name">
-                    <span className="entry-name">{researchName(r.index)}</span>
+                    <span
+                      className={
+                        missing.length > 0 || school < 1n ? "entry-name red" : "entry-name"
+                      }
+                    >
+                      {researchName(r.index)}
+                    </span>
                     <Requirements list={missing} />
                   </td>
                   <td className="num c-fig" data-label={t("common.level")}>
@@ -543,7 +648,9 @@ function Troops({ b }: { b: sim.Building }) {
               return (
                 <tr key={tr.id} id={`troop-${tr.index}`} tabIndex={-1}>
                   <td className="c-name">
-                    <span className="entry-name">{troopName(tr.index)}</span>
+                    <span className={locked ? "entry-name red" : "entry-name"}>
+                      {troopName(tr.index)}
+                    </span>
                     <Requirements list={missing} />
                   </td>
                   <td className="num c-fig">{amount(b.troops[tr.index]!)}</td>

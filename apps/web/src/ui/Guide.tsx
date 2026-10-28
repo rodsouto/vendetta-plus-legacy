@@ -144,7 +144,7 @@ function stepName(s: GuideStep, occupy: string): string {
 
 export function BuildingGuide() {
   const g = useGame();
-  if (!g.me || !g.building) return null;
+  if (!g.me || !g.building || g.me.buildings !== 1n) return null;
   const preference = `vendetta.guide.hidden.v1:${g.clients.deployment.chainId}:${g.clients.deployment.game}:${g.me.id}`;
   return <BuildingGuidePreference key={preference} preference={preference} />;
 }
@@ -175,7 +175,6 @@ function ExpansionRecommendation({ onHide }: { onHide: () => void }) {
   const b = g.building!;
   const steps = expansionGuide(g.world, g.me!, b, g.known);
   const recommendations = expansionRecommendations(steps);
-  const complete = g.me!.buildings >= 2n;
   const name = (s: GuideStep) => stepName(s, t("guide.occupy"));
   return (
     <section className="guide-recommendation" aria-labelledby="expansion-title">
@@ -185,67 +184,62 @@ function ExpansionRecommendation({ onHide }: { onHide: () => void }) {
           {t("guide.hide")}
         </button>
       </h3>
-      {complete && <p>{t("guide.complete")}</p>}
-      {!complete && (
-        <>
-          <p className="guide-phase">
-            {t("guide.progress", {
-              phase: (recommendations[0]?.phase ?? 0) + 1,
-              total: 6,
-              done: steps.filter((s) => s.done).length,
-              count: steps.length,
-            })}{" "}
-            · {t(`guide.phases.${recommendations[0]?.phase ?? 0}.title`)}
-          </p>
-          {recommendations.map((step, i) => (
-            <RecommendedAction
-              key={`${step.kind}-${step.index}`}
-              step={step}
-              steps={steps}
-              parallel={i > 0}
-            />
-          ))}
-          <details className="guide-path">
-            <summary>{t("guide.path")}</summary>
-            <p>{t("guide.recommendation", { coord: coord(b.coord) })}</p>
-            <p className="note">
-              {t("guide.raiding")}{" "}
-              <a href={`#/book?focus=room-${g.world.rs.roles.attackTrainingRoom}`}>
-                {roomName(g.world.rs.roles.attackTrainingRoom)}
-              </a>
-            </p>
-            {Array.from({ length: 6 }, (_, phase) => (
-              <div key={phase} className="guide-stage">
-                <h4>
-                  {phase + 1}. {t(`guide.phases.${phase}.title`)}
-                </h4>
-                <p className="muted">{t(`guide.phases.${phase}.why`)}</p>
-                <ol className="guide-steps">
-                  {steps
-                    .filter((s) => s.phase === phase)
-                    .map((s) => (
-                      <li
-                        key={`${s.kind}-${s.index}-${s.level}`}
-                        aria-current={recommendations.includes(s) ? "step" : undefined}
-                      >
-                        <span className={s.done ? "muted" : undefined}>{name(s)}</span>{" "}
-                        <small>
-                          {s.done
-                            ? t("guide.done")
-                            : s.pending
-                              ? t("guide.pending")
-                              : s.queued
-                                ? t("guide.queued")
-                                : ""}
-                        </small>
-                      </li>
-                    ))}
-                </ol>
-              </div>
-            ))}
-          </details>
-        </>
-      )}
+      <p className="guide-phase">
+        {t("guide.progress", {
+          phase: (recommendations[0]?.phase ?? 0) + 1,
+          total: 6,
+          done: steps.filter((s) => s.done).length,
+          count: steps.length,
+        })}{" "}
+        · {t(`guide.phases.${recommendations[0]?.phase ?? 0}.title`)}
+      </p>
+      {recommendations.map((step, i) => (
+        <RecommendedAction
+          key={`${step.kind}-${step.index}`}
+          step={step}
+          steps={steps}
+          parallel={i > 0}
+        />
+      ))}
+      <details className="guide-path">
+        <summary>{t("guide.path")}</summary>
+        <p>{t("guide.recommendation", { coord: coord(b.coord) })}</p>
+        <p className="note">
+          {t("guide.raiding")}{" "}
+          <a href={`#/book?focus=room-${g.world.rs.roles.attackTrainingRoom}`}>
+            {roomName(g.world.rs.roles.attackTrainingRoom)}
+          </a>
+        </p>
+        {Array.from({ length: 6 }, (_, phase) => (
+          <div key={phase} className="guide-stage">
+            <h4>
+              {phase + 1}. {t(`guide.phases.${phase}.title`)}
+            </h4>
+            <p className="muted">{t(`guide.phases.${phase}.why`)}</p>
+            <ol className="guide-steps">
+              {steps
+                .filter((s) => s.phase === phase)
+                .map((s) => (
+                  <li
+                    key={`${s.kind}-${s.index}-${s.level}`}
+                    aria-current={recommendations.includes(s) ? "step" : undefined}
+                  >
+                    <span className={s.done ? "muted" : undefined}>{name(s)}</span>{" "}
+                    <small>
+                      {s.done
+                        ? t("guide.done")
+                        : s.pending
+                          ? t("guide.pending")
+                          : s.queued
+                            ? t("guide.queued")
+                            : ""}
+                    </small>
+                  </li>
+                ))}
+            </ol>
+          </div>
+        ))}
+      </details>
     </section>
   );
 }

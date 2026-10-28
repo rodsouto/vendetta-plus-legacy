@@ -88,6 +88,11 @@
     "signOut": "Sign out"
   },
   "book": {
+    "abandonTitle": "Abandon building {{coord}}?",
+    "abandonWarning": "You will lose the resources, rooms and troops here. Construction, troop training and pending research in this building will be cancelled. This cannot be undone.",
+    "abandonReturningWarning": "The lot will become vacant. Troops returning to this building after it is abandoned will be lost.",
+    "keepBuilding": "Keep building",
+    "confirmAbandon": "Yes, abandon building",
     "sections": "Ledger sections",
     "perUnit": "Costs and times are per troop.",
     "balance": "Balance",

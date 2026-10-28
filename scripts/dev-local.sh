@@ -47,5 +47,7 @@ cd "$root"
 # Reveals hidden missions when they arrive and processes due ones (B-22); account 9 pays.
 pnpm --filter @vendetta/web keeper public/deployment.local.json local &
 keeper_pid=$!
-trap 'kill $anvil_pid $keeper_pid 2>/dev/null || true; bash "$indexer_sh" down "$indexer_port"' EXIT
+node scripts/local-clock.mjs "$rpc" &
+clock_pid=$!
+trap 'kill $anvil_pid $keeper_pid $clock_pid 2>/dev/null || true; bash "$indexer_sh" down "$indexer_port"' EXIT
 pnpm --filter @vendetta/web dev
