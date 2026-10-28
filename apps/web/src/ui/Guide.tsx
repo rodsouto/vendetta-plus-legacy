@@ -79,12 +79,16 @@ function Guide() {
     [troopName(rs.roles.occupationTroop), t("guide.expansion")],
   ];
   return (
-    <div className="game-guide">
-      <div className="guide-tools">
-        <button className="btn quiet" onClick={() => setOpen(true)}>
-          {t("guide.help")}
-        </button>
-      </div>
+    <>
+      <button
+        type="button"
+        className="spine-link"
+        aria-label={t("guide.help")}
+        onClick={() => setOpen(true)}
+      >
+        <span aria-hidden="true">?</span>
+        <span className="label">{t("guide.help")}</span>
+      </button>
       {open && (
         <dialog
           ref={dialog}
@@ -130,7 +134,7 @@ function Guide() {
           </footer>
         </dialog>
       )}
-    </div>
+    </>
   );
 }
 

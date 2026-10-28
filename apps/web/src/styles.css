@@ -157,6 +157,9 @@ select {
   color: var(--binding-text);
   text-decoration: none;
 }
+button.spine-link {
+  cursor: pointer;
+}
 .spine-link > span:first-child {
   font: 700 1.05rem/1 var(--display);
   color: var(--gilt);
@@ -164,7 +167,7 @@ select {
 .spine-link[aria-current="page"] {
   border-color: var(--gilt);
 }
-/* On a phone the section sign stands alone (the link keeps its name for screen readers). */
+/* On a phone the sign stands alone (the control keeps its name for screen readers). */
 @media (max-width: 30rem) {
   .spine-link .label {
     display: none;
@@ -239,6 +242,13 @@ select {
 .thumb-index a[aria-current="page"] {
   background: var(--page);
   color: var(--ink);
+}
+/* A drawn mark where no letter is free (the map would repeat Missions' M). */
+.thumb-index .letter .ico {
+  display: inline-block;
+  vertical-align: top;
+  width: 1.05rem;
+  height: 1.05rem;
 }
 .thumb-index a[aria-current="page"] .letter {
   color: var(--red);
@@ -1018,7 +1028,6 @@ details.locked li {
 }
 
 /* Optional first-visit help and the read-only expansion recommendations. */
-.guide-tools,
 .guide-dialog-head {
   display: flex;
   flex-wrap: wrap;
@@ -1026,10 +1035,9 @@ details.locked li {
   justify-content: space-between;
   gap: var(--gap);
 }
-.guide-tools {
-  margin-bottom: 1rem;
-}
 .guide-dialog {
+  /* Rendered from the spine, so it resets the spine's type. */
+  font-size: 1rem;
   color: var(--ink);
   background: var(--page);
   border: 1px solid var(--rule-strong);

@@ -5,6 +5,7 @@ import { GameProvider, useNetwork, useGame } from "./state/game.js";
 import { makeClients } from "./chain/config.js";
 import { useRoute } from "./router.js";
 import { Toasts } from "./ui/parts.js";
+import { Icon } from "./ui/icons.js";
 import { GameGuide } from "./ui/Guide.js";
 import { Overview } from "./pages/Overview.js";
 import { Book } from "./pages/Book.js";
@@ -26,7 +27,7 @@ const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 1 } } 
 const PAGES = [
   ["overview", "V", Overview],
   ["book", "L", Book],
-  ["map", "P", MapPage],
+  ["map", <Icon name="map" />, MapPage],
   ["missions", "M", Missions],
   ["reports", "I", Reports],
   ["family", "F", Family],
@@ -146,6 +147,7 @@ function Game() {
   return (
     <div className="binding">
       <Spine building={<BuildingSwitch />}>
+        <GameGuide />
         <a
           className="spine-link"
           href="#/rules"
@@ -155,16 +157,13 @@ function Game() {
           <span aria-hidden="true">§</span>
           <span className="label">{t("nav.rules")}</span>
         </a>
-        {signedOut ? (
+        {signedOut && (
           <button className="btn quiet" disabled={g.busy} onClick={() => void g.signIn()}>
             {t("entry.signIn")}
           </button>
-        ) : (
-          <span>{g.me ? `#${g.me.id}` : "—"}</span>
         )}
       </Spine>
       <main className="page" id="page">
-        <GameGuide />
         <Page key={`${path}-${g.address ?? ""}`} />
       </main>
       <ThumbIndex tabs={tabs} current={page[0]} />

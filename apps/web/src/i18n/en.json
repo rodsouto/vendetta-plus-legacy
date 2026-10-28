@@ -3,7 +3,7 @@
   "nav": {
     "overview": "Overview",
     "book": "Ledger",
-    "map": "Plat",
+    "map": "Map",
     "missions": "Missions",
     "reports": "Reports",
     "family": "Family",
@@ -54,12 +54,12 @@
   },
   "register": {
     "title": "Open an account",
-    "body": "Pick an empty lot on the plat for your first building. Being near the center makes your missions arrive sooner and cost less.",
+    "body": "Pick an empty lot on the map for your first building. Being near the center makes your missions arrive sooner and cost less.",
     "city": "City",
     "neighborhood": "Neighborhood",
     "slot": "Lot",
     "submit": "Found here",
-    "pick": "Tap an empty lot on the plat.",
+    "pick": "Tap an empty lot on the map.",
     "done": "Account opened",
     "accept": "Opening an account means accepting the",
     "rulesLink": "rules"
@@ -168,7 +168,7 @@
     "alarm": "Some buildings are threatened"
   },
   "map": {
-    "title": "Neighborhood plat",
+    "title": "Neighborhood map",
     "go": "Show",
     "empty": "Free lot",
     "yours": "Yours",
@@ -601,7 +601,7 @@
     "resources": "Production rooms generate resources over time. Upgrade storage rooms to increase capacity: when storage is full, you stop accumulating that resource.",
     "alcohol": "The brewery produces alcohol. The bar consumes it to generate dollars; without enough alcohol, income drops or stops. Upgrade the brewery to keep it supplied.",
     "expansion": "An occupation troop lets you occupy an empty lot and is usually sent alone, without a combat escort. One unit is consumed on success. You can then send resource transports to develop the new building.",
-    "optional": "Play your own way. These steps are optional, and you can reopen this guide from “How to play”.",
+    "optional": "Play your own way. These steps are optional, and you can reopen this guide with the “?” button at the top.",
     "start": "Start playing",
     "nextBuilding": "Your next building",
     "recommendation": "A suggested path to expand from {{coord}}. Keep playing your own way; the steps reflect your current progress.",

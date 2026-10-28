@@ -284,14 +284,14 @@ A list of ruled rows: a fixed 4.75rem time column (600, 0.85rem), the entry with
 ### Navigation (thumb index)
 - **Desktop (from 60rem):** a sticky column of 7.5rem tabs on the fore edge, raised leather with parchment-shade label type, right corners rounded 3px, each led by a gilt Bodoni initial (1.05rem).
 - **Current:** the tab turns parchment with ink text and a red-ink initial, joining the page.
-- **Phone:** a fixed bottom strip of five equal tabs on leather (Overview, Ledger, Plat, Missions, More), initial over a 0.7rem sentence-case label, bottom corners rounded. "More" opens a leather sheet above the strip with the other sections as 2.75rem rows; while one of them is open the More tab carries its initial and name.
+- **Phone:** a fixed bottom strip of five equal tabs on leather (Overview, Ledger, Map, Missions, More), initial over a 0.7rem sentence-case label, bottom corners rounded. "More" opens a leather sheet above the strip with the other sections as 2.75rem rows; while one of them is open the More tab carries its initial and name.
 - **Badge:** a hostile mission on its way puts a seal-red count on the Overview and Missions tabs.
-- **Spine:** gilt wordmark left; with two or more buildings the building switch beside it (previous and next in raised leather, the building select on leather, a seal-red drop when any building is threatened; on phones it takes its own full-width line under the wordmark); account id and the ES/EN select (raised leather, leather-edge border) right.
+- **Spine:** gilt wordmark left; with two or more buildings the building switch beside it (previous and next in raised leather, the building select on leather, a seal-red drop when any building is threatened; on phones it takes its own full-width line under the wordmark); right, raised-leather controls led by a gilt Bodoni sign: "? How to play" (reopens the welcome guide) and "§ Rules", which drop their labels on phones, then the theme and ES/EN selects (raised leather, leather-edge border).
 
 ### Overview
 The landing page with two or more buildings. Arrivals coming to the player's buildings as entries (a hidden one names every building in its cover); one ruled row per building with its coordinate in Bodoni, one line per running queue (the room being built and the level it reaches, each troop batch in training, how many more wait) with its countdown, and its stamps (red: attack, possible attack, store full; ink: no upgrades, not recruiting); the research line; the first missions in flight. Its Resources and Troops views are ledger matrices, one building per row so many buildings grow them downward, in a box at most 70vh tall where the column heads and the coordinates stay in view; room and troop names run up their narrow columns.
 
-### Plat (neighborhood map)
+### Map (neighborhood)
 A 17 x 15 grid of square lots (min 1.5rem) with numbered axes in faded 0.58rem type, 1px khaki gaps, 2px ink frame. Empty lots are parchment, taken lots parchment-shade with a three-letter family tag, the player's lot deep red with parchment text, vacation lots carry an inset dashed blue frame, the selected lot a 2px blue inset outline. The grid scrolls in its own container and centers the player's lot.
 
 ### Icons

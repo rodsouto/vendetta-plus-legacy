@@ -3,7 +3,7 @@
   "nav": {
     "overview": "Vista general",
     "book": "Libro",
-    "map": "Plano",
+    "map": "Mapa",
     "missions": "Misiones",
     "reports": "Informes",
     "family": "Familia",
@@ -54,12 +54,12 @@
   },
   "register": {
     "title": "Abrir una cuenta",
-    "body": "Elegí un lote vacío del plano para tu primer edificio. Estar cerca del centro hace que tus misiones lleguen antes y cuesten menos.",
+    "body": "Elegí un lote vacío del mapa para tu primer edificio. Estar cerca del centro hace que tus misiones lleguen antes y cuesten menos.",
     "city": "Ciudad",
     "neighborhood": "Barrio",
     "slot": "Lote",
     "submit": "Fundar aquí",
-    "pick": "Tocá un lote vacío en el plano.",
+    "pick": "Tocá un lote vacío en el mapa.",
     "done": "Cuenta abierta",
     "accept": "Abrir una cuenta implica aceptar las",
     "rulesLink": "reglas"
@@ -168,7 +168,7 @@
     "alarm": "Hay edificios amenazados"
   },
   "map": {
-    "title": "Plano del barrio",
+    "title": "Mapa del barrio",
     "go": "Ver",
     "empty": "Lote libre",
     "yours": "Tuyo",
@@ -601,7 +601,7 @@
     "resources": "Las habitaciones productoras generan recursos con el tiempo. Mejora los depósitos para aumentar su capacidad: cuando están llenos, dejas de acumular ese recurso.",
     "alcohol": "La cervecería produce alcohol. El bar lo consume para generar dólares; si falta alcohol, sus ingresos se reducen o se detienen. Mejora la cervecería para abastecerlo.",
     "expansion": "La tropa de ocupación permite ocupar una parcela vacía y normalmente se envía sola, sin escolta de combate. Al ocupar, se consume una unidad. Después puedes enviar transportes con recursos para desarrollar el nuevo edificio.",
-    "optional": "Puedes jugar como quieras. Esta guía no exige completar pasos y puedes volver a abrirla desde «Cómo jugar».",
+    "optional": "Puedes jugar como quieras. Esta guía no exige completar pasos y puedes volver a abrirla con el botón «?» de arriba.",
     "start": "Empezar a jugar",
     "nextBuilding": "Tu próximo edificio",
     "recommendation": "Un camino sugerido para expandirte desde {{coord}}. Puedes seguir jugando libremente; los pasos reflejan tu progreso actual.",
