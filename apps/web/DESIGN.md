@@ -69,7 +69,7 @@ typography:
     letterSpacing: "0.04em"
   stamp:
     fontFamily: "Archivo, system-ui, sans-serif"
-    fontSize: "0.66rem"
+    fontSize: "0.7rem"
     fontWeight: 800
     lineHeight: 1.1
     letterSpacing: "0.14em"
@@ -230,7 +230,7 @@ Two inks and a khaki ruling on parchment, bound in dark leather; color carries m
 
 ## Layout
 
-The binding is a centered grid capped at 72rem: spine on top, the page beneath, the thumb index beside or below. From 60rem the page sits left with a 7.5rem column of fore-edge tabs to its right (sticky at 1rem from the top) and gets 1.75rem / 2.25rem padding; below 60rem the page is inset 0.5rem from the leather with 1rem padding, and the thumb index is a fixed bottom strip of nine equal columns with the safe-area inset, the binding padded 3.4rem to clear it.
+The binding is a centered grid capped at 72rem: spine on top, the page beneath, the thumb index beside or below. From 60rem the page sits left with a 7.5rem column of fore-edge tabs to its right (sticky at 1rem from the top) and gets 1.75rem / 2.25rem padding; below 60rem the page is inset 0.5rem from the leather with 1rem padding, and the thumb index is a fixed bottom strip of five equal columns with the safe-area inset, the binding padded 3.4rem to clear it.
 
 Vertical rhythm is the ruled line: an entry row is at least 2.25rem; section heads sit 1.25 rows above their content; the account heading leaves half a row beneath. Gaps between controls are 0.75rem. Two-column layouts (`cols two`, the map's plat plus an 18rem side column) only open at 60rem.
 
@@ -284,8 +284,12 @@ A list of ruled rows: a fixed 4.75rem time column (600, 0.85rem), the entry with
 ### Navigation (thumb index)
 - **Desktop (from 60rem):** a sticky column of 7.5rem tabs on the fore edge, raised leather with parchment-shade label type, right corners rounded 3px, each led by a gilt Bodoni initial (1.05rem).
 - **Current:** the tab turns parchment with ink text and a red-ink initial, joining the page.
-- **Phone:** a fixed bottom strip of nine equal tabs on leather, initial over a 0.6rem sentence-case label, bottom corners rounded.
-- **Spine:** gilt wordmark left; account id and the ES/EN select (raised leather, leather-edge border) right.
+- **Phone:** a fixed bottom strip of five equal tabs on leather (Overview, Ledger, Plat, Missions, More), initial over a 0.7rem sentence-case label, bottom corners rounded. "More" opens a leather sheet above the strip with the other sections as 2.75rem rows; while one of them is open the More tab carries its initial and name.
+- **Badge:** a hostile mission on its way puts a seal-red count on the Overview and Missions tabs.
+- **Spine:** gilt wordmark left; with two or more buildings the building switch beside it (previous and next in raised leather, the building select on leather, a seal-red drop when any building is threatened; on phones it takes its own full-width line under the wordmark); account id and the ES/EN select (raised leather, leather-edge border) right.
+
+### Overview
+The landing page with two or more buildings. Arrivals coming to the player's buildings as entries (a hidden one names every building in its cover); one ruled row per building with its coordinate in Bodoni, one line per running queue (the room being built and the level it reaches, each troop batch in training, how many more wait) with its countdown, and its stamps (red: attack, possible attack, store full; ink: no upgrades, not recruiting); the research line; the first missions in flight. Its Resources and Troops views are ledger matrices, one building per row so many buildings grow them downward, in a box at most 70vh tall where the column heads and the coordinates stay in view; room and troop names run up their narrow columns.
 
 ### Plat (neighborhood map)
 A 17 x 15 grid of square lots (min 1.5rem) with numbered axes in faded 0.58rem type, 1px khaki gaps, 2px ink frame. Empty lots are parchment, taken lots parchment-shade with a three-letter family tag, the player's lot deep red with parchment text, vacation lots carry an inset dashed blue frame, the selected lot a 2px blue inset outline. The grid scrolls in its own container and centers the player's lot.

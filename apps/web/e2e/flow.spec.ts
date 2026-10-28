@@ -69,7 +69,7 @@ test("register, build, train, attack and read the report", async ({ page }) => {
   // The attack travels hidden (B-22): the defender sees something coming, not what or where to.
   await as(page, 2);
   await page.goto("/#/missions");
-  await expect(page.getByText("Oculta → puede ser para vos")).toBeVisible();
+  await expect(page.getByText(`Oculta → puede llegar a 25:25:${slotA + 1}`)).toBeVisible();
   await as(page, 1);
 
   await warp(page, "+1 d");

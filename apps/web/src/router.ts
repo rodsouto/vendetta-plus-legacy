@@ -1,10 +1,10 @@
-// Minimal hash router: "#/missions?to=1:1:5&kind=1".
+// Minimal hash router: "#/missions?to=1:1:5&kind=1". An empty path is the app's landing page.
 import { useSyncExternalStore } from "react";
 
 const read = () => {
   const raw = location.hash.replace(/^#\/?/, "");
   const [path = "", query = ""] = raw.split("?");
-  return { path: path || "book", params: new URLSearchParams(query) };
+  return { path, params: new URLSearchParams(query) };
 };
 
 let current = read();

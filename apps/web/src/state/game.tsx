@@ -250,7 +250,31 @@ export function GameProvider({
   const pending = useMemo(() => (me ? [] : (pendingQuery.data ?? [])), [me, pendingQuery.data]);
   const myBuildings =
     world && me ? [...world.buildings.values()].filter((b) => b.owner === me.id) : [];
-  const building = myBuildings.find((b) => b.id === selected) ?? myBuildings[0];
+  // The building the player works on, kept per player on this device across reloads.
+  const storeKey = me ? `vendetta:building:${game}:${me.id}` : "";
+  const remembered = useMemo(() => {
+    try {
+      const v = storeKey ? localStorage.getItem(storeKey) : null;
+      return v ? BigInt(v) : null;
+    } catch {
+      return null;
+    }
+  }, [storeKey]);
+  const building =
+    myBuildings.find((b) => b.id === selected) ??
+    myBuildings.find((b) => b.id === remembered) ??
+    myBuildings[0];
+  const selectBuilding = useCallback(
+    (id: bigint) => {
+      setSelected(id);
+      try {
+        if (storeKey) localStorage.setItem(storeKey, String(id));
+      } catch {
+        // Private mode or blocked storage: the choice lasts for this visit.
+      }
+    },
+    [storeKey],
+  );
 
   const toast = useCallback((text: string, error = false) => {
     const id = Date.now() + Math.random();
@@ -825,7 +849,7 @@ export function GameProvider({
     me,
     myBuildings,
     building,
-    selectBuilding: setSelected,
+    selectBuilding,
     act,
     chainNow,
     timelock,

@@ -212,6 +212,9 @@ function TradeRow({
   const left = sim.shareLeft(x, p.id, g.now);
   const fromB = w.buildings.get(x.from);
   const deposit = x.accepted ? x.deposit : sim.tradeDeposit(w, x);
+  // The building the buyer's deposit leaves from (B-11): the one the player works on, unless chosen.
+  const [payerId, setPayerId] = useState("");
+  const payer = w.buildings.get(BigInt(payerId || 0)) ?? g.building;
   return (
     <tr>
       <td>
@@ -253,17 +256,31 @@ function TradeRow({
         )}
       </td>
       <td className="num">
+        {!x.accepted && !selling && g.myBuildings.length > 1 && (
+          <label className="field">
+            {t("market.depositFrom")}
+            <select
+              value={payer ? String(payer.id) : ""}
+              onChange={(e) => setPayerId(e.target.value)}
+            >
+              {g.myBuildings.map((b) => (
+                <option key={String(b.id)} value={String(b.id)}>
+                  {coord(b.coord)}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         {!x.accepted && !selling && (
           <button
             className="btn"
-            disabled={g.busy || blocked || !g.building}
-            title={t("market.depositFrom")}
+            disabled={g.busy || blocked || !payer}
             onClick={() =>
               void g.act({
                 done: t("family.done"),
-                check: (sw, c, n) => sim.acceptTrade(sw, c, x.id, g.building!.id, n),
+                check: (sw, c, n) => sim.acceptTrade(sw, c, x.id, payer!.id, n),
                 functionName: "acceptTrade",
-                args: [x.id, g.building!.id],
+                args: [x.id, payer!.id],
               })
             }
           >

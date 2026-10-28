@@ -1,6 +1,7 @@
 {
   "title": "Vendetta",
   "nav": {
+    "overview": "Overview",
     "book": "Ledger",
     "map": "Plat",
     "missions": "Missions",
@@ -10,7 +11,9 @@
     "account": "Account",
     "ranking": "Ranking",
     "rules": "Rules",
-    "dev": "Workshop"
+    "dev": "Workshop",
+    "more": "More",
+    "index": "Index"
   },
   "resources": {
     "weapons": "Weapons",
@@ -109,7 +112,7 @@
     "atHome": "In the building",
     "training": "In training",
     "building": "Building",
-    "researchHere": "Research is running in another building.",
+    "researchHere": "Research is running at {{coord}}.",
     "needSchool": "The Specialization School is needed to research.",
     "noRoom": "The training room for these troops is needed.",
     "quantity": "Quantity",
@@ -125,7 +128,44 @@
     "abandoned": "Building abandoned",
     "rate": "Production",
     "full": "Full",
-    "locked": "Locked"
+    "locked": "Locked",
+    "mayArrive": "May reach this building",
+    "goThere": "Go to that building"
+  },
+  "overview": {
+    "title": "Overview",
+    "views": "Account views",
+    "status": "Status",
+    "resources": "Resources",
+    "troops": "Troops",
+    "arrivals": "Coming to your buildings",
+    "mayReach": "may reach {{list}}",
+    "buildings": "Buildings",
+    "buildingCount_one": "{{count}} building",
+    "buildingCount_other": "{{count}} buildings",
+    "upgrading": "{{busy}} of {{total}} upgrading",
+    "attack": "Attack",
+    "possible": "Possible attack",
+    "full": "Store full",
+    "queued": "+{{count}} queued",
+    "roomsIdle": "No upgrades",
+    "recruitIdle": "Not recruiting",
+    "allBusy": "All at work",
+    "open": "Open {{coord}} in the ledger",
+    "researchNone": "Nothing in training.",
+    "researchAt": "at {{coord}}",
+    "mine": "Your missions",
+    "seeAll": "See all",
+    "levels": "Room levels",
+    "total": "Total",
+    "atHome": "Troops in each building, not counting those away on missions.",
+    "announce": "Hostile mission heading for {{list}}"
+  },
+  "switch": {
+    "label": "Current building",
+    "prev": "Previous building",
+    "next": "Next building",
+    "alarm": "Some buildings are threatened"
   },
   "map": {
     "title": "Neighborhood plat",
@@ -168,14 +208,14 @@
     "noTroops": "No attack troops in this building.",
     "hidden": "Hidden",
     "hiddenTarget": "hidden target",
-    "mayBeYou": "may be for you",
     "hiddenNote": "The kind and target stay hidden until arrival. Travel time and salary use a random cover distance, so they do not give the target away.",
     "publicNote": "Transports for a market order travel in the open.",
     "revealing": "arrived, waiting for its reveal",
     "noRoom": "The destination cannot store: {{list}}. What does not fit is lost: having room is the receiver's responsibility.",
     "incomingOverflow": "not everything fits: make room before it lands",
     "forecast": "Battle forecast",
-    "forecastNote": "Computed for the arrival from what is known today: production, queues and known missions. It does not count other players' hidden missions or what anyone does before then."
+    "forecastNote": "Computed for the arrival from what is known today: production, queues and known missions. It does not count other players' hidden missions or what anyone does before then.",
+    "hostileComing": "See hostile arrivals ({{count}})"
   },
   "reports": {
     "title": "Battle reports",
@@ -252,7 +292,7 @@
     "from": "Goods from",
     "goodsFrom": "Goods from",
     "deposit": "Deposit",
-    "depositFrom": "The deposit leaves the building you are in",
+    "depositFrom": "Deposit from",
     "escrowNote": "When the buyer accepts, the seller's goods and a {{percent}}% deposit of the price are held in the trade. The buyer pays with transports that must arrive within {{days}} days and withdraws the goods as it pays. Once the window closes, the seller withdraws the unsold rest and the unpaid share of the deposit. Shares never expire.",
     "offerNote": "The goods leave that building when the buyer accepts; it must hold them then.",
     "sharesLeft": "You have a share left in a finished trade: withdraw it to offer or accept again.",

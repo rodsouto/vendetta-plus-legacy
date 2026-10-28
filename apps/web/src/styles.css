@@ -5,6 +5,7 @@
   --leather-edge: #3d3532;
   --gilt: #c9b98a;
   --binding-text: #e7e4c3; /* text on the leather: fixed, the binding stays the same at night */
+  --binding-red: #ff8a7e; /* red ink on the leather (a threatened building), fixed as well */
   --page: #fffcdb;
   --page-2: #f4f0cc;
   --page-3: #e7e4c3;
@@ -353,7 +354,8 @@ h3 .aside {
   border-bottom: 1px solid var(--rule);
   vertical-align: middle;
 }
-.ledger tr.total td {
+.ledger tr.total td,
+.ledger tr.total th {
   border-top: 1px solid var(--ink);
   border-bottom: 3px double var(--ink);
   font-weight: 700;
@@ -368,7 +370,7 @@ h3 .aside {
 }
 .ledger .entry-sub {
   display: block;
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   color: var(--ink-3);
   font-weight: 400;
 }
@@ -501,6 +503,11 @@ h3 .aside {
   color: var(--blue);
   text-decoration: underline;
 }
+.btn.quiet.red,
+.btn.quiet.red:hover:not(:disabled) {
+  color: var(--red);
+  font-weight: 700;
+}
 .btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
@@ -557,7 +564,7 @@ input.cell {
   border: 2px solid currentColor;
   border-radius: 3px;
   color: var(--stamp);
-  font: 800 0.66rem/1.1 var(--sans);
+  font: 800 0.7rem/1.1 var(--sans);
   font-stretch: 112%;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -645,7 +652,7 @@ input.cell {
 .entries .what small {
   display: block;
   color: var(--ink-3);
-  font-size: 0.78rem;
+  font-size: 0.82rem;
 }
 .entries .bar {
   height: 2px;
@@ -931,7 +938,7 @@ details.locked li {
   white-space: nowrap;
 }
 
-/* Phone thumb index: every tab (nine with the local Workshop) fits in one row at 390px. */
+/* Phone thumb index: the four daily tabs and "More" in one row, within the thumb's reach. */
 @media (max-width: 59.99rem) {
   .thumb-index {
     display: grid;
@@ -951,7 +958,7 @@ details.locked li {
   .thumb-index a {
     min-width: 0;
     padding: 0.45rem 0 0.4rem;
-    font-size: 0.6rem;
+    font-size: 0.7rem;
     letter-spacing: 0;
     text-transform: none;
     white-space: nowrap;
@@ -1168,4 +1175,382 @@ tr[id]:focus {
 }
 .guide-recommendation .btn {
   min-height: 2.75rem;
+}
+
+/* ------------------------------------------------------------------ building switch (spine) */
+.switch {
+  display: flex;
+  align-items: stretch;
+  position: relative;
+  color: var(--binding-text);
+}
+.switch button {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0;
+  background: var(--leather-2);
+  border: 1px solid var(--leather-edge);
+  color: var(--gilt);
+  cursor: pointer;
+}
+.switch button:first-child {
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+.switch button:last-child {
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+.switch button:hover {
+  border-color: var(--gilt);
+}
+.switch select {
+  min-width: 0;
+  padding: 0.3rem 0.6rem;
+  background: var(--leather);
+  border: 1px solid var(--leather-edge);
+  border-inline: 0;
+  border-radius: 0;
+  color: var(--binding-text);
+  font: 600 1rem var(--sans);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+/* The building on screen is under attack: its name in the binding's red. */
+.switch select.threat {
+  color: var(--binding-red);
+}
+/* Some building is threatened: a wax drop on the binding. */
+.switch .alarm {
+  position: absolute;
+  top: -0.2rem;
+  right: 2.45rem;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: var(--seal);
+  box-shadow: 0 0 0 2px var(--leather);
+  pointer-events: none;
+}
+/* On a phone the switch takes its own line under the title, wide enough for the thumb. */
+@media (max-width: 47.99rem) {
+  .spine {
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
+  }
+  .switch {
+    order: 3;
+    flex: 1 0 100%;
+  }
+  .switch select {
+    flex: 1;
+  }
+}
+
+/* ------------------------------------------------------------------ thumb index: badges, more */
+.thumb-index a,
+.thumb-index .more {
+  position: relative;
+}
+.thumb-index .badge {
+  position: absolute;
+  top: 0.2rem;
+  right: 0.3rem;
+  min-width: 1.15rem;
+  padding: 0.1rem 0.25rem;
+  border-radius: var(--radius);
+  background: var(--seal);
+  color: var(--seal-ink);
+  font: 700 0.7rem/1 var(--sans);
+  letter-spacing: 0;
+  text-align: center;
+}
+.thumb-index .more {
+  border: 0;
+  cursor: pointer;
+  text-align: center;
+  color: var(--binding-text);
+  font: 600 0.72rem/1.1 var(--sans);
+  background: var(--leather-2);
+  border-radius: 0 0 3px 3px;
+}
+.thumb-index .more .letter {
+  display: block;
+  font: 700 1.05rem/1 var(--display);
+  margin-bottom: 0.15rem;
+  color: var(--gilt);
+}
+.thumb-index .more[aria-current="page"] {
+  background: var(--page);
+  color: var(--ink);
+}
+.thumb-index .more[aria-current="page"] .letter {
+  color: var(--red);
+}
+@media (max-width: 59.99rem) {
+  .thumb-index .more {
+    padding: 0.45rem 0 0.4rem;
+    font-size: 0.7rem;
+  }
+  .thumb-index .more-pages {
+    position: absolute;
+    right: 0.25rem;
+    bottom: calc(100% + 1px);
+    display: grid;
+    min-width: 12rem;
+    padding: 0.35rem;
+    gap: 2px;
+    background: var(--leather);
+    border: 1px solid var(--leather-edge);
+    border-radius: 3px 3px 0 0;
+  }
+  .thumb-index .more-pages[hidden] {
+    display: none;
+  }
+  .thumb-index .more-pages a {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 2.75rem;
+    padding: 0 0.75rem;
+    font-size: 0.82rem;
+    text-align: left;
+    border-radius: 2px;
+  }
+  .thumb-index .more-pages a .letter {
+    display: inline;
+    margin: 0;
+    width: 1.1rem;
+  }
+}
+/* On a wide screen every tab is cut into the fore edge: no sheet, no button. */
+@media (min-width: 60rem) {
+  .thumb-index .more {
+    display: none;
+  }
+  .thumb-index .more-pages,
+  .thumb-index .more-pages[hidden] {
+    display: contents;
+  }
+  .thumb-index .badge {
+    top: 50%;
+    right: 0.5rem;
+    translate: 0 -50%;
+  }
+}
+
+/* ------------------------------------------------------------------ overview */
+.estate {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.estate a {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.35rem 0.75rem;
+  align-items: baseline;
+  padding: 0.6rem 0.25rem;
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink);
+  text-decoration: none;
+}
+.estate a:hover {
+  background: var(--page-2);
+}
+.estate a[aria-current="true"] .estate-coord::after {
+  content: "";
+  display: inline-block;
+  width: 0.4rem;
+  height: 0.4rem;
+  margin-left: 0.5rem;
+  border-radius: 50%;
+  background: var(--blue);
+  vertical-align: 0.2em;
+}
+.estate-coord {
+  font: 700 1.2rem/1.2 var(--display);
+}
+.estate-points {
+  font-size: 0.82rem;
+  color: var(--ink-3);
+  text-align: right;
+}
+/* What the building is doing: one line per queue, its countdown at the end. */
+.estate-work {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 0.15rem;
+}
+.estate-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-weight: 600;
+}
+.estate-line .num {
+  font-size: 0.95rem;
+}
+.estate-line small {
+  font-weight: 400;
+  font-size: 0.82rem;
+  color: var(--ink-3);
+}
+.estate-stamps {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.6rem;
+}
+@media (min-width: 48rem) {
+  .estate a {
+    grid-template-columns: 9rem minmax(0, 1fr) 7rem;
+  }
+  .estate-coord {
+    grid-row: 1 / span 2;
+  }
+  .estate-points {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  .estate-work,
+  .estate-stamps {
+    grid-column: 2;
+  }
+  /* Countdowns stay near what they time instead of drifting to the far edge. */
+  .estate-work {
+    grid-row: 1;
+    max-width: 30rem;
+  }
+  .estate a:not(:has(.estate-work)) .estate-stamps {
+    grid-row: 1;
+  }
+}
+
+/* Account matrices: a box of its own, at most most of the screen tall, where the column heads and
+   the building coordinates stay in view however many buildings scroll by. */
+.matrix-box {
+  max-height: min(70vh, 40rem);
+  overflow: auto;
+  overscroll-behavior: contain;
+  border-bottom: 1px solid var(--rule-strong);
+}
+.ledger.matrix thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--page);
+  /* Collapsed borders stay behind when a cell sticks: the rule travels as a shadow. */
+  box-shadow: inset 0 -1px 0 var(--rule-strong);
+}
+.ledger.matrix th[scope="row"],
+.ledger.matrix thead th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--page);
+  text-align: left;
+  white-space: nowrap;
+}
+.ledger.matrix thead th:first-child {
+  z-index: 2;
+  vertical-align: bottom;
+}
+.ledger.matrix th[scope="row"] {
+  font: 600 0.95rem/1.2 var(--sans);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
+  padding: 0.45rem 0.6rem 0.45rem 0.4rem;
+  border-bottom: 1px solid var(--rule);
+}
+/* Room and troop names run up their narrow columns, as in a ruled register. */
+.ledger.matrix th.vertical {
+  vertical-align: bottom;
+  text-align: center;
+  padding: 0.5rem 0.2rem 0.4rem;
+}
+.ledger.matrix th.vertical > span {
+  writing-mode: vertical-rl;
+  rotate: 180deg;
+  white-space: nowrap;
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.ledger.matrix td {
+  min-width: 2.25rem;
+}
+/* A register keeps its columns as narrow as their figures, each under its own head. */
+.ledger.matrix.register {
+  width: auto;
+}
+.matrix-box:has(> .register) {
+  width: fit-content;
+  max-width: 100%;
+}
+.ledger.matrix.register td {
+  text-align: center;
+  padding-inline: 0.45rem;
+}
+.ledger.matrix .entry-sub {
+  font-size: 0.7rem;
+}
+.ledger.matrix td.red .entry-sub {
+  color: var(--red);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.ledger.matrix thead th {
+  white-space: nowrap;
+}
+.ledger.matrix thead th .ico {
+  vertical-align: -0.15em;
+}
+
+/* What a ledger section has running, beside its tab's name. */
+.book-sections .tab-count {
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.35rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* On a phone the four stores of every building fit the page: icons head the columns, the points
+   are on the status view, and a section tab carries its count under its name. */
+@media (max-width: 47.99rem) {
+  .ledger.matrix .res-name,
+  .ledger.matrix .c-points {
+    display: none;
+  }
+  .ledger.matrix td,
+  .ledger.matrix th {
+    padding-inline: 0.3rem;
+  }
+  .ledger.matrix td {
+    font-size: 0.95rem;
+  }
+  .book-sections {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .book-sections [role="tab"] {
+    flex-direction: column;
+    justify-content: center;
+    padding-inline: 0.25rem;
+  }
+  .book-sections .tab-count {
+    margin: 0.1rem 0 0;
+    padding: 0;
+    border: 0;
+  }
 }

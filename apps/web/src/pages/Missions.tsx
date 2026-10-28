@@ -14,6 +14,7 @@ import {
 } from "@vendetta/rules";
 import { randomSalt } from "../chain/hidden.js";
 import { useGame } from "../state/game.js";
+import { arrivals } from "../state/overview.js";
 import { useRoute } from "../router.js";
 import { Countdown, Empty } from "../ui/parts.js";
 import { Icon } from "../ui/icons.js";
@@ -107,16 +108,11 @@ function MissionsFor({ b, p }: { b: sim.Building; p: sim.Player }) {
       : [];
   const attackTroops = rs.troops.filter((tr) => tr.isAttack && b.troops[tr.index]! > 0n);
   const mine = [...g.world.missions.values()].filter((m) => m.owner === p.id);
-  const myCoords = new Set(g.myBuildings.map((x) => sim.coordKey(x.coord)));
   // A hidden mission may be for any of my buildings within its cover of where it left.
-  const reaches = (m: sim.Mission) =>
-    g.myBuildings.some((x) => distance(rs, m.from, x.coord) <= m.cover * rs.config.distanceUnit);
-  const incoming = [...g.world.missions.values()].filter(
-    (m) =>
-      m.owner !== p.id &&
-      !m.returning &&
-      (m.hidden ? reaches(m) : myCoords.has(sim.coordKey(m.target))),
-  );
+  const coming = arrivals(g.world, p, g.myBuildings);
+  const incoming = coming.map((a) => a.m);
+  const reach = new Map(coming.map((a) => [a.m.id, a.targets.map((x) => coord(x.coord))]));
+  const hostileCount = coming.filter((a) => a.hostile).length;
   // A public transport bound to one of my buildings that does not fit there (D-26).
   const overflows = (m: sim.Mission) => {
     if (m.hidden || m.kind !== sim.TRANSPORT) return false;
@@ -193,13 +189,41 @@ function MissionsFor({ b, p }: { b: sim.Building; p: sim.Player }) {
     <>
       <header className="account-head">
         <h2>{t("missions.title")}</h2>
-        <span className="folio">
-          {t("common.from")} {coord(b.coord)}
-        </span>
+        {g.myBuildings.length < 2 && (
+          <span className="folio">
+            {t("common.from")} {coord(b.coord)}
+          </span>
+        )}
       </header>
+      {hostileCount > 0 && (
+        <p>
+          <button
+            className="btn quiet red"
+            onClick={() => document.getElementById("flight")?.scrollIntoView({ block: "start" })}
+          >
+            {t("missions.hostileComing", { count: hostileCount })}
+          </button>
+        </p>
+      )}
       <section aria-labelledby="send">
         <h3 id="send">{t("missions.send")}</h3>
         <div className="form-row">
+          {g.myBuildings.length > 1 && (
+            // The origin is the building the player works on: choosing it here switches it.
+            <label className="field">
+              {t("common.from")}
+              <select
+                value={String(b.id)}
+                onChange={(e) => g.selectBuilding(BigInt(e.target.value))}
+              >
+                {g.myBuildings.map((x) => (
+                  <option key={String(x.id)} value={String(x.id)}>
+                    {coord(x.coord)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <label className="field">
             {t("missions.kind")}
             <select value={kind} onChange={(e) => setKind(Number(e.target.value))}>
@@ -380,7 +404,11 @@ function MissionsFor({ b, p }: { b: sim.Building; p: sim.Player }) {
                       {m.returning
                         ? `· ${t("missions.returning")}`
                         : m.hidden
-                          ? `→ ${hostile ? t("missions.mayBeYou") : t("missions.hiddenTarget")}`
+                          ? `→ ${
+                              hostile
+                                ? t("overview.mayReach", { list: reach.get(m.id)!.join(", ") })
+                                : t("missions.hiddenTarget")
+                            }`
                           : `→ ${coord(m.target)}`}
                       <small>
                         {hostile ? `${playerLabel(g.world, m.owner)} · ` : ""}

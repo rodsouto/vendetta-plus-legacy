@@ -59,24 +59,20 @@ export function Book() {
   }, [focus, g.building?.id]);
   if (!g.me || !g.building) return <Register />;
   const b = g.building;
+  const p = g.me;
+  const premium = sim.isPremium(g.world, p, g.now) ? 1 : 0;
+  // What each section has running, on its tab: an empty queue shows without opening it.
+  const counts: Record<BookSection, string> = {
+    rooms: `${b.roomQueue.length}/${g.world.rs.config.roomQueue[premium]}`,
+    research: `${p.researchQueue.length}/${g.world.rs.config.researchQueue[premium]}`,
+    troops: String(b.training.reduce((n, q) => n + q.length, 0)),
+  };
   return (
     <>
       <header className="account-head">
         <h2>
           {t("book.building")} {coord(b.coord)}
         </h2>
-        {g.myBuildings.length > 1 && (
-          <label className="field" style={{ marginLeft: "auto" }}>
-            <span className="visually-hidden">{t("book.building")}</span>
-            <select value={String(b.id)} onChange={(e) => g.selectBuilding(BigInt(e.target.value))}>
-              {g.myBuildings.map((x) => (
-                <option key={String(x.id)} value={String(x.id)}>
-                  {coord(x.coord)}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
         <span className="folio">
           {t("book.points")}: {points(b.centipoints)}
         </span>
@@ -109,7 +105,7 @@ export function Book() {
               document.getElementById(`book-tab-${section}`)?.focus({ preventScroll: true });
             }}
           >
-            {t(`book.${section}`)}
+            {t(`book.${section}`)} <span className="tab-count">{counts[section]}</span>
           </button>
         ))}
       </div>
@@ -298,12 +294,13 @@ function NextEntries({ b }: { b: sim.Building }) {
       at: m.arrival,
       start: m.start,
       what: incoming
-        ? `${t("book.incoming")}: ${kind}`
+        ? `${t(m.hidden ? "book.mayArrive" : "book.incoming")}: ${kind}`
         : m.returning
           ? `${t("book.returning")} · ${kind}`
           : `${kind} → ${to}`,
       sub: incoming ? playerLabel(w, m.owner) : to,
-      hostile: incoming && m.kind === sim.ATTACK,
+      // A hidden mission's kind is unknown until it arrives: it reads as an attack (B-22).
+      hostile: incoming && (m.hidden || m.kind === sim.ATTACK),
     });
   }
   lines.sort((a, z) => (a.at < z.at ? -1 : a.at > z.at ? 1 : 0));
@@ -487,19 +484,26 @@ function Research({ b }: { b: sim.Building }) {
   const p = g.me!;
   const school = b.levels[rs.roles.researchSpeedRoom]!;
   const elsewhere = p.researchBuilding !== 0n && p.researchBuilding !== b.id;
+  const runsAt = elsewhere ? g.world.buildings.get(p.researchBuilding) : undefined;
   return (
     <section aria-labelledby="research">
       <h3 id="research" tabIndex={-1}>
         {t("book.research")}
+        {/* One queue for the whole account, wherever it runs. */}
         <span className="aside">
-          {t("common.queue")}: {elsewhere ? 0 : p.researchQueue.length}/
+          {t("common.queue")}: {p.researchQueue.length}/
           {g.world.rs.config.researchQueue[sim.isPremium(g.world, p, g.now) ? 1 : 0]}
         </span>
       </h3>
       {school < 1n ? (
         <p className="note">{t("book.needSchool")}</p>
-      ) : elsewhere ? (
-        <p className="note">{t("book.researchHere")}</p>
+      ) : runsAt ? (
+        <p className="note">
+          {t("book.researchHere", { coord: coord(runsAt.coord) })}{" "}
+          <button className="btn quiet" onClick={() => g.selectBuilding(runsAt.id)}>
+            {t("book.goThere")}
+          </button>
+        </p>
       ) : null}
       {!elsewhere && p.researchQueue.length > 0 && (
         <ul className="entries">

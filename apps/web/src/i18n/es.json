@@ -1,6 +1,7 @@
 {
   "title": "Vendetta",
   "nav": {
+    "overview": "Vista general",
     "book": "Libro",
     "map": "Plano",
     "missions": "Misiones",
@@ -10,7 +11,9 @@
     "account": "Cuenta",
     "ranking": "Ranking",
     "rules": "Reglas",
-    "dev": "Taller"
+    "dev": "Taller",
+    "more": "Más",
+    "index": "Índice"
   },
   "resources": {
     "weapons": "Armas",
@@ -95,7 +98,7 @@
     "abandonReturningWarning": "La parcela quedará libre. Las tropas que regresen a este edificio después de abandonarlo se perderán.",
     "keepBuilding": "Conservar edificio",
     "confirmAbandon": "Sí, abandonar edificio",
-    "sections": "Secciones del ledger",
+    "sections": "Secciones del libro",
     "perUnit": "Los costos y tiempos son por tropa.",
     "balance": "Saldo",
     "next": "Próximos asientos",
@@ -109,7 +112,7 @@
     "atHome": "En el edificio",
     "training": "En entrenamiento",
     "building": "Edificio",
-    "researchHere": "La investigación corre en otro edificio.",
+    "researchHere": "La investigación corre en {{coord}}.",
     "needSchool": "Hace falta la Escuela de especialización para investigar.",
     "noRoom": "Hace falta la sala de entrenamiento para estas tropas.",
     "quantity": "Cantidad",
@@ -125,7 +128,44 @@
     "abandoned": "Edificio abandonado",
     "rate": "Producción",
     "full": "Completo",
-    "locked": "Bloqueadas"
+    "locked": "Bloqueadas",
+    "mayArrive": "Puede llegar a este edificio",
+    "goThere": "Ir a ese edificio"
+  },
+  "overview": {
+    "title": "Vista general",
+    "views": "Vistas de la cuenta",
+    "status": "Estado",
+    "resources": "Recursos",
+    "troops": "Tropas",
+    "arrivals": "En camino a tus edificios",
+    "mayReach": "puede llegar a {{list}}",
+    "buildings": "Edificios",
+    "buildingCount_one": "{{count}} edificio",
+    "buildingCount_other": "{{count}} edificios",
+    "upgrading": "{{busy}} de {{total}} en obras",
+    "attack": "Ataque",
+    "possible": "Posible ataque",
+    "full": "Almacén lleno",
+    "queued": "+{{count}} en cola",
+    "roomsIdle": "Sin obras",
+    "recruitIdle": "Sin reclutar",
+    "allBusy": "Todo en marcha",
+    "open": "Abrir {{coord}} en el libro",
+    "researchNone": "No hay nada en entrenamiento.",
+    "researchAt": "en {{coord}}",
+    "mine": "Tus misiones",
+    "seeAll": "Ver todas",
+    "levels": "Niveles de habitaciones",
+    "total": "Total",
+    "atHome": "Tropas en cada edificio, sin contar las que están de misión.",
+    "announce": "Misión hostil en camino a {{list}}"
+  },
+  "switch": {
+    "label": "Edificio actual",
+    "prev": "Edificio anterior",
+    "next": "Edificio siguiente",
+    "alarm": "Hay edificios amenazados"
   },
   "map": {
     "title": "Plano del barrio",
@@ -168,14 +208,14 @@
     "noTroops": "No hay tropas de ataque en este edificio.",
     "hidden": "Oculta",
     "hiddenTarget": "destino oculto",
-    "mayBeYou": "puede ser para vos",
     "hiddenNote": "El tipo y el destino quedan ocultos hasta la llegada. El viaje y el salario se calculan sobre una distancia de cobertura al azar, para que no delaten el destino.",
     "publicNote": "Los transportes de una orden del mercado viajan a la vista.",
     "revealing": "llegó, esperando el reveal",
     "noRoom": "Al destino no le cabe: {{list}}. Lo que no quepa se pierde: tener lugar es responsabilidad de quien recibe.",
     "incomingOverflow": "no te cabe todo: hacé lugar antes de que llegue",
     "forecast": "Previsión del combate",
-    "forecastNote": "Calculada para la llegada con lo que se sabe hoy: producción, colas y misiones conocidas. No cuenta las misiones ocultas de otros ni lo que hagan los jugadores antes."
+    "forecastNote": "Calculada para la llegada con lo que se sabe hoy: producción, colas y misiones conocidas. No cuenta las misiones ocultas de otros ni lo que hagan los jugadores antes.",
+    "hostileComing": "Ver llegadas hostiles ({{count}})"
   },
   "reports": {
     "title": "Informes de batalla",
@@ -252,7 +292,7 @@
     "from": "Mercadería desde",
     "goodsFrom": "Mercadería desde",
     "deposit": "Fianza",
-    "depositFrom": "La fianza sale del edificio en el que estás",
+    "depositFrom": "Fianza desde",
     "escrowNote": "Cuando el comprador acepta, la mercadería del vendedor y una fianza del {{percent}}% del precio quedan retenidas en la orden. El comprador paga con transportes que tienen que llegar dentro de {{days}} días y retira la mercadería a medida que paga. Al cerrar la ventana, el vendedor retira lo no vendido y la parte de la fianza que no se pagó. Lo retenido no vence.",
     "offerNote": "La mercadería sale de ese edificio cuando el comprador acepta; en ese momento tiene que tenerla.",
     "sharesLeft": "Te queda algo por retirar de una orden terminada: retiralo para volver a ofrecer o aceptar.",
