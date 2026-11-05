@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-31",
+  "scope": "Pinned execution proposal validation only; no MPC, identities, beacon evidence or production approval",
+  "command": "go test -count=1 -json ./ceremony ./cmd/ceremony",
+  "mainTestsPassed": [
+    "TestExecutionValidation",
+    "TestPlanValidation",
+    "TestStrictDocuments",
+    "TestReviewVerification",
+    "TestCLIDesignCommands",
+    "TestCLIReadLimitsAndSpecialFiles",
+    "TestShellWrapperRelativePaths",
+    "TestCLIExecution"
+  ],
+  "subtestsPassed": 83,
+  "totalTestEventsPassed": 91,
+  "log": {
+    "path": "/tmp/vendetta-v2-execution-tests.jsonl",
+    "sha256": "254539a33818a58fd0052cbf53894301650944789212ea448631e54399f492a0"
+  },
+  "sourceSha256": {
+    "apps/web/scripts/experiments/opening-zk/ceremony/execution.go": "8202f1369aa1dea255928c6009b10061ae721e95fd992c1f5a33f31964454cd3",
+    "apps/web/scripts/experiments/opening-zk/ceremony/execution_test.go": "a597bd8272e1c2762c6b9794d3c3c95b5b061b16671c28fbb64e733f3b8e8784",
+    "apps/web/scripts/experiments/opening-zk/cmd/ceremony/main.go": "1f7528ea4dd24f94ef07046636ed3e9c587712676c6f44ef9481cb60f2606cc9",
+    "apps/web/scripts/experiments/opening-zk/cmd/ceremony/main_test.go": "32ee38b0c904344bde44c07fc1ebbbf401a52b98ceae9704c9c07c9ec99091a1",
+    "scripts/hidden-v2-ceremony.sh": "9893f240034906f0e15c5dd24bffcfc8932ca1a6d512213d1fd20d9d4100549d"
+  },
+  "checks": {
+    "goVet": "passed",
+    "bashSyntax": "passed"
+  },
+  "limitations": [
+    "Resource budgets are declarations, not enforced or measured",
+    "No real participant identities or authority installed",
+    "Native transcript preflight and multi-process MPC pending",
+    "No new game setup keys, proving, deployment or producer policy changes"
+  ]
+}

@@ -1,0 +1,208 @@
+{
+  "date": "2026-11-04",
+  "scope": "Unsafe local game-domain MPC capacity. No independent ceremony or production approval.",
+  "records": {
+    "phase1-first22-report.json": {
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-phase1-22-first-20261104/report.json",
+      "originalSha256": "67f9f74227a0c2d50cc52fb24905236a4b6ed82c28456ef0e4d51f58b235c081",
+      "normalizedJsonSha256": "67f9f74227a0c2d50cc52fb24905236a4b6ed82c28456ef0e4d51f58b235c081"
+    },
+    "phase1-verify1-22-report.json": {
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-phase1-22-verify1-20261104/report.json",
+      "originalSha256": "e48113058492f07b2e3dc2f7cc65f08ba05f1fa6ba3deb45d7e5b83cf2296eb0",
+      "normalizedJsonSha256": "e48113058492f07b2e3dc2f7cc65f08ba05f1fa6ba3deb45d7e5b83cf2296eb0"
+    },
+    "cold-cs22-report.json": {
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-cs22-inspect-20261104/report.json",
+      "originalSha256": "95be0179c0f85246e8731b876321975713839d606b8917b1756c644bca1267a1",
+      "normalizedJsonSha256": "dad2c3ef9d2421710d1ecbb5138d2d68923d1a6439ff3414e17ea89708fc3e8b"
+    },
+    "cold-cs23-report.json": {
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-cs23-inspect-20261104/report.json",
+      "originalSha256": "2f4f06505bd096784164066073e85d8cd3ec11bc2b2d8e89ec36dd9edc3d4989",
+      "normalizedJsonSha256": "0aa8f7c9e4657ae0cb01ad9edea378c9793ada16d6a1272bcf60392badf2b133"
+    },
+    "phase1-second22-report.json": {
+      "originalSha256": "462daf6aecc4f6fde81f29635bec1d94e1e09338b71bc90e0121ac1f35b41858",
+      "normalizedJsonSha256": "462daf6aecc4f6fde81f29635bec1d94e1e09338b71bc90e0121ac1f35b41858",
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-phase1-22-second-20261104/report.json"
+    },
+    "phase1-verify2-22-report.json": {
+      "originalSha256": "fc85fb3eb4d76aac0f11cd1193dce45adbe161dde3bcf962fad1dfa65bdf9d89",
+      "normalizedJsonSha256": "fc85fb3eb4d76aac0f11cd1193dce45adbe161dde3bcf962fad1dfa65bdf9d89",
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-sequence-20261104-run2/22-verify2/report.json"
+    },
+    "phase1-seal22-report.json": {
+      "originalSha256": "ba7e860bd8a8f8d34f126aad3a93b60aed61f4d612ed53f8654e32e768a8e480",
+      "normalizedJsonSha256": "ba7e860bd8a8f8d34f126aad3a93b60aed61f4d612ed53f8654e32e768a8e480",
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-sequence-20261104-run2/22-seal/report.json"
+    },
+    "phase2-init22-report.json": {
+      "originalSha256": "48570ec7dd25b9b73f706e5a726e4cb28837b7904284dda25cf5e8a2dc126ac2",
+      "normalizedJsonSha256": "48570ec7dd25b9b73f706e5a726e4cb28837b7904284dda25cf5e8a2dc126ac2",
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-sequence-20261104-run2/22-phase2-init/report.json"
+    },
+    "phase2-init22-metadata.json": {
+      "originalSha256": "f3925c6599757ef027e6a3077e5688ebde8d1188df9bdc575a9b19cac8b87336",
+      "normalizedJsonSha256": "31136a7e33a3f211469d4aee5caa2fad027a5e6d850358f9179947765d6e70a8",
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-sequence-20261104-run2/22-phase2-init/public/phase2-init.json"
+    },
+    "phase2-contribution1-22-report.json": {
+      "originalSha256": "98eef238232449f102410adfad5c2def7cf42f7d4d45ed2a3a379992c6f8fb4f",
+      "normalizedJsonSha256": "98eef238232449f102410adfad5c2def7cf42f7d4d45ed2a3a379992c6f8fb4f",
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-sequence-20261104-run2/22-phase2-contribution1/report.json"
+    },
+    "phase2-contribution1-22-artifact.json": {
+      "originalSha256": "83d44b28a387f4122b9579cd8ef88eaf5f71f55ba064e8b124e75d92f890d7fe",
+      "normalizedJsonSha256": "83d44b28a387f4122b9579cd8ef88eaf5f71f55ba064e8b124e75d92f890d7fe",
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-sequence-20261104-run2/22-phase2-contribution1/public/artifact.json"
+    },
+    "phase2-verify1-22-report.json": {
+      "originalSha256": "27775da1c6899b025562eab6a8b3522ed6ae03eff89edf9076a67e5b7f4d958d",
+      "normalizedJsonSha256": "27775da1c6899b025562eab6a8b3522ed6ae03eff89edf9076a67e5b7f4d958d",
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-sequence-20261104-run2/22-phase2-verify1/report.json"
+    },
+    "phase2-verify1-22-verification.json": {
+      "originalSha256": "f76ee746b0ff0f06b23c8d0749d7ee213dba8b1c8ae85ca78902e26fcc5d54b6",
+      "normalizedJsonSha256": "f76ee746b0ff0f06b23c8d0749d7ee213dba8b1c8ae85ca78902e26fcc5d54b6",
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-sequence-20261104-run2/22-phase2-verify1/public/verification.json"
+    },
+    "phase2-contribution2-22-report.json": {
+      "originalSha256": "08c821ffd741d5309e30f5be5f41e94bd8ba6c270c191226f85cd1b2e2c61a68",
+      "normalizedJsonSha256": "08c821ffd741d5309e30f5be5f41e94bd8ba6c270c191226f85cd1b2e2c61a68",
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-sequence-20261104-run2/22-phase2-contribution2/report.json"
+    },
+    "phase2-contribution2-22-artifact.json": {
+      "originalSha256": "ace8940ae460e51536a8889a29f68aad105abff7b08288bd81bc674ca86bdf56",
+      "normalizedJsonSha256": "ace8940ae460e51536a8889a29f68aad105abff7b08288bd81bc674ca86bdf56",
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-sequence-20261104-run2/22-phase2-contribution2/public/artifact.json"
+    },
+    "phase2-verify2-22-report.json": {
+      "originalSha256": "0a1e8191cb579a3a9eedd6135dbc62d2c797cf6dd81208ca06d675e6112c63ce",
+      "normalizedJsonSha256": "0a1e8191cb579a3a9eedd6135dbc62d2c797cf6dd81208ca06d675e6112c63ce",
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-sequence-20261104-run2/22-phase2-verify2/report.json"
+    },
+    "phase2-verify2-22-verification.json": {
+      "originalSha256": "bf275eba2569465fc4bed4787ce4f1a01143d85bcb7ff71cc975d823c067db43",
+      "normalizedJsonSha256": "bf275eba2569465fc4bed4787ce4f1a01143d85bcb7ff71cc975d823c067db43",
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-sequence-20261104-run2/22-phase2-verify2/public/verification.json"
+    },
+    "phase2-keys-22-report.json": {
+      "originalSha256": "8b633d0b289b59e838117ad5419d2f7e6bebf942798ddc290d0d1afb6545b538",
+      "normalizedJsonSha256": "8b633d0b289b59e838117ad5419d2f7e6bebf942798ddc290d0d1afb6545b538",
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-sequence-20261104-run2/22-phase2-keys/report.json"
+    },
+    "phase2-keys-22-keys.json": {
+      "originalSha256": "dcf669308831f5dd9595c6cedc8e14709df734deb535b07fde17d4cccecb115e",
+      "normalizedJsonSha256": "dcf669308831f5dd9595c6cedc8e14709df734deb535b07fde17d4cccecb115e",
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-sequence-20261104-run2/22-phase2-keys/public/keys.json"
+    },
+    "phase2-keys-22-manifest.json": {
+      "originalSha256": "c4798b4f3ddc81c535c680a420b437fec9107ea007bc5c39c9504ff86a13a2c8",
+      "normalizedJsonSha256": "c4798b4f3ddc81c535c680a420b437fec9107ea007bc5c39c9504ff86a13a2c8",
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-sequence-20261104-run2/22-phase2-keys/public/manifest.json"
+    },
+    "phase1-first23-report.json": {
+      "originalSha256": "8017f22bbc005b70168406cee6dd518e6841a4fa91f9c1dc47f0719a300aa57b",
+      "normalizedJsonSha256": "8017f22bbc005b70168406cee6dd518e6841a4fa91f9c1dc47f0719a300aa57b",
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-sequence-20261104-run2/23-first/report.json"
+    },
+    "phase1-verify1-23-failed-report.json": {
+      "originalSha256": "1584b6d7680df32a1dc6184b6a88a29a517804b377a2fdd80db329777585bb84",
+      "normalizedJsonSha256": "1584b6d7680df32a1dc6184b6a88a29a517804b377a2fdd80db329777585bb84",
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-sequence-20261104-run2/23-verify1/report.json"
+    },
+    "invalid-point-native-proof-report.json": {
+      "originalSha256": "84de966733fca0ad6fe973dc24a06b6bbecc1c057b96ef514b2ee14445c18419",
+      "normalizedJsonSha256": "84de966733fca0ad6fe973dc24a06b6bbecc1c057b96ef514b2ee14445c18419",
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-invalid-point-proof-20261104-run1/report.json"
+    },
+    "invalid-point-new-keys-proof.json": {
+      "originalSha256": "60a419e4886b50ecdc6e67f569b5d5561de5215d507d87b4a982c59593e6834c",
+      "normalizedJsonSha256": "60a419e4886b50ecdc6e67f569b5d5561de5215d507d87b4a982c59593e6834c",
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-invalid-point-proof-20261104-run1/proof.json"
+    },
+    "invalid-point-new-keys-input.json": {
+      "originalSha256": "c15184ea253df9cf19a022d0a36f5808b094e7f99899c9a0c6480ee3af718d2e",
+      "normalizedJsonSha256": "c15184ea253df9cf19a022d0a36f5808b094e7f99899c9a0c6480ee3af718d2e",
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-invalid-point-proof-20261104-run1/input.json"
+    },
+    "invalid-point-evm-report.json": {
+      "originalSha256": "0a83fb5b2731ee5641be1aee61da5dd44bb00d3215f84925e0084f2928a6145f",
+      "normalizedJsonSha256": "0a83fb5b2731ee5641be1aee61da5dd44bb00d3215f84925e0084f2928a6145f",
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-invalid-point-proof-20261104-run1/evm-report.json"
+    },
+    "phase1-verify1-23-v4-report.json": {
+      "originalSha256": "b31adc6722391b86fa49a4c376db4ec15c075c687589007fd8dfb86bb8f75deb",
+      "normalizedJsonSha256": "b31adc6722391b86fa49a4c376db4ec15c075c687589007fd8dfb86bb8f75deb",
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-sequence-20261104-run3/23-verify1/report.json"
+    },
+    "phase1-verify1-23-v4-verification.json": {
+      "originalSha256": "ac865fa2166a134993200eb74cc5cc22d19d37c6c9358e09a472e826787492f6",
+      "normalizedJsonSha256": "ac865fa2166a134993200eb74cc5cc22d19d37c6c9358e09a472e826787492f6",
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-sequence-20261104-run3/23-verify1/public/verification.json"
+    },
+    "phase1-second23-report.json": {
+      "originalSha256": "6b2e7773e0b46d4de5a52d1b77e4b99428b5dc3ce096cca4e548bdd363982159",
+      "normalizedJsonSha256": "6b2e7773e0b46d4de5a52d1b77e4b99428b5dc3ce096cca4e548bdd363982159",
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-sequence-20261104-run3/23-second/report.json"
+    },
+    "phase1-second23-artifact.json": {
+      "originalSha256": "52f4be3a4319772f03a5945ac6fb38088ad032a6004697e79ea41a6d72bd1ec0",
+      "normalizedJsonSha256": "52f4be3a4319772f03a5945ac6fb38088ad032a6004697e79ea41a6d72bd1ec0",
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-sequence-20261104-run3/23-second/public/artifact.json"
+    },
+    "phase1-verify2-23-v4-report.json": {
+      "originalSha256": "2d6c67807b7fb03b2bcf23db26d2daf0e3d7ea66738d049a8c947f490302521b",
+      "normalizedJsonSha256": "2d6c67807b7fb03b2bcf23db26d2daf0e3d7ea66738d049a8c947f490302521b",
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-sequence-20261104-run3/23-verify2/report.json"
+    },
+    "phase1-verify2-23-v4-verification.json": {
+      "originalSha256": "00a07b24629ee08f53461def4096112e280958021800b430c276dc921f2813b1",
+      "normalizedJsonSha256": "00a07b24629ee08f53461def4096112e280958021800b430c276dc921f2813b1",
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-sequence-20261104-run3/23-verify2/public/verification.json"
+    },
+    "phase1-seal23-report.json": {
+      "originalSha256": "a5f155a9252c2e5413829b5c4264d53e606556e9887c9e966848aabd70409412",
+      "normalizedJsonSha256": "a5f155a9252c2e5413829b5c4264d53e606556e9887c9e966848aabd70409412",
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-sequence-20261104-run3/23-seal/report.json"
+    },
+    "phase1-commons23-metadata.json": {
+      "originalSha256": "8869842524ab18c47dadf74da6ab1a2267e98109005483f8a6a5a35926266972",
+      "normalizedJsonSha256": "8869842524ab18c47dadf74da6ab1a2267e98109005483f8a6a5a35926266972",
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-sequence-20261104-run3/23-seal/public/commons.json"
+    },
+    "phase2-init23-v4-failed-report.json": {
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-sequence-20261104-run3/23-phase2-init/report.json",
+      "originalSha256": "eee3b84c28027c008a5024280269301c88c67ffff64d622d9bf917b51b6b41ee",
+      "normalizedJsonSha256": "eee3b84c28027c008a5024280269301c88c67ffff64d622d9bf917b51b6b41ee"
+    }
+  },
+  "phase1FirstContribution22Measured": true,
+  "phase1FirstVerification22Measured": true,
+  "phase1SecondContribution22Complete": true,
+  "phase2GameDomainMeasured": true,
+  "productionApproved": false,
+  "phase1SecondVerification22Measured": true,
+  "phase1Seal22Measured": true,
+  "phase1TwoContributionsVerifiedAndSealed22": true,
+  "phase2Initialization22Started": true,
+  "phase2Initialization22Measured": true,
+  "phase2Protocol22Complete": true,
+  "bothGameDomainsProtocolComplete": false,
+  "protocol23Started": true,
+  "solidityCompile22Passed": true,
+  "invalidPointProofWithNewKeysTested": true,
+  "firstContribution23Measured": true,
+  "firstVerification23Complete": true,
+  "firstVerification23Failure": "native batching exceeded 10 GiB address-space limit",
+  "invalidPointSolidityVerifierAndConsumerTested": true,
+  "fullGameH3ReplayWithBothNewKeysComplete": false,
+  "secondContribution23Measured": true,
+  "secondVerification23Complete": true,
+  "utcClockDiscontinuityObserved": true,
+  "phase1Seal23Started": true,
+  "phase1Seal23Complete": true,
+  "bothPhase1DomainsComplete": true,
+  "phase2Initialization23Started": true
+}

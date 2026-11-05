@@ -1,3 +1,4 @@
+import { CONSUMERS } from "../../../packages/rules/test/v2-helpers.js";
 import { describe, expect, it } from "vitest";
 import { sim, vendetta as rs, type HiddenPlain } from "@vendetta/rules";
 import {
@@ -7,7 +8,7 @@ import {
 } from "../src/state/guide.js";
 
 function setup() {
-  const w = sim.newWorld(rs);
+  const w = sim.newWorld(rs, CONSUMERS);
   sim.register(w, "alice", { city: 1n, neighborhood: 1n, slot: 1n }, 1000n);
   return { w, p: w.players.get(1n)!, b: w.buildings.get(1n)! };
 }

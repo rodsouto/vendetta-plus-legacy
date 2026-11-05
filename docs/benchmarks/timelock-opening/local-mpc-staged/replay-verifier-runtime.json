@@ -1,0 +1,10 @@
+{
+  "opening": {
+    "runtime": "0xa06fd7a212ba5a9c8b885ae88fba391ccf6804327a081a4971a19e0cc83018a4",
+    "setup": "e1c210611c3c110ff45027f7fc7f2459c2b065ee3ffcb3a1b9ed38a4dfcc1455"
+  },
+  "invalid-point": {
+    "runtime": "0x4edfe60c6bc600a24463491188fd0d4a31c81b3ee4165e01561e598ed245c57b",
+    "setup": "c4798b4f3ddc81c535c680a420b437fec9107ea007bc5c39c9504ff86a13a2c8"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "scope": "Real experimental KEM proof + exact H3 prefix composition; NOT beacon, age or mission authentication",
+  "testsPassed": 10,
+  "verifierCallGasCap": 2000000,
+  "verifierDeployedBytes": 8712,
+  "evm": "cancun",
+  "solc": "0.8.28",
+  "optimizerRuns": 200,
+  "productionIntegrated": false,
+  "setup": "Local unsafe research setup; never reuse in production",
+  "verifierSourceSha256": "4684a9a033c76c632cb9039c4922b6f2ee445133967d1b6a82417837d12f7b7b"
+}

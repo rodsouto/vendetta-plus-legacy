@@ -1,0 +1,358 @@
+{
+  "scope": "Six distinct real proofs, twelve concurrent authenticated HTTP requests, serial native prover, real H3 and private Anvil RPC; archived authenticated drand signatures; unsafe local setup.",
+  "date": "2026-10-30T19:28:16.609Z",
+  "config": {
+    "threads": "8",
+    "goMemoryLimit": "6GiB",
+    "uniqueMissions": 6,
+    "httpRequests": 12
+  },
+  "batchElapsedMs": 1385650.948315,
+  "observedMissionsPerHour": 15.588341368557757,
+  "measurements": [
+    {
+      "name": "valid-fresh-packet-round-1001-max-salt",
+      "mission": "1",
+      "circuit": "opening",
+      "nativeElapsedMs": 306088,
+      "queuedHttpElapsedMs": 307501,
+      "admissionGas": "547644",
+      "submissionGas": "846489",
+      "setupManifestSha256": "353bd28c1fe36a07fd7bb42a110f49cbe323fbcdc1dd323c036678502450a8ff"
+    },
+    {
+      "name": "invalid-commitment-five-H3-candidates",
+      "mission": "2",
+      "circuit": "opening",
+      "nativeElapsedMs": 242282,
+      "queuedHttpElapsedMs": 551140,
+      "admissionGas": "468059",
+      "submissionGas": "781579",
+      "setupManifestSha256": "353bd28c1fe36a07fd7bb42a110f49cbe323fbcdc1dd323c036678502450a8ff"
+    },
+    {
+      "name": "invalid-U",
+      "mission": "3",
+      "circuit": "invalid-point",
+      "nativeElapsedMs": 166013,
+      "queuedHttpElapsedMs": 718147,
+      "admissionGas": "483406",
+      "submissionGas": "383021",
+      "setupManifestSha256": "6757f53a6b002dd917f545863279c5441c33ca77f39dbc56f0dadcd4c96b32ee"
+    },
+    {
+      "name": "valid-fresh-packet-round-1001-max-salt-second-mission",
+      "mission": "4",
+      "circuit": "opening",
+      "nativeElapsedMs": 254019,
+      "queuedHttpElapsedMs": 973736,
+      "admissionGas": "485444",
+      "submissionGas": "846465",
+      "setupManifestSha256": "353bd28c1fe36a07fd7bb42a110f49cbe323fbcdc1dd323c036678502450a8ff"
+    },
+    {
+      "name": "invalid-commitment-five-H3-candidates-second-mission",
+      "mission": "5",
+      "circuit": "opening",
+      "nativeElapsedMs": 241585,
+      "queuedHttpElapsedMs": 1216462,
+      "admissionGas": "495823",
+      "submissionGas": "781579",
+      "setupManifestSha256": "353bd28c1fe36a07fd7bb42a110f49cbe323fbcdc1dd323c036678502450a8ff"
+    },
+    {
+      "name": "invalid-U-second-mission",
+      "mission": "6",
+      "circuit": "invalid-point",
+      "nativeElapsedMs": 168231,
+      "queuedHttpElapsedMs": 1385635,
+      "admissionGas": "507607",
+      "submissionGas": "383021",
+      "setupManifestSha256": "6757f53a6b002dd917f545863279c5441c33ca77f39dbc56f0dadcd4c96b32ee"
+    }
+  ],
+  "resources": {
+    "intervalMs": 1000,
+    "elapsedMs": 1385653.109892,
+    "samples": 1385,
+    "peakNodeRssBytes": 170475520,
+    "peakNativeRssBytes": 6380023808,
+    "peakNativeProcesses": 1,
+    "native": [
+      {
+        "kind": "opening",
+        "cpuSeconds": 1516.75,
+        "peakRssBytes": 6342168576,
+        "samples": 306
+      },
+      {
+        "kind": "opening",
+        "cpuSeconds": 1406.91,
+        "peakRssBytes": 6380023808,
+        "samples": 242
+      },
+      {
+        "kind": "invalid-point",
+        "cpuSeconds": 958.83,
+        "peakRssBytes": 5240455168,
+        "samples": 166
+      },
+      {
+        "kind": "opening",
+        "cpuSeconds": 1477.93,
+        "peakRssBytes": 6318235648,
+        "samples": 254
+      },
+      {
+        "kind": "opening",
+        "cpuSeconds": 1400.08,
+        "peakRssBytes": 6312132608,
+        "samples": 242
+      },
+      {
+        "kind": "invalid-point",
+        "cpuSeconds": 988.48,
+        "peakRssBytes": 5238816768,
+        "samples": 168
+      }
+    ],
+    "limitation": "Sampled Linux RSS and CPU; may miss peaks and final CPU ticks. Node RSS excludes child processes. Not a memory ceiling or leak test."
+  },
+  "h3": {
+    "transactions": [
+      {
+        "function": "begin",
+        "contextOrReceipt": "0x6509bc0f5d24c8f34a3520291a63eb30a21a6e0cda02a61a690324adb2ccadef",
+        "gasUsed": "117717"
+      },
+      {
+        "function": "advance",
+        "contextOrReceipt": "0x75bf568e05784992cac1adbb539fa86821f46de94fbb97a3441c5f5c5bc1ed64",
+        "gasUsed": "53287"
+      },
+      {
+        "function": "begin",
+        "contextOrReceipt": "0x11766807f9a9fc7d634328fff3cbd98d6fab560182e870342242753bb53ce06a",
+        "gasUsed": "117717"
+      },
+      {
+        "function": "advance",
+        "contextOrReceipt": "0xa22c69126790a4119da2dc707c492534d29d6fe2bb761006f0798ea3f9430003",
+        "gasUsed": "57407"
+      },
+      {
+        "function": "begin",
+        "contextOrReceipt": "0xd1db2ff91568ff1b943452b7fa7ae41b36694da900a23d51ce8d9d1859474087",
+        "gasUsed": "117705"
+      },
+      {
+        "function": "advance",
+        "contextOrReceipt": "0xf6ac6dd0c5156f59207d26db685a77e8de2771335a91a7b9a62b447e87ffe4fe",
+        "gasUsed": "53287"
+      }
+    ],
+    "totalGas": "517120"
+  },
+  "statsBefore": {
+    "proofs": 0,
+    "cacheHits": 0,
+    "counters": {
+      "requests": 1
+    },
+    "stages": {
+      "job": {
+        "calls": 1,
+        "failures": 1,
+        "totalMs": 11.67950000000019,
+        "maxMs": 11.67950000000019
+      },
+      "cachePrune": {
+        "calls": 2,
+        "failures": 0,
+        "totalMs": 0.6848669999999402,
+        "maxMs": 0.44720500000039465
+      },
+      "rpcContext": {
+        "calls": 1,
+        "failures": 0,
+        "totalMs": 1.6218010000011418,
+        "maxMs": 1.6218010000011418
+      }
+    },
+    "memory": {
+      "rss": 169558016,
+      "heapTotal": 68259840,
+      "heapUsed": 40509728,
+      "external": 7671422,
+      "arrayBuffers": 3249483
+    },
+    "queue": {
+      "pending": 0,
+      "deduplicated": 0,
+      "rejected": 0,
+      "capacity": 8
+    },
+    "cache": {
+      "bytes": 0,
+      "files": 0
+    }
+  },
+  "statsAfter": {
+    "proofs": 6,
+    "cacheHits": 0,
+    "counters": {
+      "requests": 13,
+      "proofs": 6
+    },
+    "stages": {
+      "job": {
+        "calls": 7,
+        "failures": 1,
+        "totalMs": 1385635.529014,
+        "maxMs": 307472.55038000003
+      },
+      "cachePrune": {
+        "calls": 14,
+        "failures": 0,
+        "totalMs": 50.9957570000297,
+        "maxMs": 8.526619000011124
+      },
+      "rpcContext": {
+        "calls": 7,
+        "failures": 0,
+        "totalMs": 41.16577699996924,
+        "maxMs": 28.934223000000202
+      },
+      "inspect": {
+        "calls": 6,
+        "failures": 0,
+        "totalMs": 359.55724400000145,
+        "maxMs": 80.64451899999949
+      },
+      "beacon": {
+        "calls": 4,
+        "failures": 0,
+        "totalMs": 0.24709000000439119,
+        "maxMs": 0.21335499999986496
+      },
+      "prove": {
+        "calls": 6,
+        "failures": 0,
+        "totalMs": 1384685.059327,
+        "maxMs": 307217.789624
+      },
+      "h3Prefix": {
+        "calls": 4,
+        "failures": 0,
+        "totalMs": 281.85968200018397,
+        "maxMs": 103.26096799998777
+      },
+      "h3Transaction": {
+        "calls": 6,
+        "failures": 0,
+        "totalMs": 167.8943309999304,
+        "maxMs": 37.19510300003458
+      }
+    },
+    "memory": {
+      "rss": 99225600,
+      "heapTotal": 33656832,
+      "heapUsed": 29210160,
+      "external": 7074708,
+      "arrayBuffers": 2648629
+    },
+    "queue": {
+      "pending": 0,
+      "deduplicated": 6,
+      "rejected": 0,
+      "capacity": 8
+    },
+    "cache": {
+      "bytes": 16270,
+      "files": 6
+    }
+  },
+  "finalStats": {
+    "proofs": 6,
+    "cacheHits": 6,
+    "counters": {
+      "requests": 19,
+      "proofs": 6,
+      "cacheHits": 6
+    },
+    "stages": {
+      "job": {
+        "calls": 13,
+        "failures": 1,
+        "totalMs": 1387378.535928,
+        "maxMs": 307472.55038000003
+      },
+      "cachePrune": {
+        "calls": 26,
+        "failures": 0,
+        "totalMs": 73.98366700017141,
+        "maxMs": 8.526619000011124
+      },
+      "rpcContext": {
+        "calls": 13,
+        "failures": 0,
+        "totalMs": 51.239444999791885,
+        "maxMs": 28.934223000000202
+      },
+      "inspect": {
+        "calls": 12,
+        "failures": 0,
+        "totalMs": 697.3592209999679,
+        "maxMs": 80.64451899999949
+      },
+      "beacon": {
+        "calls": 4,
+        "failures": 0,
+        "totalMs": 0.24709000000439119,
+        "maxMs": 0.21335499999986496
+      },
+      "prove": {
+        "calls": 6,
+        "failures": 0,
+        "totalMs": 1384685.059327,
+        "maxMs": 307217.789624
+      },
+      "h3Prefix": {
+        "calls": 8,
+        "failures": 0,
+        "totalMs": 1486.4212860001135,
+        "maxMs": 1077.4145659999922
+      },
+      "h3Transaction": {
+        "calls": 12,
+        "failures": 0,
+        "totalMs": 1311.004917999613,
+        "maxMs": 1025.1466399999335
+      }
+    },
+    "memory": {
+      "rss": 115163136,
+      "heapTotal": 51744768,
+      "heapUsed": 39515104,
+      "external": 7413794,
+      "arrayBuffers": 2956243
+    },
+    "queue": {
+      "pending": 0,
+      "deduplicated": 6,
+      "rejected": 0,
+      "capacity": 8
+    },
+    "cache": {
+      "bytes": 16270,
+      "files": 6
+    }
+  },
+  "limitations": [
+    "Finite local batch, not a production capacity guarantee or prolonged soak.",
+    "Queued HTTP duration includes preceding jobs; native elapsed includes artifact integrity, key loading, witness, proving and local verification.",
+    "H3 prefix contexts may be shared across missions. Aggregate observed H3 gas is not an independent per-mission upper bound.",
+    "Gas excludes verifier/Game deployment; fee in wei equals gas times operator-selected gas price. Anvil fees do not estimate live network prices.",
+    "No public beacon availability, network latency, stuck-transaction or deep reorg recovery measurement."
+  ]
+}

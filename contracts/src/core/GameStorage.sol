@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.28;
 
+import {HiddenEvidenceState} from "./HiddenResolution.sol";
+
 import {ROOMS, RESEARCH, RESOURCES, TROOPS} from "../generated/VendettaRuleset.sol";
 
 /// A queue item. `finishAt` = 0 while it has not started (B-29: duration is computed at start).
@@ -181,13 +183,6 @@ struct CoreState {
     mapping(uint64 => Mission) missions;
     uint64[] heap; // the global mission queue (B-07), see Heap.sol
     mapping(uint64 => uint256) heapPos; // 1-based position in `heap`, 0 = not queued
-    // The parked list (B-22): due hidden missions nobody revealed yet, out of the queue, as a doubly
-    // linked list in (arrival, seq) order (the drain parks them in queue order, so appending keeps
-    // it sorted). A reveal checks its predecessor only.
-    uint64 parkedHead;
-    uint64 parkedTail;
-    mapping(uint64 => uint64) parkedPrev; // 0 at the head
-    mapping(uint64 => uint64) parkedNext; // 0 at the tail
     uint64 nextFamily;
     mapping(uint64 => Family) families;
     mapping(bytes32 => uint64) familyNames; // normalized tag / name → family (B-31)
@@ -199,6 +194,10 @@ struct CoreState {
     mapping(address => Session) sessions; // session address → authorization
     mapping(address => ControllerInfo) controllerInfo; // B-26
     mapping(address => mapping(uint64 => Invite)) invites; // invited address → player → invitation
+    // Mandatory hidden mission evidence and immutable world consumer configuration.
+    mapping(uint64 => HiddenEvidenceState) hiddenEvidence;
+    address hiddenOpeningConsumer; // set during initialize; every hidden send binds evidence
+    address hiddenInvalidPointConsumer;
 }
 
 library GameStorage {

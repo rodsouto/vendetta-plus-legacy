@@ -2,6 +2,7 @@
 // mission, B-22) and reads the battle report and the ranking. Also captures the
 // review screenshots (desktop and mobile).
 import { expect, test, type Page } from "@playwright/test";
+import { certifyTestMissions } from "./test-evidence.js";
 
 const stamp = (page: Page) => page.locator(".stamp-toast");
 
@@ -73,6 +74,8 @@ test("register, build, train, attack and read the report", async ({ page }) => {
   await as(page, 1);
 
   await warp(page, "+1 d");
+  // DeployTest trusts fixture certificates; this is not Groth16 or future drand availability.
+  await certifyTestMissions(page);
   await page.getByRole("button", { name: "Procesar misiones" }).click();
   // Its own stamp: the one from sending the attack may still be on screen.
   await expect(page.locator(".stamp-toast", { hasText: "Procesar misiones" })).toBeVisible();

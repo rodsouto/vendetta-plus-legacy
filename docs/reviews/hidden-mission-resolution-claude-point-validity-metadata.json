@@ -1,0 +1,19 @@
+{
+  "scope": "Read-only Claude review of compressed G2 invalidity and exact v2 mission binding",
+  "sourceHashes": {
+    "apps/web/scripts/experiments/opening-zk/point_encoding.go": "0074233e946a6e32dea7961bd4fca74bcedf57fc4c788e36c6d005fc4ddeaed8",
+    "apps/web/scripts/experiments/opening-zk/point_encoding_input.go": "3094ea81d134f59dc0ca9693184a79f65d6f7fe1351ba7c6e5a5122e00875ef4",
+    "apps/web/scripts/experiments/opening-zk/point_encoding_test.go": "c6f1226394e4eef54a0428f9cf4d84c61c7d41f36cbdb9f810b2181fbc15137a",
+    "apps/web/scripts/experiments/opening-zk/invalid_point_v2.go": "efbae3086d6c71bd9d2dfba1f90de6457c98cde30d87593f7c67b011dad55ce9",
+    "apps/web/scripts/experiments/opening-zk/invalid_point_v2_test.go": "d09bf1f44591038e8c72b0d7f09ee43b2967a2fa39ad3bfa52b44bda96674e82",
+    "apps/web/scripts/experiments/opening-zk/mission.go": "284a2b4e65f9bd7596cbc37b55d9cb54160717d4aa1d2847e81c9d9f2de3b99b",
+    "apps/web/scripts/experiments/opening-zk/capsule_compact.go": "b6afdae126fa92aaa7e2e4b3ec2afe82b4ea661382839f3114a3ac23438f270e",
+    "apps/web/scripts/experiments/opening-zk/age.go": "d04e08292124658a00236db7d354aec2f33abfc8d9a5293f7453ec9edfa80e05"
+  },
+  "isError": false,
+  "durationMs": 382344,
+  "numTurns": 21,
+  "models": [
+    "claude-opus-5-5"
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "scope": "Single resident opening worker, three distinct valid/invalid/valid requests, artifact integrity checked before every job; existing unsafe local setup; native VK verification, no EVM/RPC/H3 replay.",
+  "date": "2026-10-30T23:35:07.449Z",
+  "elapsedMs": 468534.203488,
+  "binarySha256": "264796834eda894348a1af5c8eaee6b2821cd172b035ddf293cbc081f6fec2a0",
+  "vectorsSha256": "9aa542e9026a2befa51a28a48b793ece0b08e001aa8ee3aba2d5f9580b9c3a26",
+  "environment": {
+    "cpu": "AMD Ryzen 7 5825U with Radeon Graphics",
+    "logicalCpus": 16,
+    "memoryBytes": 20348297216,
+    "GOMEMLIMIT": "6GiB",
+    "GOMAXPROCS": "8"
+  },
+  "measurements": [
+    {
+      "name": "valid",
+      "valid": true,
+      "artifactsReused": false,
+      "circuit": "opening",
+      "elapsedMs": 347142,
+      "profileMs": {
+        "artifactIntegrityMs": 5884.465879,
+        "encodeMs": 30.301906,
+        "loadArtifactsMs": 266277.133103,
+        "prepareAssignmentMs": 7.040723,
+        "proveMs": 74938.31027,
+        "verifyMs": 3.96059,
+        "witnessMs": 1.254158
+      },
+      "setupManifestSha256": "353bd28c1fe36a07fd7bb42a110f49cbe323fbcdc1dd323c036678502450a8ff"
+    },
+    {
+      "name": "wrong-commitment",
+      "valid": false,
+      "artifactsReused": true,
+      "circuit": "opening",
+      "elapsedMs": 61984,
+      "profileMs": {
+        "artifactIntegrityMs": 3498.564015,
+        "encodeMs": 0.109559,
+        "loadArtifactsMs": 0.0788,
+        "prepareAssignmentMs": 6.362608,
+        "proveMs": 58475.334115,
+        "verifyMs": 3.80055,
+        "witnessMs": 0.741629
+      },
+      "setupManifestSha256": "353bd28c1fe36a07fd7bb42a110f49cbe323fbcdc1dd323c036678502450a8ff"
+    },
+    {
+      "name": "valid-five-candidates",
+      "valid": true,
+      "artifactsReused": true,
+      "circuit": "opening",
+      "elapsedMs": 58256,
+      "profileMs": {
+        "artifactIntegrityMs": 2215.029628,
+        "encodeMs": 0.117383,
+        "loadArtifactsMs": 0.064783,
+        "prepareAssignmentMs": 6.406332,
+        "proveMs": 56031.072795,
+        "verifyMs": 3.488107,
+        "witnessMs": 0.809568
+      },
+      "setupManifestSha256": "353bd28c1fe36a07fd7bb42a110f49cbe323fbcdc1dd323c036678502450a8ff"
+    }
+  ],
+  "resources": {
+    "intervalMs": 1000,
+    "elapsedMs": 468498.528915,
+    "samples": 468,
+    "peakNodeRssBytes": 89473024,
+    "peakNativeRssBytes": 6438957056,
+    "peakNativeProcesses": 1,
+    "native": [
+      {
+        "kind": "opening",
+        "cpuSeconds": 2694.08,
+        "peakRssBytes": 6438957056,
+        "samples": 466
+      }
+    ],
+    "limitation": "Sampled Linux RSS and CPU; may miss peaks and final CPU ticks. Node RSS excludes child processes. Not a memory ceiling or leak test."
+  },
+  "limitations": [
+    "One cold load and two warm jobs on shared hardware; filesystem caches are not flushed.",
+    "Phase wall times include scheduling and GC; no CPU attribution by phase.",
+    "Output serialization, process startup and HTTP/RPC/H3 are outside native phase totals. Worker timeout is 45 minutes for the complete three-job experiment.",
+    "Profile contains durations only; requests, witnesses and proof bytes are not retained in this report."
+  ]
+}

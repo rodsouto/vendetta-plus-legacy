@@ -60,9 +60,7 @@ export type GameErrorName =
   | "NoInvite"
   | "TooLate"
   | "InvalidArrival"
-  | "TooEarly"
-  | "TroopsResting"
-  | "OutOfOrder";
+  | "TroopsResting";
 
 export class GameError extends Error {
   constructor(readonly code: GameErrorName) {

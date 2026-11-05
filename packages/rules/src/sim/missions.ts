@@ -1,6 +1,10 @@
+import { bindPacketForAdmission } from "./hidden-evidence.js";
+import type { Environment as ContextEnvironment } from "./hidden-context.js";
 // Troops, missions and the global mission queue (blockchain.md B-07, B-08, B-22; 07-missions.md;
 // 06-combat.md). Mirrors contracts/src/core/{Training,Missions,Battle}.sol: same checks, same order,
 // same errors.
+import * as resolution from "./hidden-resolution.js";
+import { EvidenceError } from "./hidden-evidence.js";
 import { keccak_256 } from "@noble/hashes/sha3";
 import { resolveBattle } from "../combat.js";
 import { honorPct } from "../honor.js";
@@ -148,25 +152,6 @@ function battle(w: World, m: Mission, b: Building, t: bigint): void {
 }
 
 /**
- * A due hidden mission nobody revealed yet leaves the queue for the parked list (B-22): appended,
- * which keeps the list in (arrival, seq) order since the drain parks missions in queue order and a
- * parked one never comes back as hidden (on-chain: a doubly linked list).
- */
-function park(w: World, m: Mission): void {
-  w.parked.push(m.id);
-}
-
-/** Takes a mission out of the queue or the parked list, wherever it is, keeping the order. */
-function dequeue(w: World, m: Mission): void {
-  const i = w.pending.indexOf(m.id);
-  if (i >= 0) {
-    w.pending.splice(i, 1);
-    return;
-  }
-  w.parked.splice(w.parked.indexOf(m.id), 1);
-}
-
-/**
  * D-18 at arrival: the target's owner was on vacation when the mission was sent. A vacation started
  * in the send second counts by creation order (B-07).
  */
@@ -239,17 +224,40 @@ function process(w: World, m: Mission): void {
 
 /**
  * Process missions that arrived by `now`, at most `max`; returns how many were taken out of the
- * queue. A due hidden mission nobody revealed yet is parked instead of processed (B-22); it counts
- * as one.
+ * queue. A hidden mission pending its certificate stays at the head and stops processing.
  */
 export function processDue(w: World, now: bigint, max: number): number {
   let n = 0;
   while (n < max && w.pending.length > 0) {
     const m = w.missions.get(w.pending[0]!)!;
     if (m.arrival > now) break;
+    const historical = m.hidden && !m.returning ? w.hiddenEvidence.get(m.id) : undefined;
+    if (m.hidden && !m.returning && !historical)
+      throw new resolution.ResolutionError("ResolutionUnknown");
+    if (historical?.receipt.status === resolution.PENDING) break;
     w.pending.shift();
-    if (m.hidden && !m.returning) park(w, m);
-    else process(w, m);
+    if (historical) {
+      const result = resolution.consume(historical.receipt, now);
+      if (historical.cancelled || result.arrival !== m.arrival || result.seq !== m.seq)
+        throw new EvidenceError("ResolutionIdentityMismatch");
+      if (result.status === resolution.INVALID) sendBack(w, m, result.arrival);
+      else {
+        if (result.status !== resolution.VALID)
+          throw new EvidenceError("ResolutionIdentityMismatch");
+        const p = result.plain;
+        const salt = BigInt(
+          "0x" + Array.from(p.subarray(5), (b) => b.toString(16).padStart(2, "0")).join(""),
+        );
+        applyReveal(
+          w,
+          m,
+          p[1]!,
+          { city: BigInt(p[2]!), neighborhood: BigInt(p[3]!), slot: BigInt(p[4]!) },
+          salt,
+        );
+        process(w, m);
+      }
+    } else process(w, m);
     n++;
   }
   return n;
@@ -479,7 +487,10 @@ function create(
 
 const ZERO_COMMIT = `0x${"0".repeat(64)}`;
 
-const word = (x: bigint) => x.toString(16).padStart(64, "0");
+const word = (x: bigint) => {
+  if (x < 0n || x >= 1n << 256n) throw new RangeError("commitment word outside uint256");
+  return x.toString(16).padStart(64, "0");
+};
 
 /** keccak256(abi.encode(uint64 owner, uint8 kind, uint8 city, uint8 neighborhood, uint8 slot, bytes32 salt)). */
 export function hiddenCommit(owner: bigint, kind: number, target: Coord, salt: bigint): string {
@@ -496,7 +507,7 @@ export function hiddenCommit(owner: bigint, kind: number, target: Coord, salt: b
  * `arrival`: the fixed arrival the ciphertext's timelock was made for, from the natural one (now +
  * duration) to hiddenArrivalSlack after it; 0 takes the natural one. The way back keeps the duration.
  */
-export const sendHiddenMission = atomic(function sendHiddenMission(
+function createHiddenMission(
   w: World,
   controller: string,
   buildingId: bigint,
@@ -526,41 +537,74 @@ export const sendHiddenMission = atomic(function sendHiddenMission(
   m.cover = cover;
   m.commit = commit.toLowerCase();
   return m.id;
-});
-
-/**
- * Reveals go in arrival order for hiddenOrderWindow: a parked mission that arrived before `m` and
- * is still within its window must be revealed first (B-22). The parked list is in (arrival, seq)
- * order and `m` is parked (the drain parked every due mission), so the predecessor decides: past
- * its window, every earlier one is past its own too.
- */
-function checkOrder(w: World, m: Mission, now: bigint): void {
-  const i = w.parked.indexOf(m.id);
-  if (i <= 0) return;
-  const prev = w.missions.get(w.parked[i - 1]!)!;
-  if (now < prev.arrival + w.rs.config.hiddenOrderWindow) fail("OutOfOrder");
 }
 
-/**
- * Anyone may reveal a hidden mission until its grace ends: it drains the queue like any action
- * (so the due missions ahead are processed or parked), then checks the commitment and the target.
- * An invalid reveal fails; past the grace it does nothing (the mission is forfeited instead). A
- * mission revealed after its arrival (parked by that drain) gets the reveal time as its arrival
- * and a fresh seq, so it resolves against the target's state at this second; reveals go in
- * arrival order for a window (B-22).
- */
-export const reveal = atomic(function reveal(
+/** Read-only economic preview; temporary hidden state never leaves the cloned World. */
+export function previewHiddenMission(
   w: World,
-  missionId: bigint,
-  kind: number,
-  target: Coord,
-  salt: bigint,
+  controller: string,
+  building: bigint,
+  commit: string,
+  cover: bigint,
+  troops: bigint[],
+  resources: bigint[],
   now: bigint,
-): void {
-  drain(w, now);
-  const m = w.missions.get(missionId);
-  if (!m || !m.hidden || m.returning) return; // already revealed, recalled or resolved: clients race
-  if (now >= m.arrival + w.rs.config.hiddenRevealGrace) return; // forfeit instead
+): { arrival: bigint; duration: bigint } {
+  const { rs, ...state } = w;
+  const copy: World = { ...structuredClone(state), rs };
+  const id = createHiddenMission(
+    copy,
+    controller,
+    building,
+    commit,
+    cover,
+    troops,
+    resources,
+    0n,
+    now,
+  );
+  const m = copy.missions.get(id)!;
+  return { arrival: m.arrival, duration: m.duration };
+}
+
+/** Mandatory packet admission; binding is atomic with charging, ids and sequence allocation. */
+export const sendHiddenMission = atomic(function sendHiddenMission(
+  w: World,
+  controller: string,
+  buildingId: bigint,
+  commit: string,
+  cover: bigint,
+  troops: bigint[],
+  resources: bigint[],
+  packet: Uint8Array,
+  arrival: bigint,
+  now: bigint,
+  env: ContextEnvironment,
+): bigint {
+  const id = createHiddenMission(
+    w,
+    controller,
+    buildingId,
+    commit,
+    cover,
+    troops,
+    resources,
+    arrival,
+    now,
+  );
+  bindPacketForAdmission(
+    w,
+    id,
+    packet,
+    env,
+    w.hiddenConsumers.openingConsumer,
+    w.hiddenConsumers.invalidPointConsumer,
+    now,
+  );
+  return id;
+});
+
+function applyReveal(w: World, m: Mission, kind: number, target: Coord, salt: bigint): void {
   if (hiddenCommit(m.owner, kind, target, salt) !== m.commit) fail("BadReveal");
   checkTarget(w, kind, target, m.from);
   if (distance(w.rs, m.from, target) > m.cover * w.rs.config.distanceUnit) fail("InvalidCover");
@@ -568,27 +612,7 @@ export const reveal = atomic(function reveal(
   m.hidden = false;
   m.kind = kind;
   m.target = { ...target };
-  if (m.arrival <= now) {
-    checkOrder(w, m, now);
-    dequeue(w, m);
-    m.arrival = now;
-    m.seq = w.seq++;
-    enqueue(w, m);
-  }
-});
-
-/**
- * Past the grace, anyone sends a hidden mission nobody revealed back home: it turns back from now
- * with all its troops and cargo (B-22). It touches no building, so it never drains the queue; the
- * keeper and the sender race, so a mission no longer hidden is ignored.
- */
-export const forfeit = atomic(function forfeit(w: World, missionId: bigint, now: bigint): void {
-  const m = w.missions.get(missionId);
-  if (!m || !m.hidden || m.returning) return;
-  if (now < m.arrival + w.rs.config.hiddenRevealGrace) fail("TooEarly");
-  dequeue(w, m);
-  sendBack(w, m, now);
-});
+}
 
 /** A mission not yet returning turns back, arriving after the time already travelled. */
 export const recall = atomic(function recall(
@@ -601,7 +625,12 @@ export const recall = atomic(function recall(
   const pid = active(w, controller, now).id;
   const m = w.missions.get(missionId);
   if (!m || m.owner !== pid || m.returning) fail("NotRecallable");
-  dequeue(w, m);
+  const evidence = w.hiddenEvidence.get(missionId);
+  if (evidence) {
+    if (now >= m.arrival) fail("NotRecallable");
+    evidence.cancelled = true;
+  }
+  w.pending.splice(w.pending.indexOf(m.id), 1);
   m.returning = true;
   m.arrival = now + (now - m.start);
   m.start = now;

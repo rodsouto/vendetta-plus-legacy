@@ -1,0 +1,42 @@
+{
+  "scope": "Offline ceremony design plan validation and externally pinned quorum design review; no production approval or MPC execution",
+  "date": "2026-10-31",
+  "command": "GOMEMLIMIT=6GiB GOMAXPROCS=8 /tmp/vendetta-opening-tools/go/bin/go test -count=1 -json ./ceremony ./cmd/ceremony",
+  "cwd": "apps/web/scripts/experiments/opening-zk",
+  "exitCode": 0,
+  "mainTestsPassed": [
+    "TestCLIDesignCommands",
+    "TestCLIReadLimitsAndSpecialFiles",
+    "TestPlanValidation",
+    "TestReviewVerification",
+    "TestShellWrapperRelativePaths",
+    "TestStrictDocuments"
+  ],
+  "subtestsPassed": 54,
+  "totalTestEventsPassed": 60,
+  "log": {
+    "path": "/tmp/vendetta-v2-ceremony-design-tests.jsonl",
+    "sha256": "cdde1557999a5325150f66379b14cad6cbbe65199725d67880422618795efd12"
+  },
+  "sourceSha256": {
+    "apps/web/scripts/experiments/opening-zk/ceremony/review.go": "29413ecff18205b0c16595a680de5718d7860388abe60ac8cd27df1a2ca5d5ee",
+    "apps/web/scripts/experiments/opening-zk/ceremony/review_test.go": "76134e41d3c32a66de83dc1367d1774435162b1f47fe94080f41929491b5b3d5",
+    "apps/web/scripts/experiments/opening-zk/cmd/ceremony/main.go": "17253197579d84cf4547e3dde95d23386df90869ba8bc758649b090d585ba301",
+    "apps/web/scripts/experiments/opening-zk/cmd/ceremony/main_test.go": "b5cb695285c8a0e70f4c9a6f1cadabeeb9becafb36bb66e669adb9c76fa2fe4a",
+    "scripts/hidden-v2-ceremony.sh": "b7c3ea5ac52c5f1440097ae442166cfd299874a017aa2d68023b88c4baa69971"
+  },
+  "checks": {
+    "goVet": "passed",
+    "gofmt": "passed",
+    "bashSyntax": "passed",
+    "prettier": "passed",
+    "gitDiffCheck": "passed"
+  },
+  "raceDetector": "Not run: Go CGO_ENABLED=0 and no C compiler on this host",
+  "limitations": [
+    "Test reviewer keys are ephemeral in memory; no real identities or trust root installed",
+    "Pins must arrive from an independently trusted channel; offline tool does not detect old trust pins before expiry",
+    "Design metadata only: no artifact bytes, transcripts, beacon evidence or production approval verified",
+    "No changes to game circuits, Solidity, rules or producer setup policy"
+  ]
+}

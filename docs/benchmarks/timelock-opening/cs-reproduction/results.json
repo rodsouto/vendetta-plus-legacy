@@ -1,0 +1,55 @@
+{
+  "artifactsSha256": {
+    "build-receipt.json": "035e4b7143205d625f04fed40b8dd1ced45f6f56a7d1cb8fe7ee2e3a598969cb",
+    "compile-report.json": "a45e4f7a982c0ed044e0676ef089585cc8f48529c6ac0f1a3c3fab66f239297c",
+    "invalid-point-1.json": "9399fe0811c4fe51d7ffad8c66dc6d63fd6018e1041f62eeeb7b3fe2e7db620f",
+    "invalid-point-1.stdout.txt": "a46de85139d89c92ec41d6040ad0007f74623c82d11895f8e665adea4475e06b",
+    "invalid-point-2.json": "9399fe0811c4fe51d7ffad8c66dc6d63fd6018e1041f62eeeb7b3fe2e7db620f",
+    "invalid-point-2.stdout.txt": "551f16ce44b0c348f72899b5d2993b0d275fd32447b8cfea3a462a8978a272aa",
+    "native-tests.jsonl": "8f2f27684251e436f1450d26e3f880c81dcc8f34738df573e4f2760edb75604d",
+    "opening-1.json": "a6d95d061df2701f726e6ac7f9464a156070701201c29e6cd02a774dd4715986",
+    "opening-1.stdout.txt": "55441ad66378109d527b21db5fc8c3c3f5d85054267c94a49b6a4547ac2d0032",
+    "opening-2.json": "a6d95d061df2701f726e6ac7f9464a156070701201c29e6cd02a774dd4715986",
+    "opening-2.stdout.txt": "1870260f2800f6549933e119e0b8638d07e61d54f6c6bb44c10d75d2ea8dca15",
+    "phase2-model.json": "be925c95ff1921cb3a0366fe6d61ceee33eb1c7cf14d39ea7004fc2476294016",
+    "post-build-verification.json": "86bd3f1d523cd2ae8e8aae1f7965469272c38eef2ca04fa2aaa2e7860f93bcb3",
+    "receipt.json": "29195210ccef1dc15bda1ad8a62fab75d87d0f8f0a9de2690de1ed33f2833e39",
+    "supervisor-tests.txt": "146f25708b2691448b6dbe6ef65714b2c8e4aef5df53a99aa9571f4318ecd598"
+  },
+  "checks": [
+    "go vet .",
+    "go mod verify",
+    "gofmt",
+    "Python bytecode compilation",
+    "Prettier",
+    "git diff --check"
+  ],
+  "gameCircuitBytesVerified": true,
+  "gameDomainMpcMeasured": false,
+  "nativeTests": {
+    "mainTests": 11,
+    "passedEvents": 34,
+    "subtests": 23
+  },
+  "phase2Measured": false,
+  "productionApproved": false,
+  "scope": "Reproduced game CS only; no game-domain MPC, phase2 execution or production approval",
+  "sourceBundleSha256": "db07990896e9ba8d39502fdb40046708f948a403454eeadbbdb3443c04570d02",
+  "sourceSha256": {
+    "apps/web/scripts/experiments/opening-zk/main.go": "c261b1be46f91f92bf15ee09b577b0fe40f9127c8aa77c2b403aaa4335fcb26f",
+    "apps/web/scripts/experiments/opening-zk/producer_compile.go": "ffe83b53e9c8b3f479adc964d16269c718725ec1e8dbb6b087647f7b8209eecf",
+    "apps/web/scripts/experiments/opening-zk/producer_compile_test.go": "faf9bf7f1f2c81f9acc9b791b8c34f97b1868b0c4668882ad14cc6b37dcdc5d7",
+    "scripts/hidden-v2-compile-capacity.py": "496ed2e55380caacf38989562e72da8a726c8633da8879b266e0fd3482683a34",
+    "scripts/hidden-v2-phase2-model.py": "39b598e0f8b554b167479eba8eff7fc723adb0a282e5e9146ef87ef42d43baca",
+    "scripts/test_hidden_v2_compile_capacity.py": "cab33bd8198a081d4936c1b5bf1e6c01d98f2f81b415d81770de3101632320f6"
+  },
+  "supervisorTests": {
+    "mainTests": 9,
+    "resourceLimitSubtests": 3
+  },
+  "upstreamSha256": {
+    "gnark-v0.16.4/backend/groth16/bn254/mpcsetup/lagrange.go": "9a24908f857fb049f43f00dc1b0ea19e9f017155152d35c7c122d23e2fd88fb6",
+    "gnark-v0.16.4/backend/groth16/bn254/mpcsetup/phase1.go": "a5fe610f60a3ca0c183fbb532d20243ac977bf50d59eb102e96f794b68058b46",
+    "gnark-v0.16.4/backend/groth16/bn254/mpcsetup/phase2.go": "01bb7be08a4525acb95cf9e49d5d94e7f0b78d68a7a2c2e27d6bb3b8c8ef820e"
+  }
+}

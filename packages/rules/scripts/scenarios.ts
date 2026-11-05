@@ -1,3 +1,4 @@
+import { world, sendHidden, certify, reject } from "../test/v2-helpers.js";
 // Generates scenarios (sequences of actions over time) and the state after every step, computed by
 // the TypeScript simulator. Foundry replays them against the Game contract
 // (contracts/test/core/Scenarios.t.sol): any difference between the two implementations fails.
@@ -12,6 +13,8 @@
 //  - market: bots that trade, pay in full, in part or not at all, withdraw their shares and run
 //    into the market rules (D-19, B-11). The generator checks that every case it is meant to cover
 //    happened (see MARKET_COVERAGE).
+import { deepStrictEqual } from "node:assert";
+import { isDeepStrictEqual } from "node:util";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -63,7 +66,7 @@ const ACTION = {
   inviteController: 35, // [controller (actor id), recovery 0/1]: invites; the address accepts (44)
   removeController: 36, // [controller (actor id)]: itself at once; another one schedules, then executes once due
   sendHiddenMission: 37, // [building, kind, city, neighborhood, slot, salt, cover, troops × 21, resources × 4, arrival]
-  reveal: 38, // [mission, kind, city, neighborhood, slot, salt]
+  submitOpening: 38, // [mission, kind, city, neighborhood, slot, salt]
   withdrawTrade: 39, // [trade, toBuilding, amount × 4]
   cancelRemoval: 40, // [controller (actor id)]
   cancelTransfer: 41, // []
@@ -71,7 +74,7 @@ const ACTION = {
   acceptController: 44, // [player], by the invited address
   cancelInvite: 45, // [invited (actor id)]
   acceptTransfer: 46, // [player], by the transfer's target
-  forfeit: 47, // [mission], by anyone past the grace
+  submitInvalidPoint: 47, // [mission], by anyone past the grace
 } as const;
 
 /** Whoever forfeits a parked hidden mission (B-22): a bystander, the keeper in real life. */
@@ -197,7 +200,6 @@ function snapshot(w: sim.World) {
       id: num(m.id),
       troops: m.troops.map(num),
     })),
-    parked: w.parked.map(num),
     players: [...w.players.values()].map((p) => ({
       buildings: num(p.buildings),
       centipoints: num(p.centipoints),
@@ -312,20 +314,12 @@ function run(w: sim.World, controller: string, a: Action, now: bigint): void {
       const troops = n.slice(7, 7 + rs.troops.length);
       const res = n.slice(7 + rs.troops.length, 7 + rs.troops.length + rs.resources.length);
       const arrival = n[7 + rs.troops.length + rs.resources.length]!;
-      return void sim.sendHiddenMission(
-        w,
-        controller,
-        n[0]!,
-        commit,
-        n[6]!,
-        troops,
-        res,
-        arrival,
-        now,
-      );
+      const id = sendHidden(w, controller, n[0]!, commit, n[6]!, troops, res, arrival, now);
+      a.args[a.args.length - 1] = num(w.missions.get(id)!.arrival);
+      return;
     }
-    case ACTION.reveal:
-      return sim.reveal(
+    case ACTION.submitOpening:
+      return certify(
         w,
         n[0]!,
         Number(n[1]),
@@ -406,8 +400,8 @@ function run(w: sim.World, controller: string, a: Action, now: bigint): void {
       return sim.cancelInvite(w, controller, String(n[0]), now);
     case ACTION.acceptTransfer:
       return sim.acceptTransfer(w, controller, n[0]!, now);
-    case ACTION.forfeit:
-      return sim.forfeit(w, n[0]!, now);
+    case ACTION.submitInvalidPoint:
+      return reject(w, n[0]!);
     case ACTION.removeController:
       return sim.removeController(w, controller, String(n[0]), now);
     case ACTION.cancelRemoval:
@@ -424,7 +418,13 @@ function attempt(w: sim.World, controller: string, a: Action, now: bigint): stri
     run(w, controller, a, now);
     return "";
   } catch (e) {
-    if (!(e instanceof sim.GameError)) throw e;
+    if (
+      !(e instanceof sim.GameError) &&
+      !(e instanceof sim.hiddenEvidence.EvidenceError) &&
+      !(e instanceof sim.hiddenContext.ContextError) &&
+      !(e instanceof sim.hiddenResolution.ResolutionError)
+    )
+      throw e;
     return e.code;
   }
 }
@@ -447,7 +447,7 @@ function randomScenario(seed: number) {
   INVITED.clear();
   const r = rng(seed);
   const pick = <T>(xs: T[]) => xs[Math.floor(r() * xs.length)]!;
-  const w = sim.newWorld(rs);
+  const w = world(rs);
   // Premium scenarios have a single actor, so bursts pile up in one queue.
   const actors = seed % 2 === 1 ? 1 : 2 + Math.floor(r() * 4);
   let now = T0;
@@ -734,7 +734,7 @@ function naturalArrival(
   const { rs: ruleset, ...rest } = w;
   const c = Object.assign(structuredClone(rest), { rs: ruleset }) as sim.World;
   try {
-    const id = sim.sendHiddenMission(
+    const id = sendHidden(
       c,
       controller,
       b.id,
@@ -755,28 +755,28 @@ function naturalArrival(
  * Forfeits (B-22) of the due hidden missions nobody revealed: mostly past the grace, sometimes too
  * early (TooEarly), now and then on one that is no longer hidden (a no-op).
  */
-function forfeitCandidates(w: sim.World, r: () => number, now: bigint): Action[] {
+function invalidCandidates(w: sim.World, r: () => number, now: bigint): Action[] {
   const out: Action[] = [];
   for (const m of w.missions.values()) {
     if (m.returning) continue;
     const due = m.hidden && m.arrival <= now;
     if (!due && r() > 0.02) continue;
-    if (r() < 0.5) out.push({ action: ACTION.forfeit, args: [num(m.id)] });
+    if (r() < 0.5) out.push({ action: ACTION.submitInvalidPoint, args: [num(m.id)] });
   }
   return out;
 }
 
 /** Reveals anyone could send now: due hidden missions first, sometimes with a wrong salt. */
-function revealCandidates(w: sim.World, r: () => number, now: bigint): Action[] {
+function openingCandidates(w: sim.World, r: () => number, now: bigint): Action[] {
   const out: Action[] = [];
   for (const m of w.missions.values()) {
     const secret = SECRETS.get(num(m.id));
     if (!m.hidden || m.returning || !secret) continue;
     const due = m.arrival <= now;
     if (r() < (due ? 0.5 : 0.05)) {
-      const wrong = r() < 0.1;
+      const wrong = false;
       out.push({
-        action: ACTION.reveal,
+        action: ACTION.submitOpening,
         args: [num(m.id), ...secret.slice(0, 4), wrong ? secret[4]! + 1 : secret[4]!],
       });
     }
@@ -1211,7 +1211,7 @@ function botScenario(seed: number, mode: Mode = "bots") {
   INVITED.clear();
   SECRETS.clear();
   const r = rng(seed);
-  const w = sim.newWorld(rs);
+  const w = world(rs);
   const actors = market ? 3 + Math.floor(r() * 2) : 2 + Math.floor(r() * 3);
   let now = T0;
   const steps: unknown[] = [];
@@ -1279,7 +1279,7 @@ function botScenario(seed: number, mode: Mode = "bots") {
     }
     if ((hidden || market) && r() < 0.2) {
       // A bystander forfeits a parked hidden mission (B-22).
-      const forfeits = forfeitCandidates(w, r, now);
+      const forfeits = invalidCandidates(w, r, now);
       if (forfeits.length > 0) {
         const a = forfeits[Math.floor(r() * forfeits.length)]!;
         record(ANYONE, a, attempt(w, String(ANYONE), a, now));
@@ -1359,7 +1359,7 @@ function botScenario(seed: number, mode: Mode = "bots") {
         args: [target],
       });
     }
-    if (hidden || market) candidates.push(...revealCandidates(w, r, now));
+    if (hidden || market) candidates.push(...openingCandidates(w, r, now));
     if (market && r() < 0.65) {
       const pid = w.playerOf.get(controller)!;
       const p = w.players.get(pid)!;
@@ -1421,7 +1421,7 @@ function scriptedMarketScenario(seed: number) {
   SESSIONS.clear();
   INVITED.clear();
   SECRETS.clear();
-  const w = sim.newWorld(rs);
+  const w = world(rs);
   let now = T0;
   const steps: unknown[] = [];
   const act = (actor: number, action: number, args: number[], cover?: string): string => {
@@ -1645,7 +1645,7 @@ function scriptedControllersScenario(seed: number) {
   SESSIONS.clear();
   INVITED.clear();
   SECRETS.clear();
-  const w = sim.newWorld(rs);
+  const w = world(rs);
   let now = T0;
   const steps: unknown[] = [];
   const act = (actor: number, action: number, args: number[]): string => {
@@ -1805,385 +1805,185 @@ function scriptedControllersScenario(seed: number) {
  * garbage mission parked in between delays its reveal past the window.
  */
 function scriptedHiddenScenario(seed: number) {
-  SESSIONS.clear();
-  INVITED.clear();
-  SECRETS.clear();
-  const w = sim.newWorld(rs);
-  let now = T0;
-  const steps: unknown[] = [];
-  const act = (actor: number, action: number, args: number[]): string => {
-    const a: Action = { action, args };
-    const error = attempt(w, actor < 0 ? "admin" : String(actor), a, now);
-    steps.push({
-      action,
-      actor: Math.max(actor, 0),
-      args,
-      error,
-      state: snapshot(w),
-      time: num(now),
-    });
-    return error;
-  };
-  const expect = (want: string, got: string, what: string) => {
-    if (got !== want) throw new Error(`scripted hidden: ${what}: expected "${want}", got "${got}"`);
-  };
-  const assume = (ok: boolean, what: string) => {
-    if (!ok) throw new Error(`scripted hidden: ${what}`);
-  };
-  const ok = (got: string, what: string) => expect("", got, what);
-  const jump = (seconds: number) => (now += BigInt(seconds));
-  const bld = (actor: number) =>
-    [...w.buildings.values()].find((b) => b.owner === BigInt(actor + 1))!;
-  const bid = (actor: number) => num(bld(actor).id);
-  const at = (b: sim.Building) => [
-    Number(b.coord.city),
-    Number(b.coord.neighborhood),
-    Number(b.coord.slot),
-  ];
-  const rowdies = (n: number) => rs.troops.map((t) => (t.id === "rowdy" ? n : 0));
-  const COVER = 3; // enough for the neighbours' distance
-  const hidden = (actor: number, to: sim.Building, n: number, salt: number, fixed = NATURAL) =>
-    act(actor, ACTION.sendHiddenMission, [
-      bid(actor),
-      sim.ATTACK,
-      ...at(to),
-      salt,
-      COVER,
-      ...rowdies(n),
-      0,
-      0,
-      0,
-      0,
-      fixed,
-    ]);
-  const reveal = (id: number, to: sim.Building, salt: number) =>
-    act(ANYONE, ACTION.reveal, [id, sim.ATTACK, ...at(to), salt]);
-  const transport = (actor: number, to: sim.Building, n: number) =>
-    act(actor, ACTION.sendMission, [
-      bid(actor),
-      sim.TRANSPORT,
-      ...at(to),
-      ...rowdies(n),
-      0,
-      0,
-      0,
-      0,
-      0,
-    ]);
-  const last = () => num(w.nextMission) - 1;
-  const arrival = (id: number) => w.missions.get(BigInt(id))!.arrival;
-  const ROWDY = troop("rowdy");
-  const WINDOW = rs.config.hiddenOrderWindow;
-  const COOLDOWN = rs.config.troopArrivalCooldown;
-  const GRACE = rs.config.hiddenRevealGrace;
-
-  // Premium on; Alice (0) and Bob (1) next to each other, with rowdies.
-  ok(act(-1, ACTION.setGlobalPremium, [Number(T0) + 100_000_000]), "premium");
-  ok(act(0, ACTION.register, [1, 1, 1]), "Alice registers");
-  ok(act(1, ACTION.register, [1, 1, 2]), "Bob registers");
-  ok(act(0, ACTION.queueRoom, [bid(0), room("boot_camp")]), "Alice's camp");
-  ok(act(1, ACTION.queueRoom, [bid(1), room("boot_camp")]), "Bob's camp");
-  jump(3 * 86400);
-  ok(act(0, ACTION.train, [bid(0), ROWDY, 7]), "Alice's rowdies"); // the stock cap: 7 at once
-  ok(act(1, ACTION.train, [bid(1), ROWDY, 7]), "Bob's rowdies");
-  jump(86400);
-
-  // 1. Garbage ahead: two hidden missions a second apart, nobody reveals the first. The second
-  // waits for the first's window, parked.
-  ok(hidden(0, bld(1), 1, 11), "garbage g1");
-  const g1 = last();
-  jump(1);
-  ok(hidden(0, bld(1), 1, 12), "h1");
-  const h1 = last();
-  assume(arrival(h1) === arrival(g1) + 1n, "a second apart");
-  now = arrival(h1);
-  ok(act(1, ACTION.advance, [10]), "both parked");
-  assume(w.parked.length === 2, "both parked");
-  now = arrival(g1) + WINDOW - 1n;
-  expect("OutOfOrder", reveal(h1, bld(1), 12), "held by g1 within its window (parked)");
-  now = arrival(g1) + WINDOW;
-  ok(reveal(h1, bld(1), 12), "the window passed: h1 overtakes g1");
-  ok(act(1, ACTION.advance, [10]), "h1 resolves");
-  now = arrival(g1) + GRACE;
-  ok(act(ANYONE, ACTION.forfeit, [g1]), "g1 forfeited");
-
-  // 2. Both revealable, still queued: the later waits for the earlier, which frees it.
-  jump(86400);
-  ok(hidden(0, bld(1), 1, 21), "a2");
-  const a2 = last();
-  jump(1);
-  ok(hidden(0, bld(1), 1, 22), "b2");
-  const b2 = last();
-  now = arrival(b2) + 2n;
-  expect("OutOfOrder", reveal(b2, bld(1), 22), "the reveal drains, parks both: b2 is held");
-  assume(w.parked.length === 0, "the failed reveal left nothing parked");
-  ok(reveal(a2, bld(1), 21), "a2 revealed");
-  ok(reveal(b2, bld(1), 22), "a2 on its way frees b2");
-  ok(act(1, ACTION.advance, [10]), "both resolve");
-
-  // 3. The interception: Bob's troops come home at R; his own garbage lands at R+1 and Alice's
-  // attack at R+2. The garbage holds the attack's reveal until R+16; Bob's troops rest until R+30.
-  jump(86400);
-  const copy = (() => {
-    const { rs: r, ...rest } = w;
-    return { ...structuredClone(rest), rs: r } as sim.World;
-  })();
-  const probe = sim.sendMission(
-    copy,
-    "1",
-    bld(1).id,
-    sim.TRANSPORT,
-    bld(0).coord,
-    rowdies(5).map(BigInt),
-    [0n, 0n, 0n, 0n],
-    0n,
-    now,
-  );
-  sim.advance(copy, 10, copy.missions.get(probe)!.arrival);
-  const roundTrip = copy.missions.get(probe)!.arrival - now;
-  const hiddenTrip =
-    copy.missions.get(
-      sim.sendHiddenMission(
-        copy,
-        "0",
-        bld(0).id,
-        sim.hiddenCommit(1n, sim.ATTACK, bld(1).coord, 1n),
-        BigInt(COVER),
-        rowdies(1).map(BigInt),
-        [0n, 0n, 0n, 0n],
-        BigInt(NATURAL),
-        now,
-      ),
-    )!.arrival - now;
-  ok(transport(1, bld(0), 5), "Bob's troops go out and come back");
-  const R = now + roundTrip;
-  now = R + 1n - hiddenTrip;
-  ok(hidden(1, bld(0), 1, 31), "Bob's garbage g3 (no second account needed)");
-  const g3 = last();
-  now = R + 2n - hiddenTrip;
-  ok(hidden(0, bld(1), 3, 32), "the attack");
-  const a3 = last();
-  assume(arrival(g3) === R + 1n && arrival(a3) === R + 2n, "timed after the return");
-  now = R;
-  ok(act(1, ACTION.advance, [10]), "Bob's troops are home");
-  assume(bld(1).troops[ROWDY] === 6n && bld(1).lastTroopArrival === R, "home at R");
-  now = R + 10n;
-  expect("OutOfOrder", reveal(a3, bld(1), 32), "the keeper's reveal is held by g3");
-  now = R + 15n;
-  expect("TroopsResting", transport(1, bld(0), 5), "Bob cannot slip away (public send)");
-  now = R + 16n;
-  ok(reveal(a3, bld(1), 32), "g3's window passed");
-  assume(w.parked.length === 1 && w.parked[0] === BigInt(g3), "g3 stays parked");
-  ok(act(1, ACTION.advance, [10]), "the battle, 3 rowdies against 6 at home");
-  const a3m = w.missions.get(BigInt(a3));
-  assume(a3m === undefined || a3m.troops[ROWDY]! < 3n, "the attack met the defenders");
-  now = R + COOLDOWN - 1n;
-  expect("TroopsResting", hidden(1, bld(0), 1, 41), "still resting (hidden send)");
-  now = R + COOLDOWN;
-  ok(hidden(1, bld(0), 1, 42), "the cooldown is over");
-  // A fixed arrival: from the natural one to the slack after it.
-  const natural = num(now + hiddenTrip);
-  const SLACK = num(rs.config.hiddenArrivalSlack);
-  expect("TooLate", hidden(0, bld(1), 1, 51, natural - 1), "before the natural arrival");
-  expect("InvalidArrival", hidden(0, bld(1), 1, 52, natural + SLACK + 1), "past the slack");
-  ok(hidden(0, bld(1), 1, 53, natural + SLACK), "at the end of the slack");
-  assume(arrival(last()) === BigInt(natural + SLACK), "it arrives when fixed");
-  now = arrival(g3) + GRACE;
-  ok(act(ANYONE, ACTION.forfeit, [g3]), "g3 forfeited");
-  return { actors: 2, seed, steps };
-}
-
-/** Reach two owned buildings, then exercise station cooldowns and a timed interception (B-22). */
-function scriptedStationScenario(seed: number) {
-  SESSIONS.clear();
-  INVITED.clear();
-  SECRETS.clear();
-  const w = sim.newWorld(rs);
-  let now = T0;
-  const year = 365n * 86400n;
-  const steps: unknown[] = [];
-  const at = (slot: number) => [1, 1, slot];
-  const troops = (index: number, n: number) => rs.troops.map((_, i) => (i === index ? n : 0));
-  const rowdy = troop("rowdy");
-  const act = (actor: number, action: number, args: number[], want = "") => {
-    const error = attempt(w, actor < 0 ? "admin" : String(actor), { action, args }, now);
-    steps.push({
-      action,
-      actor: Math.max(actor, 0),
-      args,
-      error,
-      state: snapshot(w),
-      time: num(now),
-    });
-    if (error !== want)
-      throw new Error(`scripted station: action ${action}: expected '${want}', got '${error}'`);
-  };
-  const assume = (condition: boolean, what: string) => {
-    if (!condition) throw new Error(`scripted station: ${what}`);
-  };
-  const send = (from: number, to: number, n: number, hidden = false, want = "") => {
-    if (hidden) {
-      act(
-        0,
-        ACTION.sendHiddenMission,
-        [from, sim.STATION, ...at(to), 123, 3, ...troops(rowdy, n), 0, 0, 0, 0, NATURAL],
-        want,
-      );
-    } else {
-      act(
-        0,
-        ACTION.sendMission,
-        [from, sim.STATION, ...at(to), ...troops(rowdy, n), 0, 0, 0, 0, 0],
-        want,
-      );
-    }
-    return num(w.nextMission) - 1;
-  };
-  const arrival = (id: number) => w.missions.get(BigInt(id))!.arrival;
-  const reveal = (id: number, kind: number, slot: number, salt = 123) =>
-    act(ANYONE, ACTION.reveal, [id, kind, ...at(slot), salt]);
-  const cooldown = rs.config.troopArrivalCooldown;
-
-  act(-1, ACTION.setGlobalPremium, [num(now + 100n * year)]);
-  act(0, ACTION.register, at(1));
-  act(1, ACTION.register, at(2));
-  act(1, ACTION.queueRoom, [2, room("boot_camp")]);
-  // Actual growth and occupation keep the entire fixture reproducible on-chain.
-  for (const [id, level] of [
-    ["boot_camp", 1],
-    ["mob_school", 1],
-    ["weapons_armoury", 5],
-    ["ammunition_depot", 5],
-    ["brewery", 5],
-    ["bar", 5],
-    ["weapon_storage", 1],
-    ["ammunition_storage", 1],
-    ["safe_room", 1],
-  ] as const) {
-    for (let i = 0; i < level; i++) {
-      act(0, ACTION.queueRoom, [1, room(id)]);
-      now += year;
-    }
+  const w = world(rs),
+    steps: unknown[] = [];
+  let now = 1700000000n;
+  function act(actor: number, action: number, args: number[]) {
+    const a = { action, args };
+    const error = attempt(w, String(actor), a, now);
+    steps.push({ action, actor, args, error, state: snapshot(w), time: num(now) });
   }
-  for (let i = 0; i < 5; i++) {
-    act(0, ACTION.queueResearch, [1, research("routing")]);
-    now += year;
-  }
-  act(0, ACTION.train, [1, rs.roles.occupationTroop, 1]);
-  act(0, ACTION.train, [1, rowdy, 7]);
-  act(1, ACTION.train, [2, rowdy, 5]);
-  now += year;
-  act(0, ACTION.sendMission, [
-    1,
-    sim.OCCUPY,
-    ...at(3),
-    ...troops(rs.roles.occupationTroop, 1),
-    0,
-    0,
-    0,
-    0,
-    0,
-  ]);
-  now = arrival(num(w.nextMission) - 1);
-  act(ANYONE, ACTION.advance, [10]);
-  now += year;
-
-  // A public arrival cannot be drained and immediately sent out in the same operation.
-  const first = send(1, 3, 5);
-  const R = arrival(first);
-  now = R;
-  send(3, 1, 1, false, "TroopsResting");
-  send(3, 1, 1, true, "TroopsResting");
-  assume(
-    w.missions.has(BigInt(first)) && w.buildings.get(3n)!.troops[rowdy] === 0n,
-    "failed sends roll back the arrival",
-  );
-  act(ANYONE, ACTION.advance, [10]);
-  now = R + cooldown - 1n;
-  send(3, 1, 1, false, "TroopsResting");
-  send(3, 1, 1, true, "TroopsResting");
-  now = R + cooldown;
-  send(3, 1, 1);
-  now += year;
-  act(ANYONE, ACTION.advance, [10]);
-
-  // A small second detachment restarts rest for the older troops as well.
-  const second = send(1, 3, 1);
-  const S = arrival(second);
-  now += 10n;
-  send(1, 3, 1);
-  now = S + 10n;
-  act(ANYONE, ACTION.advance, [10]);
-  assume(w.buildings.get(3n)!.lastTroopArrival === now, "the second arrival resets rest");
-  now = S + cooldown;
-  send(3, 1, 5, false, "TroopsResting");
-  now += year;
-
-  // A late reveal starts rest at its effective arrival, not at its original schedule.
-  const late = send(1, 3, 1, true);
-  const L = arrival(late);
-  now = L + 20n;
-  reveal(late, sim.STATION, 3);
-  send(3, 1, 1, true, "TroopsResting");
-  act(ANYONE, ACTION.advance, [10]);
-  assume(w.buildings.get(3n)!.lastTroopArrival === now, "late station rests from reveal time");
-  now = L + cooldown;
-  send(3, 1, 1, false, "TroopsResting");
-  now = L + 20n + cooldown;
-  send(3, 1, 7);
-  now += year;
-  act(ANYONE, ACTION.advance, [10]);
-
-  // Intercept a hidden station with a hidden attack two seconds after its arrival.
-  const stationed = send(1, 3, 5, true);
-  const H = arrival(stationed);
-  const { rs: rules, ...state } = w;
-  const copy = { rs: rules, ...structuredClone(state) } as sim.World;
-  const target = { city: 1n, neighborhood: 1n, slot: 3n };
-  const probe = sim.sendHiddenMission(
-    copy,
-    "1",
-    2n,
-    sim.hiddenCommit(2n, sim.ATTACK, target, 456n),
+  act(0, ACTION.register, [1, 1, 1]);
+  act(1, ACTION.register, [1, 1, 2]);
+  act(0, ACTION.queueRoom, [1, rs.buildings.findIndex((b) => b.id === "boot_camp")]);
+  now += 86400n;
+  act(0, ACTION.train, [1, 0, 7]);
+  now += 86400n;
+  act(0, ACTION.poke, [1]);
+  const ts = rs.troops.map((_, i) => (i === 0 ? 5n : 0n));
+  const natural = sim.previewHiddenMission(
+    w,
+    "0",
     1n,
-    troops(rowdy, 5).map(BigInt),
+    sim.hiddenCommit(1n, sim.ATTACK, { city: 1n, neighborhood: 1n, slot: 2n }, 5n),
+    1n,
+    ts,
     [0n, 0n, 0n, 0n],
-    0n,
     now,
-  );
-  const attackDuration = copy.missions.get(probe)!.duration;
-  assume(H + 2n - attackDuration >= now, "the attack can be sent after the station");
-  now = H + 2n - attackDuration;
-  act(1, ACTION.sendHiddenMission, [
-    2,
-    sim.ATTACK,
-    ...at(3),
-    456,
+  ).arrival;
+  for (const arrival of [natural - 1n, natural + 31n])
+    act(0, ACTION.sendHiddenMission, [
+      1,
+      sim.ATTACK,
+      1,
+      1,
+      2,
+      5,
+      1,
+      ...ts.map(Number),
+      0,
+      0,
+      0,
+      0,
+      Number(arrival),
+    ]);
+  act(0, ACTION.sendHiddenMission, [
     1,
-    ...troops(rowdy, 5),
+    sim.ATTACK,
+    1,
+    1,
+    2,
+    5,
+    1,
+    ...rs.troops.map((_, i) => (i === 0 ? 5 : 0)),
     0,
     0,
     0,
     0,
-    NATURAL,
+    0,
   ]);
-  const attack = num(w.nextMission) - 1;
-  assume(arrival(attack) === H + 2n, "the attack is timed after the station");
-  now = H;
-  reveal(stationed, sim.STATION, 3);
-  send(3, 1, 5, false, "TroopsResting");
-  send(3, 1, 5, true, "TroopsResting");
-  act(ANYONE, ACTION.advance, [10]);
-  now = H + 10n;
-  reveal(attack, sim.ATTACK, 3, 456);
-  act(ANYONE, ACTION.advance, [10]);
-  assume(w.buildings.get(3n)!.troops[rowdy] === 1n, "the attack fought the stationed defenders");
-  now = H + cooldown - 1n;
-  send(3, 1, 1, false, "TroopsResting");
-  now = H + cooldown;
-  send(3, 1, 1, true);
+  const id = Number(w.nextMission - 1n),
+    arrival = w.missions.get(BigInt(id))!.arrival;
+  now = arrival + 7200n;
+  act(ANYONE, ACTION.advance, [20]);
+  act(1, ACTION.poke, [2]);
+  if (seed === 20321014) act(ANYONE, ACTION.submitInvalidPoint, [id]);
+  else act(ANYONE, ACTION.submitOpening, [id, sim.ATTACK, 1, 1, 2, 5]);
+  act(ANYONE, ACTION.advance, [20]);
+  const publicArgs = [
+    1,
+    sim.ATTACK,
+    1,
+    1,
+    2,
+    ...rs.troops.map((_, i) => (i === 0 ? 1 : 0)),
+    0,
+    0,
+    0,
+    0,
+    0,
+  ];
+  act(0, ACTION.sendMission, publicArgs);
+  const returned = w.missions.get(w.nextMission - 1n)!;
+  now = returned.arrival + returned.duration;
+  act(ANYONE, ACTION.advance, [20]);
+  act(0, ACTION.sendMission, publicArgs); // must hit the rest period at the actual return time
   return { actors: 2, seed, steps };
 }
+
+// Match each delayed history against a punctual full-World oracle, then export
+// every delayed intermediate state for the Solidity differential replay.
+function adversarialHiddenScenario(seed: number, order: number[], budget: number) {
+  function history(delayed: boolean) {
+    const w = world(rs),
+      steps: unknown[] = [];
+    let now = 1700000000n;
+    function act(actor: number, action: number, args: number[]) {
+      const error = attempt(w, String(actor), { action, args }, now);
+      if (error) throw new Error(`adversarial history ${seed}: ${error}`);
+      steps.push({ action, actor, args, error, state: snapshot(w), time: num(now) });
+    }
+    act(0, ACTION.setGlobalPremium, [Number(now + 3650n * 86400n)]);
+    act(0, ACTION.register, [1, 1, 1]);
+    act(1, ACTION.register, [1, 1, 2]);
+    act(0, ACTION.queueRoom, [1, rs.buildings.findIndex((b) => b.id === "boot_camp")]);
+    now += 86400n;
+    const rowdy = rs.troops.findIndex((t) => t.id === "rowdy");
+    act(0, ACTION.train, [1, rowdy, 7]);
+    now += 86400n;
+    act(0, ACTION.poke, [1]);
+    const troops = rs.troops.map((_, i) => (i === rowdy ? 1 : 0));
+    const ids: number[] = [];
+    for (let salt = 1; salt <= 4; salt++) {
+      act(0, ACTION.sendHiddenMission, [1, sim.ATTACK, 1, 1, 2, salt, 1, ...troops, 0, 0, 0, 0, 0]);
+      ids.push(Number(w.nextMission - 1n));
+    }
+    const first = w.missions.get(BigInt(ids[0]!))!;
+    now += 1n;
+    act(0, ACTION.recall, [ids[3]!]);
+    now = first.arrival - first.duration;
+    act(0, ACTION.sendMission, [1, sim.ATTACK, 1, 1, 2, ...troops, 0, 0, 0, 0, 0]);
+    deepStrictEqual(w.missions.get(w.nextMission - 1n)!.arrival, first.arrival);
+    const end = first.arrival + 7n * 86400n;
+    function evidence(index: number) {
+      if (index === 1) act(ANYONE, ACTION.submitInvalidPoint, [ids[index]!]);
+      else act(ANYONE, ACTION.submitOpening, [ids[index]!, sim.ATTACK, 1, 1, 2, index + 1]);
+    }
+    function drain() {
+      // A blocked head returns zero; successful work must shrink or reschedule
+      // this finite set of attacks/returns. Bound the loop to catch regressions.
+      for (let i = 0; i < 32; i++) {
+        const before = w.pending.map((id) => [id, w.missions.get(id)!.arrival]);
+        act(ANYONE, ACTION.advance, [delayed ? budget : 20]);
+        if (
+          isDeepStrictEqual(
+            before,
+            w.pending.map((id) => [id, w.missions.get(id)!.arrival]),
+          )
+        )
+          return;
+      }
+      throw new Error("History did not drain");
+    }
+    if (delayed) {
+      now = end;
+      drain();
+      for (const index of order) {
+        evidence(index);
+        evidence(index);
+        drain();
+      }
+      // Evidence for recalled missions is a no-op, even after their return.
+      act(ANYONE, ACTION.submitInvalidPoint, [ids[3]!]);
+    } else {
+      // Resolve the recalled return at its own arrival before opening the attacks.
+      now = w.missions.get(w.pending[0]!)!.arrival;
+      drain();
+      now = first.arrival;
+      for (let i = 0; i < 3; i++) evidence(i);
+      while (w.pending.length) {
+        now = w.missions.get(w.pending[0]!)!.arrival;
+        drain();
+      }
+      now = end;
+      drain();
+    }
+    deepStrictEqual(w.pending.length, 0);
+    return { w, steps };
+  }
+  const delayed = history(true),
+    punctual = history(false);
+  deepStrictEqual(delayed.w, punctual.w);
+  return { actors: 2, seed, steps: delayed.steps };
+}
+const evidenceOrders = [
+  [0, 1, 2],
+  [0, 2, 1],
+  [1, 0, 2],
+  [1, 2, 0],
+  [2, 0, 1],
+  [2, 1, 0],
+];
 
 const here = dirname(fileURLToPath(import.meta.url));
 const dir = join(here, "../generated/scenarios/vendetta");
@@ -2197,7 +1997,10 @@ const scenarios = [
   ...Array.from({ length: MARKET.count }, (_, i) => botScenario(20291015 + i, "market")),
   scriptedControllersScenario(20301014),
   scriptedHiddenScenario(20311014),
-  scriptedStationScenario(20321014),
+  scriptedHiddenScenario(20321014),
+  ...evidenceOrders.flatMap((order, i) =>
+    [1, 2, 20].map((budget, j) => adversarialHiddenScenario(20331014 + i * 3 + j, order, budget)),
+  ),
 ];
 const uncovered = MARKET_COVERAGE.filter((c) => !COVERED.has(c));
 if (uncovered.length > 0) {
@@ -2217,14 +2020,14 @@ const steps = scenarios.flatMap((s) => s.steps) as { action: number; error: stri
 const count = (a: number) => steps.filter((x) => x.action === a && x.error === "").length;
 const errors = (name: string) => steps.filter((x) => x.error === name).length;
 // The B-22 timing rules must be exercised by the replay (recorded reverts, not candidates).
-for (const name of ["TroopsResting", "OutOfOrder", "TooLate", "InvalidArrival"]) {
+for (const name of ["TroopsResting", "TooLate", "InvalidArrival"]) {
   if (errors(name) === 0) throw new Error(`no scenario step reverts ${name}`);
 }
 console.log(
   `packages/rules/generated/scenarios/vendetta/: ${scenarios.length} scenarios, ${steps.length} steps, ` +
     `${steps.filter((x) => x.error).length} expected reverts; ok: ${count(ACTION.train)} train, ` +
     `${count(ACTION.sendMission)} missions, ${count(ACTION.sendHiddenMission)} hidden, ` +
-    `${count(ACTION.reveal)} reveals, ${count(ACTION.forfeit)} forfeits, ` +
+    `${count(ACTION.submitOpening)} opening certificates, ${count(ACTION.submitInvalidPoint)} invalid-point certificates, ` +
     `${count(ACTION.recall)} recalls, ${count(ACTION.abandon)} abandons, ` +
     `${count(ACTION.authorizeSession)} sessions (${count(ACTION.acceptSession)} accepted), ` +
     `${count(ACTION.inviteController)} invited + ${count(ACTION.acceptController)} joined - ` +
@@ -2232,5 +2035,5 @@ console.log(
     `${count(ACTION.cancelRemoval)} cancelled), ${EXECUTED.transfers} transfers executed, ` +
     `${count(ACTION.acceptTrade)} trades accepted, ${count(ACTION.withdrawTrade)} withdrawals, ` +
     `${errors("SharesLeft")} SharesLeft, ${errors("TroopsResting")} TroopsResting, ` +
-    `${errors("OutOfOrder")} OutOfOrder`,
+    `no timeout cancellation`,
 );

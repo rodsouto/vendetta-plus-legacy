@@ -1,0 +1,35 @@
+{
+  "compileMs": 40815.505,
+  "componentOnly": false,
+  "constraints": 5139537,
+  "externalH3": true,
+  "gnark": "v0.16.4",
+  "go": "go1.27.3",
+  "gomaxprocs": 16,
+  "maxRssKiB": 11387488,
+  "nodeVectorsProven": 2,
+  "prove0Ms": 39791.768,
+  "prove1Ms": 49064.761,
+  "publicInputs": 55,
+  "receipts": [
+    {
+      "artifact": "proof.json",
+      "forgedResultRejected": true,
+      "missionValid": true,
+      "name": "valid-five-candidates",
+      "proofSolidityBytes": 384
+    },
+    {
+      "artifact": "invalid-proof.json",
+      "forgedResultRejected": true,
+      "missionValid": false,
+      "name": "wrong-commitment",
+      "proofSolidityBytes": 384
+    }
+  ],
+  "referenceVectors": 9,
+  "scope": "Full fixed v2 mission relation with authenticated beacon; consumer MUST enforce exact H3 prefix, statement and version; no Game integration",
+  "setupMs": 710687.876,
+  "verify0Ms": 3.018,
+  "verify1Ms": 4.222
+}

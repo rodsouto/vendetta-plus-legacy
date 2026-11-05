@@ -16,7 +16,7 @@ import type { Network } from "../src/chain/networks.js";
 describe("quicknetPrepare", () => {
   it("encrypts production missions and leaves plaintext only on the local chain", () => {
     expect(timelockFor({ id: "gnosis" } as Network).hides).toBe(true);
-    expect(timelockFor({ id: "local" } as Network).hides).toBe(false);
+    expect(timelockFor({ id: "local" } as Network).hides).toBe(true);
     const natural = 1_800_000_000n;
     const { arrival, round } = timelockFor({ id: "gnosis" } as Network).prepare(natural);
     expect(arrival - natural).toBeGreaterThanOrEqual(20n);

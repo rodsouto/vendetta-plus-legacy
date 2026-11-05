@@ -1,0 +1,10 @@
+{
+  "schema": "vendetta-unsafe-local-phase2-verification-1",
+  "log2": 23,
+  "initializationSha256": "f23056da6aac64466512dea6496a098dbdb5562b208ff4d326a9c8f9de0f0675",
+  "sourceArtifactSha256": "2f0ab99869f9bb0b893d857e998efccaa9069d5946f462ba9812859f260c613c",
+  "parentArtifactSha256": "ee10695d34f71c2cb9ae9b427ec77afe3e549611055fa179450982cd12a4791b",
+  "previousVerificationSha256": "86062c534ce2da4683224dc062171cee70fbb65a939b8aae2a3c0ee616fbfde1",
+  "nativeTransitionVerified": true,
+  "productionApproved": false
+}

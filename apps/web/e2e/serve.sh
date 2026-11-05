@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# A fresh chain, keeper and app for one e2e run, isolated from `pnpm dev:local` (own anvil and Vite
+# A fresh test chain and app for one e2e run, isolated from `pnpm dev:local` (own anvil and Vite
 # ports, deployment passed through VITE_DEPLOYMENT instead of public/).
 set -euo pipefail
 root="$(git rev-parse --show-toplevel)"
@@ -12,17 +12,13 @@ cd "$root/contracts"
 # Local chain: every role is account 0, which the Workshop signs with (B-17); exported
 # ADMIN/OPERATOR/ARBITER are for real deploys.
 env -u ADMIN -u OPERATOR -u ARBITER \
-  forge script script/Deploy.s.sol --rpc-url "$rpc" --private-key "$key0" --broadcast >/dev/null
-game="$(jq -r '[.transactions[] | select(.contractName == "ERC1967Proxy")][0].contractAddress' broadcast/Deploy.s.sol/31337/run-latest.json)"
-directory="$(jq -r '[.transactions[] | select(.contractName == "PasskeyDirectory")][0].contractAddress' broadcast/Deploy.s.sol/31337/run-latest.json)"
+  forge script script/DeployTest.s.sol --rpc-url "$rpc" --private-key "$key0" --broadcast >/dev/null
+game="$(jq -r '[.transactions[] | select(.contractName == "ERC1967Proxy")][0].contractAddress' broadcast/DeployTest.s.sol/31337/run-latest.json)"
+directory="$(jq -r '[.transactions[] | select(.contractName == "PasskeyDirectory")][0].contractAddress' broadcast/DeployTest.s.sol/31337/run-latest.json)"
 # No indexer here: the reports come from the logs, whatever the root .env names.
 export VITE_INDEXER_URL=""
 export VITE_DEPLOYMENT="{\"chainId\":31337,\"rpc\":\"$rpc\",\"game\":\"$game\",\"directory\":\"$directory\",\"fromBlock\":0}"
 cd "$root/apps/web"
-# The keeper reveals hidden missions as they arrive and processes due ones (B-22), as on a real
-# deployment.
-deployment="$(mktemp)"
-echo "$VITE_DEPLOYMENT" > "$deployment"
-npx tsx scripts/keeper.ts "$deployment" local &
-trap 'kill %1 %2 2>/dev/null || true' EXIT
+# Hidden evidence is supplied explicitly by test-evidence.ts to DeployTest's
+# mock consumer. Clock jumps do not create authentic future drand beacons.
 npx vite --port 5199 --strictPort

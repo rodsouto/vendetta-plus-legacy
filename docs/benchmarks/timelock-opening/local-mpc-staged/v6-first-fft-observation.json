@@ -1,0 +1,13 @@
+{
+  "schema": "vendetta-unsafe-local-staged-observation-1",
+  "operation": "opening-tau1-inverse-FFT",
+  "domain": 8388608,
+  "startUTC": "2026-11-04T23:34:47Z",
+  "cachePersistedUTC": "2026-11-05T00:30:37Z",
+  "maxRssUpToCheckpointBytes": 2958163968,
+  "cacheIndexSha256": "50084422534811d744eb3b6e9b3899704bd4fde61946f4bd827a94816a54a0d6",
+  "cacheIndexOriginal": "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run2/23-phase2-init/public/staged-cache/index-02.json",
+  "firstFFTComplete": true,
+  "fullInitializationComplete": false,
+  "productionApproved": false
+}

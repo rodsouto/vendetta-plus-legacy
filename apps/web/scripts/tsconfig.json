@@ -1,0 +1,25 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node", "vite/client"],
+    "lib": ["ES2022", "DOM"]
+  },
+  "include": [
+    "keeper.ts",
+    "../src/chain/certificates.ts",
+    "prover.ts",
+    "prover/**/*.ts",
+    "compile-prover.ts",
+    "experiments/run-producer-game.ts",
+    "experiments/run-producer-load.ts",
+    "experiments/summarize-producer-capacity.ts",
+    "experiments/profile-producer.ts",
+    "experiments/profile-worker.ts",
+    "experiments/summarize-producer-soak.ts",
+    "experiments/probe-producer-remotes.ts",
+    "keeper/**/*.ts",
+    "../e2e/test-evidence.ts",
+    "../test/producer-settlement.test.ts",
+    "../test/keeper-reorg.test.ts"
+  ]
+}

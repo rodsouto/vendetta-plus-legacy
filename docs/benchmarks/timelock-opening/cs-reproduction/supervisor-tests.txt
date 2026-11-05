@@ -1,0 +1,14 @@
+test_bad_report_stops_and_persists_failure (test_hidden_v2_compile_capacity.CompileCapacityTest.test_bad_report_stops_and_persists_failure) ... ok
+test_compiled_report_rejects_mismatch_and_duplicate (test_hidden_v2_compile_capacity.CompileCapacityTest.test_compiled_report_rejects_mismatch_and_duplicate) ... ok
+test_four_fresh_processes_and_no_production_claim (test_hidden_v2_compile_capacity.CompileCapacityTest.test_four_fresh_processes_and_no_production_claim) ... ok
+test_kernel_limits_fail_without_success (test_hidden_v2_compile_capacity.CompileCapacityTest.test_kernel_limits_fail_without_success) ... ok
+test_pin_and_headroom_refusal (test_hidden_v2_compile_capacity.CompileCapacityTest.test_pin_and_headroom_refusal) ... ok
+test_repetition_mismatch_stops_before_next_circuit (test_hidden_v2_compile_capacity.CompileCapacityTest.test_repetition_mismatch_stops_before_next_circuit) ... ok
+test_timeout_kills_and_reaps (test_hidden_v2_compile_capacity.CompileCapacityTest.test_timeout_kills_and_reaps) ... ok
+test_worker_dies_when_supervisor_is_killed (test_hidden_v2_compile_capacity.CompileCapacityTest.test_worker_dies_when_supervisor_is_killed) ... ok
+test_worker_limits_and_success (test_hidden_v2_compile_capacity.CompileCapacityTest.test_worker_limits_and_success) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 3.310s
+
+OK

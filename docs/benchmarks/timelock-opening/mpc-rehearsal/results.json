@@ -1,0 +1,131 @@
+{
+  "date": "2026-11-03",
+  "scope": "Deploy gates, canonical non-small-order Ed25519 key admission and unsafe fixed-small-circuit MPC rehearsal between separate Linux processes; no production approval",
+  "tests": {
+    "path": "/tmp/vendetta-v2-mpc-rehearsal-tests-final.jsonl",
+    "sha256": "fe863b0f8e946f4984bc75701640bc7833279f5da88decb5be66982bae8c316a",
+    "mainTestsPassed": [
+      "TestCLIDesignCommands",
+      "TestCLIReadLimitsAndSpecialFiles",
+      "TestExecutionValidation",
+      "TestPublicKeyPolicy",
+      "TestIdentityKeyReviewForgeryRejected",
+      "TestPlanValidation",
+      "TestStrictDocuments",
+      "TestReviewVerification",
+      "TestShellWrapperRelativePaths",
+      "TestCLIExecution",
+      "TestRehearsalFileBoundaries",
+      "TestNativePreflight",
+      "TestArchivedBeaconAuthentication",
+      "TestProtocolRehearsal",
+      "TestPnpmWrapperRelativePaths",
+      "TestProtocolAdversaries",
+      "TestAdmissionAndIncompleteHistory",
+      "TestWorkerLifecycle",
+      "TestSeparateProcessRehearsal",
+      "TestCLIRequiresUnsafeAcknowledgement"
+    ],
+    "subtestsPassed": 112,
+    "totalTestEventsPassed": 132
+  },
+  "nativeProducerRegression": {
+    "path": "/tmp/vendetta-v2-mpc-producer-regression.jsonl",
+    "sha256": "c596c78e67a417c1d238cc1b67cc775019d310ffb827be7f8fed350e19b811ed",
+    "mainTestsPassed": [
+      "TestProducerNativeWitness",
+      "TestProducerSetupNeverOverwrites",
+      "TestProducerArtifactIntegrity",
+      "TestProducerProfile",
+      "TestProducerWorkerProtocol",
+      "TestProducerWorkerPinsSetupManifest",
+      "TestSetupMPCCompatibility"
+    ],
+    "subtestsPassed": 21,
+    "totalTestEventsPassed": 28
+  },
+  "deploymentPolicyTests": {
+    "passed": 2,
+    "log": "/tmp/vendetta-v2-deploy-policy.log",
+    "sha256": "070ef9b9cb8767e08cfb2ed26dc478f990f2bb76f9633c482a12cca288e76e04"
+  },
+  "gnosisGuard": {
+    "exitCode": 1,
+    "beforeEnvironmentOrRPC": true,
+    "log": "/tmp/vendetta-v2-gnosis-blocked.log",
+    "sha256": "1f8484cee0d5f48e01e4ad659c18d2d42b840c5548d5fb47d954cedda942a7c4"
+  },
+  "run": {
+    "directory": "/home/rodrigo/.cache/vendetta-audit/mpc-rehearsal-20261103-release",
+    "log": "/tmp/vendetta-v2-mpc-rehearsal-release.log",
+    "logSha256": "6b3fa0dbb8b9768b229dd81f404e4f1fa1b067791c8d76d4fb421d42fb662a8e",
+    "workers": 8,
+    "workerWallMillisecondsSum": 755,
+    "maxWorkerRSSKiB": 29584,
+    "allWorkersExited": true,
+    "binarySha256": "957686aa2ca1267164f38395b4da79861376feb5444bc33789558c636fcf898b"
+  },
+  "toolchain": {
+    "go": "go1.27.3 linux/amd64",
+    "goArchiveSha256": "65efbc80fdc1fa2cd2631cad5b481777a68e8725f34e89f50fc6ac714e379b40",
+    "gnarkVersion": "v0.16.4",
+    "gnarkCommit": "e974abb44722dd201a7f1949baeabca0fef5866e",
+    "edwards25519": "filippo.io/edwards25519 v1.1.0"
+  },
+  "sourceSha256": {
+    "apps/web/scripts/experiments/opening-zk/ceremony/execution.go": "b775e9d4ea9f78a86594b85dd016975011fbed2ad3acb8b36bc7e5a47a1e148c",
+    "apps/web/scripts/experiments/opening-zk/ceremony/execution_test.go": "a597bd8272e1c2762c6b9794d3c3c95b5b061b16671c28fbb64e733f3b8e8784",
+    "apps/web/scripts/experiments/opening-zk/ceremony/keys.go": "bd70fae6f66e5936220145e8bb870523a61ab8f01e34d6a9dc88e44da249f808",
+    "apps/web/scripts/experiments/opening-zk/ceremony/keys_test.go": "d43feaa689d5720c41536031ff111a5ca3da6ecc7cc5bdea015ef10831ec6b1f",
+    "apps/web/scripts/experiments/opening-zk/ceremony/review.go": "54dcf513b4995fb4f7dbe87fd7bbe620adbd5bf7b514aecbb13c6c4ce138aad0",
+    "apps/web/scripts/experiments/opening-zk/ceremony/review_test.go": "76134e41d3c32a66de83dc1367d1774435162b1f47fe94080f41929491b5b3d5",
+    "apps/web/scripts/experiments/opening-zk/cmd/ceremony/main.go": "1f7528ea4dd24f94ef07046636ed3e9c587712676c6f44ef9481cb60f2606cc9",
+    "apps/web/scripts/experiments/opening-zk/cmd/ceremony/main_test.go": "c95d0a71115e49b569e5cb5ddea321839d6510d1afaeba14c855b1ffed88aa0d",
+    "apps/web/scripts/experiments/opening-zk/cmd/mpc-rehearsal/main.go": "99f9247e790edfc9633b5d3b5b1580abe18157c8ba0a48b52f98c40b978b8636",
+    "apps/web/scripts/experiments/opening-zk/cmd/mpc-rehearsal/main_test.go": "4f0476d6a2a524732c3f2bd8632e2ee6f919fa932552ee2f195b64434a5ddea6",
+    "apps/web/scripts/experiments/opening-zk/go.mod": "595dae54335bcc725fe46cea09212f12eaf859b0ca571b52c638d79fedea8e4e",
+    "apps/web/scripts/experiments/opening-zk/go.sum": "496751b89fbba16c5a94ec56f650ce733dc8f00ac2d5dcb24e2fd7d3d3ec3b4f",
+    "apps/web/scripts/experiments/opening-zk/mpcrehearsal/beacon.go": "8f6a7436e72913cba51e6af22e3382b39a00ec3ef1cfe5b63fdf7f401313556c",
+    "apps/web/scripts/experiments/opening-zk/mpcrehearsal/files.go": "1759c9ed1d1d9ba4e3e53a2f6ea1810bc9b545aa486ec0e3f623cfbc85568c71",
+    "apps/web/scripts/experiments/opening-zk/mpcrehearsal/files_test.go": "9e2fd6e2caaa0dd736cfdf1c3e6e2436a60a33faa7cb62291a6370ef5140d373",
+    "apps/web/scripts/experiments/opening-zk/mpcrehearsal/native.go": "0f387aa69a702b36b891079c373302ea33a794ec85ed73816a3c97c180117eec",
+    "apps/web/scripts/experiments/opening-zk/mpcrehearsal/native_test.go": "87bb9d6c392373faeb05ae67c07cd105a0e17484047510598fc69d50bf477372",
+    "apps/web/scripts/experiments/opening-zk/mpcrehearsal/protocol.go": "5560da51225fa926a5dca47b0e05cc634663e7b7662095a505959f6759a2d994",
+    "apps/web/scripts/experiments/opening-zk/mpcrehearsal/protocol_test.go": "e684c61bb6e4e36b25df32d038ae9c603e9cd091b38336370e71311e670e254f",
+    "apps/web/scripts/experiments/opening-zk/mpcrehearsal/runner.go": "918ce9242b45b2074e6b52751273c551e81065b2d7d65b01a7536e973ed8f00a",
+    "apps/web/scripts/experiments/opening-zk/mpcrehearsal/runner_test.go": "303c1acfd9ebac1cbf3c5da0eec51ee6515990d813330cedaf6c04f6ad7f43ff",
+    "apps/web/scripts/experiments/opening-zk/mpcrehearsal/verify.go": "d39078f3093cbdbc21f8dd7fa1363739c6c3ec162f9aec882b9777d8fff1038f",
+    "contracts/script/Deploy.s.sol": "ef794d409ac99ae8ad52e1e726e4635b12394afdb0c557d8fb08695a953cf48b",
+    "contracts/test/core/DeployPolicy.t.sol": "88224018b619071be814648da393e2bcc029aa0b347d484d3462f2a1a00e14f1",
+    "package.json": "6da4596866aea957e661b14df897bdf86c1c85788da1268fdb00a4ba00ac8924",
+    "scripts/deploy-gnosis.sh": "9181eeb6db2700f2ecaa4ae9e347af29f105bf6cad4197644aa41d6711634e90",
+    "scripts/hidden-v2-ceremony.sh": "9131c2aab3e21581275642720aef1583429d16062bea2fd8d4a72ac62ac04b0c",
+    "scripts/hidden-v2-mpc-rehearsal.sh": "3a8f6ab61f410544ae5c6524834fe9f6ea07beae2d77a2281e0d94868f7a13f1"
+  },
+  "artifactSha256": {
+    "config.json": "3e27b332c36fda271e2d61c9c2bb6cbce807258a756cdf8b5e04f44b22c9c68e",
+    "phase-1-closure.json": "65d21145964940cae2707f95e9a01fef8cb5332537948179d6109e0c72c9e3f7",
+    "phase-1-contribution-0.json": "1f0cac8be07a0f7fae9a1a331ed7c6d51a2ec8a8fc74e0a9a0ddc9d8ff05ef7a",
+    "phase-1-contribution-1.json": "d028f821e479195edcbfec3178f7cce024fcad54f05ec4bf9aac7c9e7c11b4a9",
+    "phase-2-closure.json": "110d115ca5fc400eaa98bf0c2fd2a212439cd6fff16f8a5726cc580b0ba5a32a",
+    "phase-2-contribution-0.json": "d038f4c6ca4c9603191051f098bdc612536988dfba71428d5d55bfa1052d6661",
+    "phase-2-contribution-1.json": "4c966cde2c9cdb61c965f2f5240d3bc336d7ede419d03b5779d1e26739d7395f",
+    "run-report.json": "22f5298a48a75c9d8effbc576ba4007636a643689c814a1286434f47716517b4"
+  },
+  "checks": {
+    "goVet": "passed",
+    "goModVerify": "passed",
+    "gofmt": "passed",
+    "forgeFmt": "passed",
+    "bashSyntax": "passed"
+  },
+  "limitations": [
+    "One operator controls both ephemeral test identities; no identity seeds copied into repository",
+    "Archived authentic beacons do not prove unpredictable randomness after closure or closure publication",
+    "Only 5-constraint domain-8 toy circuit supported; no game CS or large-domain MPC generated",
+    "Kernel limits cover address space/CPU/per-file size; GC target is not an RSS limit and GOMAXPROCS is not a CPU quota",
+    "No EVM verification, power-loss durability, independent audit or production approval demonstrated",
+    "No complete web/rules/contracts suites rerun; their candidate evidence remains historical",
+    "No --at authorization mode introduced; current reviews still expire"
+  ]
+}

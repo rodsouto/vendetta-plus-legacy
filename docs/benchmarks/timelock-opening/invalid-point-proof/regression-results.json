@@ -1,0 +1,12 @@
+{
+  "scope": "Invalid-point proof generator and consumer regressions; no Game integration",
+  "constraintWitnessChecks": 11,
+  "realGroth16Proofs": 2,
+  "realEvmTestsPassed": 6,
+  "originalValidPacketRejectedByActualProver": true,
+  "negativeProverErrorKind": "bn254.UnsatisfiedConstraintError",
+  "wrongStatementAndCrossMissionReplayRejected": true,
+  "gasFromSeparateAnvilTransactions": true,
+  "regressionLogSha256": "9cb9e9c811c40883da6916eade22508b0ac8860265fccd976df8dd01733f0a5d",
+  "proverLogSha256": "fe57ce655aa9b3a111e0d7c64ab35a79659fc5884ff3f93aef609037ba20ed0b"
+}

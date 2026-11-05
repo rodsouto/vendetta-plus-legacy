@@ -1,0 +1,8 @@
+{
+  "scope": "Read-only H7 composition review with access to actual compiled gnark module",
+  "durationMs": 180037,
+  "numTurns": 17,
+  "models": [
+    "claude-opus-5-5"
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "scope": "Pairing plus bounded KEM only; no beacon authentication, age or mission",
+  "vectors": [
+    {
+      "name": "archived-client",
+      "signature": "b44679b9a59af2ec876b1a6b1ad52ea9b1615fc3982b19576350f93447cb1125e342b73a8dd2bacbe47e4b6b63ed5e39",
+      "capsule": "87936b26452b36d236310e4a334a189d1c71ae018df489917a72c3fc65296cd2fdd978e41df7ea0c79f41fa9eaee804f06f3a0fe84ccb49a8aaf538aaeb6bc0ed021ae0a872438461564e1ab4a4f3525fe4b80e0d2ec6bc05b1b57fb5a9752d6c172809cf5a8c6a3dc6b48ad850b2fb9c55b8362ba8b746f3a35c9be4c1d2cd8",
+      "fileKey": "80f7fdaac3beb9e9900d064d5a0bfecc",
+      "capsuleValid": true,
+      "iterations": 2
+    },
+    {
+      "name": "tampered-v",
+      "signature": "b44679b9a59af2ec876b1a6b1ad52ea9b1615fc3982b19576350f93447cb1125e342b73a8dd2bacbe47e4b6b63ed5e39",
+      "capsule": "87936b26452b36d236310e4a334a189d1c71ae018df489917a72c3fc65296cd2fdd978e41df7ea0c79f41fa9eaee804f06f3a0fe84ccb49a8aaf538aaeb6bc0ed021ae0a872438461564e1ab4a4f3525fe4b80e0d2ec6bc05b1b57fb5a9752d6c072809cf5a8c6a3dc6b48ad850b2fb9c55b8362ba8b746f3a35c9be4c1d2cd8",
+      "fileKey": "9b78acf710e1b2406853fa64782c5f52",
+      "capsuleValid": false,
+      "iterations": 1
+    },
+    {
+      "name": "tampered-w",
+      "signature": "b44679b9a59af2ec876b1a6b1ad52ea9b1615fc3982b19576350f93447cb1125e342b73a8dd2bacbe47e4b6b63ed5e39",
+      "capsule": "87936b26452b36d236310e4a334a189d1c71ae018df489917a72c3fc65296cd2fdd978e41df7ea0c79f41fa9eaee804f06f3a0fe84ccb49a8aaf538aaeb6bc0ed021ae0a872438461564e1ab4a4f3525fe4b80e0d2ec6bc05b1b57fb5a9752d6c072809cf5a8c6a3dc6b48ad850b2fb9c45b8362ba8b746f3a35c9be4c1d2cd8",
+      "fileKey": "9a78acf710e1b2406853fa64782c5f52",
+      "capsuleValid": false,
+      "iterations": 1
+    },
+    {
+      "name": "h3-second-candidate",
+      "signature": "b44679b9a59af2ec876b1a6b1ad52ea9b1615fc3982b19576350f93447cb1125e342b73a8dd2bacbe47e4b6b63ed5e39",
+      "capsule": "b9ddc1e24b4a7402b5dbc9361cc4103a680ec6fed17424ed5d7e49b45de52c3c7e323da929b634428bebd14749e40b9917b8e67058d54b8b9fae15527f7fcb62bce0d4b7762d038c5c12e2b5a8becb640ba025a47bb56b0373821c26f1bcf70560f54f3fdcb6ba124dd84ac2d4b502bf711c09882e209e86b9ba784167fbf0ca",
+      "fileKey": "1e0c92fd487aae4027971e42724db2c2",
+      "capsuleValid": true,
+      "iterations": 2
+    }
+  ]
+}

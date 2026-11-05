@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-29",
+  "scope": "Follow-up producer review; no setup regeneration or new heavy replay",
+  "goProducerTestsPassed": true,
+  "authenticWrongRoundRejectedBeforeWitness": true,
+  "existingSetupPreserved": true,
+  "tamperedArtifactsRejected": [
+    "circuit.bin",
+    "proving.key",
+    "verifying.key",
+    "Verifier.sol"
+  ],
+  "incompleteManifestRejected": true,
+  "unsafeSetupPolicyTestsPassed": 10,
+  "scriptsTypecheckPassed": true,
+  "producerFormattingPassed": true,
+  "webTestsPassedWithoutChainLoader": 114,
+  "webChainLoaderInitiallySkipped": 3,
+  "heavyProducerReplayRerun": false,
+  "priorRealReplay": "results.json",
+  "realNetworkDeployment": false,
+  "webTestsPassed": 117,
+  "webTestsSkipped": 0,
+  "webTestFilesPassed": 16,
+  "webChainLoaderTestsPassed": 3,
+  "loaderFixtureGasLimit": 12000000,
+  "webLogSha256": "7d3d3e445b99a755ac2379c21ab205bc977d7693937f26afa50e7eb75e7f9110"
+}

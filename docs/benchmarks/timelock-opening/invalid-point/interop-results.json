@@ -1,0 +1,139 @@
+{
+  "scope": "Compressed G2 boundary decoder comparison; not tlock decryption, proof or Game integration",
+  "casesPassed": 22,
+  "tlockCurveVersion": "1.9.1",
+  "cases": [
+    {
+      "name": "A0-high-bit-128",
+      "nativeGoValid": false,
+      "directNobleValid": false,
+      "tlockNobleValid": false
+    },
+    {
+      "name": "A0-high-bit-32",
+      "nativeGoValid": false,
+      "directNobleValid": false,
+      "tlockNobleValid": false
+    },
+    {
+      "name": "A0-high-bit-64",
+      "nativeGoValid": false,
+      "directNobleValid": false,
+      "tlockNobleValid": false
+    },
+    {
+      "name": "A0-max-384-bits",
+      "nativeGoValid": false,
+      "directNobleValid": false,
+      "tlockNobleValid": false
+    },
+    {
+      "name": "a-flags",
+      "nativeGoValid": false,
+      "directNobleValid": false,
+      "tlockNobleValid": false
+    },
+    {
+      "name": "all-zero",
+      "nativeGoValid": false,
+      "directNobleValid": false,
+      "tlockNobleValid": false
+    },
+    {
+      "name": "b-flags",
+      "nativeGoValid": false,
+      "directNobleValid": false,
+      "tlockNobleValid": false
+    },
+    {
+      "name": "c-flags",
+      "nativeGoValid": false,
+      "directNobleValid": false,
+      "tlockNobleValid": false
+    },
+    {
+      "name": "d-flags",
+      "nativeGoValid": false,
+      "directNobleValid": false,
+      "tlockNobleValid": false
+    },
+    {
+      "name": "e-flags",
+      "nativeGoValid": true,
+      "directNobleValid": true,
+      "tlockNobleValid": true
+    },
+    {
+      "name": "f-flags",
+      "nativeGoValid": true,
+      "directNobleValid": true,
+      "tlockNobleValid": true
+    },
+    {
+      "name": "g-flags",
+      "nativeGoValid": false,
+      "directNobleValid": false,
+      "tlockNobleValid": false
+    },
+    {
+      "name": "h-flags",
+      "nativeGoValid": false,
+      "directNobleValid": false,
+      "tlockNobleValid": false
+    },
+    {
+      "name": "identity",
+      "nativeGoValid": false,
+      "directNobleValid": false,
+      "tlockNobleValid": false
+    },
+    {
+      "name": "noncanonical-0",
+      "nativeGoValid": false,
+      "directNobleValid": false,
+      "tlockNobleValid": false
+    },
+    {
+      "name": "noncanonical-1",
+      "nativeGoValid": false,
+      "directNobleValid": false,
+      "tlockNobleValid": false
+    },
+    {
+      "name": "nonsquare-x",
+      "nativeGoValid": false,
+      "directNobleValid": false,
+      "tlockNobleValid": false
+    },
+    {
+      "name": "on-curve-outside-subgroup",
+      "nativeGoValid": false,
+      "directNobleValid": false,
+      "tlockNobleValid": false
+    },
+    {
+      "name": "order-13-torsion",
+      "nativeGoValid": false,
+      "directNobleValid": false,
+      "tlockNobleValid": false
+    },
+    {
+      "name": "order-23-torsion",
+      "nativeGoValid": false,
+      "directNobleValid": false,
+      "tlockNobleValid": false
+    },
+    {
+      "name": "p-minus-one-0",
+      "nativeGoValid": false,
+      "directNobleValid": false,
+      "tlockNobleValid": false
+    },
+    {
+      "name": "p-minus-one-1",
+      "nativeGoValid": false,
+      "directNobleValid": false,
+      "tlockNobleValid": false
+    }
+  ]
+}

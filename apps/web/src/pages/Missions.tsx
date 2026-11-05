@@ -1,3 +1,4 @@
+import { fromHex } from "viem";
 // Sending missions (07-missions.md) and following them: distance, travel time, salary and cargo are
 // computed with the same exact formulas as the contract (packages/rules). Missions go hidden
 // (B-22) with a random cover distance, except transports bound to a market order.
@@ -178,7 +179,19 @@ function MissionsFor({ b, p }: { b: sim.Building; p: sim.Player }) {
       done: t("missions.sent"),
       check: (w, c, n) => {
         sim.checkSendTarget(w, p.id, b.coord, kind, target, n);
-        return sim.sendHiddenMission(w, c, b.id, commit, cover, counts, res, arrival, n);
+        return sim.sendHiddenMission(
+          w,
+          c,
+          b.id,
+          commit,
+          cover,
+          counts,
+          res,
+          fromHex(ciphertext, "bytes"),
+          arrival,
+          n,
+          { chainId: BigInt(g.clients.deployment.chainId), game: g.clients.deployment.game },
+        );
       },
       functionName: "sendHiddenMission",
       args: [b.id, commit, Number(cover), counts, res, ciphertext, arrival],

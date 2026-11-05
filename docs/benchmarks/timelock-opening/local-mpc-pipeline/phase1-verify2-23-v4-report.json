@@ -1,0 +1,34 @@
+{
+  "status": "verification-complete",
+  "operation": "verify-second-contribution",
+  "log2": 23,
+  "binarySha256": "376a2ea1c3c48dbaf083c27a47c17709eccceb0f7dfc2f5bf0b9334e4e50d680",
+  "pid": 477145,
+  "wallMilliseconds": 1379443,
+  "cpuUserMilliseconds": 1626679,
+  "cpuSystemMilliseconds": 53593,
+  "maxRssBytes": 9038798848,
+  "exited": true,
+  "addressSpaceBytes": 15032385536,
+  "cpuSeconds": 6000,
+  "wallSeconds": 7200,
+  "verification": {
+    "schema": "vendetta-unsafe-local-phase1-verification-1",
+    "log2": 23,
+    "sourceArtifactSha256": "52f4be3a4319772f03a5945ac6fb38088ad032a6004697e79ea41a6d72bd1ec0",
+    "previousVerificationSha256": "ac865fa2166a134993200eb74cc5cc22d19d37c6c9358e09a472e826787492f6",
+    "transcriptSha256": "d3f8349be39181601da99d65aa5c3ff489bf50761b3ef3031f7474cb8a7af279",
+    "anchor": {
+      "schema": "vendetta-local-phase1-anchor-1",
+      "domain": 8388608,
+      "sha256": "d3f8349be39181601da99d65aa5c3ff489bf50761b3ef3031f7474cb8a7af279",
+      "tauG1": "e7f70e183acffdea8f65cacc3c9a5518ef6a417c6d1109c5b8c2abda1b283fba",
+      "alphaG1": "aae1c29d2fa2ca53bd48436dcc40310dcb3229049b25626537ba479ae12c564f",
+      "betaG1": "a4a1fa32f6ff54d86aab1e03250efbe15be1104014e5b7ae4f3d864678432f17",
+      "betaG2": "a641dc6bb133a9b997c3d6955379822ce9013775c7bbca370e54023cf58539bd152d31e48de5382ca3ea202e81e4c02a9368aa17a004a7ec792c4f1e63ffe181"
+    },
+    "nativeTransitionVerified": true,
+    "productionApproved": false
+  },
+  "productionApproved": false
+}

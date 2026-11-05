@@ -1,0 +1,6 @@
+{"operation":"initialize","domainSize":1024,"wallMilliseconds":0,"currentRssBytes":6049792,"processMaxRssBytes":13975552,"artifactBytes":0,"artifactSha256":""}
+{"operation":"contribute-1-and-serialize","domainSize":1024,"wallMilliseconds":604,"currentRssBytes":10186752,"processMaxRssBytes":13975552,"artifactBytes":196873,"artifactSha256":"b4481453be8bdbe3a9dec67df3ba3c53ac65908c805a7479a058968ea5e984b9"}
+{"operation":"contribute-2-and-serialize","domainSize":1024,"wallMilliseconds":600,"currentRssBytes":11096064,"processMaxRssBytes":13975552,"artifactBytes":196873,"artifactSha256":"00d88e0692bae6a8b2c75c0e9288620446911c36b81f86a684aedb935ff4e4f3"}
+{"operation":"decode-two-fresh","domainSize":1024,"wallMilliseconds":307,"currentRssBytes":10883072,"processMaxRssBytes":13975552,"artifactBytes":0,"artifactSha256":""}
+{"operation":"verify-seal-and-hash","domainSize":1024,"wallMilliseconds":685,"currentRssBytes":11952128,"processMaxRssBytes":13975552,"artifactBytes":196552,"artifactSha256":"cb317c970777ce91143d1d3d587ed22c0069d4990077f92a7acef156d3d33225"}
+{"operation":"complete","domainSize":1024,"wallMilliseconds":0,"currentRssBytes":11964416,"processMaxRssBytes":13975552,"artifactBytes":0,"artifactSha256":""}

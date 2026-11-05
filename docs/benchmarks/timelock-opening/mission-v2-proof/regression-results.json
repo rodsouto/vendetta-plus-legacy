@@ -1,0 +1,8 @@
+{
+  "scope": "Full v2 constraint regressions after fixture assignment refactor and addition of exhausted-prefix policy",
+  "missionWitnessChecks": 27,
+  "publicSchemaPositionsChecked": 55,
+  "invalidPointMissionWitnessChecks": 11,
+  "allTargetedGoTestsPassed": true,
+  "logSha256": "1d9deec5434c4dd2be52bb5380fc3440615a952941e3cc150485dc8a12938377"
+}

@@ -1,0 +1,35 @@
+{
+  "compileMs": 14610.664,
+  "componentOnly": true,
+  "constraints": 2139405,
+  "externalH3": true,
+  "gnark": "v0.16.4",
+  "go": "go1.27.3",
+  "gomaxprocs": 16,
+  "maxRssKiB": 5607348,
+  "nodeVectorsProven": 2,
+  "prove0Ms": 16797.12,
+  "prove1Ms": 18479.348,
+  "publicInputs": 17,
+  "receipts": [
+    {
+      "artifact": "proof.json",
+      "capsuleValid": true,
+      "forgedResultRejected": true,
+      "name": "valid-five-candidates",
+      "proofSolidityBytes": 384
+    },
+    {
+      "artifact": "invalid-proof.json",
+      "capsuleValid": false,
+      "forgedResultRejected": true,
+      "name": "tampered-v",
+      "proofSolidityBytes": 384
+    }
+  ],
+  "referenceVectors": 4,
+  "scope": "pairing + KEM with external H3; consumer MUST enforce exact completed prefix; no beacon/age/mission authentication",
+  "setupMs": 342036.548,
+  "verify0Ms": 2.94,
+  "verify1Ms": 3.597
+}

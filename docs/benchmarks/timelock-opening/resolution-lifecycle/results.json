@@ -1,0 +1,15 @@
+{
+  "scope": "Mirrored inactive receipt lifecycle in rules/core; no World/CoreState/Game activation, proof adapter or dependency frontier",
+  "sharedTraces": 5,
+  "sharedSteps": 33,
+  "solidityFuzzRuns": 256,
+  "rulesTestsPassed": 759,
+  "contractTestsPassed": 184,
+  "contractLayoutTestsPassed": 11,
+  "storageLayoutUnchanged": true,
+  "existingScenarioTestsPassed": 25,
+  "gameBehaviorChanged": false,
+  "tsRulesLogSha256": "3f5ff654c7cbc26bf3b32ed91444f2859ca0a0aebc7255612556d27a2a3d29c4",
+  "contractsLogSha256": "7929bfb5c349bc60851f864fb8cbbde0929ddcace36fa5c594d6b7c09ea77795",
+  "sharedFixtureSha256": "9a4afb3fca57e86d1d1776a11e1be6bc5bf895d0387e4b93f40870d02e22c1fd"
+}

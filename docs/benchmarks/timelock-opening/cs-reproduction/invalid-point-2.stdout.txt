@@ -1,0 +1,3 @@
+22:16:46 INF compiling circuit
+22:16:46 INF parsed circuit inputs nbPublic=2 nbSecret=89
+22:17:19 INF building constraint builder nbConstraints=3760005

@@ -1,0 +1,75 @@
+{
+  "scope": "Sequential native phase profile, one authenticated opening and one invalid-point proof; existing unsafe local setups; native VK verification, no EVM/RPC/H3 replay.",
+  "date": "2026-10-30T23:22:02.594Z",
+  "elapsedMs": 550222.6446890001,
+  "binarySha256": "405f6cf124ea6f33b5f58c368ea71176e27e6341d5df2f745cd64ae5f4228a94",
+  "vectorsSha256": "9aa542e9026a2befa51a28a48b793ece0b08e001aa8ee3aba2d5f9580b9c3a26",
+  "environment": {
+    "cpu": "AMD Ryzen 7 5825U with Radeon Graphics",
+    "logicalCpus": 16,
+    "memoryBytes": 20348297216,
+    "GOMEMLIMIT": "6GiB",
+    "GOMAXPROCS": "8"
+  },
+  "measurements": [
+    {
+      "name": "valid-opening",
+      "circuit": "opening",
+      "elapsedMs": 309245,
+      "profileMs": {
+        "artifactIntegrityMs": 38484.3096,
+        "encodeMs": 2.574601,
+        "loadArtifactsMs": 202424.068195,
+        "prepareAssignmentMs": 6.099158,
+        "proveMs": 68323.13815,
+        "verifyMs": 4.162133,
+        "witnessMs": 1.190843
+      },
+      "setupManifestSha256": "353bd28c1fe36a07fd7bb42a110f49cbe323fbcdc1dd323c036678502450a8ff"
+    },
+    {
+      "name": "invalid-point",
+      "circuit": "invalid-point",
+      "elapsedMs": 238521,
+      "profileMs": {
+        "artifactIntegrityMs": 15456.589929,
+        "encodeMs": 0.282908,
+        "loadArtifactsMs": 183160.127965,
+        "prepareAssignmentMs": 0.722031,
+        "proveMs": 39899.572455,
+        "verifyMs": 3.113971,
+        "witnessMs": 1.460755
+      },
+      "setupManifestSha256": "6757f53a6b002dd917f545863279c5441c33ca77f39dbc56f0dadcd4c96b32ee"
+    }
+  ],
+  "resources": {
+    "intervalMs": 1000,
+    "elapsedMs": 550223.1878610001,
+    "samples": 550,
+    "peakNodeRssBytes": 115220480,
+    "peakNativeRssBytes": 6277541888,
+    "peakNativeProcesses": 1,
+    "native": [
+      {
+        "kind": "opening",
+        "cpuSeconds": 1560.03,
+        "peakRssBytes": 6277541888,
+        "samples": 308
+      },
+      {
+        "kind": "invalid-point",
+        "cpuSeconds": 1309.67,
+        "peakRssBytes": 5678407680,
+        "samples": 238
+      }
+    ],
+    "limitation": "Sampled Linux RSS and CPU; may miss peaks and final CPU ticks. Node RSS excludes child processes. Not a memory ceiling or leak test."
+  },
+  "limitations": [
+    "Single sample per circuit on shared hardware; filesystem caches are not flushed.",
+    "Phase wall times include scheduling and GC; no CPU attribution by phase.",
+    "Output serialization, process startup and HTTP/RPC/H3 are outside native phase totals.",
+    "Profile contains durations only; requests, witnesses and proof bytes are not retained in this report."
+  ]
+}

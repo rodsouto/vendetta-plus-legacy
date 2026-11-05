@@ -1,0 +1,37 @@
+{
+  "scope": "Experimental single-setup resident native worker; service mode unchanged",
+  "checks": {
+    "nativeProducerTests": {
+      "topLevelTests": 6,
+      "passed": true,
+      "log": "/tmp/vendetta-producer-worker-native.log"
+    },
+    "resourceAndJobsTests": {
+      "tests": 11,
+      "passed": true,
+      "log": "/tmp/vendetta-producer-worker-tests.log"
+    },
+    "scriptTypecheck": true,
+    "realWorkerEOFAndProtocolFailureExit": true,
+    "newNativeProofsVerifiedWithVK": 3,
+    "publicInputStatementAndDecisionBindingsVerified": {
+      "count": 3,
+      "log": "/tmp/vendetta-producer-worker-binding.log"
+    },
+    "phaseDurationsReconciledWithTotals": true,
+    "oneObservedNativeProcess": true
+  },
+  "notRepeated": [
+    "full web suite",
+    "rules suite",
+    "contracts suite",
+    "EVM/H3 replay"
+  ],
+  "remaining": [
+    "per-job supervisor lifecycle and circuit switching",
+    "invalid-point worker benchmark",
+    "prolonged load",
+    "real EVM/H3 replay of worker mode"
+  ],
+  "setupsRegenerated": false
+}

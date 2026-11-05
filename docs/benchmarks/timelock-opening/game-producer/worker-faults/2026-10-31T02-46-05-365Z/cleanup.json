@@ -1,0 +1,9 @@
+{
+  "checkedAt": "2026-10-31T02:57:41.822747+00:00",
+  "observedWorkerPids": [
+    3631531,
+    3637903
+  ],
+  "allObservedWorkerPidsExited": true,
+  "matchesSampledWorkerProcessCount": true
+}

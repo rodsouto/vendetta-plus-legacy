@@ -1,5 +1,11 @@
 # Deploying to Gnosis Chain
 
+**Deployment is blocked pending hidden v2 setup approval.** `pnpm deploy:gnosis`
+exits before reading `.env` or contacting RPC, including with `--yes`.
+`Deploy.s.sol` independently rejects every chain except local 1337/31337. There
+is no operator flag to bypass this policy. The procedure below is retained for
+the future approved deploy path; it is not currently executable on Gnosis.
+
 Production network: **Gnosis Chain, chain ID 100**. Gas is paid in **xDAI**, not GNO or ETH.
 The player uses passkeys and sponsored operations; network details stay out of the game UI.
 The contract deployment, keeper and provider setup spend real money. Local verification uses
@@ -9,52 +15,45 @@ The contract deployment, keeper and provider setup spend real money. Local verif
 
 Copy `.env.example` to `.env` at the repository root. The file is git-ignored.
 
-| Variable | Purpose |
-|----------|---------|
-| `DEPLOYER_PRIVATE_KEY` | A dedicated deployer funded with xDAI on Gnosis |
-| `ADMIN` | Admin role of Game: upgrades and assigns roles (B-17); use a Safe in production. Empty means the deployer |
-| `OPERATOR` | Operator role: grants premium (B-25). Empty means `ADMIN` |
-| `ARBITER` | Arbiter role: suspends players (B-14). Empty means `ADMIN` |
-| `GNOSIS_RPC_URL` | Deployment RPC; defaults to `https://rpc.gnosischain.com` |
-| `VITE_PIMLICO_API_KEY` | Public browser key for sponsorship and ordinary bundling on chain 100 |
-| `VITE_PIMLICO_POLICY_ID` | Sponsorship policy restricted to Gnosis and the intended spending limits |
-| `VITE_REVEAL_BUNDLER_URL` | EntryPoint 0.7 bundler with private user-operation handling and private executor submission |
-| `VITE_RPC_URL` | Public read RPC override; defaults to the committed deployment RPC |
-| `VITE_INDEXER_URL` | Goldsky GraphQL endpoint; empty uses recent RPC battle logs |
-| `KEEPER_PRIVATE_KEY` | Keeper account funded with xDAI; server only |
-| `REVEAL_RPC_URL` | Private/encrypted raw-transaction submission endpoint for keeper reveals; server only |
+| Variable                        | Purpose                                                                                                   |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `DEPLOYER_PRIVATE_KEY`          | A dedicated deployer funded with xDAI on Gnosis                                                           |
+| `ADMIN`                         | Admin role of Game: upgrades and assigns roles (B-17); use a Safe in production. Empty means the deployer |
+| `OPERATOR`                      | Operator role: grants premium (B-25). Empty means `ADMIN`                                                 |
+| `ARBITER`                       | Arbiter role: suspends players (B-14). Empty means `ADMIN`                                                |
+| `GNOSIS_RPC_URL`                | Deployment RPC; defaults to `https://rpc.gnosischain.com`                                                 |
+| `VITE_PIMLICO_API_KEY`          | Public browser key for sponsorship and ordinary bundling on chain 100                                     |
+| `VITE_PIMLICO_POLICY_ID`        | Sponsorship policy restricted to Gnosis and the intended spending limits                                  |
+| `HIDDEN_OPENING_CONSUMER`       | Predeployed reviewed full opening consumer; required at genesis                                           |
+| `HIDDEN_INVALID_POINT_CONSUMER` | Predeployed reviewed invalid-U consumer; required at genesis                                              |
+| `VITE_RPC_URL`                  | Public read RPC override; defaults to the committed deployment RPC                                        |
+| `VITE_INDEXER_URL`              | Goldsky GraphQL endpoint; empty uses recent RPC battle logs                                               |
+| `KEEPER_PRIVATE_KEY`            | Keeper account funded with xDAI; server only                                                              |
+| `HIDDEN_PROVER_TOKEN`           | Bearer token with prove scope, assigned by the certificate-service operator; server only                  |
+| `HIDDEN_PROVER_URL`             | Certificate-service endpoint; server only, prepares the proof and required H3 prefix                      |
 
 Only `VITE_*` variables enter the public web bundle. Never put private keys in them. API credentials
 embedded in URLs must be safe for public use and restricted appropriately.
 
-## Private reveals are a launch dependency (B-22)
+## Mandatory v2 certificate infrastructure
 
-Gnosis has a public mempool. A pending reveal exposes the mission target and lets a defender try to
-move troops before inclusion. Drand ciphertext alone does not protect a reveal after it is opened.
+Every world initializes directly with v2 consumers. No deployment or client falls back to v1, a
+plaintext local packet, direct reveal or timeout cancellation. Deploy.s.sol requires both consumer
+addresses and validates code presence on local chains; their verifier semantics, setup and mutability must be
+reviewed separately. The archived experimental setup is not a production setup.
 
-The browser routes every operation containing a Game `reveal` through `VITE_REVEAL_BUNDLER_URL`,
-including any accompanying advance or player action. Sponsorship remains on Pimlico. The reveal
-bundler must support our EntryPoint 0.7 accounts, accept the Pimlico paymaster's sponsorship and keep
-both the user operation and executor transaction private until ordering is fixed. Ordinary Pimlico
-bundling has not been established to provide this guarantee. The app refuses to connect to Gnosis
-when this separate route is missing and never retries a reveal through the ordinary bundler.
+The keeper expects a complete certificate service. Its HTTP transport, verification simulation and
+submission are implemented, as are real generation/replay for newly admitted Game contexts and
+a local resident-worker service. Stages 1–5 are closed locally; production remains blocked on
+[stage 6](proposals/hidden-v2-production-readiness.md). The producer rejects self-declared secure
+setups until provenance verification is implemented. Both deployment entry points now block production pending reviewed setup provenance.
 
-The keeper uses `REVEAL_RPC_URL` only for reveals and the ordinary RPC for reads, advancement and
-forfeits. Its private endpoint must be on chain 100 and must not fall back to the public mempool.
-[Shutter's encrypted-mempool infrastructure](https://shutter.network/shielded-trading/) is a candidate,
-not a verified integration or an automatically configured provider. A Shutter **raw transaction** RPC
-cannot be used as an **ERC-4337 bundler** URL. A public web URL or a successful chain-ID check alone
-is not evidence of private submission.
+Test deployments use a separate DeployTest script with explicit mock consumers, guarded to test
+chain ids. Those fixtures exercise the same v2 packet/receipt state machine, not cryptographic
+security. Neither production deployment nor normal clients select another hidden protocol.
 
-Before opening the world, validate the selected routes end to end: sponsorship interoperability,
-transaction ordering/privacy, no public fallback, payload and gas limits, and inclusion latency.
-This repository supplies the routing and guards, not a provisioned private bundler service.
-
-Gnosis timing uses a 20-second send margin (20–22 seconds of fixed-arrival slack) and a 15-second
-head start before the drand round opens. These are initial budgets for five-second slots, not an
-inclusion guarantee. Missed slots, stale RPC heads and provider delay consume that budget. Verify
-sender reveals arrive before public decryption and keeper reveals before the 60-second grace ends;
-also validate the existing 15-second reveal-order window under actual keeper latency.
+The old private reveal route is removed. Certificate submissions follow beacon release and use the
+ordinary RPC/bundler; the historical attack remains ahead of later drained actions while pending.
 
 ## Pimlico
 
@@ -78,7 +77,7 @@ provider responses and polling may change that count. See the [measured comparis
 pnpm deploy:gnosis
 ```
 
-The script verifies chain ID 100 and the deployed account factories/validators, requires committed
+After an approved artifact registry is implemented and the gates are replaced, the intended script verifies chain ID 100 and the deployed account factories/validators, requires committed
 contracts, prints the deployer balance in xDAI and the admin, then simulates. Use that simulation's
 estimate to fund the deployer. Type `deploy` to broadcast (`--yes` skips the prompt). It deploys the
 linked libraries, Game implementation, UUPS proxy and PasskeyDirectory, and requests source
@@ -129,20 +128,33 @@ pnpm build:gnosis
 This builds the static web app with `VITE_NETWORK=gnosis`, `.env` and `deployments/gnosis.json`.
 Use a stable HTTPS domain: passkeys are bound to it. Add that domain to the provider's allowed
 origins. The production configuration rejects deployments for another chain, missing account
-directories and missing private reveal routing.
+directories.
 
 ## Keeper
 
 ```bash
-KEEPER_PRIVATE_KEY=0x... REVEAL_RPC_URL=https://... RPC_URL=https://... \
-  pnpm --filter @vendetta/web keeper ../../deployments/gnosis.json gnosis
+KEEPER_PRIVATE_KEY=0x... HIDDEN_PROVER_URL=https://... HIDDEN_PROVER_TOKEN=... RPC_URL=https://... \
+  pnpm --filter @vendetta/web keeper ../../deployments/gnosis.json
 ```
 
-Run it continuously with outbound HTTPS to the providers and `api.drand.sh`. It needs funded xDAI
-and verifies that its normal and private RPCs use the expected chain. On Gnosis it advances **one
-mission per transaction**, rather than assuming four heavy missions fit. The observed block gas
-limit on 2026-10-23 was 17M; the 7M mission reserve and ERC-4337's padded limits still need to fit
-actual provider limits. Long client backlog operations may fail until the keeper catches up.
+Run it continuously with access to its RPC and certificate service. It verifies chain identity,
+requires a funded keeper key, and processes one mission per advance transaction. The service
+returns `{ "certificate": "0x..." }` after preparing the consumer's H3 state. Service, proof or
+RPC failures are retried, never converted to invalidity. No mission deadline or forfeit route exists.
+
+Use a dedicated signer and one keeper process per signer/Game. `KEEPER_STATE_DIR` selects
+an exclusive persistent directory (default: `$XDG_STATE_HOME/vendetta/keeper`, or
+`~/.local/state/vendetta/keeper`). Keep it outside web/static serving roots and preserve it
+across restarts: signed transactions are journaled privately
+before broadcast and an ambiguous send is settled before reading missions or signing the
+next action. RPC calls have a 15-second deadline and receipt waits 60 seconds. The keeper
+simulates Game calls and signs them with a 12M gas limit to cover the drain reserve; only
+consumed gas is charged. It rebroadcasts the same bytes after a timeout and does not
+replace fees or cancel nonces automatically. Do not delete an unresolved journal to unblock
+the keeper; an externally replaced or indefinitely pending nonce requires operator recovery.
+A receipt records inclusion, not finality. The ciphertext index checks block hashes and
+rebuilds from deployment on a reorg. Full keeper/H3 reorg histories remain a local-release
+check, separate from these journal/index tests.
 
 ## Verification and known limits
 
@@ -156,10 +168,11 @@ pnpm --filter @vendetta/indexer build
 The local AA fixture is captured from Gnosis, including Kernel, its WebAuthn/P-256 verifier,
 SimpleAccount and EntryPoint. Refresh it with `pnpm --filter @vendetta/web aa:fixture` when needed;
 `GNOSIS_RPC_URL` can override its public source. This checks bytecode/account behavior locally;
-it does not validate a production bundler, sponsorship policy or private relay.
+it does not validate a production bundler, sponsorship policy or proof service.
 
 Without an indexer, reports scan up to 241,920 recent blocks (about two weeks), newest first, in
 chunks of at most 5,000 blocks, stopping at the latest 100 battles. Choose a read provider that
 supports that range. World loading still reads entities individually and grows with the world.
-Drand outages leave only the sender able to reveal; after the grace, unrevealed missions forfeit.
+Drand/prover outages leave missions pending at their original queue position. They never expire;
+progress requires the dependencies eventually recovering.
 PasskeyDirectory is ownerless and not upgradeable: replacing it requires a new deployment/address.

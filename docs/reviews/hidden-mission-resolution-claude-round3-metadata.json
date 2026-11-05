@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-29",
+  "model": [
+    "claude-opus-5-5"
+  ],
+  "durationMs": 561663,
+  "turns": 38,
+  "toolsAllowed": [
+    "Read",
+    "Grep",
+    "Glob"
+  ],
+  "readOnly": true,
+  "rawResponseSha256": "5e5f924d0dfedb7e8db53ba888d5737c03165c75a963df3808f4c08ee2afc2c9",
+  "reviewedSourceHashesBeforeCorrections": {
+    "apps/web/scripts/experiments/opening.ts": "f63b86260da382a0b289de10454406ac92f0acaa1d9ccf933b28e59fa6d31602",
+    "packages/rules/src/hidden.ts": "b00a0f2366241be32c13573b1c7bd8533683593a284609b7d41ee444e7b3d359",
+    "packages/rules/src/sim/missions.ts": "dd3d10eab1da0d745b4bd743581cd6365d6435d2483f25b580b4bc4ebfc7f429",
+    "apps/web/scripts/experiments/opening-zk/mission.go": "6c6bd30b2ae3c7194e79b009e64db2e1bc39c549ce8f56827b9774575c6fe668",
+    "apps/web/scripts/experiments/opening-zk/mission_input.go": "62b91256530ed750b11fb9f4a60d57e728776273f946d7caa38e5541796ad8c8",
+    "apps/web/scripts/experiments/opening-zk/mission_test.go": "6c1e6555e8548de6c744f16773add19fe3c1ca8b093f4f1a42ec514e20cdc496",
+    "apps/web/scripts/experiments/opening-zk/beacon.go": "5a11f5f900870f23452407aac5eed3aa79aa34bdc1ad9f21b7ed55afcef7d662",
+    "apps/web/scripts/experiments/opening-zk/capsule.go": "c9b7f1e3fcbabbdff6de3bd4187e866f5b9602c8cfec09c1f52b74358de79144",
+    "apps/web/scripts/experiments/opening-zk/capsule_compact.go": "9270ce7c83250499fc6cc7d9f9dd3a9d47d6acfa2676153416509190e46fb4ec",
+    "apps/web/scripts/experiments/opening-zk/capsule_age.go": "abee4b3757a7a07f7dd4aee914e4fba3eb54b0081b2d06fc95c3b3d9b48da86e",
+    "apps/web/scripts/experiments/opening-zk/age.go": "d04e08292124658a00236db7d354aec2f33abfc8d9a5293f7453ec9edfa80e05"
+  }
+}

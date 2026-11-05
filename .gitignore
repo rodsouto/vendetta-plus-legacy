@@ -19,3 +19,6 @@ apps/web/.impeccable/questions/
 # Audit reports (solidity-auditor, x-ray)
 .solidity-auditor/
 contracts/x-ray/
+
+# Signed keeper transaction journals (persistent local operator state)
+.keeper-state/

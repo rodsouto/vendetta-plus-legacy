@@ -1,0 +1,42 @@
+{
+  "status": "compiled-cs-loaded",
+  "operation": "inspect-compiled-cs",
+  "log2": 22,
+  "binarySha256": "cddd75568ea9b15417b3b851d63e909ffa7f08752d4b186119fb7fbd4907b01d",
+  "pid": 206590,
+  "wallMilliseconds": 5666,
+  "cpuUserMilliseconds": 3875,
+  "cpuSystemMilliseconds": 3811,
+  "maxRssBytes": 1583464448,
+  "exited": true,
+  "addressSpaceBytes": 6442450944,
+  "cpuSeconds": 120,
+  "wallSeconds": 180,
+  "csInfo": {
+    "schema": "vendetta-local-compiled-cs-1",
+    "sha256": "89a9897b75e9cd785bd62feda8fc60ed50239f58e8b60211561fa560d8832898",
+    "bytes": 225400632,
+    "constraints": 3760005,
+    "publicInputs": 2,
+    "shapes": [
+      {
+        "schema": "vendetta-hidden-v2-native-shape-1",
+        "circuitSha256": "89a9897b75e9cd785bd62feda8fc60ed50239f58e8b60211561fa560d8832898",
+        "phase": 1,
+        "domain": 4194304,
+        "private": 0,
+        "privateCommitted": []
+      },
+      {
+        "schema": "vendetta-hidden-v2-native-shape-1",
+        "circuitSha256": "89a9897b75e9cd785bd62feda8fc60ed50239f58e8b60211561fa560d8832898",
+        "phase": 2,
+        "domain": 4194304,
+        "private": 3338949,
+        "privateCommitted": [2243213]
+      }
+    ],
+    "productionApproved": false
+  },
+  "productionApproved": false
+}

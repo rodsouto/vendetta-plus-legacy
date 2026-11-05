@@ -1,0 +1,18 @@
+{
+  "schema": "vendetta-unsafe-local-staged-fft-provenance-1",
+  "nativeModule": "github.com/consensys/gnark@v0.16.4",
+  "nativeSource": "backend/groth16/bn254/mpcsetup/lagrange.go",
+  "nativeSourceSha256": "9a24908f857fb049f43f00dc1b0ea19e9f017155152d35c7c122d23e2fd88fb6",
+  "adaptedSource": "apps/web/scripts/experiments/opening-zk/mpcstaged/lagrange.go",
+  "adaptedSourceSha256": "de2e41eab0a818e26c49d707ebe4a7e7a760aca9f8c64c5bb5e9b4634c83387d",
+  "changes": [
+    "Preserve Consensys Apache-2.0 attribution; identify adapter origin",
+    "Change Go package to mpcstaged",
+    "Transform caller-owned input vectors in place instead of allocating a copied vector",
+    "Replace inaccessible internal.Parallelize helper with local disjoint-range goroutines and WaitGroup",
+    "Retain original FFT butterflies, DIF recursion, size-eight kernels, bit reversal and inverse-cardinality normalization"
+  ],
+  "equivalenceEvidence": "validation.json and tests.jsonl; exact serialized initialization, evaluations and sealed keys for small circuits",
+  "fullOpeningInitializationCompleted": false,
+  "productionApproved": false
+}

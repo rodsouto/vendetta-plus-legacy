@@ -1,0 +1,11 @@
+{
+  "schema": "vendetta-unsafe-local-staged-fft-provenance-2",
+  "adapter": "v6",
+  "lagrangeNativeSha256": "9a24908f857fb049f43f00dc1b0ea19e9f017155152d35c7c122d23e2fd88fb6",
+  "domainNativeSha256": "d98ecc2eacd8b65788755e47264306466bb979fb66d1eb64ed9ebe729696cdeb",
+  "adaptedSha256": "2d49e1099de75e52696f61b11697686b89cabf3155df6702325bdc268b823c4f",
+  "inverseTableSource": "native buildTwiddles formula and public fft.BuildExpTable; only inverse tables retained",
+  "nativeGroupFFTArithmeticRetained": true,
+  "smallCircuitExactKeyAndProofComparisonsPassed": true,
+  "productionApproved": false
+}

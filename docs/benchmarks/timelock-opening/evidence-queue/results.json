@@ -1,0 +1,29 @@
+{
+  "scope": "Game receipt adapters and chronological queue hook; no public v2 admission, full mutation frontier or real proof generated for a newly admitted Game context",
+  "rulesTestsPassed": 767,
+  "contractsTestsPassed": 194,
+  "webTestsPassed": 107,
+  "newRulesTests": 8,
+  "newQueueContractTests": 10,
+  "layoutCheckerTestsPassed": 11,
+  "existingScenarioTestsPassed": 25,
+  "skippedTests": 0,
+  "gameAndLibraryRuntimeBytes": {
+    "Game": 23644,
+    "GameViews": 2923,
+    "HiddenEvidence": 3328,
+    "Missions": 23039
+  },
+  "storageChange": "Compatible append of hiddenEvidence mapping, recorded by storage-layout script without force",
+  "publicV2AdmissionAvailable": false,
+  "receiptEndpointAvailable": true,
+  "queueHookImplemented": true,
+  "completeDependencyFrontierImplemented": false,
+  "realGroth16UsedInQueueTests": false,
+  "fullWorldOracleComparison": "One controlled TS history with same-second attacks, 7200-second evidence delay and returns",
+  "logSha256": {
+    "rules": "bf65e1059a3f250830fb9f2989bc06fbca8f56b7a898573388bb560eb261f569",
+    "contracts": "4a09529cf2b2686061e6bcc44ac998b1552d94a092ff07497485d4e6da427753",
+    "web": "de63b616ef544fdaa83d0b84758ae38b3a7ccc00299a73025d056d3a499f2155"
+  }
+}

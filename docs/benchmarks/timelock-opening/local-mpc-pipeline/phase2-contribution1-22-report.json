@@ -1,0 +1,16 @@
+{
+  "status": "phase2-contribute-complete",
+  "operation": "phase2-contribute",
+  "log2": 22,
+  "binarySha256": "23788e02da9fbe9d3c5692348dd499b9270b6c26d2c3c76544a7487ddfffda72",
+  "pid": 360388,
+  "wallMilliseconds": 310132,
+  "cpuUserMilliseconds": 1208309,
+  "cpuSystemMilliseconds": 7665,
+  "maxRssBytes": 1281273856,
+  "exited": true,
+  "addressSpaceBytes": 10737418240,
+  "cpuSeconds": 18000,
+  "wallSeconds": 21600,
+  "productionApproved": false
+}

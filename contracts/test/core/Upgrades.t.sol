@@ -33,9 +33,9 @@ contract UpgradesTest is GameTestBase {
     function test_initializeOnlyOnce() public {
         vm.startPrank(alice);
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        game.initialize(alice, alice, alice);
+        game.initialize(alice, alice, alice, alice, alice);
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        Game(implementation()).initialize(alice, alice, alice);
+        Game(implementation()).initialize(alice, alice, alice, alice, alice);
         vm.stopPrank();
         assertEq(holder(ROLE_ADMIN), admin);
         assertEq(holder(ROLE_OPERATOR), operator);

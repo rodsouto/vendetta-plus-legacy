@@ -51,7 +51,7 @@ export function Market() {
   const fair = (() => {
     if (!from) return false;
     try {
-      const probe = sim.newWorld(rs);
+      const probe = sim.newWorld(rs, w.hiddenConsumers);
       const free = { offers: [], purchases: [], vacationUntil: 0n, suspendedUntil: 0n };
       probe.players.set(1n, { ...p, ...free, id: 1n, controllers: ["me"] });
       probe.players.set(2n, { ...p, ...free, id: 2n, controllers: ["probe"] });

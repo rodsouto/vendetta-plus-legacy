@@ -1,0 +1,560 @@
+{
+  "scope": "Sustained one-minute-or-longer RPC/beacon/H3 receipt failures, real integrated producer, three new Groth16 certificates and real Game/H3 on private Anvil; unsafe local setups",
+  "date": "2026-10-31T02:56:34.588Z",
+  "minimumFailureWindowMs": 60000,
+  "batchElapsedMs": 615680.377194,
+  "proofsGenerated": 3,
+  "faultHistory": [
+    {
+      "mode": "rpc",
+      "failedRequests": 39,
+      "elapsedMs": 60669.96298900001,
+      "stats": {
+        "proofs": 0,
+        "cacheHits": 0,
+        "counters": {
+          "requests": 40
+        },
+        "stages": {
+          "job": {
+            "calls": 40,
+            "failures": 40,
+            "totalMs": 125.27440400003616,
+            "maxMs": 20.897933999998713
+          },
+          "cachePrune": {
+            "calls": 80,
+            "failures": 0,
+            "totalMs": 19.23861200004103,
+            "maxMs": 0.4361289999942528
+          },
+          "rpcContext": {
+            "calls": 1,
+            "failures": 0,
+            "totalMs": 3.338904000000184,
+            "maxMs": 3.338904000000184
+          }
+        },
+        "memory": {
+          "rss": 137494528,
+          "heapTotal": 40210432,
+          "heapUsed": 36454280,
+          "external": 7086461,
+          "arrayBuffers": 2633002
+        },
+        "queue": {
+          "pending": 0,
+          "deduplicated": 0,
+          "rejected": 0,
+          "capacity": 8
+        },
+        "cache": {
+          "bytes": 0,
+          "files": 0
+        }
+      },
+      "faults": {
+        "rpcRejected": 39,
+        "beaconRejected": 0,
+        "lostBroadcastReplies": 0,
+        "receiptsRejected": 0
+      }
+    },
+    {
+      "mode": "beacon",
+      "failedRequests": 39,
+      "elapsedMs": 63350.78602100001,
+      "stats": {
+        "proofs": 0,
+        "cacheHits": 0,
+        "counters": {
+          "requests": 79
+        },
+        "stages": {
+          "job": {
+            "calls": 79,
+            "failures": 79,
+            "totalMs": 2995.6374930000275,
+            "maxMs": 94.46719599999778
+          },
+          "cachePrune": {
+            "calls": 158,
+            "failures": 0,
+            "totalMs": 74.68096700010574,
+            "maxMs": 1.9422900000063237
+          },
+          "rpcContext": {
+            "calls": 40,
+            "failures": 0,
+            "totalMs": 117.87854499999594,
+            "maxMs": 4.768739999999525
+          },
+          "inspect": {
+            "calls": 39,
+            "failures": 0,
+            "totalMs": 1982.4737980000355,
+            "maxMs": 60.513661999983015
+          },
+          "beacon": {
+            "calls": 39,
+            "failures": 39,
+            "totalMs": 55.9111530000082,
+            "maxMs": 3.215940000009141
+          }
+        },
+        "memory": {
+          "rss": 143130624,
+          "heapTotal": 42045440,
+          "heapUsed": 32427136,
+          "external": 7100079,
+          "arrayBuffers": 2650109
+        },
+        "queue": {
+          "pending": 0,
+          "deduplicated": 0,
+          "rejected": 0,
+          "capacity": 8
+        },
+        "cache": {
+          "bytes": 0,
+          "files": 0
+        }
+      },
+      "faults": {
+        "rpcRejected": 39,
+        "beaconRejected": 39,
+        "lostBroadcastReplies": 0,
+        "receiptsRejected": 0
+      }
+    },
+    {
+      "mode": "h3-accepted-response-lost",
+      "elapsedMs": 290097.577141,
+      "retryElapsedMs": 60643.47896699997,
+      "failedRetries": 13,
+      "journalHash": "0x6fe84ad83b00b639cc24473eb2a1079fa5c8a7ae645dd778f8e72c13ff96d0db",
+      "stats": {
+        "proofs": 1,
+        "cacheHits": 0,
+        "counters": {
+          "requests": 93,
+          "proofs": 1
+        },
+        "stages": {
+          "job": {
+            "calls": 93,
+            "failures": 93,
+            "totalMs": 232674.46002599993,
+            "maxMs": 229412.902306
+          },
+          "cachePrune": {
+            "calls": 186,
+            "failures": 0,
+            "totalMs": 90.88683700005276,
+            "maxMs": 2.6450150000164285
+          },
+          "rpcContext": {
+            "calls": 41,
+            "failures": 0,
+            "totalMs": 120.45667299998968,
+            "maxMs": 4.768739999999525
+          },
+          "inspect": {
+            "calls": 40,
+            "failures": 0,
+            "totalMs": 2035.6404250000633,
+            "maxMs": 60.513661999983015
+          },
+          "beacon": {
+            "calls": 40,
+            "failures": 39,
+            "totalMs": 57.78588500000478,
+            "maxMs": 3.215940000009141
+          },
+          "prove": {
+            "calls": 1,
+            "failures": 0,
+            "totalMs": 229265.14093400002,
+            "maxMs": 229265.14093400002
+          },
+          "h3Prefix": {
+            "calls": 1,
+            "failures": 1,
+            "totalMs": 71.13360800000373,
+            "maxMs": 71.13360800000373
+          },
+          "h3Transaction": {
+            "calls": 1,
+            "failures": 1,
+            "totalMs": 55.83367000002181,
+            "maxMs": 55.83367000002181
+          },
+          "h3Recovery": {
+            "calls": 13,
+            "failures": 13,
+            "totalMs": 189.62068499997258,
+            "maxMs": 16.460332999995444
+          }
+        },
+        "memory": {
+          "rss": 147587072,
+          "heapTotal": 41521152,
+          "heapUsed": 33311864,
+          "external": 7097352,
+          "arrayBuffers": 2644475
+        },
+        "queue": {
+          "pending": 0,
+          "deduplicated": 0,
+          "rejected": 0,
+          "capacity": 8
+        },
+        "cache": {
+          "bytes": 3780,
+          "files": 1
+        }
+      },
+      "faults": {
+        "rpcRejected": 39,
+        "beaconRejected": 39,
+        "lostBroadcastReplies": 14,
+        "receiptsRejected": 28
+      }
+    },
+    {
+      "mode": "recovered",
+      "stats": {
+        "proofs": 1,
+        "cacheHits": 1,
+        "counters": {
+          "requests": 94,
+          "proofs": 1,
+          "cacheHits": 1
+        },
+        "stages": {
+          "job": {
+            "calls": 94,
+            "failures": 93,
+            "totalMs": 232811.48839999991,
+            "maxMs": 229412.902306
+          },
+          "cachePrune": {
+            "calls": 188,
+            "failures": 0,
+            "totalMs": 92.63866600000983,
+            "maxMs": 2.6450150000164285
+          },
+          "rpcContext": {
+            "calls": 42,
+            "failures": 0,
+            "totalMs": 122.85264499995901,
+            "maxMs": 4.768739999999525
+          },
+          "inspect": {
+            "calls": 41,
+            "failures": 0,
+            "totalMs": 2087.685978000067,
+            "maxMs": 60.513661999983015
+          },
+          "beacon": {
+            "calls": 40,
+            "failures": 39,
+            "totalMs": 57.78588500000478,
+            "maxMs": 3.215940000009141
+          },
+          "prove": {
+            "calls": 1,
+            "failures": 0,
+            "totalMs": 229265.14093400002,
+            "maxMs": 229265.14093400002
+          },
+          "h3Prefix": {
+            "calls": 2,
+            "failures": 1,
+            "totalMs": 112.31695399997989,
+            "maxMs": 71.13360800000373
+          },
+          "h3Transaction": {
+            "calls": 2,
+            "failures": 1,
+            "totalMs": 81.05378200003179,
+            "maxMs": 55.83367000002181
+          },
+          "h3Recovery": {
+            "calls": 14,
+            "failures": 13,
+            "totalMs": 198.55788499995833,
+            "maxMs": 16.460332999995444
+          }
+        },
+        "memory": {
+          "rss": 147980288,
+          "heapTotal": 45715456,
+          "heapUsed": 33789632,
+          "external": 7091698,
+          "arrayBuffers": 2638821
+        },
+        "queue": {
+          "pending": 0,
+          "deduplicated": 0,
+          "rejected": 0,
+          "capacity": 8
+        },
+        "cache": {
+          "bytes": 3780,
+          "files": 1
+        }
+      },
+      "faults": {
+        "rpcRejected": 39,
+        "beaconRejected": 39,
+        "lostBroadcastReplies": 14,
+        "receiptsRejected": 28
+      }
+    }
+  ],
+  "faults": {
+    "rpcRejected": 39,
+    "beaconRejected": 39,
+    "lostBroadcastReplies": 14,
+    "receiptsRejected": 28
+  },
+  "resources": {
+    "intervalMs": 1000,
+    "elapsedMs": 615682.741086,
+    "samples": 616,
+    "peakNodeRssBytes": 163848192,
+    "peakNativeRssBytes": 6608928768,
+    "peakNativeProcesses": 1,
+    "native": [
+      {
+        "kind": "opening",
+        "cpuSeconds": 1619.57,
+        "peakRssBytes": 6608928768,
+        "samples": 333
+      },
+      {
+        "kind": "invalid-point",
+        "cpuSeconds": 912.04,
+        "peakRssBytes": 5257146368,
+        "samples": 157
+      }
+    ],
+    "limitation": "Sampled Linux RSS and CPU; may miss peaks and final CPU ticks. Node RSS excludes child processes. Not a memory ceiling or leak test."
+  },
+  "statsBefore": {
+    "proofs": 0,
+    "cacheHits": 0,
+    "counters": {
+      "requests": 1
+    },
+    "stages": {
+      "job": {
+        "calls": 1,
+        "failures": 1,
+        "totalMs": 20.897933999998713,
+        "maxMs": 20.897933999998713
+      },
+      "cachePrune": {
+        "calls": 2,
+        "failures": 0,
+        "totalMs": 0.5724780000000464,
+        "maxMs": 0.2954509999999573
+      },
+      "rpcContext": {
+        "calls": 1,
+        "failures": 0,
+        "totalMs": 3.338904000000184,
+        "maxMs": 3.338904000000184
+      }
+    },
+    "memory": {
+      "rss": 162930688,
+      "heapTotal": 64327680,
+      "heapUsed": 41401384,
+      "external": 7500269,
+      "arrayBuffers": 3078282
+    },
+    "queue": {
+      "pending": 0,
+      "deduplicated": 0,
+      "rejected": 0,
+      "capacity": 8
+    },
+    "cache": {
+      "bytes": 0,
+      "files": 0
+    }
+  },
+  "statsAfter": {
+    "proofs": 3,
+    "cacheHits": 1,
+    "counters": {
+      "requests": 96,
+      "proofs": 3,
+      "cacheHits": 1
+    },
+    "stages": {
+      "job": {
+        "calls": 96,
+        "failures": 93,
+        "totalMs": 434202.85037099995,
+        "maxMs": 229412.902306
+      },
+      "cachePrune": {
+        "calls": 192,
+        "failures": 0,
+        "totalMs": 97.64487699986421,
+        "maxMs": 2.6450150000164285
+      },
+      "rpcContext": {
+        "calls": 44,
+        "failures": 0,
+        "totalMs": 127.35363699988739,
+        "maxMs": 4.768739999999525
+      },
+      "inspect": {
+        "calls": 43,
+        "failures": 0,
+        "totalMs": 2188.6364600000816,
+        "maxMs": 60.513661999983015
+      },
+      "beacon": {
+        "calls": 41,
+        "failures": 39,
+        "totalMs": 59.39335900002334,
+        "maxMs": 3.215940000009141
+      },
+      "prove": {
+        "calls": 3,
+        "failures": 0,
+        "totalMs": 430407.0092200001,
+        "maxMs": 229265.14093400002
+      },
+      "h3Prefix": {
+        "calls": 3,
+        "failures": 1,
+        "totalMs": 185.72605499997735,
+        "maxMs": 73.40910099999746
+      },
+      "h3Transaction": {
+        "calls": 4,
+        "failures": 1,
+        "totalMs": 133.30272600002354,
+        "maxMs": 55.83367000002181
+      },
+      "h3Recovery": {
+        "calls": 14,
+        "failures": 13,
+        "totalMs": 198.55788499995833,
+        "maxMs": 16.460332999995444
+      }
+    },
+    "memory": {
+      "rss": 148635648,
+      "heapTotal": 38375424,
+      "heapUsed": 31146184,
+      "external": 8705085,
+      "arrayBuffers": 4252208
+    },
+    "queue": {
+      "pending": 0,
+      "deduplicated": 0,
+      "rejected": 0,
+      "capacity": 8
+    },
+    "cache": {
+      "bytes": 8940,
+      "files": 3
+    }
+  },
+  "finalStats": {
+    "proofs": 3,
+    "cacheHits": 4,
+    "counters": {
+      "requests": 99,
+      "proofs": 3,
+      "cacheHits": 4
+    },
+    "stages": {
+      "job": {
+        "calls": 99,
+        "failures": 93,
+        "totalMs": 434594.1916650001,
+        "maxMs": 229412.902306
+      },
+      "cachePrune": {
+        "calls": 198,
+        "failures": 0,
+        "totalMs": 105.27806899972711,
+        "maxMs": 2.6450150000164285
+      },
+      "rpcContext": {
+        "calls": 47,
+        "failures": 0,
+        "totalMs": 135.52711599987742,
+        "maxMs": 4.768739999999525
+      },
+      "inspect": {
+        "calls": 46,
+        "failures": 0,
+        "totalMs": 2342.7184140001336,
+        "maxMs": 60.513661999983015
+      },
+      "beacon": {
+        "calls": 41,
+        "failures": 39,
+        "totalMs": 59.39335900002334,
+        "maxMs": 3.215940000009141
+      },
+      "prove": {
+        "calls": 3,
+        "failures": 0,
+        "totalMs": 430407.0092200001,
+        "maxMs": 229265.14093400002
+      },
+      "h3Prefix": {
+        "calls": 5,
+        "failures": 1,
+        "totalMs": 312.733424999984,
+        "maxMs": 73.40910099999746
+      },
+      "h3Transaction": {
+        "calls": 8,
+        "failures": 1,
+        "totalMs": 226.76090699998895,
+        "maxMs": 55.83367000002181
+      },
+      "h3Recovery": {
+        "calls": 14,
+        "failures": 13,
+        "totalMs": 198.55788499995833,
+        "maxMs": 16.460332999995444
+      }
+    },
+    "memory": {
+      "rss": 150077440,
+      "heapTotal": 54366208,
+      "heapUsed": 33335472,
+      "external": 7228507,
+      "arrayBuffers": 2775630
+    },
+    "queue": {
+      "pending": 0,
+      "deduplicated": 0,
+      "rejected": 0,
+      "capacity": 8
+    },
+    "cache": {
+      "bytes": 8940,
+      "files": 3
+    }
+  },
+  "punctualAndDelayedFullWorldEqual": true,
+  "limitations": [
+    "Bounded local fault windows, not days of outage or public-provider failover.",
+    "Authentic archived beacon signatures over local HTTP; remote availability is observed separately.",
+    "H3 send was mined before its response was lost; mempool-stuck and deep reorg policy are separate stage-4 histories.",
+    "No process power-loss or parent SIGKILL/cgroup lifecycle claim."
+  ]
+}

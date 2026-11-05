@@ -1,0 +1,17 @@
+{
+  "status": "incomplete",
+  "failure": "exit status 2",
+  "operation": "verify-first-contribution",
+  "log2": 23,
+  "binarySha256": "23788e02da9fbe9d3c5692348dd499b9270b6c26d2c3c76544a7487ddfffda72",
+  "pid": 429965,
+  "wallMilliseconds": 1289109,
+  "cpuUserMilliseconds": 1270837,
+  "cpuSystemMilliseconds": 39170,
+  "maxRssBytes": 7516946432,
+  "exited": true,
+  "addressSpaceBytes": 10737418240,
+  "cpuSeconds": 6000,
+  "wallSeconds": 7200,
+  "productionApproved": false
+}

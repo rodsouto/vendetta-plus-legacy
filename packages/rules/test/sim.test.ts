@@ -1,3 +1,4 @@
+import { world, sendHidden, certify } from "./v2-helpers.js";
 import { describe, expect, it } from "vitest";
 import { sim, vendetta as rs } from "../src/index.js";
 
@@ -6,7 +7,7 @@ const res = (id: string) => rs.research.findIndex((r) => r.id === id);
 const at = { city: 1n, neighborhood: 1n, slot: 1n };
 
 function fresh() {
-  const w = sim.newWorld(rs);
+  const w = world(rs);
   sim.register(w, "alice", at, 1000n);
   return { w, b: w.buildings.get(1n)!, p: w.players.get(1n)! };
 }
@@ -99,7 +100,7 @@ describe("sim: missions (same cases as contracts/test/core/Missions.t.sol)", () 
   const none = [0n, 0n, 0n, 0n];
 
   function twoPlayers() {
-    const w = sim.newWorld(rs);
+    const w = world(rs);
     let now = 1_700_000_000n;
     sim.setGlobalPremium(w, now + 3650n * 86400n);
     sim.register(w, "alice", at, now);
@@ -183,7 +184,7 @@ describe("sim: missions (same cases as contracts/test/core/Missions.t.sol)", () 
 describe("sim: account (D-18, B-14, B-25, B-26)", () => {
   const day = 86400n;
   it("vacation locks the account, blocks new missions to it and has a cooldown", () => {
-    const w = sim.newWorld(rs);
+    const w = world(rs);
     const t = 1_700_000_000n;
     sim.register(w, "alice", at, t);
     sim.register(w, "bob", { ...at, slot: 2n }, t);
@@ -207,7 +208,7 @@ describe("sim: account (D-18, B-14, B-25, B-26)", () => {
   });
 
   it("premium makes vacations longer and the cooldown shorter (D-18, B-25)", () => {
-    const w = sim.newWorld(rs);
+    const w = world(rs);
     const t = 1_700_000_000n;
     sim.register(w, "bob", at, t);
     const bob = () => w.players.get(1n)!; // actions replace the player (atomic)
@@ -229,7 +230,7 @@ describe("sim: account (D-18, B-14, B-25, B-26)", () => {
   });
 
   it("a suspended player cannot act; premium raises queue limits; transfer moves the account", () => {
-    const w = sim.newWorld(rs);
+    const w = world(rs);
     const t = 1_700_000_000n;
     sim.register(w, "alice", at, t);
     sim.suspend(w, 1n, t + 100n);
@@ -253,7 +254,7 @@ describe("sim: account (D-18, B-14, B-25, B-26)", () => {
   });
 
   it("several controllers manage one account; removing another one takes two steps (B-26)", () => {
-    const w = sim.newWorld(rs);
+    const w = world(rs);
     const t = 1_700_000_000n;
     const delay = rs.config.controllerRemovalDelay;
     const p = () => w.players.get(1n)!;
@@ -335,7 +336,7 @@ describe("sim: account (D-18, B-14, B-25, B-26)", () => {
 
 describe("sim: families and wars (D-20, B-31)", () => {
   it("creates, applies, accepts; names are unique ignoring case; the Capo cannot be kicked", () => {
-    const w = sim.newWorld(rs);
+    const w = world(rs);
     const t = 1_700_000_000n;
     for (const [i, c] of ["alice", "bob", "carol"].entries())
       sim.register(w, c, { ...at, slot: BigInt(i + 1) }, t);
@@ -351,7 +352,7 @@ describe("sim: families and wars (D-20, B-31)", () => {
   });
 
   it("war score adds each side's lost troop points; surrender ends the war", () => {
-    const w = sim.newWorld(rs);
+    const w = world(rs);
     const t = 1_700_000_000n;
     sim.register(w, "alice", at, t);
     sim.register(w, "bob", { ...at, slot: 2n }, t);
@@ -373,7 +374,7 @@ describe("sim: families and wars (D-20, B-31)", () => {
   });
 
   it("a family that dissolves loses its running wars (B-31)", () => {
-    const w = sim.newWorld(rs);
+    const w = world(rs);
     const t = 1_700_000_000n;
     sim.register(w, "alice", at, t);
     sim.register(w, "bob", { ...at, slot: 2n }, t);
@@ -384,273 +385,6 @@ describe("sim: families and wars (D-20, B-31)", () => {
     expect(w.wars.get(war)!.ended).toBe(false); // lazy
     expect(sim.warOutcome(w, war)).toEqual({ ended: true, winner: a });
     expect(sim.warOutcome(w, 99n)).toEqual({ ended: false, winner: 0n });
-  });
-});
-
-describe("sim: hidden missions (B-22): parking, reveal at the reveal time, forfeit", () => {
-  const ROWDY = rs.troops.findIndex((t) => t.id === "rowdy");
-  const rowdies = (n: bigint) => rs.troops.map((_, i) => (i === ROWDY ? n : 0n));
-  const none = [0n, 0n, 0n, 0n];
-  const c = rs.config;
-
-  function ready() {
-    const w = sim.newWorld(rs);
-    let now = 1_700_000_000n;
-    sim.setGlobalPremium(w, now + 3650n * 86400n);
-    sim.register(w, "alice", at, now);
-    sim.register(w, "bob", { ...at, slot: 2n }, now);
-    sim.queueRoom(w, "alice", 1n, room("boot_camp"), now);
-    now += 86400n;
-    sim.train(w, "alice", 1n, ROWDY, 7n, now);
-    now += 86400n;
-    sim.poke(w, 1n, now);
-    return { w, now };
-  }
-  const salt = 5n;
-  const target = { ...at, slot: 2n };
-  const sendHidden = (w: sim.World, now: bigint, n = 5n, arrival = 0n) =>
-    sim.sendHiddenMission(
-      w,
-      "alice",
-      1n,
-      sim.hiddenCommit(1n, sim.ATTACK, target, salt),
-      3n,
-      rowdies(n),
-      none,
-      arrival,
-      now,
-    );
-
-  it("a fixed arrival goes from the natural one to the slack after it; the way back keeps the duration", () => {
-    const { w, now } = ready();
-    const natural = w.missions.get(sendHidden(w, now, 1n))!.arrival; // 0: the natural arrival
-    expect(() => sendHidden(w, now, 1n, natural - 1n)).toThrow("TooLate");
-    expect(() => sendHidden(w, now, 1n, natural + c.hiddenArrivalSlack + 1n)).toThrow(
-      "InvalidArrival",
-    );
-    const id = sendHidden(w, now, 1n, natural + c.hiddenArrivalSlack);
-    const m = () => w.missions.get(id)!;
-    const late = m().arrival;
-    expect(late).toBe(natural + c.hiddenArrivalSlack);
-    sim.reveal(w, id, sim.ATTACK, target, salt, now); // before the arrival: resolves at it
-    expect(sim.advance(w, 5, late)).toBe(2);
-    expect(m().returning).toBe(true);
-    expect(m().arrival).toBe(late + (natural - now));
-  });
-
-  it("a due mission nobody revealed is parked: the queue goes on and every action works", () => {
-    const { w, now } = ready();
-    const id = sendHidden(w, now);
-    // A failed action restores the world from a copy (atomic): look the mission up again.
-    const m = () => w.missions.get(id)!;
-    const arrival = m().arrival;
-    sim.poke(w, 2n, arrival); // bob moves first: the attack waits for its reveal, parked
-    expect(w.parked).toEqual([id]);
-    expect(w.pending).toEqual([]);
-    expect(sim.advance(w, 5, arrival)).toBe(0);
-    sim.queueRoom(w, "bob", 2n, room("boot_camp"), arrival); // the world does not stall
-    sim.reveal(w, id, sim.ATTACK, target, salt, arrival + 10n);
-    expect(w.parked).toEqual([]);
-    expect(w.pending).toEqual([id]);
-    expect(m().hidden).toBe(false);
-    expect(m().arrival).toBe(arrival + 10n); // arrives at the reveal
-    expect(sim.advance(w, 1, arrival + 10n)).toBe(1);
-    expect(m().returning).toBe(true);
-    expect(m().cargo[0]).toBeGreaterThan(0n); // an attack against bob's state at the reveal
-    expect(m().start).toBe(arrival + 10n);
-  });
-
-  it("a reveal after the arrival moves it to the reveal even when nothing drained the queue", () => {
-    const { w, now } = ready();
-    const id = sendHidden(w, now);
-    const m = w.missions.get(id)!;
-    const arrival = m.arrival;
-    sim.reveal(w, id, sim.ATTACK, target, salt, arrival + 5n);
-    expect(m.arrival).toBe(arrival + 5n);
-    expect(w.pending).toEqual([id]);
-    sim.advance(w, 1, arrival + 5n);
-    expect(m.cargo[0]).toBeGreaterThan(0n);
-  });
-
-  it("the parked list keeps its arrival order when missions leave it (a linked list on-chain)", () => {
-    const { w, now } = ready();
-    const a = sendHidden(w, now, 3n);
-    const b = sendHidden(w, now, 2n);
-    const d = sendHidden(w, now, 1n);
-    const arrival = w.missions.get(d)!.arrival;
-    sim.poke(w, 1n, arrival);
-    expect(w.parked).toEqual([a, b, d]);
-    const past = arrival + c.hiddenOrderWindow; // every window over: any order of reveals
-    sim.reveal(w, b, sim.ATTACK, target, salt, past); // the middle
-    expect(w.parked).toEqual([a, d]);
-    sim.reveal(w, a, sim.ATTACK, target, salt, past); // the head
-    expect(w.parked).toEqual([d]);
-    const e = sendHidden(w, past, 1n);
-    sim.advance(w, 10, w.missions.get(e)!.arrival);
-    expect(w.parked).toEqual([d, e]); // appended at the tail
-    sim.recall(w, "alice", e, w.missions.get(e)!.arrival); // the tail
-    expect(w.parked).toEqual([d]);
-    sim.forfeit(w, d, arrival + c.hiddenRevealGrace); // the only one
-    expect(w.parked).toEqual([]);
-  });
-
-  it("reveals go in arrival order for the window: a parked one ahead holds the next (B-22)", () => {
-    const { w, now } = ready();
-    const a = sendHidden(w, now, 2n);
-    const b = sendHidden(w, now, 2n);
-    const arrival = w.missions.get(b)!.arrival;
-    // Nothing drained yet: the reveal drains first (parks both) and b is out of order.
-    expect(() => sim.reveal(w, b, sim.ATTACK, target, salt, arrival + 5n)).toThrow("OutOfOrder");
-    expect(w.pending).toEqual([a, b]); // restored: nothing parked
-    sim.reveal(w, a, sim.ATTACK, target, salt, arrival + 5n);
-    expect(w.parked).toEqual([b]);
-    sim.reveal(w, b, sim.ATTACK, target, salt, arrival + 5n); // a is on its way: b may follow
-    expect(w.parked).toEqual([]);
-    sim.advance(w, 10, arrival + 5n);
-    // Garbage ahead holds the ones behind for the window only.
-    const g = sendHidden(w, arrival + 5n, 1n); // never revealed
-    const h = sendHidden(w, arrival + 5n, 1n);
-    const arrival2 = w.missions.get(h)!.arrival;
-    const early = arrival2 + c.hiddenOrderWindow - 1n;
-    expect(() => sim.reveal(w, h, sim.ATTACK, target, salt, early)).toThrow("OutOfOrder");
-    sim.reveal(w, h, sim.ATTACK, target, salt, early + 1n);
-    expect(w.parked).toEqual([g]);
-  });
-
-  it("past the grace anyone forfeits a parked mission: it turns back from then; a reveal does nothing", () => {
-    const { w, now } = ready();
-    const id = sendHidden(w, now);
-    const m = () => w.missions.get(id)!;
-    const arrival = m().arrival;
-    sim.poke(w, 2n, arrival);
-    expect(() => sim.forfeit(w, id, arrival + c.hiddenRevealGrace - 1n)).toThrow("TooEarly");
-    sim.reveal(w, id, sim.ATTACK, target, salt, arrival + c.hiddenRevealGrace); // a no-op
-    expect(m().hidden).toBe(true);
-    const when = arrival + c.hiddenRevealGrace + 7n;
-    sim.forfeit(w, id, when);
-    expect(m().returning).toBe(true);
-    expect(m().hidden).toBe(true); // never revealed
-    expect(m().troops[ROWDY]).toBe(5n);
-    expect(m().cargo[0]).toBe(0n); // bob untouched
-    expect(m().start).toBe(when); // turned back from now
-    expect(m().arrival).toBe(when + m().duration);
-    expect(w.parked).toEqual([]);
-    sim.forfeit(w, id, when); // no longer parked: a no-op, the keeper and the sender race
-    sim.advance(w, 1, m().arrival);
-    expect(w.buildings.get(1n)!.troops[ROWDY]).toBe(7n);
-  });
-
-  it("a due mission still queued can be forfeited, and a parked one recalled", () => {
-    const { w, now } = ready();
-    const id = sendHidden(w, now, 2n);
-    const arrival = w.missions.get(id)!.arrival;
-    sim.forfeit(w, id, arrival + c.hiddenRevealGrace);
-    expect(w.missions.get(id)!.returning).toBe(true);
-    expect(w.pending).toEqual([id]);
-    const other = sendHidden(w, arrival + c.hiddenRevealGrace, 3n);
-    const o = () => w.missions.get(other)!;
-    const arrival2 = o().arrival;
-    sim.advance(w, 10, arrival2); // the first one is home, the other one parked
-    expect(w.parked).toEqual([other]);
-    sim.recall(w, "alice", other, arrival2 + 10n);
-    expect(w.parked).toEqual([]);
-    expect(o().returning).toBe(true);
-    expect(o().start).toBe(arrival2 + 10n);
-    sim.advance(w, 10, o().arrival);
-    expect(w.buildings.get(1n)!.troops[ROWDY]).toBe(7n);
-  });
-
-  it("troops that just came home rest: the building cannot send for the cooldown (B-22)", () => {
-    const { w, now } = ready();
-    const id = sim.sendMission(w, "alice", 1n, sim.ATTACK, target, rowdies(5n), none, 0n, now);
-    sim.advance(w, 10, w.missions.get(id)!.arrival); // resolves against bob and turns back
-    const home = w.missions.get(id)!.arrival;
-    sim.advance(w, 10, home);
-    const b = w.buildings.get(1n)!;
-    expect(b.troops[ROWDY]).toBe(7n);
-    expect(b.lastTroopArrival).toBe(home);
-    const resting = home + c.troopArrivalCooldown - 1n;
-    expect(() =>
-      sim.sendMission(w, "alice", 1n, sim.ATTACK, target, rowdies(5n), none, 0n, resting),
-    ).toThrow("TroopsResting");
-    expect(() => sendHidden(w, resting)).toThrow("TroopsResting");
-    sim.sendMission(w, "alice", 1n, sim.ATTACK, target, rowdies(5n), none, 0n, resting + 1n);
-    expect(w.buildings.get(1n)!.troops[ROWDY]).toBe(2n);
-  });
-
-  it("the interception survives a garbage mission parked ahead of the attack (B-22)", () => {
-    // The return cooldown outlasts the order window: a parked mission that arrived just after
-    // the defender's return (even the defender's own garbage) holds the attack's reveal until
-    // `attack arrival + window`, and the defender's troops must still be home by then.
-    const { w, now: t0 } = ready();
-    sim.queueRoom(w, "bob", 2n, room("boot_camp"), t0);
-    let now = t0 + 86400n;
-    sim.train(w, "bob", 2n, ROWDY, 5n, now);
-    now += 86400n;
-    sim.poke(w, 2n, now);
-    const clone = (x: sim.World) => {
-      const { rs: r, ...rest } = x;
-      return { ...structuredClone(rest), rs: r } as sim.World;
-    };
-    // Measured on a copy: bob's round trip to alice's, and alice's hidden trip to bob's.
-    const copy = clone(w);
-    const trip = sim.sendMission(copy, "bob", 2n, sim.TRANSPORT, at, rowdies(5n), none, 0n, now);
-    sim.advance(copy, 10, copy.missions.get(trip)!.arrival);
-    const roundTrip = copy.missions.get(trip)!.arrival - now;
-    const hiddenTrip = copy.missions.get(sendHidden(copy, now, 1n))!.arrival - now;
-
-    sim.sendMission(w, "bob", 2n, sim.TRANSPORT, at, rowdies(5n), none, 0n, now);
-    const R = now + roundTrip; // bob's troops are home again
-    const garbage = sendHidden(w, R + 1n - hiddenTrip, 1n); // never revealed
-    const attack = sendHidden(w, R + 2n - hiddenTrip, 5n);
-    expect(w.missions.get(garbage)!.arrival).toBe(R + 1n);
-    expect(w.missions.get(attack)!.arrival).toBe(R + 2n);
-    sim.advance(w, 10, R);
-    const bob = () => w.buildings.get(2n)!;
-    expect(bob().troops[ROWDY]).toBe(5n);
-    expect(bob().lastTroopArrival).toBe(R);
-
-    // The keeper's reveal at R+10 is held by the garbage until R+16.
-    expect(() => sim.reveal(w, attack, sim.ATTACK, target, salt, R + 10n)).toThrow("OutOfOrder");
-    expect(w.parked).toEqual([]); // restored
-    // With a 15 s cooldown bob would leave here, and the attack would find an empty building.
-    const away = () =>
-      sim.sendMission(w, "bob", 2n, sim.TRANSPORT, at, rowdies(5n), none, 0n, R + 15n);
-    expect(away).toThrow("TroopsResting");
-    sim.reveal(w, attack, sim.ATTACK, target, salt, R + 16n);
-    expect(w.parked).toEqual([garbage]);
-    sim.advance(w, 10, R + 16n); // the battle: 5 rowdies against 5 at home
-    expect(bob().troops[ROWDY]).toBe(1n);
-    expect(w.missions.get(attack)!.troops[ROWDY]).toBe(1n);
-    // The rest still rests until the cooldown is over (checked before the troops).
-    expect(() =>
-      sim.sendMission(w, "bob", 2n, sim.TRANSPORT, at, rowdies(1n), none, 0n, R + 29n),
-    ).toThrow("TroopsResting");
-    sim.sendMission(w, "bob", 2n, sim.TRANSPORT, at, rowdies(1n), none, 0n, R + 30n);
-  });
-
-  it("a forfeited mission's return starts the cooldown too", () => {
-    const { w, now } = ready();
-    const id = sendHidden(w, now, 2n);
-    const arrival = w.missions.get(id)!.arrival;
-    sim.forfeit(w, id, arrival + c.hiddenRevealGrace); // nobody revealed it: it turns back
-    const home = w.missions.get(id)!.arrival;
-    sim.advance(w, 10, home);
-    expect(w.buildings.get(1n)!.troops[ROWDY]).toBe(7n);
-    expect(w.buildings.get(1n)!.lastTroopArrival).toBe(home);
-    expect(() => sendHidden(w, home + c.troopArrivalCooldown - 1n)).toThrow("TroopsResting");
-    sendHidden(w, home + c.troopArrivalCooldown, 2n);
-  });
-
-  it("a vacation started in the send second, after the send, does not protect (B-07)", () => {
-    const { w, now } = ready();
-    const id = sendHidden(w, now);
-    sim.startVacation(w, "bob", now);
-    const m = w.missions.get(id)!;
-    expect(w.players.get(2n)!.vacationStart).toBe(m.start);
-    sim.reveal(w, id, sim.ATTACK, target, salt, now);
-    sim.advance(w, 1, m.arrival);
-    expect(m.cargo[0]).toBeGreaterThan(0n); // looted
   });
 });
 
@@ -686,7 +420,7 @@ describe("sim: market (D-19, B-11)", () => {
 
   /** Alice (1), Bob (2) and Carol (3) next to each other, each with a boot camp, a mover and four rowdies. */
   function three() {
-    const w = sim.newWorld(rs);
+    const w = world(rs);
     let now = t0;
     sim.setGlobalPremium(w, now + 3650n * day);
     for (const [i, who] of ["alice", "bob", "carol"].entries()) {
@@ -737,7 +471,7 @@ describe("sim: market (D-19, B-11)", () => {
   }
 
   it("checks the fixed rates exactly and the offer's building", () => {
-    const w = sim.newWorld(rs);
+    const w = world(rs);
     const t = t0;
     sim.register(w, "alice", at, t);
     sim.register(w, "bob", { ...at, slot: 2n }, t);
@@ -1015,7 +749,7 @@ describe("sim: attack forecast (B-20)", () => {
 
   // Both players with a boot camp; alice has 7 rowdies, bob has 2 in training that finish at `now + 1`.
   function ready() {
-    const w = sim.newWorld(rs);
+    const w = world(rs);
     let now = 1_700_000_000n;
     sim.setGlobalPremium(w, now + 3650n * 86400n);
     sim.register(w, "alice", at, now);
@@ -1040,7 +774,7 @@ describe("sim: attack forecast (B-20)", () => {
     const { w, now } = ready();
     const commit = sim.hiddenCommit(1n, sim.ATTACK, target, 5n);
     const send = (x: sim.World) =>
-      sim.sendHiddenMission(x, "alice", 1n, commit, 3n, rowdies(5n), none, 0n, now);
+      sendHidden(x, "alice", 1n, commit, 3n, rowdies(5n), none, 0n, now);
     const s = copy(w);
     const arrival = s.missions.get(send(s))!.arrival;
     const before = copy(w);
@@ -1054,7 +788,7 @@ describe("sim: attack forecast (B-20)", () => {
 
     const id = send(w);
     const m = w.missions.get(id)!;
-    sim.reveal(w, id, sim.ATTACK, target, 5n, now);
+    certify(w, id, sim.ATTACK, target, 5n, now);
     sim.advance(w, 1, arrival);
     expect(f.attackerLeft).toEqual(m.troops);
     expect(f.defenderLeft).toEqual(w.buildings.get(2n)!.troops);
@@ -1062,6 +796,22 @@ describe("sim: attack forecast (B-20)", () => {
     expect(f.attackerLeft).toEqual(rowdies(4n)); // a real fight: losses, a wipe and loot
     expect(f.defenderLeft).toEqual(rowdies(0n));
     expect(f.loot.every((r) => r > 0n)).toBe(true);
+  });
+
+  it("stops at missing earlier hidden evidence and resumes only after certification", () => {
+    const { w, now } = ready();
+    const commit = sim.hiddenCommit(1n, sim.ATTACK, target, 5n);
+    const prior = sendHidden(w, "alice", 1n, commit, 3n, rowdies(1n), none, 0n, now);
+    const at = w.missions.get(prior)!.arrival;
+    const before = copy(w);
+    // A hidden arrival after this forecast does not block a known earlier battle.
+    expect(sim.forecastAttack(w, "alice", 1n, target, rowdies(2n), now, at - 1n)).not.toBeNull();
+    // No certificate: do not spin or predict through an unknown head, even when
+    // the sender knows its plaintext locally.
+    expect(sim.forecastAttack(w, "alice", 1n, target, rowdies(2n), now, at + 60n)).toBeNull();
+    expect(w).toEqual(before);
+    certify(w, prior, sim.ATTACK, target, 5n, now);
+    expect(sim.forecastAttack(w, "alice", 1n, target, rowdies(2n), now, at + 60n)).not.toBeNull();
   });
 
   it("no battle on an empty slot; a send that would revert throws", () => {

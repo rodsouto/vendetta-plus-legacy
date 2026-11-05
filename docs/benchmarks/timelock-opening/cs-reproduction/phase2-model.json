@@ -1,0 +1,102 @@
+{
+  "circuits": {
+    "invalid-point": {
+      "classification": "allocation-inventory-not-simultaneous-live-peak",
+      "commitments": 1,
+      "domain": 4194304,
+      "excludes": [
+        "CS decoded heap",
+        "GC/runtime/allocator rounding",
+        "FFT domains and twiddles",
+        "arithmetic temporaries and update proofs",
+        "read transcripts and wire buffers",
+        "verification and key extraction allocations"
+      ],
+      "phase2Measured": false,
+      "pieces": {
+        "commons": {
+          "bytes": 1610612800,
+          "g1Points": 16777215,
+          "g2Points": 4194305
+        },
+        "evaluationCommitmentAndPublicBases": {
+          "bytes": 143565888,
+          "g1Points": 2243217,
+          "g2Points": 0
+        },
+        "lagrangeCoefficients": {
+          "bytes": 1342177280,
+          "g1Points": 12582912,
+          "g2Points": 4194304
+        },
+        "phase2ParametersAllocatedCapacity": {
+          "bytes": 625694144,
+          "g1Points": 9776467,
+          "g2Points": 2
+        },
+        "wireEvaluationsAndTemporaryABC": {
+          "bytes": 2500810368,
+          "g1Points": 27910830,
+          "g2Points": 5582166
+        }
+      },
+      "pkkPoints": 3338949,
+      "privateCommitted": 2243213,
+      "productionApproved": false,
+      "sumOfListedPointPayloadBytes": 6222860480,
+      "vkkPoints": 4,
+      "wires": 5582166
+    },
+    "opening": {
+      "classification": "allocation-inventory-not-simultaneous-live-peak",
+      "commitments": 1,
+      "domain": 8388608,
+      "excludes": [
+        "CS decoded heap",
+        "GC/runtime/allocator rounding",
+        "FFT domains and twiddles",
+        "arithmetic temporaries and update proofs",
+        "read transcripts and wire buffers",
+        "verification and key extraction allocations"
+      ],
+      "phase2Measured": false,
+      "pieces": {
+        "commons": {
+          "bytes": 3221225536,
+          "g1Points": 33554431,
+          "g2Points": 8388609
+        },
+        "evaluationCommitmentAndPublicBases": {
+          "bytes": 172509440,
+          "g1Points": 2695460,
+          "g2Points": 0
+        },
+        "lagrangeCoefficients": {
+          "bytes": 2684354560,
+          "g1Points": 25165824,
+          "g2Points": 8388608
+        },
+        "phase2ParametersAllocatedCapacity": {
+          "bytes": 978094272,
+          "g1Points": 15282719,
+          "g2Points": 2
+        },
+        "wireEvaluationsAndTemporaryABC": {
+          "bytes": 3088586816,
+          "g1Points": 34470835,
+          "g2Points": 6894167
+        }
+      },
+      "pkkPoints": 4198707,
+      "privateCommitted": 2695403,
+      "productionApproved": false,
+      "sumOfListedPointPayloadBytes": 10144770624,
+      "vkkPoints": 57,
+      "wires": 6894167
+    }
+  },
+  "compileReportSha256": "a45e4f7a982c0ed044e0676ef089585cc8f48529c6ac0f1a3c3fab66f239297c",
+  "phase2Measured": false,
+  "productionApproved": false,
+  "schema": "vendetta-hidden-v2-phase2-allocation-model-1"
+}

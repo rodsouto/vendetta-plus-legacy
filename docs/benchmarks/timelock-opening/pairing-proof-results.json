@@ -1,0 +1,16 @@
+{
+  "compileMs": 9939.06,
+  "componentOnly": true,
+  "constraints": 1470823,
+  "gnark": "v0.16.4",
+  "go": "go1.27.3",
+  "gomaxprocs": 4,
+  "maxRssKiB": 3110880,
+  "nodeGoPairingMatch": true,
+  "proofSolidityBytes": 384,
+  "proveMs": 20278.892,
+  "publicInputs": 108,
+  "setupMs": 373468.274,
+  "tamperedPublicInputRejected": true,
+  "verifyMs": 2.89
+}

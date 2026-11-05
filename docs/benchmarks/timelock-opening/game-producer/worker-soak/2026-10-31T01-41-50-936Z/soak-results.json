@@ -1,0 +1,1121 @@
+{
+  "scope": "One-hour-or-longer private Anvil producer soak, six admitted contexts, repeated uncached Groth16 proofs, both circuits, archived authentic beacon signatures served over local HTTP, real H3 and injected RPC/beacon/ambiguous-H3 failures; unsafe local setups",
+  "date": "2026-10-31T02:44:37.655Z",
+  "minimumSeconds": 3600,
+  "batchElapsedMs": 3752483.612542,
+  "additionalProofs": 29,
+  "proofsGenerated": 35,
+  "faultHistory": [
+    {
+      "mode": "rpc",
+      "failedRequests": 6,
+      "elapsedMs": 82.11759200000051,
+      "stats": {
+        "proofs": 0,
+        "cacheHits": 0,
+        "counters": {
+          "requests": 7
+        },
+        "stages": {
+          "job": {
+            "calls": 7,
+            "failures": 7,
+            "totalMs": 55.21029600000111,
+            "maxMs": 39.14598399999886
+          },
+          "cachePrune": {
+            "calls": 14,
+            "failures": 0,
+            "totalMs": 3.4549580000038986,
+            "maxMs": 0.478888999999981
+          },
+          "rpcContext": {
+            "calls": 1,
+            "failures": 0,
+            "totalMs": 7.225452000000587,
+            "maxMs": 7.225452000000587
+          }
+        },
+        "memory": {
+          "rss": 172412928,
+          "heapTotal": 103911424,
+          "heapUsed": 38784272,
+          "external": 7398778,
+          "arrayBuffers": 2945311
+        },
+        "queue": {
+          "pending": 0,
+          "deduplicated": 0,
+          "rejected": 0,
+          "capacity": 8
+        },
+        "cache": {
+          "bytes": 0,
+          "files": 0
+        }
+      },
+      "faults": {
+        "rpcRejected": 6,
+        "beaconRejected": 0,
+        "lostBroadcastReplies": 0,
+        "receiptsRejected": 0
+      }
+    },
+    {
+      "mode": "beacon",
+      "failedRequests": 3,
+      "elapsedMs": 269.25608900000043,
+      "stats": {
+        "proofs": 0,
+        "cacheHits": 0,
+        "counters": {
+          "requests": 10
+        },
+        "stages": {
+          "job": {
+            "calls": 10,
+            "failures": 10,
+            "totalMs": 283.23087100000157,
+            "maxMs": 83.59296499999982
+          },
+          "cachePrune": {
+            "calls": 20,
+            "failures": 0,
+            "totalMs": 8.104426000003514,
+            "maxMs": 2.0346749999989697
+          },
+          "rpcContext": {
+            "calls": 4,
+            "failures": 0,
+            "totalMs": 21.46044299999994,
+            "maxMs": 8.888949000000139
+          },
+          "inspect": {
+            "calls": 3,
+            "failures": 0,
+            "totalMs": 152.76390299999912,
+            "maxMs": 51.93146499999966
+          },
+          "beacon": {
+            "calls": 3,
+            "failures": 3,
+            "totalMs": 6.20676199999798,
+            "maxMs": 3.5857120000000577
+          }
+        },
+        "memory": {
+          "rss": 172937216,
+          "heapTotal": 103649280,
+          "heapUsed": 37050344,
+          "external": 7188543,
+          "arrayBuffers": 2735076
+        },
+        "queue": {
+          "pending": 0,
+          "deduplicated": 0,
+          "rejected": 0,
+          "capacity": 8
+        },
+        "cache": {
+          "bytes": 0,
+          "files": 0
+        }
+      },
+      "faults": {
+        "rpcRejected": 6,
+        "beaconRejected": 3,
+        "lostBroadcastReplies": 0,
+        "receiptsRejected": 0
+      }
+    },
+    {
+      "mode": "h3-accepted-response-lost",
+      "elapsedMs": 243197.92834399999,
+      "journalHash": "0xd6c5eaf3010093c928852a5460d25eea770c3eedd49b351cea6eb173359767b5",
+      "stats": {
+        "proofs": 1,
+        "cacheHits": 0,
+        "counters": {
+          "requests": 11,
+          "proofs": 1
+        },
+        "stages": {
+          "job": {
+            "calls": 11,
+            "failures": 11,
+            "totalMs": 243432.1572,
+            "maxMs": 243148.92632899998
+          },
+          "cachePrune": {
+            "calls": 22,
+            "failures": 0,
+            "totalMs": 10.44673099999818,
+            "maxMs": 2.0346749999989697
+          },
+          "rpcContext": {
+            "calls": 5,
+            "failures": 0,
+            "totalMs": 23.711349999999584,
+            "maxMs": 8.888949000000139
+          },
+          "inspect": {
+            "calls": 4,
+            "failures": 0,
+            "totalMs": 202.20318399999815,
+            "maxMs": 51.93146499999966
+          },
+          "beacon": {
+            "calls": 4,
+            "failures": 3,
+            "totalMs": 8.773328999999649,
+            "maxMs": 3.5857120000000577
+          },
+          "prove": {
+            "calls": 1,
+            "failures": 0,
+            "totalMs": 243028.539217,
+            "maxMs": 243028.539217
+          },
+          "h3Prefix": {
+            "calls": 1,
+            "failures": 1,
+            "totalMs": 46.435333000001265,
+            "maxMs": 46.435333000001265
+          },
+          "h3Transaction": {
+            "calls": 1,
+            "failures": 1,
+            "totalMs": 30.921759000018938,
+            "maxMs": 30.921759000018938
+          }
+        },
+        "memory": {
+          "rss": 136204288,
+          "heapTotal": 35753984,
+          "heapUsed": 29979072,
+          "external": 6972273,
+          "arrayBuffers": 2512674
+        },
+        "queue": {
+          "pending": 0,
+          "deduplicated": 0,
+          "rejected": 0,
+          "capacity": 8
+        },
+        "cache": {
+          "bytes": 3778,
+          "files": 1
+        }
+      },
+      "faults": {
+        "rpcRejected": 6,
+        "beaconRejected": 3,
+        "lostBroadcastReplies": 1,
+        "receiptsRejected": 2
+      }
+    },
+    {
+      "mode": "recovered",
+      "stats": {
+        "proofs": 1,
+        "cacheHits": 1,
+        "counters": {
+          "requests": 12,
+          "proofs": 1,
+          "cacheHits": 1
+        },
+        "stages": {
+          "job": {
+            "calls": 12,
+            "failures": 11,
+            "totalMs": 243582.023113,
+            "maxMs": 243148.92632899998
+          },
+          "cachePrune": {
+            "calls": 24,
+            "failures": 0,
+            "totalMs": 13.319970000005924,
+            "maxMs": 2.3701880000007804
+          },
+          "rpcContext": {
+            "calls": 6,
+            "failures": 0,
+            "totalMs": 27.433246000002327,
+            "maxMs": 8.888949000000139
+          },
+          "inspect": {
+            "calls": 5,
+            "failures": 0,
+            "totalMs": 253.47942499998317,
+            "maxMs": 51.93146499999966
+          },
+          "beacon": {
+            "calls": 4,
+            "failures": 3,
+            "totalMs": 8.773328999999649,
+            "maxMs": 3.5857120000000577
+          },
+          "prove": {
+            "calls": 1,
+            "failures": 0,
+            "totalMs": 243028.539217,
+            "maxMs": 243028.539217
+          },
+          "h3Prefix": {
+            "calls": 2,
+            "failures": 1,
+            "totalMs": 90.9055980000121,
+            "maxMs": 46.435333000001265
+          },
+          "h3Transaction": {
+            "calls": 2,
+            "failures": 1,
+            "totalMs": 57.77890100001241,
+            "maxMs": 30.921759000018938
+          },
+          "h3Recovery": {
+            "calls": 1,
+            "failures": 0,
+            "totalMs": 9.773237999994308,
+            "maxMs": 9.773237999994308
+          }
+        },
+        "memory": {
+          "rss": 137515008,
+          "heapTotal": 40996864,
+          "heapUsed": 32813216,
+          "external": 7087522,
+          "arrayBuffers": 2627923
+        },
+        "queue": {
+          "pending": 0,
+          "deduplicated": 0,
+          "rejected": 0,
+          "capacity": 8
+        },
+        "cache": {
+          "bytes": 3778,
+          "files": 1
+        }
+      },
+      "faults": {
+        "rpcRejected": 6,
+        "beaconRejected": 3,
+        "lostBroadcastReplies": 1,
+        "receiptsRejected": 2
+      }
+    }
+  ],
+  "faults": {
+    "rpcRejected": 6,
+    "beaconRejected": 3,
+    "lostBroadcastReplies": 1,
+    "receiptsRejected": 2
+  },
+  "measurements": [
+    {
+      "iteration": 0,
+      "mission": "1",
+      "circuit": "opening",
+      "elapsedMs": 251714,
+      "nativeElapsedMs": 250503,
+      "artifactsReused": false,
+      "profileMs": {
+        "artifactIntegrityMs": 2570.974201,
+        "encodeMs": 0.222664,
+        "loadArtifactsMs": 206040.898982,
+        "prepareAssignmentMs": 7.260404,
+        "proveMs": 41879.873536,
+        "verifyMs": 3.078478,
+        "witnessMs": 1.498004
+      }
+    },
+    {
+      "iteration": 1,
+      "mission": "2",
+      "circuit": "opening",
+      "elapsedMs": 43511,
+      "nativeElapsedMs": 43391,
+      "artifactsReused": true,
+      "profileMs": {
+        "artifactIntegrityMs": 2492.600849,
+        "encodeMs": 0.124617,
+        "loadArtifactsMs": 0.054563,
+        "prepareAssignmentMs": 5.892543,
+        "proveMs": 40889.193244,
+        "verifyMs": 3.140702,
+        "witnessMs": 0.855901
+      }
+    },
+    {
+      "iteration": 2,
+      "mission": "4",
+      "circuit": "opening",
+      "elapsedMs": 46397,
+      "nativeElapsedMs": 46277,
+      "artifactsReused": true,
+      "profileMs": {
+        "artifactIntegrityMs": 1973.614186,
+        "encodeMs": 0.283999,
+        "loadArtifactsMs": 0.055867,
+        "prepareAssignmentMs": 6.686315,
+        "proveMs": 44293.122683,
+        "verifyMs": 3.367365,
+        "witnessMs": 0.583939
+      }
+    },
+    {
+      "iteration": 3,
+      "mission": "5",
+      "circuit": "opening",
+      "elapsedMs": 48099,
+      "nativeElapsedMs": 47977,
+      "artifactsReused": true,
+      "profileMs": {
+        "artifactIntegrityMs": 2129.220129,
+        "encodeMs": 0.128043,
+        "loadArtifactsMs": 0.065815,
+        "prepareAssignmentMs": 5.655957,
+        "proveMs": 45837.752516,
+        "verifyMs": 3.02833,
+        "witnessMs": 1.247505
+      }
+    },
+    {
+      "iteration": 4,
+      "mission": "3",
+      "circuit": "invalid-point",
+      "elapsedMs": 161550,
+      "nativeElapsedMs": 160347,
+      "artifactsReused": false,
+      "profileMs": {
+        "artifactIntegrityMs": 2017.185184,
+        "encodeMs": 0.092125,
+        "loadArtifactsMs": 130273.563473,
+        "prepareAssignmentMs": 0.459263,
+        "proveMs": 28053.20817,
+        "verifyMs": 2.676645,
+        "witnessMs": 0.61585
+      }
+    },
+    {
+      "iteration": 5,
+      "mission": "6",
+      "circuit": "invalid-point",
+      "elapsedMs": 28491,
+      "nativeElapsedMs": 28390,
+      "artifactsReused": true,
+      "profileMs": {
+        "artifactIntegrityMs": 1304.23278,
+        "encodeMs": 0.262538,
+        "loadArtifactsMs": 0.055275,
+        "prepareAssignmentMs": 0.209348,
+        "proveMs": 27082.496123,
+        "verifyMs": 3.062785,
+        "witnessMs": 0.320008
+      }
+    },
+    {
+      "iteration": 6,
+      "mission": "1",
+      "circuit": "opening",
+      "elapsedMs": 239535,
+      "nativeElapsedMs": 238160,
+      "artifactsReused": false,
+      "profileMs": {
+        "artifactIntegrityMs": 2322.286053,
+        "encodeMs": 0.123855,
+        "loadArtifactsMs": 192205.102933,
+        "prepareAssignmentMs": 7.706532,
+        "proveMs": 43621.014901,
+        "verifyMs": 3.256337,
+        "witnessMs": 1.307333
+      }
+    },
+    {
+      "iteration": 7,
+      "mission": "2",
+      "circuit": "opening",
+      "elapsedMs": 42544,
+      "nativeElapsedMs": 42429,
+      "artifactsReused": true,
+      "profileMs": {
+        "artifactIntegrityMs": 2002.774127,
+        "encodeMs": 0.110811,
+        "loadArtifactsMs": 0.06827,
+        "prepareAssignmentMs": 5.902764,
+        "proveMs": 40417.188542,
+        "verifyMs": 2.966426,
+        "witnessMs": 0.917589
+      }
+    },
+    {
+      "iteration": 8,
+      "mission": "4",
+      "circuit": "opening",
+      "elapsedMs": 44926,
+      "nativeElapsedMs": 44797,
+      "artifactsReused": true,
+      "profileMs": {
+        "artifactIntegrityMs": 1964.727698,
+        "encodeMs": 0.146639,
+        "loadArtifactsMs": 0.053782,
+        "prepareAssignmentMs": 5.639144,
+        "proveMs": 42823.185231,
+        "verifyMs": 3.44243,
+        "witnessMs": 0.638428
+      }
+    },
+    {
+      "iteration": 9,
+      "mission": "5",
+      "circuit": "opening",
+      "elapsedMs": 43311,
+      "nativeElapsedMs": 43186,
+      "artifactsReused": true,
+      "profileMs": {
+        "artifactIntegrityMs": 2067.352339,
+        "encodeMs": 0.113726,
+        "loadArtifactsMs": 0.043633,
+        "prepareAssignmentMs": 5.711922,
+        "proveMs": 41109.094333,
+        "verifyMs": 3.631088,
+        "witnessMs": 0.702189
+      }
+    },
+    {
+      "iteration": 10,
+      "mission": "3",
+      "circuit": "invalid-point",
+      "elapsedMs": 167995,
+      "nativeElapsedMs": 166903,
+      "artifactsReused": false,
+      "profileMs": {
+        "artifactIntegrityMs": 1494.54949,
+        "encodeMs": 0.164653,
+        "loadArtifactsMs": 134668.110925,
+        "prepareAssignmentMs": 0.308286,
+        "proveMs": 30737.085714,
+        "verifyMs": 2.589459,
+        "witnessMs": 0.538112
+      }
+    },
+    {
+      "iteration": 11,
+      "mission": "6",
+      "circuit": "invalid-point",
+      "elapsedMs": 30415,
+      "nativeElapsedMs": 30306,
+      "artifactsReused": true,
+      "profileMs": {
+        "artifactIntegrityMs": 1339.836953,
+        "encodeMs": 0.159864,
+        "loadArtifactsMs": 0.064383,
+        "prepareAssignmentMs": 0.246188,
+        "proveMs": 28962.6977,
+        "verifyMs": 2.859713,
+        "witnessMs": 0.397034
+      }
+    },
+    {
+      "iteration": 12,
+      "mission": "1",
+      "circuit": "opening",
+      "elapsedMs": 241233,
+      "nativeElapsedMs": 240025,
+      "artifactsReused": false,
+      "profileMs": {
+        "artifactIntegrityMs": 2225.409185,
+        "encodeMs": 0.134626,
+        "loadArtifactsMs": 195106.249666,
+        "prepareAssignmentMs": 6.722282,
+        "proveMs": 42683.167333,
+        "verifyMs": 3.330507,
+        "witnessMs": 0.941524
+      }
+    },
+    {
+      "iteration": 13,
+      "mission": "2",
+      "circuit": "opening",
+      "elapsedMs": 42549,
+      "nativeElapsedMs": 42429,
+      "artifactsReused": true,
+      "profileMs": {
+        "artifactIntegrityMs": 2054.827513,
+        "encodeMs": 0.108857,
+        "loadArtifactsMs": 0.055947,
+        "prepareAssignmentMs": 6.092104,
+        "proveMs": 40364.210363,
+        "verifyMs": 3.183268,
+        "witnessMs": 0.694178
+      }
+    },
+    {
+      "iteration": 14,
+      "mission": "4",
+      "circuit": "opening",
+      "elapsedMs": 44078,
+      "nativeElapsedMs": 43964,
+      "artifactsReused": true,
+      "profileMs": {
+        "artifactIntegrityMs": 1982.182079,
+        "encodeMs": 0.114508,
+        "loadArtifactsMs": 0.053611,
+        "prepareAssignmentMs": 5.549234,
+        "proveMs": 41972.976952,
+        "verifyMs": 3.039885,
+        "witnessMs": 0.601944
+      }
+    },
+    {
+      "iteration": 15,
+      "mission": "5",
+      "circuit": "opening",
+      "elapsedMs": 42804,
+      "nativeElapsedMs": 42686,
+      "artifactsReused": true,
+      "profileMs": {
+        "artifactIntegrityMs": 1982.919687,
+        "encodeMs": 0.121741,
+        "loadArtifactsMs": 0.05229,
+        "prepareAssignmentMs": 5.582987,
+        "proveMs": 40694.093581,
+        "verifyMs": 3.190542,
+        "witnessMs": 0.546157
+      }
+    },
+    {
+      "iteration": 16,
+      "mission": "3",
+      "circuit": "invalid-point",
+      "elapsedMs": 158986,
+      "nativeElapsedMs": 157867,
+      "artifactsReused": false,
+      "profileMs": {
+        "artifactIntegrityMs": 1472.797715,
+        "encodeMs": 0.136038,
+        "loadArtifactsMs": 128829.920489,
+        "prepareAssignmentMs": 0.359443,
+        "proveMs": 27561.288922,
+        "verifyMs": 2.942827,
+        "witnessMs": 0.478228
+      }
+    },
+    {
+      "iteration": 17,
+      "mission": "6",
+      "circuit": "invalid-point",
+      "elapsedMs": 29529,
+      "nativeElapsedMs": 29429,
+      "artifactsReused": true,
+      "profileMs": {
+        "artifactIntegrityMs": 1389.237863,
+        "encodeMs": 0.095051,
+        "loadArtifactsMs": 0.050706,
+        "prepareAssignmentMs": 0.235447,
+        "proveMs": 28037.363055,
+        "verifyMs": 2.593397,
+        "witnessMs": 0.374121
+      }
+    },
+    {
+      "iteration": 18,
+      "mission": "1",
+      "circuit": "opening",
+      "elapsedMs": 234847,
+      "nativeElapsedMs": 233682,
+      "artifactsReused": false,
+      "profileMs": {
+        "artifactIntegrityMs": 2164.332768,
+        "encodeMs": 0.196323,
+        "loadArtifactsMs": 188599.603479,
+        "prepareAssignmentMs": 6.148146,
+        "proveMs": 42907.976292,
+        "verifyMs": 3.388067,
+        "witnessMs": 0.929396
+      }
+    },
+    {
+      "iteration": 19,
+      "mission": "2",
+      "circuit": "opening",
+      "elapsedMs": 43977,
+      "nativeElapsedMs": 43862,
+      "artifactsReused": true,
+      "profileMs": {
+        "artifactIntegrityMs": 2098.677229,
+        "encodeMs": 0.119867,
+        "loadArtifactsMs": 0.045076,
+        "prepareAssignmentMs": 5.746818,
+        "proveMs": 41754.253319,
+        "verifyMs": 3.392085,
+        "witnessMs": 0.640577
+      }
+    },
+    {
+      "iteration": 20,
+      "mission": "4",
+      "circuit": "opening",
+      "elapsedMs": 49196,
+      "nativeElapsedMs": 49080,
+      "artifactsReused": true,
+      "profileMs": {
+        "artifactIntegrityMs": 1980.070432,
+        "encodeMs": 0.122503,
+        "loadArtifactsMs": 0.048001,
+        "prepareAssignmentMs": 5.697565,
+        "proveMs": 47090.738435,
+        "verifyMs": 3.209969,
+        "witnessMs": 0.693007
+      }
+    },
+    {
+      "iteration": 21,
+      "mission": "5",
+      "circuit": "opening",
+      "elapsedMs": 43828,
+      "nativeElapsedMs": 43711,
+      "artifactsReused": true,
+      "profileMs": {
+        "artifactIntegrityMs": 2050.967897,
+        "encodeMs": 0.170373,
+        "loadArtifactsMs": 0.094149,
+        "prepareAssignmentMs": 6.003878,
+        "proveMs": 41650.015896,
+        "verifyMs": 3.061062,
+        "witnessMs": 0.728845
+      }
+    },
+    {
+      "iteration": 22,
+      "mission": "3",
+      "circuit": "invalid-point",
+      "elapsedMs": 159444,
+      "nativeElapsedMs": 158270,
+      "artifactsReused": false,
+      "profileMs": {
+        "artifactIntegrityMs": 1441.314134,
+        "encodeMs": 0.110891,
+        "loadArtifactsMs": 128325.878569,
+        "prepareAssignmentMs": 0.359864,
+        "proveMs": 28499.708742,
+        "verifyMs": 2.851833,
+        "witnessMs": 0.471366
+      }
+    },
+    {
+      "iteration": 23,
+      "mission": "6",
+      "circuit": "invalid-point",
+      "elapsedMs": 28355,
+      "nativeElapsedMs": 28262,
+      "artifactsReused": true,
+      "profileMs": {
+        "artifactIntegrityMs": 1340.967055,
+        "encodeMs": 0.07913,
+        "loadArtifactsMs": 0.054864,
+        "prepareAssignmentMs": 0.292887,
+        "proveMs": 26917.624458,
+        "verifyMs": 2.950291,
+        "witnessMs": 0.411091
+      }
+    },
+    {
+      "iteration": 24,
+      "mission": "1",
+      "circuit": "opening",
+      "elapsedMs": 229828,
+      "nativeElapsedMs": 228759,
+      "artifactsReused": false,
+      "profileMs": {
+        "artifactIntegrityMs": 2031.709044,
+        "encodeMs": 0.110209,
+        "loadArtifactsMs": 185365.389254,
+        "prepareAssignmentMs": 5.724827,
+        "proveMs": 41352.212938,
+        "verifyMs": 3.017774,
+        "witnessMs": 1.035953
+      }
+    },
+    {
+      "iteration": 25,
+      "mission": "2",
+      "circuit": "opening",
+      "elapsedMs": 43826,
+      "nativeElapsedMs": 43710,
+      "artifactsReused": true,
+      "profileMs": {
+        "artifactIntegrityMs": 2007.859291,
+        "encodeMs": 0.110509,
+        "loadArtifactsMs": 0.047841,
+        "prepareAssignmentMs": 5.724506,
+        "proveMs": 41693.061493,
+        "verifyMs": 3.163736,
+        "witnessMs": 0.686264
+      }
+    },
+    {
+      "iteration": 26,
+      "mission": "4",
+      "circuit": "opening",
+      "elapsedMs": 44617,
+      "nativeElapsedMs": 44499,
+      "artifactsReused": true,
+      "profileMs": {
+        "artifactIntegrityMs": 1998.62845,
+        "encodeMs": 0.158922,
+        "loadArtifactsMs": 0.053301,
+        "prepareAssignmentMs": 5.60513,
+        "proveMs": 42486.809694,
+        "verifyMs": 7.123982,
+        "witnessMs": 0.654579
+      }
+    },
+    {
+      "iteration": 27,
+      "mission": "5",
+      "circuit": "opening",
+      "elapsedMs": 43713,
+      "nativeElapsedMs": 43580,
+      "artifactsReused": true,
+      "profileMs": {
+        "artifactIntegrityMs": 2057.508899,
+        "encodeMs": 0.112013,
+        "loadArtifactsMs": 0.061347,
+        "prepareAssignmentMs": 6.64187,
+        "proveMs": 41512.324281,
+        "verifyMs": 3.350716,
+        "witnessMs": 0.68705
+      }
+    },
+    {
+      "iteration": 28,
+      "mission": "3",
+      "circuit": "invalid-point",
+      "elapsedMs": 159197,
+      "nativeElapsedMs": 158055,
+      "artifactsReused": false,
+      "profileMs": {
+        "artifactIntegrityMs": 1358.858233,
+        "encodeMs": 0.156728,
+        "loadArtifactsMs": 129062.589302,
+        "prepareAssignmentMs": 0.376445,
+        "proveMs": 27629.915392,
+        "verifyMs": 2.819777,
+        "witnessMs": 0.487145
+      }
+    }
+  ],
+  "resources": {
+    "intervalMs": 1000,
+    "elapsedMs": 3752486.172305,
+    "samples": 3749,
+    "peakNodeRssBytes": 173199360,
+    "peakNativeRssBytes": 6620250112,
+    "peakNativeProcesses": 1,
+    "native": [
+      {
+        "kind": "opening",
+        "cpuSeconds": 1715.04,
+        "peakRssBytes": 6483042304,
+        "samples": 297
+      },
+      {
+        "kind": "invalid-point",
+        "cpuSeconds": 989.93,
+        "peakRssBytes": 5689098240,
+        "samples": 172
+      },
+      {
+        "kind": "opening",
+        "cpuSeconds": 1844.97,
+        "peakRssBytes": 6443388928,
+        "samples": 311
+      },
+      {
+        "kind": "invalid-point",
+        "cpuSeconds": 1041.44,
+        "peakRssBytes": 5207539712,
+        "samples": 177
+      },
+      {
+        "kind": "opening",
+        "cpuSeconds": 2366.98,
+        "peakRssBytes": 6560210944,
+        "samples": 389
+      },
+      {
+        "kind": "invalid-point",
+        "cpuSeconds": 1121.85,
+        "peakRssBytes": 6281560064,
+        "samples": 189
+      },
+      {
+        "kind": "opening",
+        "cpuSeconds": 2251.57,
+        "peakRssBytes": 6525198336,
+        "samples": 369
+      },
+      {
+        "kind": "invalid-point",
+        "cpuSeconds": 1154.91,
+        "peakRssBytes": 6182367232,
+        "samples": 197
+      },
+      {
+        "kind": "opening",
+        "cpuSeconds": 2276.44,
+        "peakRssBytes": 6389354496,
+        "samples": 370
+      },
+      {
+        "kind": "invalid-point",
+        "cpuSeconds": 1109.32,
+        "peakRssBytes": 6213414912,
+        "samples": 187
+      },
+      {
+        "kind": "opening",
+        "cpuSeconds": 2253.66,
+        "peakRssBytes": 6576119808,
+        "samples": 371
+      },
+      {
+        "kind": "invalid-point",
+        "cpuSeconds": 1099.69,
+        "peakRssBytes": 6213931008,
+        "samples": 186
+      },
+      {
+        "kind": "opening",
+        "cpuSeconds": 2203.89,
+        "peakRssBytes": 6620250112,
+        "samples": 361
+      },
+      {
+        "kind": "invalid-point",
+        "cpuSeconds": 921.96,
+        "peakRssBytes": 5244825600,
+        "samples": 158
+      }
+    ],
+    "limitation": "Sampled Linux RSS and CPU; may miss peaks and final CPU ticks. Node RSS excludes child processes. Not a memory ceiling or leak test."
+  },
+  "statsBefore": {
+    "proofs": 0,
+    "cacheHits": 0,
+    "counters": {
+      "requests": 1
+    },
+    "stages": {
+      "job": {
+        "calls": 1,
+        "failures": 1,
+        "totalMs": 39.14598399999886,
+        "maxMs": 39.14598399999886
+      },
+      "cachePrune": {
+        "calls": 2,
+        "failures": 0,
+        "totalMs": 0.7250170000006619,
+        "maxMs": 0.478888999999981
+      },
+      "rpcContext": {
+        "calls": 1,
+        "failures": 0,
+        "totalMs": 7.225452000000587,
+        "maxMs": 7.225452000000587
+      }
+    },
+    "memory": {
+      "rss": 169529344,
+      "heapTotal": 68259840,
+      "heapUsed": 44129528,
+      "external": 7715965,
+      "arrayBuffers": 3293970
+    },
+    "queue": {
+      "pending": 0,
+      "deduplicated": 0,
+      "rejected": 0,
+      "capacity": 8
+    },
+    "cache": {
+      "bytes": 0,
+      "files": 0
+    }
+  },
+  "statsAfter": {
+    "proofs": 35,
+    "cacheHits": 1,
+    "counters": {
+      "requests": 75,
+      "proofs": 35,
+      "cacheHits": 1
+    },
+    "stages": {
+      "job": {
+        "calls": 46,
+        "failures": 11,
+        "totalMs": 3751031.7877940005,
+        "maxMs": 259372.872433
+      },
+      "cachePrune": {
+        "calls": 92,
+        "failures": 0,
+        "totalMs": 150.10841700090714,
+        "maxMs": 3.8894950000103563
+      },
+      "rpcContext": {
+        "calls": 40,
+        "failures": 0,
+        "totalMs": 125.31937000004291,
+        "maxMs": 8.888949000000139
+      },
+      "inspect": {
+        "calls": 39,
+        "failures": 0,
+        "totalMs": 2073.9021679986763,
+        "maxMs": 68.3383939997293
+      },
+      "beacon": {
+        "calls": 27,
+        "failures": 3,
+        "totalMs": 48.016021999512304,
+        "maxMs": 3.5857120000000577
+      },
+      "prove": {
+        "calls": 35,
+        "failures": 0,
+        "totalMs": 3746608.51453,
+        "maxMs": 259187.03200600005
+      },
+      "h3Prefix": {
+        "calls": 25,
+        "failures": 1,
+        "totalMs": 635.2659880005813,
+        "maxMs": 87.31419100001222
+      },
+      "h3Transaction": {
+        "calls": 6,
+        "failures": 1,
+        "totalMs": 176.842852000118,
+        "maxMs": 32.03183799999533
+      },
+      "h3Recovery": {
+        "calls": 1,
+        "failures": 0,
+        "totalMs": 9.773237999994308,
+        "maxMs": 9.773237999994308
+      }
+    },
+    "memory": {
+      "rss": 140136448,
+      "heapTotal": 39948288,
+      "heapUsed": 30204536,
+      "external": 7073391,
+      "arrayBuffers": 2620514
+    },
+    "queue": {
+      "pending": 0,
+      "deduplicated": 29,
+      "rejected": 0,
+      "capacity": 8
+    },
+    "cache": {
+      "bytes": 17861,
+      "files": 6
+    }
+  },
+  "finalStats": {
+    "proofs": 35,
+    "cacheHits": 7,
+    "counters": {
+      "requests": 81,
+      "proofs": 35,
+      "cacheHits": 7
+    },
+    "stages": {
+      "job": {
+        "calls": 52,
+        "failures": 11,
+        "totalMs": 3751777.960547999,
+        "maxMs": 259372.872433
+      },
+      "cachePrune": {
+        "calls": 104,
+        "failures": 0,
+        "totalMs": 169.6596040016102,
+        "maxMs": 3.8894950000103563
+      },
+      "rpcContext": {
+        "calls": 46,
+        "failures": 0,
+        "totalMs": 139.83476399991378,
+        "maxMs": 8.888949000000139
+      },
+      "inspect": {
+        "calls": 45,
+        "failures": 0,
+        "totalMs": 2383.311791999222,
+        "maxMs": 68.3383939997293
+      },
+      "beacon": {
+        "calls": 27,
+        "failures": 3,
+        "totalMs": 48.016021999512304,
+        "maxMs": 3.5857120000000577
+      },
+      "prove": {
+        "calls": 35,
+        "failures": 0,
+        "totalMs": 3746608.51453,
+        "maxMs": 259187.03200600005
+      },
+      "h3Prefix": {
+        "calls": 29,
+        "failures": 1,
+        "totalMs": 857.8563230008876,
+        "maxMs": 87.31419100001222
+      },
+      "h3Transaction": {
+        "calls": 12,
+        "failures": 1,
+        "totalMs": 335.1953680002771,
+        "maxMs": 32.03183799999533
+      },
+      "h3Recovery": {
+        "calls": 1,
+        "failures": 0,
+        "totalMs": 9.773237999994308,
+        "maxMs": 9.773237999994308
+      }
+    },
+    "memory": {
+      "rss": 150491136,
+      "heapTotal": 71405568,
+      "heapUsed": 37096488,
+      "external": 7450212,
+      "arrayBuffers": 2997335
+    },
+    "queue": {
+      "pending": 0,
+      "deduplicated": 29,
+      "rejected": 0,
+      "capacity": 8
+    },
+    "cache": {
+      "bytes": 17861,
+      "files": 6
+    }
+  },
+  "punctualAndDelayedFullWorldEqual": true,
+  "limitations": [
+    "Six distinct admitted contexts are reproved repeatedly; not an arrival-rate or production-capacity benchmark.",
+    "Local HTTP archived beacon signatures; no public beacon/RPC availability measurement.",
+    "Fault episodes precede the sustained proof loop; not every interleaving of faults and circuit switches.",
+    "Sampled RSS/CPU are observations, not memory limits or absence-of-leak proof.",
+    "No stuck-transaction replacement policy or deep reorg recovery claim."
+  ]
+}

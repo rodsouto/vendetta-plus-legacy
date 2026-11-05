@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-30",
+  "capacityBenchmarkExitCode": 0,
+  "web": {
+    "passed": 163,
+    "files": 23,
+    "skipped": 0,
+    "log": "/tmp/vendetta-producer-capacity-web.log"
+  },
+  "scriptsTypecheck": true,
+  "prettier": true,
+  "gitDiffCheck": true,
+  "rulesAndContractsSuitesRerun": false,
+  "localUnsafeSetupsRegenerated": false,
+  "realNetworkDeployment": false,
+  "benchmarkLog": "/tmp/vendetta-producer-capacity.log"
+}

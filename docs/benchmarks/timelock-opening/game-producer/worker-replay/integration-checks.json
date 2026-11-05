@@ -1,0 +1,53 @@
+{
+  "scope": "Integrated resident producer, lifecycle and real private-Anvil EVM/H3 replay",
+  "checks": {
+    "webSuite": {
+      "passed": true,
+      "tests": 178,
+      "files": 25,
+      "skips": 0,
+      "foundryInPath": true,
+      "log": "/tmp/vendetta-producer-worker-integration-web.log"
+    },
+    "focusedServiceSupervisorQueue": {
+      "passed": true,
+      "tests": 24,
+      "log": "/tmp/vendetta-producer-worker-integration-tests.log"
+    },
+    "scriptTypecheck": {
+      "passed": true,
+      "log": "/tmp/vendetta-producer-worker-integration-types.log"
+    },
+    "realReplay": {
+      "passed": true,
+      "newProofs": 3,
+      "circuits": [
+        "opening",
+        "invalid-point"
+      ],
+      "warmOpeningJobs": 1,
+      "observedWorkerProcesses": 2,
+      "observedPeakSimultaneousWorkers": 1,
+      "bothObservedPidsDeadAfterClose": true,
+      "proofCacheHitsAfterAnvilRevert": 3,
+      "h3Restored": true,
+      "completePunctualAndDelayedWorldEqual": true,
+      "log": "/tmp/vendetta-producer-worker-replay.log"
+    },
+    "prettier": true,
+    "gitDiffCheck": true
+  },
+  "notRepeated": [
+    "rules suite",
+    "contracts suite",
+    "native Go suite: Go sources unchanged in this continuation"
+  ],
+  "remaining": [
+    "prolonged representative load",
+    "sustained RPC/beacon/H3 failures and remote availability",
+    "stuck transactions and reorg recovery",
+    "secure production setup and audit"
+  ],
+  "setupsRegenerated": false,
+  "realNetworkDeployment": false
+}

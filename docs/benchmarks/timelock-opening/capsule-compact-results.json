@@ -1,0 +1,13 @@
+{
+  "scope": "Compact public inputs for pairing + bounded KEM only",
+  "constraints": 2295952,
+  "publicInputs": 13,
+  "h3Candidates": 4,
+  "nodeVectorsSatisfied": 4,
+  "forgedResultsRejected": 4,
+  "changedFileKeyRejected": true,
+  "packedInputAbove128BitsRejected": true,
+  "groth16ProofGenerated": false,
+  "solidityVerifierGenerated": false,
+  "gasMeasured": false
+}

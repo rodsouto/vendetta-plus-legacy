@@ -1,0 +1,50 @@
+{
+  "date": "2026-11-03",
+  "scope": "Bounded native phase-1 capacity sweep only; no game circuits/keys or production approval",
+  "command": "VENDETTA_GO_BIN=/home/rodrigo/.cache/vendetta-tools/go/bin/go GOMEMLIMIT=6GiB GOMAXPROCS=8 pnpm capacity:hidden-v2 --directory /home/rodrigo/.cache/vendetta-audit/mpc-capacity-20261103-final --max-log2 14 --unsafe-test-only",
+  "tests": {
+    "mainTestsPassed": [
+      "TestCapacityModelAndBounds",
+      "TestCapacitySupervisorStopsAndWaits",
+      "TestCapacitySweepStopsAfterFailure",
+      "TestCapacityCLI",
+      "TestRSSObservation"
+    ],
+    "subtestsPassed": 3,
+    "totalTestEventsPassed": 8,
+    "log": "/tmp/vendetta-v2-mpc-capacity-tests.jsonl",
+    "logSha256": "6e677819eaf857b799b5478d3a35b206ba6947879567e0aa8425426b6de2b9cd"
+  },
+  "run": {
+    "directory": "/home/rodrigo/.cache/vendetta-audit/mpc-capacity-20261103-final",
+    "log": "/tmp/vendetta-v2-mpc-capacity-final.log",
+    "logSha256": "e22806499a3ca16d8cb2af4d1b7f1206ee331d468fa1a1ba4cd9446f7436fa89"
+  },
+  "sourceSha256": {
+    "apps/web/scripts/experiments/opening-zk/cmd/mpc-capacity/main.go": "1f3fb1b036cc57d8e5930a8909651d0277060e3293afadb3a687e3bf9cc6b4a5",
+    "apps/web/scripts/experiments/opening-zk/cmd/mpc-capacity/main_test.go": "b675fc4f0856854bf0c10b6d1819afd80ae627c8a257b667d41d6140a8d97915",
+    "apps/web/scripts/experiments/opening-zk/cmd/mpc-capacity/model.go": "d3a59655495c22e5b410e334c53a366721148e4c3b55a2a4a99325387d419499",
+    "apps/web/scripts/experiments/opening-zk/go.mod": "595dae54335bcc725fe46cea09212f12eaf859b0ca571b52c638d79fedea8e4e",
+    "apps/web/scripts/experiments/opening-zk/go.sum": "496751b89fbba16c5a94ec56f650ce733dc8f00ac2d5dcb24e2fd7d3d3ec3b4f",
+    "package.json": "4d75cc3026e095d53bb99e6e0d26a6072e51495299eab86187ce697e2b2e4f9f",
+    "scripts/hidden-v2-mpc-capacity.sh": "70fc0a05d30a80143b1485f5c10ee4d4d36b38fd812c75dc4a35d0a50e946114"
+  },
+  "artifactSha256": {
+    "capacity-report.json": "85657dfb278bdcd95ca2f7eafcfd72a5c191d2529c44ede9c23bffe2cd851554",
+    "phase1-10.jsonl": "8806a70b2dddd10dabab0d357da62a9938922af6a759514846c41a81d4e0798a",
+    "phase1-12.jsonl": "3d7eccc64ec7120749b44e8f8c9e4cdd8605d5eca765d4a74f11f79ed53145ae",
+    "phase1-14.jsonl": "991f07f57a75f9f374df3f30e6381e8c6f70de150853ff9c6df7bb5198981b4f"
+  },
+  "checks": {
+    "goVet": "passed",
+    "gofmt": "passed"
+  },
+  "limitations": [
+    "Fixed known challenge, no ceremony authentication or post-closure randomness",
+    "No game CS read/compiled, no game-domain MPC or phase 2 measured",
+    "Only low-domain phase 1 backend samples; no transcript disk I/O",
+    "RSS stop sampled at 25 ms, not a kernel RSS cap; hard virtual address space bound is separate",
+    "Full target domain estimates are structural and exclude overhead; no full-domain latency extrapolation",
+    "No complete game suites repeated; no game logic/circuit/producer/dependency changes"
+  ]
+}

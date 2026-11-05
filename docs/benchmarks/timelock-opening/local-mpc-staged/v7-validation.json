@@ -1,0 +1,21 @@
+{
+  "schema": "vendetta-unsafe-local-staged-validation-3",
+  "goPackages": 4,
+  "goPassingTestEvents": 149,
+  "goFailures": 0,
+  "pythonTests": 31,
+  "pythonFailures": 0,
+  "goVetPassed": true,
+  "nativeInitialEvaluationAndKeyBytesEqualSmallCircuits": true,
+  "realGroth16ProofAndNegativePublicInputTests": true,
+  "resumeCompletedInitializationBodiesAndContextChecked": true,
+  "openingInitializationComplete": true,
+  "openingFullMPCComplete": false,
+  "openingInitializationReport": "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run2/23-phase2-init/report.json",
+  "openingInitializationMetadataSha256": "f23056da6aac64466512dea6496a098dbdb5562b208ff4d326a9c8f9de0f0675",
+  "openingInitializationMaxRssBytes": 3132063744,
+  "openingInitializationWallMilliseconds": 18502786,
+  "newKeyGameReplayComplete": false,
+  "productionApproved": false,
+  "testsSha256": "10b745b1d6435fc84fa5f8bcc360b50e2b356bded2a31778c6c2a8020c0f30ed"
+}

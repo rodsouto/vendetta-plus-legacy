@@ -1,0 +1,76 @@
+{
+  "status": "initialization-probe-complete",
+  "scope": "Local native phase-1 initialization and streamed hash only; no contribution, verification, CS compilation or keys",
+  "binarySha256": "0821941d92663f66e9b680a61432e07da7b8200f85b7097565582563abf46ccf",
+  "addressSpaceBytes": 8589934592,
+  "cpuSeconds": 90,
+  "wallSeconds": 120,
+  "fileBytes": 65536,
+  "samples": [
+    {
+      "log2": 22,
+      "measurement": {
+        "command": "worker",
+        "pid": 170694,
+        "wallMilliseconds": 8939,
+        "cpuUserMilliseconds": 4902,
+        "cpuSystemMilliseconds": 4664,
+        "maxRssKiB": 2531300
+      },
+      "checkpoints": [
+        {
+          "stage": "initialize",
+          "log2": 22,
+          "milliseconds": 2887,
+          "maxRssBytes": 1619156992,
+          "wireBytes": 0,
+          "sha256": ""
+        },
+        {
+          "stage": "serialize-initial-state-to-hash",
+          "log2": 22,
+          "milliseconds": 5676,
+          "maxRssBytes": 2592051200,
+          "wireBytes": 805306601,
+          "sha256": "cb693c7407deadfb05cf3f33282583444a2ce10e7250ecf87b0ac0b255b05b22"
+        }
+      ],
+      "hostAvailableBytes": 16132067328
+    },
+    {
+      "log2": 23,
+      "measurement": {
+        "command": "worker",
+        "pid": 170733,
+        "wallMilliseconds": 15210,
+        "cpuUserMilliseconds": 9752,
+        "cpuSystemMilliseconds": 8199,
+        "maxRssKiB": 4972752
+      },
+      "checkpoints": [
+        {
+          "stage": "initialize",
+          "log2": 23,
+          "milliseconds": 4123,
+          "maxRssBytes": 3231342592,
+          "wireBytes": 0,
+          "sha256": ""
+        },
+        {
+          "stage": "serialize-initial-state-to-hash",
+          "log2": 23,
+          "milliseconds": 10363,
+          "maxRssBytes": 5092098048,
+          "wireBytes": 1610612969,
+          "sha256": "1e109a72796c380a84a193b644ac652790a6a4223a06783a6dc710b00a94a93c"
+        }
+      ],
+      "hostAvailableBytes": 15921459200
+    }
+  ],
+  "gameDomainInitializationMeasured": true,
+  "gameDomainMpcMeasured": false,
+  "contributionsMeasured": false,
+  "phase2Measured": false,
+  "productionApproved": false
+}

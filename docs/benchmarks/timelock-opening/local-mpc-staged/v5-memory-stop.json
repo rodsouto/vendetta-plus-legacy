@@ -1,0 +1,9 @@
+{
+  "at": "2026-11-04T23:24:25Z",
+  "event": "memory-stop",
+  "failure": "host-memory-pressure",
+  "hostAvailableBytes": 4249939968,
+  "hostMemoryAvailable": true,
+  "rssAvailable": true,
+  "rssBytes": 4801982464
+}

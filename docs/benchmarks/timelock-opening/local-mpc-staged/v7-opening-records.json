@@ -1,0 +1,57 @@
+{
+  "v7-opening-phase2-contribution1-report.json": {
+    "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run3/23-phase2-contribution1/report.json",
+    "originalSha256": "26932905c4f013db0ae29bc1c5b5a5aecf83bbeb9ba3dae96898955e3a3f6b5b",
+    "copiedSha256": "26932905c4f013db0ae29bc1c5b5a5aecf83bbeb9ba3dae96898955e3a3f6b5b"
+  },
+  "v7-opening-phase2-contribution1-artifact.json": {
+    "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run3/23-phase2-contribution1/public/artifact.json",
+    "originalSha256": "ee10695d34f71c2cb9ae9b427ec77afe3e549611055fa179450982cd12a4791b",
+    "copiedSha256": "ee10695d34f71c2cb9ae9b427ec77afe3e549611055fa179450982cd12a4791b"
+  },
+  "v7-opening-phase2-verify1-report.json": {
+    "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run3/23-phase2-verify1/report.json",
+    "originalSha256": "f7eb746d66c09b45bd1ba97fb842a7ae814856e2e55578c2d06b22fcf46aa1f9",
+    "copiedSha256": "f7eb746d66c09b45bd1ba97fb842a7ae814856e2e55578c2d06b22fcf46aa1f9"
+  },
+  "v7-opening-phase2-verify1-verification.json": {
+    "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run3/23-phase2-verify1/public/verification.json",
+    "originalSha256": "86062c534ce2da4683224dc062171cee70fbb65a939b8aae2a3c0ee616fbfde1",
+    "copiedSha256": "86062c534ce2da4683224dc062171cee70fbb65a939b8aae2a3c0ee616fbfde1"
+  },
+  "v7-opening-phase2-contribution2-report.json": {
+    "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run3/23-phase2-contribution2/report.json",
+    "originalSha256": "df62d56b96127ea5b93e3475f4e011a13ea701461c114c6cdd547d3484923354",
+    "copiedSha256": "df62d56b96127ea5b93e3475f4e011a13ea701461c114c6cdd547d3484923354"
+  },
+  "v7-opening-phase2-contribution2-artifact.json": {
+    "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run3/23-phase2-contribution2/public/artifact.json",
+    "originalSha256": "2f0ab99869f9bb0b893d857e998efccaa9069d5946f462ba9812859f260c613c",
+    "copiedSha256": "2f0ab99869f9bb0b893d857e998efccaa9069d5946f462ba9812859f260c613c"
+  },
+  "v7-opening-phase2-verify2-report.json": {
+    "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run3/23-phase2-verify2/report.json",
+    "originalSha256": "ba8a4e2d94ac7e173df0c9592de0a47c5c7e4b1c14f4e3b6c7f6c0edf6f00a27",
+    "copiedSha256": "ba8a4e2d94ac7e173df0c9592de0a47c5c7e4b1c14f4e3b6c7f6c0edf6f00a27"
+  },
+  "v7-opening-phase2-verify2-verification.json": {
+    "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run3/23-phase2-verify2/public/verification.json",
+    "originalSha256": "ec985289cd6f9632eabeed08b3a71161f9d0aa706e75c4b352f23bffbbcbb38d",
+    "copiedSha256": "ec985289cd6f9632eabeed08b3a71161f9d0aa706e75c4b352f23bffbbcbb38d"
+  },
+  "v7-opening-phase2-keys-report.json": {
+    "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run3/23-phase2-keys/report.json",
+    "originalSha256": "ae25df46e043a029555677e4b3acded133debb4bd85c248d73bab04058c15bda",
+    "copiedSha256": "ae25df46e043a029555677e4b3acded133debb4bd85c248d73bab04058c15bda"
+  },
+  "v7-opening-phase2-keys-keys.json": {
+    "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run3/23-phase2-keys/public/keys.json",
+    "originalSha256": "12d13e25808ac946278b14dfce0d6c78ad39a55439dd251662d0fff322b261fc",
+    "copiedSha256": "12d13e25808ac946278b14dfce0d6c78ad39a55439dd251662d0fff322b261fc"
+  },
+  "v7-opening-phase2-keys-manifest.json": {
+    "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run3/23-phase2-keys/public/manifest.json",
+    "originalSha256": "e1c210611c3c110ff45027f7fc7f2459c2b065ee3ffcb3a1b9ed38a4dfcc1455",
+    "copiedSha256": "e1c210611c3c110ff45027f7fc7f2459c2b065ee3ffcb3a1b9ed38a4dfcc1455"
+  }
+}

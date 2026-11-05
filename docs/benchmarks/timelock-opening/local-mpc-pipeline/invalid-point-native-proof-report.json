@@ -1,0 +1,13 @@
+{
+  "status": "native-proof-verified",
+  "failure": "",
+  "wallMilliseconds": 237498,
+  "cpuUserMilliseconds": 748254,
+  "cpuSystemMilliseconds": 46257,
+  "maxRssBytes": 5329436672,
+  "sampledMaxRssBytes": 5331038208,
+  "inputSha256": "c15184ea253df9cf19a022d0a36f5808b094e7f99899c9a0c6480ee3af718d2e",
+  "setupManifestSha256": "c4798b4f3ddc81c535c680a420b437fec9107ea007bc5c39c9504ff86a13a2c8",
+  "productionApproved": false,
+  "proofSha256": "60a419e4886b50ecdc6e67f569b5d5561de5215d507d87b4a982c59593e6834c"
+}

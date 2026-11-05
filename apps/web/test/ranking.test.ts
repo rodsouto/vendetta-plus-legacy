@@ -1,3 +1,4 @@
+import { world, sendHidden, certify } from "../../../packages/rules/test/v2-helpers.js";
 // The ranking from the loaded world (B-18): players and live families by points, ties to the lower
 // id, current points through the projection even when no transaction settled the building, and no
 // hidden-mission plaintext, so every client ranks the same.
@@ -19,7 +20,7 @@ const points = (r: ReturnType<typeof ranking>) =>
 
 describe("ranking", () => {
   it("orders players by projected points and families by their members' sum", () => {
-    const w = sim.newWorld(rs);
+    const w = world(rs);
     const t = T0;
     for (const [i, c] of ["alice", "bob", "carol", "dave"].entries())
       sim.register(w, c, coord(i + 1), t);
@@ -51,7 +52,7 @@ describe("ranking", () => {
   });
 
   it("counts a room that finishes in the same second a mission settled its building", () => {
-    const w = sim.newWorld(rs);
+    const w = world(rs);
     sim.register(w, "alice", coord(1), T0);
     sim.queueRoom(w, "alice", 1n, room("boot_camp"), T0);
     const b = w.buildings.get(1n)!;
@@ -71,7 +72,7 @@ describe("ranking", () => {
   });
 
   it("ignores hidden-mission plaintexts: a due attack counts once its reveal is on chain", () => {
-    const w = sim.newWorld(rs);
+    const w = world(rs);
     let now = T0;
     sim.setGlobalPremium(w, now + 100_000_000n);
     sim.register(w, "alice", coord(1), now);
@@ -86,7 +87,7 @@ describe("ranking", () => {
     sim.train(w, "bob", 2n, ROWDY, 3n, now);
     now += DAY;
     const plain: HiddenPlain = { kind: sim.ATTACK, target: coord(2), salt: 7n };
-    const id = sim.sendHiddenMission(
+    const id = sendHidden(
       w,
       "alice",
       1n,
@@ -102,15 +103,16 @@ describe("ranking", () => {
 
     // The client that holds the plaintext would see the battle; the ranking does not.
     const blind = project(w, at);
-    const sighted = project(w, at, known);
+    const sighted = project(w, at);
     const ranked = points(ranking(w, at));
     for (const p of [1n, 2n]) expect(ranked.get(p)).toBe(blind.players.get(p)!.centipoints);
-    expect([1n, 2n].some((p) => sighted.players.get(p)!.centipoints !== ranked.get(p))).toBe(true);
+    expect(sighted).toEqual(blind);
 
     // Once the reveal is on chain, every client ranks the battle.
     const revealed = cloneWorld(w);
-    sim.reveal(revealed, id, plain.kind, plain.target, plain.salt, at);
+    certify(revealed, id, plain.kind, plain.target, plain.salt, at);
     const after = points(ranking(revealed, at));
-    for (const p of [1n, 2n]) expect(after.get(p)).toBe(sighted.players.get(p)!.centipoints);
+    const executed = project(revealed, at);
+    for (const p of [1n, 2n]) expect(after.get(p)).toBe(executed.players.get(p)!.centipoints);
   });
 });

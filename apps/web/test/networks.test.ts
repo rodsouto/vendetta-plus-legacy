@@ -16,7 +16,6 @@ function production() {
   vi.stubEnv("VITE_DEPLOYMENT", JSON.stringify(deployment));
   vi.stubEnv("VITE_PIMLICO_API_KEY", "test-key");
   vi.stubEnv("VITE_PIMLICO_POLICY_ID", "sp_test");
-  vi.stubEnv("VITE_REVEAL_BUNDLER_URL", "https://private-bundler.test");
   vi.stubEnv("VITE_RPC_URL", "");
 }
 afterEach(() => vi.unstubAllEnvs());
@@ -32,7 +31,6 @@ describe("Gnosis configuration", () => {
     expect(n.accounts).toBe("passkey");
     expect(n.deployment.bundler).toBe("https://api.pimlico.io/v2/100/rpc?apikey=test-key");
     expect(n.deployment.paymaster).toBe(n.deployment.bundler);
-    expect(n.deployment.revealBundler).toBe("https://private-bundler.test");
     expect(n.deployment.sponsorshipPolicy).toBe("sp_test");
     expect(n.deployment.rpc).toBe(deployment.rpc);
   });
@@ -40,11 +38,6 @@ describe("Gnosis configuration", () => {
     production();
     vi.stubEnv("VITE_DEPLOYMENT", JSON.stringify({ ...deployment, chainId: 42161 }));
     expect(await loadNetwork()).toBe("invalidDeployment");
-  });
-  it("does not open the city without a private reveal submission path", async () => {
-    production();
-    vi.stubEnv("VITE_REVEAL_BUNDLER_URL", "");
-    expect(await loadNetwork()).toBe("noPrivateReveal");
   });
   it("rejects an obsolete build target instead of falling through to local", async () => {
     production();
@@ -58,42 +51,25 @@ describe("Gnosis configuration", () => {
       "VITE_DEPLOYMENT",
       JSON.stringify({ ...deployment, chainId: 31337, bundler: "http://localhost:8591" }),
     );
-    vi.stubEnv("VITE_REVEAL_BUNDLER_URL", "");
     const n = (await loadNetwork()) as Network;
     expect(n.chain.id).toBe(31337);
     expect(n.accounts).toBe("passkey");
   });
 });
 
-describe("private reveal routing", () => {
-  const network: Network = {
-    id: "gnosis",
-    chain: gnosis,
-    accounts: "passkey",
-    deployment: {
-      ...deployment,
-      bundler: "https://ordinary.test",
-      revealBundler: "https://private.test",
-    },
-  };
-  it("sends the whole operation privately when a reveal is in its prefix", () => {
+describe("certificate routing", () => {
+  it("uses the sponsored bundler for certificates and actions", () => {
+    const network = {
+      id: "gnosis",
+      chain: gnosis,
+      accounts: "passkey",
+      deployment: { ...deployment, bundler: "https://ordinary.test" },
+    } as Network;
     expect(
       operationBundler(network, [
-        gameCall(deployment.game, "advance", [1n]),
-        gameCall(deployment.game, "reveal", [1n, 1, [1n, 1n, 2n], "0x"]),
-        gameCall(deployment.game, "queueRoom", [1n, 2n]),
+        gameCall(deployment.game, "submitHiddenEvidence", [1n, "0x"]),
+        gameCall(deployment.game, "poke", [1n]),
       ]),
-    ).toBe("https://private.test");
-  });
-  it("keeps ordinary orders on the sponsored bundler", () => {
-    expect(operationBundler(network, [gameCall(deployment.game, "queueRoom", [1n, 2n])])).toBe(
-      "https://ordinary.test",
-    );
-  });
-  it("fails closed rather than falling back to public submission for a reveal", () => {
-    const n = { ...network, deployment: { ...network.deployment, revealBundler: undefined } };
-    expect(() => operationBundler(n, [gameCall(deployment.game, "reveal", [])])).toThrow(
-      "Private reveal",
-    );
+    ).toBe("https://ordinary.test");
   });
 });

@@ -1,0 +1,84 @@
+{
+  "schema": "vendetta-unsafe-local-mpc-completed-1",
+  "date": "2026-11-05",
+  "scope": "Both game circuits locally, unsafe MPC through actual producer/EVM/Game/H3; no production approval",
+  "bothMPCDomainsComplete": true,
+  "openingInitialization": {
+    "maxRssBytes": 3132063744,
+    "wallMilliseconds": 18502786,
+    "binarySha256": "7168c4854ea52665d96ab9e0933b3328708bc1885c8305ff45f6170605c325b1"
+  },
+  "openingPhase2VerifyPeakRssBytes": 5370855424,
+  "openingKeyExtractionPeakRssBytes": 4877393920,
+  "newKeyReplay": {
+    "proofsGenerated": 3,
+    "worldEqualPunctualAndDelayed": true,
+    "peakNativeProcesses": 1,
+    "sampledPeakNativeRssBytes": 6249586688,
+    "sampledPeakNodeRssBytes": 142241792,
+    "batchElapsedMs": 642786.667856,
+    "limitations": [
+      "Short local replay, not prolonged load or remote RPC/beacon availability.",
+      "One sample of invalid-point; no warm invalid-point job.",
+      "Cache replay reconstructs H3 after Anvil revert; no stuck-transaction or deep-reorg recovery claim."
+    ]
+  },
+  "manifests": {
+    "opening": "e1c210611c3c110ff45027f7fc7f2459c2b065ee3ffcb3a1b9ed38a4dfcc1455",
+    "invalid-point": "c4798b4f3ddc81c535c680a420b437fec9107ea007bc5c39c9504ff86a13a2c8"
+  },
+  "validation": {
+    "goPackages": 4,
+    "passingGoTestEvents": 149,
+    "passingPythonTests": 31,
+    "goVetPassed": true,
+    "raceInstrumentation": "unavailable (no cgo/CC)"
+  },
+  "proofs": [
+    {
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-replay-20261105-run3/keys/game-jobs-1793856107565/0x10375ccccd39b89277db1bb62b5ac792c715a4cb1b27e1d8a6348f63eefc196e.e1c210611c3c110ff45027f7fc7f2459c2b065ee3ffcb3a1b9ed38a4dfcc1455.proof.json",
+      "sha256": "751ae7d08e33b91cf4421391fd63188db2dc4e48ed2a9712a68daad1ed3472f9",
+      "kind": "opening",
+      "statement": "0x10375ccccd39b89277db1bb62b5ac792c715a4cb1b27e1d8a6348f63eefc196e",
+      "setupManifestSha256": "e1c210611c3c110ff45027f7fc7f2459c2b065ee3ffcb3a1b9ed38a4dfcc1455",
+      "valid": true
+    },
+    {
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-replay-20261105-run3/keys/game-jobs-1793856107565/0x8b4cb1a3033e7ea1f8a5683304ac055e32cf974ea93fdb4464a2f7d4558cd01a.c4798b4f3ddc81c535c680a420b437fec9107ea007bc5c39c9504ff86a13a2c8.proof.json",
+      "sha256": "8b313099c57f65fe4a605486c3bd5a6be37ae1c3626806e03007a89c225a07ca",
+      "kind": "invalid-point",
+      "statement": "0x8b4cb1a3033e7ea1f8a5683304ac055e32cf974ea93fdb4464a2f7d4558cd01a",
+      "setupManifestSha256": "c4798b4f3ddc81c535c680a420b437fec9107ea007bc5c39c9504ff86a13a2c8",
+      "valid": false
+    },
+    {
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-replay-20261105-run3/keys/game-jobs-1793856107565/0xbf10aa6253b05218f29069f51652ac293ddbadc4048946b65355b328241cdec2.e1c210611c3c110ff45027f7fc7f2459c2b065ee3ffcb3a1b9ed38a4dfcc1455.proof.json",
+      "sha256": "92dae3013065d651d9156d65e02a583f94ff5dcc8829ccb4fc19602773848488",
+      "kind": "opening",
+      "statement": "0xbf10aa6253b05218f29069f51652ac293ddbadc4048946b65355b328241cdec2",
+      "setupManifestSha256": "e1c210611c3c110ff45027f7fc7f2459c2b065ee3ffcb3a1b9ed38a4dfcc1455",
+      "valid": false
+    }
+  ],
+  "evidence": {
+    "replay-results.json": {
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-replay-20261105-run3/evidence/results.json",
+      "originalSha256": "69f7623dd69f3a38a2504a4acdd38d6a776d49f96c1f7ce229ac30aa0a14c01a",
+      "copiedSha256": "69f7623dd69f3a38a2504a4acdd38d6a776d49f96c1f7ce229ac30aa0a14c01a"
+    },
+    "replay-worker-results.json": {
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-replay-20261105-run3/evidence/worker-results.json",
+      "originalSha256": "88b101457ff6684ba68556bbf60bf16f7c6b5d40b3787cde75f79d1ffdbe0755",
+      "copiedSha256": "88b101457ff6684ba68556bbf60bf16f7c6b5d40b3787cde75f79d1ffdbe0755"
+    },
+    "replay-verifier-runtime.json": {
+      "original": "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-replay-20261105-run3/keys/verifier-runtime.json",
+      "originalSha256": "786913b571c131bc40b67b48600f51e0320a986325b7a5543a8b2c2782b4a90c",
+      "copiedSha256": "786913b571c131bc40b67b48600f51e0320a986325b7a5543a8b2c2782b4a90c"
+    }
+  },
+  "unsafeLocalSetup": true,
+  "realNetworkDeployment": false,
+  "productionApproved": false,
+  "hardwareOrSwapConfigurationChanged": false
+}

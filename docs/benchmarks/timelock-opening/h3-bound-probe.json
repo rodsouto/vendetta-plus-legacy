@@ -1,0 +1,11 @@
+{
+  "scope": "Native H3 grind only; no ZK proof or complete ciphertext",
+  "fixedCircuitBound": 4,
+  "elapsedMs": 338.4195199999999,
+  "trials": 11749,
+  "sigma": "877f2fd6671e038859d75c05b7de16b7",
+  "fileKey": "9415e8e6ba66e27da9a388461020453d",
+  "firstAcceptedCounter": 5,
+  "scalar": "45007087982830307960066972967956446568514081403645713084635648904263614511513",
+  "consequence": "These legitimate KEM encryption inputs cannot be handled by the four-candidate circuit. A failed proof is not evidence of invalidity."
+}

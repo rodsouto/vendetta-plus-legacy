@@ -1,0 +1,207 @@
+{
+  "batchElapsedMs": 1385650.948315,
+  "observedMissionsPerHour": 15.588341368557757,
+  "circuits": [
+    {
+      "kind": "opening",
+      "nativeElapsedMs": {
+        "count": 4,
+        "min": 241585,
+        "mean": 260993.5,
+        "max": 306088
+      },
+      "sampledCpuSeconds": {
+        "count": 4,
+        "min": 1400.08,
+        "mean": 1450.4175,
+        "max": 1516.75
+      },
+      "sampledPeakRssBytes": {
+        "count": 4,
+        "min": 6312132608,
+        "mean": 6338140160,
+        "max": 6380023808
+      },
+      "certificateSubmissionGas": {
+        "count": 4,
+        "min": 781579,
+        "mean": 814028,
+        "max": 846489
+      }
+    },
+    {
+      "kind": "invalid-point",
+      "nativeElapsedMs": {
+        "count": 2,
+        "min": 166013,
+        "mean": 167122,
+        "max": 168231
+      },
+      "sampledCpuSeconds": {
+        "count": 2,
+        "min": 958.83,
+        "mean": 973.655,
+        "max": 988.48
+      },
+      "sampledPeakRssBytes": {
+        "count": 2,
+        "min": 5238816768,
+        "mean": 5239635968,
+        "max": 5240455168
+      },
+      "certificateSubmissionGas": {
+        "count": 2,
+        "min": 383021,
+        "mean": 383021,
+        "max": 383021
+      }
+    }
+  ],
+  "h3Contexts": [
+    {
+      "pre": "0x6509bc0f5d24c8f34a3520291a63eb30a21a6e0cda02a61a690324adb2ccadef",
+      "receipt": "0x75bf568e05784992cac1adbb539fa86821f46de94fbb97a3441c5f5c5bc1ed64",
+      "missions": [
+        "1"
+      ],
+      "gas": "171004",
+      "transactions": 2
+    },
+    {
+      "pre": "0x11766807f9a9fc7d634328fff3cbd98d6fab560182e870342242753bb53ce06a",
+      "receipt": "0xa22c69126790a4119da2dc707c492534d29d6fe2bb761006f0798ea3f9430003",
+      "missions": [
+        "2",
+        "5"
+      ],
+      "gas": "175124",
+      "transactions": 2
+    },
+    {
+      "pre": "0xd1db2ff91568ff1b943452b7fa7ae41b36694da900a23d51ce8d9d1859474087",
+      "receipt": "0xf6ac6dd0c5156f59207d26db685a77e8de2771335a91a7b9a62b447e87ffe4fe",
+      "missions": [
+        "4"
+      ],
+      "gas": "170992",
+      "transactions": 2
+    }
+  ],
+  "missions": [
+    {
+      "name": "valid-fresh-packet-round-1001-max-salt",
+      "mission": "1",
+      "circuit": "opening",
+      "nativeElapsedMs": 306088,
+      "queuedHttpElapsedMs": 307501,
+      "admissionGas": "547644",
+      "submissionGas": "846489",
+      "setupManifestSha256": "353bd28c1fe36a07fd7bb42a110f49cbe323fbcdc1dd323c036678502450a8ff",
+      "amortizedH3Gas": {
+        "numerator": "171004",
+        "denominator": "1"
+      },
+      "amortizedAdmissionH3AndCertificateGas": {
+        "numerator": "1565137",
+        "denominator": "1"
+      }
+    },
+    {
+      "name": "invalid-commitment-five-H3-candidates",
+      "mission": "2",
+      "circuit": "opening",
+      "nativeElapsedMs": 242282,
+      "queuedHttpElapsedMs": 551140,
+      "admissionGas": "468059",
+      "submissionGas": "781579",
+      "setupManifestSha256": "353bd28c1fe36a07fd7bb42a110f49cbe323fbcdc1dd323c036678502450a8ff",
+      "amortizedH3Gas": {
+        "numerator": "175124",
+        "denominator": "2"
+      },
+      "amortizedAdmissionH3AndCertificateGas": {
+        "numerator": "2674400",
+        "denominator": "2"
+      }
+    },
+    {
+      "name": "invalid-U",
+      "mission": "3",
+      "circuit": "invalid-point",
+      "nativeElapsedMs": 166013,
+      "queuedHttpElapsedMs": 718147,
+      "admissionGas": "483406",
+      "submissionGas": "383021",
+      "setupManifestSha256": "6757f53a6b002dd917f545863279c5441c33ca77f39dbc56f0dadcd4c96b32ee",
+      "amortizedH3Gas": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "amortizedAdmissionH3AndCertificateGas": {
+        "numerator": "866427",
+        "denominator": "1"
+      }
+    },
+    {
+      "name": "valid-fresh-packet-round-1001-max-salt-second-mission",
+      "mission": "4",
+      "circuit": "opening",
+      "nativeElapsedMs": 254019,
+      "queuedHttpElapsedMs": 973736,
+      "admissionGas": "485444",
+      "submissionGas": "846465",
+      "setupManifestSha256": "353bd28c1fe36a07fd7bb42a110f49cbe323fbcdc1dd323c036678502450a8ff",
+      "amortizedH3Gas": {
+        "numerator": "170992",
+        "denominator": "1"
+      },
+      "amortizedAdmissionH3AndCertificateGas": {
+        "numerator": "1502901",
+        "denominator": "1"
+      }
+    },
+    {
+      "name": "invalid-commitment-five-H3-candidates-second-mission",
+      "mission": "5",
+      "circuit": "opening",
+      "nativeElapsedMs": 241585,
+      "queuedHttpElapsedMs": 1216462,
+      "admissionGas": "495823",
+      "submissionGas": "781579",
+      "setupManifestSha256": "353bd28c1fe36a07fd7bb42a110f49cbe323fbcdc1dd323c036678502450a8ff",
+      "amortizedH3Gas": {
+        "numerator": "175124",
+        "denominator": "2"
+      },
+      "amortizedAdmissionH3AndCertificateGas": {
+        "numerator": "2729928",
+        "denominator": "2"
+      }
+    },
+    {
+      "name": "invalid-U-second-mission",
+      "mission": "6",
+      "circuit": "invalid-point",
+      "nativeElapsedMs": 168231,
+      "queuedHttpElapsedMs": 1385635,
+      "admissionGas": "507607",
+      "submissionGas": "383021",
+      "setupManifestSha256": "6757f53a6b002dd917f545863279c5441c33ca77f39dbc56f0dadcd4c96b32ee",
+      "amortizedH3Gas": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "amortizedAdmissionH3AndCertificateGas": {
+        "numerator": "890628",
+        "denominator": "1"
+      }
+    }
+  ],
+  "totalAdmissionH3AndCertificateGas": "7527257",
+  "exclusions": [
+    "Deployments, the two intentionally reverted certificate submissions, and queue advance/mission execution gas are excluded.",
+    "Amortized H3 gas splits measured shared contexts equally; it is not the gas charged by a standalone fresh context or a worst-case H3 bound.",
+    "Gas units are measured on local Anvil, with no fiat or live gas-price estimate. Fee in wei = gas units * gas price in wei per gas.",
+    "Six samples on a shared workstation; CPU/RSS are sampled and may undercount. Finite batch throughput is not an arrival-rate capacity guarantee."
+  ]
+}

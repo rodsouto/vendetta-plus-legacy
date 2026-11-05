@@ -1,0 +1,56 @@
+{
+  "artifactSha256": {
+    "config.json": "dc38484140bc0359659b9efdeb50be4a13023c6612bdfe48daa72a05ee15ff09",
+    "fuzz.txt": "70daa3b018f998bb1af2e39dfa57698a34cd347e11607cd19beac8e21513b8c9",
+    "phase-1-closure.json": "c225b5100c5362e6a6814c0860f7585c986ba31a86f80b2e72979d3ba477253b",
+    "phase-1-contribution-0.json": "e51895a12598944b211c938f60464900747084f7c97a44bc5206a4f3e377073c",
+    "phase-1-contribution-1.json": "21ff2e0609dfcf1a16b747ef5ed94dec8a5f256708d459bc31dabfbaa9b0c837",
+    "phase-2-closure.json": "c4dff218cf8a784db158c5e56b45bdb5a36cac135e505787c1641d4b1bdc0fa4",
+    "phase-2-contribution-0.json": "9b98e84363bbbf6c0f99f34937948bf0fdea99ea96994a157683bc66a6199ff0",
+    "phase-2-contribution-1.json": "8dd0c76da332177ac42820f4b7a3f136b77634183b5450aecd0a964980439fef",
+    "rehearsal.txt": "c86e030ed693ab8cc137b89ed441d4d142899d61321bde0e07dc0f66e73b9334",
+    "report.json": "8275999b071ad1e5191b8befaa6c91b95f5a30c03df119876acba046bc879139",
+    "tests.jsonl": "ef64a35db66e125e0d19fbdfbd26cfbc187f777824f295127d9f557e7875fa4c",
+    "verification.json": "69d240ae7154482675d4338c4b4ec754e3a720cd3b3ce03646fa36e0a286fcfe"
+  },
+  "beaconAfterClosureProven": false,
+  "fuzz": {
+    "durationFlag": "10s",
+    "executions": 6247,
+    "failed": false,
+    "workers": 2
+  },
+  "gameDomainMpcMeasured": false,
+  "independentParticipants": false,
+  "productionApproved": false,
+  "realRehearsal": {
+    "constraints": 5,
+    "domain": 8,
+    "maxRssKiB": 30084,
+    "workerWallSumMilliseconds": 793,
+    "workersExited": 8
+  },
+  "scope": "Compiled-CS-bound shapes, guarded native point/subgroup/canonical decoding, signed tiny MPC protocol and new proof; no game-domain MPC, independent ceremony or production approval",
+  "sourceSha256": {
+    "apps/web/scripts/experiments/opening-zk/mpcinspect/decode.go": "b0c3a09914ea0c335a773aaf28c9e7af25863a109e63a61d0711aa8d8796b0aa",
+    "apps/web/scripts/experiments/opening-zk/mpcinspect/decode_test.go": "d1587d1babee6e7440022b32cbf0dc6aeb11d136ab8801a441cbe2bc4c766ad5",
+    "apps/web/scripts/experiments/opening-zk/mpcinspect/guard.go": "04c79f0153c50b0fc6a62fe23245d42aa318b2015bf3e44198e1e4e71c3e146c",
+    "apps/web/scripts/experiments/opening-zk/mpcinspect/guard_fuzz_test.go": "c491f8d3498b9c3b68b2ae9d5e6b3ba2d6b8d560fcd7fa5c701bf6263d1bd0ee",
+    "apps/web/scripts/experiments/opening-zk/mpcinspect/scan.go": "b528820f01e8c35a4766b9ad8ce1e98c63c60afd5751d4bea3e69f047d28f21d",
+    "apps/web/scripts/experiments/opening-zk/mpcinspect/scan_test.go": "776f1ca6f7a200d10e644ae19557b39b2bd3c49cf01a28209d899211d57bfb61",
+    "apps/web/scripts/experiments/opening-zk/mpcinspect/shape.go": "94055c721779772ffdfba79017562361ecf5ca36c8a00d1c25763ce6d110279b",
+    "apps/web/scripts/experiments/opening-zk/mpcrehearsal/native.go": "97297a4ed0fbdd57394f4bebc896c84225551c5b3bf4c120cc0ad804182559d1",
+    "apps/web/scripts/experiments/opening-zk/mpcrehearsal/native_test.go": "d6928903a5fe7ce888c7486ee700c5d7796ddab47f583533a24468b57acfed1f",
+    "apps/web/scripts/experiments/opening-zk/mpcrehearsal/protocol.go": "6ab47ff7cce58ce2e84e241bc462e412e8058656b7cfc32b947f65d0f5f83710",
+    "apps/web/scripts/experiments/opening-zk/mpcrehearsal/protocol_test.go": "8542ffc9a232b257f5293e292ab1e065dd584a38295720da5212850445e04c80",
+    "apps/web/scripts/experiments/opening-zk/mpcrehearsal/verify.go": "1ef7c56b51138b5b2607f1786865fa8cf6dac3ae305664367a00ffca1e2b93d2"
+  },
+  "tests": {
+    "mainTestsIncludingFuzzCorpus": 28,
+    "passedEvents": 116,
+    "subtests": 88
+  },
+  "upstreamSha256": {
+    "gnark-crypto-bn254/marshal.go": "2b0a65c1e2900ad961e78f70957d969e746c3f9d22b0b0f1192cccd72657008e"
+  }
+}

@@ -6,7 +6,10 @@
     "node": ">=22"
   },
   "scripts": {
-    "codegen": "pnpm --filter @vendetta/spec-data codegen && pnpm --filter @vendetta/rules scenarios && (cd contracts && forge build) && pnpm --filter @vendetta/web abi",
+    "audit:hidden-v2": "python3 scripts/hidden-v2-audit-bundle.py",
+    "ceremony:hidden-v2": "bash scripts/hidden-v2-ceremony.sh",
+    "test:audit-hidden-v2": "python3 -m unittest discover -s scripts -p test_hidden_v2_audit_bundle.py -v",
+    "codegen": "pnpm --filter @vendetta/spec-data codegen && pnpm --filter @vendetta/rules scenarios && node contracts/scripts/hidden-verifier-fixtures.mjs && (cd contracts && forge build) && pnpm --filter @vendetta/web abi",
     "test": "pnpm -r test",
     "build": "pnpm -r build",
     "test:contracts": "cd contracts && forge test",
@@ -16,7 +19,17 @@
     "prepare:occupation": "pnpm --filter @vendetta/web prepare:occupation",
     "dev:aa": "pnpm --filter @vendetta/web aa",
     "deploy:gnosis": "bash scripts/deploy-gnosis.sh",
-    "build:gnosis": "pnpm --filter @vendetta/web build:gnosis"
+    "build:gnosis": "pnpm --filter @vendetta/web build:gnosis",
+    "rehearse:hidden-v2": "bash scripts/hidden-v2-mpc-rehearsal.sh",
+    "capacity:hidden-v2": "bash scripts/hidden-v2-mpc-capacity.sh",
+    "capacity:cs-hidden-v2": "python3 scripts/hidden-v2-compile-capacity.py",
+    "test:capacity-cs-hidden-v2": "python3 -m unittest discover -s scripts -p test_hidden_v2_compile_capacity.py -v",
+    "model:phase2-hidden-v2": "python3 scripts/hidden-v2-phase2-model.py",
+    "inspect:mpc-hidden-v2": "bash scripts/hidden-v2-mpc-inspect.sh",
+    "probe:local-hidden-v2": "bash scripts/hidden-v2-local-probe.sh",
+    "pipeline:local-hidden-v2": "bash scripts/hidden-v2-local-pipeline.sh",
+    "check:evidence-hidden-v2": "python3 scripts/hidden-v2-completed-evidence.py",
+    "test:evidence-hidden-v2": "python3 -m unittest discover -s scripts -p test_hidden_v2_completed_evidence.py -v"
   },
   "devDependencies": {
     "prettier": "^3.6.0",

@@ -1,0 +1,35 @@
+{
+  "compileMs": 33850.504,
+  "componentOnly": true,
+  "constraints": 3760005,
+  "externalH3": false,
+  "gnark": "v0.16.4",
+  "go": "go1.27.3",
+  "gomaxprocs": 16,
+  "maxRssKiB": 8523744,
+  "nodeVectorsProven": 2,
+  "originalValidPacketRejected": true,
+  "prove0Ms": 23501.502,
+  "prove1Ms": 21666.319,
+  "publicInputs": 2,
+  "receipts": [
+    {
+      "artifact": "proof.json",
+      "forgedResultRejected": true,
+      "name": "invalid-compression-flag",
+      "proofSolidityBytes": 384
+    },
+    {
+      "artifact": "torsion-proof.json",
+      "forgedResultRejected": true,
+      "name": "order-13-torsion",
+      "proofSolidityBytes": 384
+    }
+  ],
+  "referenceVectors": 2,
+  "rejectOriginalValidPacketMs": 4497.871,
+  "scope": "Exact admitted v2 packet has unusable compressed G2 U; original immutable statement required; no beacon/H3 or Game effects",
+  "setupMs": 514908.141,
+  "verify0Ms": 2.914,
+  "verify1Ms": 2.908
+}

@@ -1,0 +1,17 @@
+{
+  "status": "incomplete",
+  "failure": "rss-observation-unavailable",
+  "operation": "phase2-init",
+  "log2": 23,
+  "binarySha256": "196e7497e1da023aeb0a90940ff4d522bcf45b4eef281dc0041dd0b9a78c0c42",
+  "pid": 1151743,
+  "wallMilliseconds": 2550965,
+  "cpuUserMilliseconds": 7428502,
+  "cpuSystemMilliseconds": 43288,
+  "maxRssBytes": 4801347584,
+  "exited": true,
+  "addressSpaceBytes": 10737418240,
+  "cpuSeconds": 86400,
+  "wallSeconds": 43200,
+  "productionApproved": false
+}

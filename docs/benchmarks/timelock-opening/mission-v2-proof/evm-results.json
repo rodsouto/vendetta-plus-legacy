@@ -1,0 +1,24 @@
+{
+  "scope": "Full fixed v2 mission proof + exact H3 prefix + stored statement; no Game integration",
+  "testsPassed": 10,
+  "verifierCallGasCap": 2000000,
+  "verifierDeployedBytes": 13847,
+  "evm": "cancun",
+  "solc": "0.8.28",
+  "optimizerRuns": 200,
+  "productionIntegrated": false,
+  "setup": "Local unsafe research setup; never reuse in production",
+  "verifierSourceSha256": "81fe5adbea50809b74ddc43423ffdd2d08aa9e6f88b179f86f2e5e40cd696222",
+  "anvilTransactionGas": {
+    "verifierDeployment": "3047453",
+    "consumerDeployment": "1081667",
+    "validPrefixInitialization": "117717",
+    "validRejectFour": "33985",
+    "validAcceptFifth": "53275",
+    "validMissionVerification": "735704",
+    "invalidPrefixInitialization": "117717",
+    "invalidPrefixAdvance": "54320",
+    "invalidMissionVerification": "735532"
+  },
+  "anvilMeasurementScope": "Separate transactions on a fresh private Cancun Anvil; complete mission verification and exact prefix checked. No Gnosis deployment."
+}

@@ -1,0 +1,105 @@
+{
+  "scope": "Constraint/witness tests for authenticated opening plus canonical message predicate and context; not a full-domain protocol or a generated Groth16 certificate",
+  "date": "2026-10-29",
+  "rulesDigest": "0xca68555c4e55b79b4e357509f49c61947b4ceac1ed174d51350db9069a8d1f40",
+  "contextAbiWords": 20,
+  "contextAbiBytes": 640,
+  "contextDigestPublicWords": 2,
+  "canonicalMessageCases": 23,
+  "correctClaimsAccepted": 23,
+  "oppositeClaimsRejected": 23,
+  "legacyValidButUnsupportedCases": 2,
+  "contextTamperCasesRejected": 8,
+  "messageProfiles": [
+    {
+      "profile": "19/1/1/1/1",
+      "constraints": 751791,
+      "publicInputs": 6
+    },
+    {
+      "profile": "20/2/1/1/1",
+      "constraints": 752865,
+      "publicInputs": 6
+    },
+    {
+      "profile": "20/1/2/1/1",
+      "constraints": 752865,
+      "publicInputs": 6
+    },
+    {
+      "profile": "21/1/1/3/1",
+      "constraints": 753938,
+      "publicInputs": 6
+    },
+    {
+      "profile": "20/1/1/2/1",
+      "constraints": 752865,
+      "publicInputs": 6
+    },
+    {
+      "profile": "23/2/2/3/1",
+      "constraints": 756086,
+      "publicInputs": 6
+    },
+    {
+      "profile": "96/1/1/1/78",
+      "constraints": 834993,
+      "publicInputs": 10
+    },
+    {
+      "profile": "95/1/1/1/77",
+      "constraints": 833920,
+      "publicInputs": 10
+    },
+    {
+      "profile": "96/1/1/78/1",
+      "constraints": 834993,
+      "publicInputs": 10
+    },
+    {
+      "profile": "28/1/1/1/1",
+      "constraints": 751745,
+      "publicInputs": 6
+    },
+    {
+      "profile": "20/1/1/1/1",
+      "constraints": 751753,
+      "publicInputs": 6
+    }
+  ],
+  "encryptedCasesCheckedWithTlock": 4,
+  "joinedProfiles": [
+    {
+      "profile": "19/1/1/1/1",
+      "constraints": 5499827,
+      "publicInputs": 48
+    },
+    {
+      "profile": "96/1/1/1/78",
+      "constraints": 5701020,
+      "publicInputs": 56
+    }
+  ],
+  "validMissionCannotBeClaimedInvalid": true,
+  "forgedBeaconCannotInvalidateOriginal": true,
+  "differentCiphertextCannotInvalidateOriginal": true,
+  "authenticatedCryptoFailureCanBeRejectedWithoutJsonParsing": true,
+  "originalArrivalBoundToRound": true,
+  "nowOrDeadlineUsedByCircuit": false,
+  "remainingLimits": [
+    "H3 four-candidate profile",
+    "canonical JSON only",
+    "fixed length profiles and one age chunk",
+    "no complete malformed-input certificate coverage",
+    "no on-chain context builder/verifier integration or scheduler change"
+  ],
+  "newGroth16SetupRun": false,
+  "newGroth16ProofGenerated": false,
+  "newSolidityVerifierGenerated": false,
+  "evmGasMeasured": false,
+  "productionChanged": false,
+  "saltAboveProofFieldAcceptedWithCorrectCommitment": true,
+  "coordinateOverflowCannotBeReducedIntoMap": true,
+  "unsupportedScheduleCases": 1,
+  "unsupportedProfileBothClaimsRejected": true
+}

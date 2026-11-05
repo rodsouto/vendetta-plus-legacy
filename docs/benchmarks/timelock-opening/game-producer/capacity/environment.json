@@ -1,0 +1,34 @@
+{
+  "capturedAt": "2026-10-30T19:05:33.156281+00:00",
+  "capturePhase": "During first proof, on shared workstation; available memory and competing workloads can change.",
+  "platform": "Linux",
+  "architecture": "x86_64",
+  "cpuModel": "AMD Ryzen 7 5825U with Radeon Graphics",
+  "logicalCpus": 16,
+  "availableCpuAffinity": 16,
+  "memory": {
+    "MemTotalBytes": 20348297216,
+    "MemAvailableBytes": 6629482496,
+    "SwapTotalBytes": 5368709120,
+    "SwapFreeBytes": 2721566720
+  },
+  "nodeVersion": "v24.22.1",
+  "binarySha256": "ef8e7714acbff559afc0ac10408343c273da629b57b574c5f20e1cab731a2c0b",
+  "setups": {
+    "opening": {
+      "constraints": 5139537,
+      "publicInputs": 55,
+      "manifestSha256": "353bd28c1fe36a07fd7bb42a110f49cbe323fbcdc1dd323c036678502450a8ff"
+    },
+    "invalid-point": {
+      "constraints": 3760005,
+      "publicInputs": 2,
+      "manifestSha256": "6757f53a6b002dd917f545863279c5441c33ca77f39dbc56f0dadcd4c96b32ee"
+    }
+  },
+  "executedHarnessSha256": {
+    "apps/web/scripts/experiments/run-producer-game.ts": "6ac30cc802fb796c9724fee3956330c7cc8058379c2df87dbe4030b668b98dae",
+    "apps/web/scripts/experiments/producer-resources.ts": "8562efe17e84164c8f4795c2e9481e5e674fe59e5ccadf6e32552d0e022825d6",
+    "apps/web/scripts/experiments/producer-benchmark-http.ts": "13e89682e893f12c15b38d31506619e35493973c4548e3df3cd75b754b1eb0ec"
+  }
+}

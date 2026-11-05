@@ -1,7 +1,8 @@
 // More missions come due than one action processes (B-08): the client sends an advance() for them
-// in front of the next action (and the keeper catches up the queue), so the player only sees
+// in front of the next action after fixture certificates arrive, so the player only sees
 // success. That the first attempt carries the advance is checked in test/backlog.test.ts.
 import { expect, test, type Page } from "@playwright/test";
+import { certifyTestMissions } from "./test-evidence.js";
 
 const stamp = (page: Page) => page.locator(".stamp-toast");
 
@@ -90,6 +91,7 @@ test("an action retries with advance() when missions piled up", async ({ page })
 
   // Every attack is due now: the action goes behind an advance() for them.
   await warp(page, "+1 d");
+  await certifyTestMissions(page);
   await train(page, 1, 60_000);
   await expect(page.locator(".stamp-toast.error")).toHaveCount(0);
 

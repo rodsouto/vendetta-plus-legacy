@@ -2,6 +2,7 @@
 // (B-20). Every entity is loaded by id; the ranking (B-18) is computed from this world too.
 import type { Address, Hex, PublicClient } from "viem";
 import { sim, vendetta as rs, type HiddenPlain } from "@vendetta/rules";
+import { decodeHiddenEvidence } from "./hidden-evidence.js";
 import { gameAbi } from "./abi.js";
 
 const big = (x: number | bigint) => BigInt(x);
@@ -43,9 +44,16 @@ export async function loadWorld(
   const [seq, players, buildings, missions, , globalPremiumUntil] =
     await read<readonly [bigint, bigint, bigint, bigint, bigint, number]>("counters");
   const [families, wars, trades] = await read<readonly [bigint, bigint, bigint]>("socialCounters");
-  const parked = await read<readonly bigint[]>("parkedMissions");
 
-  const w = sim.newWorld(rs);
+  const consumers = await read<readonly [Address, Address]>("hiddenConsumers");
+  const w = sim.newWorld(rs, { openingConsumer: consumers[0], invalidPointConsumer: consumers[1] });
+  const receipts = await Promise.all(
+    ids(missions).map((id) => read<Hex>("getHiddenEvidence", [id])),
+  );
+  receipts.forEach((bytes, i) => {
+    const evidence = decodeHiddenEvidence(bytes);
+    if (evidence) w.hiddenEvidence.set(BigInt(i + 1), evidence);
+  });
   w.seq = seq;
   w.globalPremiumUntil = big(globalPremiumUntil);
   w.nextPlayer = players + 1n;
@@ -156,11 +164,7 @@ export async function loadWorld(
       commit: (m.commit as string).toLowerCase(),
     });
   });
-  // The parked list in its on-chain order (B-22); the queue is every other mission.
-  w.parked = [...parked];
-  const parkedSet = new Set(parked);
   w.pending = [...w.missions.values()]
-    .filter((m) => !parkedSet.has(m.id))
     .sort((a, b) =>
       a.arrival !== b.arrival ? (a.arrival < b.arrival ? -1 : 1) : a.seq < b.seq ? -1 : 1,
     )
@@ -402,45 +406,22 @@ export const byArrival = (a: sim.Mission, b: sim.Mission) =>
   a.arrival !== b.arrival ? (a.arrival < b.arrival ? -1 : 1) : a.seq < b.seq ? -1 : 1;
 
 /**
- * Applies the reveals the client can make (`known` plaintexts, by commitment) to hidden missions,
- * in arrival order (reveals go in order for a window, B-22); returns the ids revealed. A plaintext
- * that does not reveal (a wrong one, or one held back by a parked mission ahead) is skipped.
- */
-export function revealKnown(
-  w: sim.World,
-  known: ReadonlyMap<string, HiddenPlain>,
-  now: bigint,
-): bigint[] {
-  const out: bigint[] = [];
-  const candidates = [...w.missions.values()]
-    .filter((m) => m.hidden && !m.returning && known.has(m.commit))
-    .sort(byArrival);
-  for (const m of candidates) {
-    const p = known.get(m.commit)!;
-    try {
-      sim.reveal(w, m.id, p.kind, p.target, p.salt, now);
-      out.push(m.id);
-    } catch (e) {
-      if (!(e instanceof sim.GameError)) throw e;
-    }
-  }
-  return out;
-}
-
-/**
  * The world as the contract would compute it at `now`: due missions processed in global order,
- * every building settled (B-06, B-07). Hidden missions the client knows are revealed first (B-22);
- * an unknown one is parked, as on chain. Used for the live view; the chain state is not changed.
+ * buildings settled only after every due mission can resolve (B-06, B-07, B-22);
+ * a pending receipt stops the projection before any later settlement. Used for the live view;
+ * the chain state is not changed.
  */
-export function project(
-  w: sim.World,
-  now: bigint,
-  known: ReadonlyMap<string, HiddenPlain> = new Map(),
-): sim.World {
+export function project(w: sim.World, now: bigint): sim.World {
   const p = cloneWorld(w);
-  sim.processDue(p, now, Number.MAX_SAFE_INTEGER); // parks the due hidden ones
-  revealKnown(p, known, now); // each one re-enters the queue at `now`
   sim.processDue(p, now, Number.MAX_SAFE_INTEGER);
+  // A pending historical head prevents every later settlement, just as Game's drained actions.
+  const head = p.pending.length ? p.missions.get(p.pending[0]!) : undefined;
+  if (
+    head &&
+    head.arrival <= now &&
+    p.hiddenEvidence.get(head.id)?.receipt.status === sim.hiddenResolution.PENDING
+  )
+    return p;
   // Every building, even one already integrated to `now`: a mission that arrived this second
   // settled its target only up to its own seq (B-07), so an event created later that finishes
   // this second may still be pending.

@@ -1,0 +1,10 @@
+{
+  "schema": "vendetta-local-binary-reproduction-1",
+  "sourceBundleSha256": "a6eb3acaf216a54e3ef88a3c3274b1ac67f43aec1bc2a008d6a43c904aa7cb5d",
+  "binarySha256": "23788e02da9fbe9d3c5692348dd499b9270b6c26d2c3c76544a7487ddfffda72",
+  "reproducedBinarySha256": "23788e02da9fbe9d3c5692348dd499b9270b6c26d2c3c76544a7487ddfffda72",
+  "goVersion": "go1.27.3",
+  "offline": true,
+  "buildFlags": ["-trimpath", "-buildvcs=false"],
+  "productionApproved": false
+}

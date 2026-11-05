@@ -1,0 +1,9 @@
+{
+  "scope": "Read-only followup with explicit dependency read access",
+  "durationMs": 105057,
+  "numTurns": 12,
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "dependencyG2Sha256": "c6ffc3e7ceccf6cca6ba9bdc6991c3a9e08059b9deb53839c570f1f8fd44f235"
+}

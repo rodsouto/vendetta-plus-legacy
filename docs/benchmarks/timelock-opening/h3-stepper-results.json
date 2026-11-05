@@ -1,0 +1,33 @@
+{
+  "scope": "Research H3 state machine only; receipt admitter is a trusted stub, NOT a verified pre/mission binding",
+  "evm": "cancun",
+  "solc": "0.8.28",
+  "optimizerRuns": 200,
+  "testsPassed": 9,
+  "preHash": "0x11766807f9a9fc7d634328fff3cbd98d6fab560182e870342242753bb53ce06a",
+  "nativeFirstAcceptedCounter": 5,
+  "nativeScalar": "45007087982830307960066972967956446568514081403645713084635648904263614511513",
+  "maxPerCall": 128,
+  "lastActualCandidate": 65534,
+  "receiptInitializationAuthenticatedByZk": false,
+  "productionIntegrated": false,
+  "gas": {
+    "rejectFirstFour": 34415,
+    "acceptFifthSeparateCall": 56205,
+    "firstFiveInOneCall": 57837,
+    "forcedHashRejection128": 179352
+  },
+  "gasScope": "In-test call gas including caller overhead; not total transaction fees, Gnosis deployment, or full opening proof. Forced 128 uses a test override retaining SHA; full exhaustion uses mock candidates, not a SHA preimage.",
+  "deployedBytecodeBytes": 1940,
+  "sourceSha256": "4b6060c906e32a98c4de6c8dd6bdaa054184b38c914d100db14438c11f47743f",
+  "testSourceSha256": "20f4b6d828a3a987e4fc6032e0beb1cc792b0da73e8f20a83d03a52c258e1731",
+  "testOutputSha256": "807766729fba31447ce6e288964743612af5c669eea67d86313babe5da1e676e",
+  "anvilTransactionGas": {
+    "stubDeployment": "473845",
+    "stubInitialization": "113906",
+    "rejectFirstFour": "33997",
+    "acceptFifthSeparateTransaction": "53287",
+    "firstFiveOneTransaction": "57419"
+  },
+  "anvilMeasurementScope": "Separate local transactions on a fresh private Anvil instance; initialization authenticates only the test admitter, not an opening proof. No Gnosis deployment."
+}

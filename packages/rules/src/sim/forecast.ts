@@ -25,10 +25,11 @@ const before = (w: World, a: bigint, b: bigint) => {
 
 /**
  * Sends the attack on a copy of `w` and runs the copy up to its battle: production, queues,
- * research and every known mission that resolves first are counted; hidden missions nobody has
- * revealed are not (they park, B-22). `arrival` overrides the natural one (a hidden mission arrives
+ * research and every certified mission that resolves first are counted. Missing earlier hidden
+ * evidence stops the forecast at the global frontier (B-22). `arrival` overrides the natural one (a hidden mission arrives
  * at the time it is sent with). Returns null when no battle would happen (an empty slot or one's
- * own building at arrival); throws GameError when the send itself would revert. `w` is not changed.
+ * own building at arrival), or an earlier pending result prevents predicting it; throws GameError
+ * when the send itself would revert. `w` is not changed.
  */
 export function forecastAttack(
   w: World,
@@ -52,7 +53,9 @@ export function forecastAttack(
     c.pending.splice(i, 0, id);
   }
   const at = m.arrival;
-  while (c.pending[0] !== id) processDue(c, at, 1);
+  while (c.pending[0] !== id) {
+    if (processDue(c, at, 1) === 0) return null;
+  }
 
   const b = c.buildings.get(c.buildingAt.get(coordKey(target)) ?? 0n);
   if (!b || b.owner === m.owner) return null;

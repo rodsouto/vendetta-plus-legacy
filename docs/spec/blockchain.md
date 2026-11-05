@@ -47,7 +47,7 @@ which network it runs on. Messaging, chat and moderation are off-chain (B-10).
 | B-19 | Points on-chain | Adapt | D-24 points kept incrementally on-chain |
 | B-20 | Optimistic client | New | Client runs the same rules engine and projects results |
 | B-21 | Parity tests | New | Foundry against the test vectors with explicit tolerances |
-| B-22 | Hidden information | New | Hidden mission **kind and target** (v1), revealed by timelock encryption, with a random cover distance; hidden building state (FHE) only as research |
+| B-22 | Hidden information | New | Hidden mission **kind and target** via the single v2 timelock/certificate protocol and random cover; hidden building state (FHE) only as research |
 | B-23 | Arbitration | v2 | Kleros v2 as `arbiter`, under the [rulebook](rulebook.md) |
 | B-24 | Tokenization | v2 | One ERC-721 per **account** wrapping B-26; no per-building or per-troop tokens |
 | B-25 | Premium | New | Longer queues and vacations; granted by the operator per player (paid off-chain) or to everyone |
@@ -70,10 +70,8 @@ measurements and live fee quotes; it is a projection, not paid mainnet receipts.
 - Passkeys still use Kernel v3.1, the Solidity WebAuthn/P-256 verifier and SimpleAccount sessions
   (B-15). Their Gnosis deployments are captured in the local account fixture; no P-256 precompile
   is required by this integration.
-- Gnosis has a public mempool. Reveals require private submission from both the browser's bundler
-  executor and the keeper (B-22). The production app refuses to connect without a configured
-  private reveal bundler; the keeper requires a private raw-transaction RPC. Their privacy and
-  inclusion latency must be verified before launch; ordinary Pimlico routing is insufficient.
+- Hidden missions resolve through certificates after beacon release, using ordinary submission
+  routes. No pre-arrival plaintext reveal or mandatory private reveal bundler remains (B-22).
 - The live block gas limit observed on 2026-10-23 was 17M. The keeper uses one mission per
   transaction, retaining B-08's 7M reserve; the four-mission protocol cap is not a guarantee that
   four heavy missions fit a transaction or sponsored operation.
@@ -187,8 +185,8 @@ Every mission in the world resolves in **global arrival order**, ties broken by 
   (B-08). Each one first settles its target building **locally** up to the arrival time, then
   resolves (combat, delivery, occupation, return). If a backlog remains, the action reverts with
   `Backlog`: the client puts an `advance` in front and our keeper catches up the queue (B-08).
-- A due hidden mission that nobody revealed yet never stops the queue: it is **parked** out of it
-  and re-enters, as public, with its reveal time as arrival (B-22).
+- A due hidden mission awaiting its certificate stays at the head and stops the queue. Evidence
+  ingress bypasses draining so it can unblock that head without changing its arrival (B-22).
 - **Same-second order.** A building's own events (room, research, training) that finish at the
   arrival second are ordered against the mission by creation (`seq`, D-08): those created before
   the mission was created resolve before it, those created after resolve after it. A vacation that
@@ -442,8 +440,8 @@ vacation or suspended can only end the vacation. In v1 `suspend(player, until)` 
 
 - A game **paymaster** (ERC-4337 / EIP-7702) sponsors a **low** allowance per account and day.
   Ordinary bundler and paymaster: **Pimlico** (paid plan), with a sponsorship policy that sets
-  the limits. Browser reveals use a separately provisioned private bundler, with the same
-  Pimlico paymaster; the keeper uses a private raw-transaction RPC (B-22).
+  the limits. Certificate submissions use the same sponsored path; keepers may use ordinary RPCs
+  because there is no direct pre-arrival plaintext reveal (B-22).
 - Above it the player pays. The payment path is **credits bought by card** (on-ramp into the smart
   account, or a paymaster that charges credits), never "get xDAI".
 - Credits pay for gas only. **Premium** is separate (B-25).
@@ -547,165 +545,80 @@ send are not, so it is a forecast, not a promise. It changes no rule and has no 
 - Each vector passes exactly, or is listed in B-03 with its tolerance.
 - The client rules engine (B-20) runs the same vectors.
 
-## B-22 — Hidden information — New
+## B-22 — Hidden missions with certified historical resolution — New
 
-Constraints:
+Every world starts with the fixed **v2 hidden mission protocol**. No earlier hidden protocol has
+been deployed; there is no v1 sender, migration, activation flag, parking list, direct commitment
+reveal or cancellation by elapsed time.
 
-- **The defender is usually offline.** If the defender's state is hidden, only something that knows
-  it can compute the battle when an attack arrives.
-- **Building troops are public** (B-05). When a mission leaves, the drop in the origin building's
-  troops shows exactly what it carries. So hiding a mission's **composition** hides nothing unless
-  building state is hidden too.
+- **Public state remains public** (B-05). The packet hides mission kind, target and salt, not the
+  building's troop counts. The declared cover fixes outward duration and salary and must cover the
+  actual destination. A mission can still lose a battle, bounce under the ordinary destination
+  rules or be recalled before arrival.
+- **Genesis configuration.** Game.initialize requires the two reviewed consumer contracts: full
+  opening and invalid-U. Both must have code. They are fixed at initialization; senders and
+  relayers cannot choose another verifier. Checking code presence is not an audit of its semantics,
+  verifier setup or mutability. Upgrades retain the existing administrative trust boundary (B-17).
+- **Single wire format.** Plaintext is 37 bytes (version, kind, three coordinates, uint256 salt).
+  The quicknet packet is 273 bytes (VDH2 magic, network identity, uint64 round, capsule, MAC and
+  authenticated payload). Every network, including local clients, uses that format. Framing and
+  `genesis + (round-1)*period = originalArrival + 15` are checked at admission.
+- **Atomic admission.** Normal authorization, troop, capacity, cargo, salary, cover and arrival-slack
+  checks apply. The same transaction emits the packet and binds a PENDING receipt to its canonical
+  statement, original arrival/sequence and configured consumers. A framing error rolls back all
+  charges, ids and sequence allocation. Cryptographically invalid opaque bytes with valid framing
+  remain admissible so they can be certified as invalid later.
+- **Canonical statement.** Its 20 ABI words bind the domain, chain, Game proxy, mission id, fixed
+  rules/profile, owner, origin, cover, cargo, arrival, round, quicknet identity/key hash, commitment
+  and hash of the complete emitted packet. The verifier receives the stored statement, never a
+  relayer-selected expected root. The precise pinned experimental profile is documented in
+  [the context benchmark](../benchmarks/timelock-opening/game-context/README.md).
+- **Evidence ingress never drains.** Anyone may submit an opening or invalid-U certificate. The
+  configured consumer verifies it against the stored statement. Invalid encodings, failed proofs,
+  unavailable services and RPC errors revert or are retried; they never establish INVALID.
+  Both certified invalidity routes normalize to the same result. The full opening consumer also
+  requires the exact H3 rejection prefix; an arbitrary prover work limit cannot imply invalidity.
+- **Historical ordering.** A due hidden head with PENDING evidence stays in the heap and stops the
+  global mission queue (B-07). It does not expire, move to a parking list, get a fresh arrival or
+  allow later actions to settle past it. A recorded result is consumed once in arrival/sequence
+  order; valid plaintext undergoes defensive static checks before normal mission execution.
+  Invalid missions return from their original arrival. A revert rolls back consumption and dequeue.
+- **Recall.** Before arrival, an authorized sender may recall normally; its evidence becomes inert.
+  A pending mission cannot be recalled after arrival to bypass resolution. Old, duplicated or
+  already-consumed evidence cannot execute it again.
+- **Client and keeper.** Local knowledge of a plaintext never authorizes a reveal or predicts a
+  battle ahead of missing evidence. The loader reads receipts; projection stops at a pending due
+  head. Keepers request complete certificates, simulate verification, submit them, and advance the
+  queue. They retry operational failures indefinitely. Certificates use the ordinary transaction
+  or sponsored-operation route after beacon release; no pre-arrival plaintext reveal exists.
+  The keeper journals signed transactions before broadcast, settles ambiguous sends before reading
+  new mission state, and bounds RPC/receipt waits without expiring a mission. Retries use the same
+  signed bytes; there is no automatic fee replacement. Its ciphertext index validates canonical
+  block checkpoints even for cached mission ids and rescans from deployment after a detected reorg.
+  Inclusion is not finality; full keeper/H3 reorg recovery remains a release-validation item.
+- **Availability tradeoff.** There is no deadline cancellation of a valid attack. Progress still
+  requires the chain, the authenticated quicknet beacon and a prover/submitter eventually becoming
+  available. The implemented frontier is global; pending garbage can also stall it until certified.
+  A resource-local frontier, proving capacity and denial-of-service economics need further review.
 
-Options considered:
-
-| Option | Hides | Notes |
-|--------|-------|-------|
-| **Hidden target + timelock encryption** | Where a mission goes | **Chosen, in v1.** Details below. |
-| **Private keeper** (operator holds the secrets) | Where a mission goes | Rejected: the operator sees every target first, and a leaked key leaks them all. |
-| **Shutter threshold encryption** (keyper committee, time or event triggers) | Where a mission goes; with ZK, building state until attacked | Encrypt now, reveal later: the contract never computes on ciphertext. Alternative to drand tlock for the hidden target, needed only for event triggers (e.g. "when the previous mission resolves"). Hiding building state would take a commitment plus a ZK proof per action, with the state encrypted to a trigger "an attack arrives here", which solves the offline defender. Trust: a threshold of keypers can decrypt early. Event triggers still in development; Arbitrum One support unconfirmed. **Research only.** |
-| **Client-side ZK** (Noir, Circom) | Own actions (e.g. "I can afford this") | Verifier ~250–400k gas. Does not solve battles against an offline defender. |
-| **FHE** (Zama fhEVM, Fhenix CoFHE) | Full state | Fully homomorphic encryption: the contract computes on encrypted troops and resources and only the report is decrypted. The only fit for hiding an offline defender's state. Costly, combat (divisions, comparisons) is heavy on encrypted values, and depends on a third-party coprocessor and decryption network. **Research only.** |
-| **TEE / confidential EVM** (Oasis Sapphire) | Full state | Another network; trust in enclave hardware. |
-| **ZK for scaling** (RISC Zero, SP1) | Nothing | Off-chain simulation with an on-chain proof. Fallback if full on-chain proves too expensive. |
-
-**Hidden target (v1).** Brought forward from v2: with public targets, an automated defender
-dodges every attack precisely, and travel time stops meaning anything. Measured in the B-22 spike:
-tlock works from the browser and Node against drand quicknet (~0.5 s to encrypt, ~1 s to decrypt,
-394-byte ciphertext, 60 kB gzip loaded on demand); EIP-2537 is live on Arbitrum One but its pairing
-precompile only returns a boolean, so decrypting tlock on-chain is not practical.
-
-- **Send.** `sendHiddenMission(building, commit, cover, troops, resources, ciphertext, arrival)`,
-  with `commit = keccak256(abi.encode(owner, kind, city, neighborhood, slot, salt))`: the kind is
-  hidden too. Everyone sees that a mission left, its troops, its cargo and its arrival time; nobody
-  sees its kind or target until it is revealed. The client encrypts `(kind, target, salt)` with
-  **drand timelock encryption** (tlock) for the drand round at the arrival time; the ciphertext is
-  only emitted in `HiddenMissionSent`, never stored.
-- **Cover distance.** The contract cannot compute the travel time from a target it does not know,
-  so the sender declares a **cover** distance (grid units) ≥ the real distance. Duration and salary
-  are computed on `cover` with the usual formulas. Duration and salary reveal the exact distance
-  (the spike measured a median of **1** candidate target with 50–200 buildings), so the client
-  always picks a random cover: `cover = d + U(0, max(⌈d/2⌉, 20))`, which leaves ≥ 13 candidates in
-  9 of 10 sends with 200 buildings, for ~5% more travel time and ~20% more salary. The salary
-  difference is not refunded. `1 ≤ cover ≤` the distance from the origin to the farthest map
-  corner, the longest trip that building can already make with a real target, so hiding never
-  allows a longer trip (fleet save) than today, beyond the arrival slack (below).
-- **Reveal.** `reveal(id, kind, target, salt)`: anyone, until the grace ends (before the drand round
-  only the sender knows the plaintext); past `arrival + hidden_reveal_grace_seconds` it does
-  nothing. The contract checks the hash, that the kind and coordinate are valid and not the
-  origin, and that `distance(origin, target) ≤ cover`; otherwise it reverts. Revealing a mission
-  that is no longer hidden does nothing, so clients and the keeper can race. Reveal drains the
-  queue like any action (B-07), so every due mission ahead of it is processed or parked first;
-  with a backlog it reverts `Backlog`, so the client puts an `advance` in front (B-08). A mission revealed before it
-  arrives resolves at its arrival like a public one; one revealed after its arrival (**parked**,
-  below) re-enters the queue with the reveal time as its arrival and a fresh `seq`, so it
-  resolves against the target's state at the second of the reveal, with the same-second order of
-  B-07 applied to that second.
-- **Parking.** The queue never waits for a reveal. When its head is a due hidden mission nobody
-  revealed yet, the queue takes it out to the parked list (`parkedMissions`, in arrival order: a
-  doubly linked list on-chain, so a reveal checks its predecessor only) and goes on with the
-  next mission; nothing stalls: construction, research, training, trades and everyone's missions
-  carry on. A parked mission keeps its troops and cargo and leaves the list by a reveal, a recall
-  or a forfeit. Clients reveal their own missions at the arrival when they are online (and put
-  their own due reveals in front of every send), and the keeper reveals every parked mission as
-  soon as its round is out (others' plaintexts come from decrypting the ciphertext). A client
-  never reveals others' missions: a parked one holds no action back, and the contract could not
-  make a client reveal them anyway, so paying for them would only cost the honest ones. Plaintexts
-  stay on the device that sent the mission: one sent from another device of the same player is
-  revealed by the keeper, and with the keeper down it stays parked until someone forfeits it or
-  its owner recalls it (it loses its outcome and the trip, and the salary). The defender cannot
-  dodge more than with a public target: what it knows at the arrival (origin,
-  cover disk, troops, arrival time) it already knew when the mission left.
-- **Forfeit.** Past `arrival + hidden_reveal_grace_seconds` (60 s), anyone calls `forfeit(id)` on
-  a hidden mission nobody revealed: it turns back from that moment with all its troops and cargo
-  (a recall by its owner does the same at any time). The keeper does
-  it; the sender has every reason to do it first. A ciphertext that does not decrypt or does not
-  match the commitment is forfeitable after the grace like any other; there is no bond and no
-  garbage report. While parked it takes part in the order window below: that is all it can do
-  to others.
-  The grace stays short because it bounds how long a sender who is online can pick the moment of
-  its own reveal (the 8 s head start in practice, until the keeper reveals), and because without
-  it an unrevealed mission would be a permanent fleet save whose attack lands whenever its owner
-  chooses.
-- **Order.** Reveals go in arrival order for `hidden_order_window_seconds` (15 s): a due hidden
-  mission can be revealed only once every parked mission that arrived before it, by
-  `(arrival, seq)`, is past its window; otherwise `OutOfOrder`. The keeper reveals each mission
-  as soon as its round is out (8–11 s after the arrival) and the sender's client at the arrival,
-  so hidden missions resolve in the order they arrived; one nobody can reveal (garbage) holds the
-  ones behind it for the window at most, then they go on and may overtake it, which is all a
-  garbage ciphertext can do to others. The window must exceed the keeper's latency, so it moves
-  with the head start (below). Public missions (returns, trade transports) still resolve at their
-  arrival, so one can land before a parked hidden mission that arrived earlier: accepted, as the
-  legacy cron resolved at minute granularity.
-- **Arrival cooldown.** A building that receives troops by stationing at an owned building or by
-  return cannot send a mission for `troop_arrival_cooldown_seconds` (30 s,
-  [game_config.yaml](data/game_config.yaml)): `TroopsResting`. Every arrival restarts the cooldown
-  for the **whole building**, including troops already there; public and hidden sends are both
-  blocked until `arrival + cooldown` (allowed at that exact second). This also prevents an atomic
-  station-and-send operation from keeping an army continuously in transit between owned buildings.
-  Training does not start or restart this cooldown, and construction, research and training remain
-  available while troops rest. The clock starts at the mission's **effective arrival**: its scheduled
-  arrival for a public mission (or a hidden one revealed early), its reveal time for a hidden one
-  revealed late. Processing an old arrival late does not start a fresh cooldown at processing time.
-  The storage/view field `lastTroopArrival` records the last station or return arrival.
-  It keeps the legacy interception alive: an attack timed to land right after the enemy's troops
-  come home catches them. Without it the defender's own send in the seconds between the arrival
-  and the reveal of the parked attack would park the attack and let the troops leave again; the
-  legacy cron resolved the return and the attack in the same minute. The cooldown has to outlast
-  the attack's reveal: `arrival gap + hidden_order_window + reveal latency`, with the gap the
-  ~3 s an attacker can aim at after the return, the window because a parked mission ahead (a
-  garbage one, even the defender's own) holds the attack's reveal until `attack arrival +
-  window` at the latest, and ~5 s for the keeper's tick and the inclusion once the reveal is
-  allowed. `30 > 3 + 15 + 5` leaves slack. An operating assumption, not a guarantee: no finite
-  cooldown covers a keeper outage or a backlog that delays the reveal past it. The sender's own
-  client reveals at the arrival, so it may land anywhere in the window, even a little before
-  the return and be revealed right after it. Not legacy.
-- **Arrival rules** are the usual ones (07-missions.md), plus D-18 checked at arrival: a hidden
-  mission bounces if the target's owner was on vacation when it was sent (a vacation started later
-  does not protect, a vacation started in the same second counts by creation order, B-07).
-- `sendMission` stays public; the client uses it only for transports bound to a trade (D-19), whose
-  counterparty is public anyway. Recall works the same on hidden missions.
-- **Fixed arrival.** The round must open after the arrival, by a **head start** that lets the
-  sender's reveal land while nobody else can read the target: a defender that decrypted first
-  could send its troops away before the reveal and the attack would hit an empty building. So the
-  sender fixes the arrival instead of taking the one its inclusion gives: `natural = inclusion time
-  + duration`, and the contract sets the mission's arrival to `arrival` when `natural ≤ arrival ≤
-  natural + hidden_arrival_slack_seconds` (30 s, [game_config.yaml](data/game_config.yaml)),
-  `TooLate` below (the send landed too late: sending again encrypts anew), `InvalidArrival` above.
-  `arrival = 0` takes the natural arrival. The way back keeps the duration. Whatever the inclusion
-  latency, the head start stays whole; the trip is a few seconds longer than a public one.
-- **Timelock per network.** On Gnosis Chain, tlock for drand quicknet (a round every 3 s): the
-  client takes the first round at or after `now + duration + 20 s` (the inclusion margin) plus the
-  head start, encrypts for it and sends `arrival = round time − 15 s`, with `now` a fresh block's
-  time, not the device clock. Rounds are computed from quicknet's genesis and period, which are
-  part of its identity; the client checks the chain info drand serves against them before
-  encrypting, since another schedule could open the ciphertext early (or past the grace). The head
-  start (15 s on Gnosis) is a client constant per network: it must exceed the inclusion latency
-  of the sender's reveal. Gnosis has five-second slots; validate actual private inclusion and
-  the existing reveal-order window before launch. On local chains the plaintext travels as is
-  ("plain") with `arrival = 0`:
-  anvil's clock jumps (time travel) and drand's does not.
-- **No reveal before the arrival.** The contract accepts a reveal before the arrival (it resolves
-  at the arrival), but it would show the target in time to dodge, and a reverted one would too:
-  the transaction is public. So a client sends its reveals, at the arrival or in front of an
-  action, only once a fresh block's time has reached the arrival; until then it polls. Its clock
-  is measured against the chain when each snapshot's block arrives, so a device clock that runs
-  ahead never makes it act early.
-- **Clock alignment.** drand rounds follow UTC, arrivals follow chain time. With chain time
-  lagging UTC by `L` seconds, the head start is about `15 − L` seconds of real time, before polling
-  and inclusion delays. On Gnosis, missed slots, stale RPC blocks and private submission delays
-  consume this budget. The margin is a configuration assumption, not a measured latency guarantee.
-- **Public mempools.** A reveal waiting for inclusion shows the target. Where pending transactions
-  are public and ordered by fee, a defender's bot can see it and get its own send in first, which
-  defeats the hidden target. Gnosis therefore requires a private reveal path: a separately configured
-  ERC-4337 bundler for browser reveals, and a private raw-transaction RPC for the keeper. Neither
-  route may fall back to public submission; an encrypting raw RPC is not an ERC-4337 bundler.
-- **Measured:** `sendHiddenMission` ~400k gas with a 400-byte ciphertext, `reveal` ~16k before
-  the arrival and ~48k on a parked mission (it re-enters the queue; the order check reads its
-  predecessor only, whatever the length of the parked list), plus whatever its drain processes;
-  parking ~30k inside the drain that does it (`forge test --match-contract HiddenMissions -vv`).
-- **Accepted leaks:** the cover ring; the cargo (a mission carrying resources is a transport); the
-  troops (an occupation needs its occupation troop).
+**Implementation status:** the single protocol is wired through Game, the reference engine, packet
+producer, receipt loader/projection and certificate keeper transport. Test deployments use explicit
+mock consumers on test chain ids. Production deployment requires predeployed reviewed consumers and
+an operational certificate service. The HTTP producer generates and verifies new Groth16 proofs for
+newly admitted Game contexts, prepares H3 and checks deployed consumers. A real local replay
+with production Deploy.s.sol and authentic archived beacons matched the complete World with
+on-time evidence and a two-hour delay (valid, invalid commitment and invalid U), without mocks.
+The service now uses a single resident setup with a per-job timeout and process-exit barrier
+before circuit changes or retries. A separate real worker replay verified both circuits, restored H3
+from cached proofs after an Anvil revert, and matched the punctual/delayed complete World.
+A one-hour local soak generated 35 new proofs across both circuits, including warm invalid-point
+reuse; a separate real replay recovered one-minute RPC/beacon/H3 outages with three new proofs.
+Both restored H3 after Anvil reverts and matched the complete punctual/delayed World. Keeper
+journal/reorg histories use explicit trusted test consumers and are recorded separately. The
+client-only combat forecast stops when an earlier hidden receipt is pending, instead of spinning
+or predicting through the frontier. Secure production setup, security review and production
+capacity/long-duration remote validation remain outstanding.
+See the [producer replay](../benchmarks/timelock-opening/game-producer/README.md). See [implementation scope](../benchmarks/timelock-opening/v2-only/README.md).
 
 ## B-23 — Arbitration — v2
 

@@ -1,0 +1,25 @@
+{
+  "status": "contribution-complete",
+  "operation": "first-contribution",
+  "log2": 23,
+  "binarySha256": "23788e02da9fbe9d3c5692348dd499b9270b6c26d2c3c76544a7487ddfffda72",
+  "pid": 377947,
+  "wallMilliseconds": 4939626,
+  "cpuUserMilliseconds": 4938373,
+  "cpuSystemMilliseconds": 38992,
+  "maxRssBytes": 5218168832,
+  "exited": true,
+  "addressSpaceBytes": 8589934592,
+  "cpuSeconds": 6000,
+  "wallSeconds": 7200,
+  "artifact": {
+    "schema": "vendetta-unsafe-local-phase1-artifact-2",
+    "operation": "first-contribution",
+    "log2": 23,
+    "bytes": 1610613001,
+    "sha256": "1b390bb4d3471a51ee2fbe320f3b9e26631a00c1f7c95994f5897a28b09cb0bf",
+    "parentArtifactSha256": "",
+    "productionApproved": false
+  },
+  "productionApproved": false
+}

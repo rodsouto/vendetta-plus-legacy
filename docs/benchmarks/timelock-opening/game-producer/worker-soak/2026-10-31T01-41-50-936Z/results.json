@@ -1,0 +1,19 @@
+{
+  "scope": "Real certificate producer HTTP -> actual Game admission -> receipt -> historical queue; no mocks",
+  "unsafeLocalSetup": true,
+  "realNetworkDeployment": false,
+  "newlyAdmittedMissions": 6,
+  "freshBrowserPacketRound": 1001,
+  "maxSaltPreserved": true,
+  "nonzeroSourceRow": true,
+  "lateEvidenceSeconds": 7200,
+  "punctualAndDelayedFullWorldEqual": true,
+  "proofsGenerated": 35,
+  "proofCacheHits": 7,
+  "cacheRecheckedAndH3RestoredAfterAnvilRevert": true,
+  "tamperedRequestRejectedBeforeProving": true,
+  "forgedInvalidityFlagRejectedWithoutChangingReceipt": true,
+  "crossMissionInvalidityProofRejected": true,
+  "benchmarkHttpTimeoutMs": 5460000,
+  "setupPerMission": false
+}

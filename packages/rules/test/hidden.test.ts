@@ -45,6 +45,24 @@ describe("hidden missions (B-22)", () => {
     // keccak256(abi.encode(uint64(1), uint8(1), 1, 1, 2, bytes32(uint256(5)))), from cast.
     expect(sim.hiddenCommit(1n, sim.ATTACK, c(1, 1, 2), 5n)).toBe(EXPECTED);
   });
+  it("rejects a salt that would lose its last hex digit instead of aliasing a valid salt", () => {
+    expect(() => sim.hiddenCommit(1n, sim.ATTACK, c(1, 1, 2), 1n << 256n)).toThrow(RangeError);
+    expect(sim.hiddenCommit(1n, sim.ATTACK, c(1, 1, 2), 1n << 252n)).toMatch(/^0x[0-9a-f]{64}$/);
+  });
+  it("rejects negative words instead of converting a negative byte to an unsigned value", () => {
+    expect(() => sim.hiddenCommit(1n, sim.ATTACK, c(1, 1, 2), -5n)).toThrow(RangeError);
+    expect(() => sim.hiddenCommit(-1n, sim.ATTACK, c(1, 1, 2), 5n)).toThrow(RangeError);
+    expect(() => sim.hiddenCommit(1n, sim.ATTACK, { ...c(1, 1, 2), slot: -1n }, 5n)).toThrow(
+      RangeError,
+    );
+  });
+  it("preserves all bits of the largest ABI word", () => {
+    const max = (1n << 256n) - 1n;
+    // Independently encoded and hashed with cast's uint64/uint8/bytes32 ABI codec.
+    expect(sim.hiddenCommit(1n, sim.ATTACK, c(1, 1, 2), max)).toBe(
+      "0x625f44773c5e5b2bd846b7a262b98f0de65d83561f2c49e438b2bdbac6201a63",
+    );
+  });
 });
 
 const EXPECTED = "0x23829e3166d9bb69103ff874ef807062e06f83205762e3166557c8377b1a0f88";

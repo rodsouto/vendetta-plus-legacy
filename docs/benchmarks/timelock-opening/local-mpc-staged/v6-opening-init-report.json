@@ -1,0 +1,16 @@
+{
+  "status": "phase2-initialized",
+  "operation": "phase2-init",
+  "log2": 23,
+  "binarySha256": "7168c4854ea52665d96ab9e0933b3328708bc1885c8305ff45f6170605c325b1",
+  "pid": 1337214,
+  "wallMilliseconds": 18502786,
+  "cpuUserMilliseconds": 57396239,
+  "cpuSystemMilliseconds": 270723,
+  "maxRssBytes": 3132063744,
+  "exited": true,
+  "addressSpaceBytes": 10737418240,
+  "cpuSeconds": 86400,
+  "wallSeconds": 43200,
+  "productionApproved": false
+}

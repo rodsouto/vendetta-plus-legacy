@@ -1,0 +1,76 @@
+{
+  "artifactSha256": {
+    "budget-rejection.json": "95ac52758774a2b8a13c0c07f03387748f9685c269cab458fee736022d62930d",
+    "build-receipt.json": "b06e7ed86faa63db2dd4fc1eb8a73e00be632b31e123a9a45e036534592d9e25",
+    "input-receipt.json": "7fa982ed293ead4e722fb0cf6315f8c2ef10da752f8bd596238458cfbdf09630",
+    "inspection.json": "b956322db6b3888b8588ec81ccf0d986a96a85adce1cfc22a9315ff872929ea4",
+    "invalid-point-phase-1.json": "542320b3e45902948d9ebdd7e85eef12039ad71b7ba2697c872128b85806fd86",
+    "invalid-point-phase-2.json": "a03e778c9b7ea8366856d33eaa7bf377308a7715e50d7d387c8dd162b39272bd",
+    "opening-phase-1.json": "738224e0facb1bab07841112326f90c0eec7cb8a3a4d566b061b083cc8e90710",
+    "opening-phase-2.json": "eb981bcf60ab31e78dcd032371fe22874f8844305369688367edb23b9702eb8f",
+    "tests.jsonl": "548bfa625dc30fc4dda8a6ef75310d30d7e84ea6e562f569f75531a45b4ec928",
+    "toy-shape.json": "d8b4a9ab76ac157680a973fb2248e0b5042da0692e0e8a46867e298e67c9e815"
+  },
+  "compileReportSha256": "a45e4f7a982c0ed044e0676ef089585cc8f48529c6ac0f1a3c3fab66f239297c",
+  "gameDomainMpcMeasured": false,
+  "gameShapes": [
+    {
+      "expectedWireBytes": 805306633,
+      "gameTranscriptScanned": false,
+      "kind": "invalid-point",
+      "phase": 1,
+      "shape": "invalid-point-phase-1.json"
+    },
+    {
+      "expectedWireBytes": 312847279,
+      "gameTranscriptScanned": false,
+      "kind": "invalid-point",
+      "phase": 2,
+      "shape": "invalid-point-phase-2.json"
+    },
+    {
+      "expectedWireBytes": 1610613001,
+      "gameTranscriptScanned": false,
+      "kind": "opening",
+      "phase": 1,
+      "shape": "opening-phase-1.json"
+    },
+    {
+      "expectedWireBytes": 489047343,
+      "gameTranscriptScanned": false,
+      "kind": "opening",
+      "phase": 2,
+      "shape": "opening-phase-2.json"
+    }
+  ],
+  "mpcTranscriptVerified": false,
+  "newTests": {
+    "mainTests": 12,
+    "passedEvents": 61,
+    "subtests": 49
+  },
+  "productionApproved": false,
+  "rehearsalRegression": {
+    "mainTests": 7,
+    "passedEvents": 29,
+    "subtests": 22
+  },
+  "scope": "Streaming grammar, length and SHA-256 inspection only; no game-domain scans, native point validation, MPC or production approval",
+  "sourceSha256": {
+    "apps/web/scripts/experiments/opening-zk/cmd/mpc-inspect/main.go": "1891439a389061bd24287c0cf550f2abf5d44af6a766487408618b3f1e652327",
+    "apps/web/scripts/experiments/opening-zk/cmd/mpc-inspect/main_test.go": "347751531e5cf04dba29a1857d944a53a60a3e98cceae33dc83e8d53b1810bd2",
+    "apps/web/scripts/experiments/opening-zk/mpcinspect/scan.go": "d1a4f98787f122a95f011c2d736e394eee649d20dcd326a20f6e359310bb12e1",
+    "apps/web/scripts/experiments/opening-zk/mpcinspect/scan_test.go": "011ac5630ca8a2baac5e568fb27b376f56b1d526438b820f40d9cb92f4379187",
+    "scripts/hidden-v2-mpc-inspect.sh": "78b9c64cd25fb9ee19f915a4025a6decc600f5db208aa4b00051d2b4556c1481"
+  },
+  "syntheticMemoryTest": {
+    "additionalHeapAllocationUpperBoundBytes": 524288,
+    "domain": 16384,
+    "inputBytes": 3145993,
+    "measuresTotalRss": false
+  },
+  "totalPassedEvents": 90,
+  "upstreamSha256": {
+    "gnark-v0.16.4/backend/groth16/bn254/mpcsetup/marshal.go": "5409d2bf89d8ec79a109a9b480835df6fd1f38d41bd0cc3ab7707a217b74cc38"
+  }
+}

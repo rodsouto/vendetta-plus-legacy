@@ -160,12 +160,8 @@ export interface Config {
   occupationTroopsConsumed: bigint;
   /** Missions a player can have in flight (B-09). */
   maxOutgoingMissions: number;
-  /** A parked hidden mission (nobody revealed it) can be forfeited from here on (B-22). */
-  hiddenRevealGrace: bigint;
   /** A building receiving stationed or returning troops cannot send a mission this long (B-22). */
   troopArrivalCooldown: bigint;
-  /** Reveals go in arrival order: a parked hidden mission holds the ones behind it this long at most (B-22). */
-  hiddenOrderWindow: bigint;
   /** A hidden mission's fixed arrival may follow its natural one by this much at most (B-22). */
   hiddenArrivalSlack: bigint;
   /** A controller or transfer invitation lasts this long (B-26). */
@@ -339,9 +335,7 @@ export function loadRuleset(raw: RawRuleset, cfg: typeof gameConfig): Ruleset {
       occupationBuildSpeedLevel: BigInt(cfg.occupation.starting_build_speed_room_level),
       occupationTroopsConsumed: BigInt(cfg.occupation.occupation_troops_consumed),
       maxOutgoingMissions: cfg.onchain.max_outgoing_missions_per_player,
-      hiddenRevealGrace: BigInt(cfg.onchain.hidden_reveal_grace_seconds),
       troopArrivalCooldown: BigInt(cfg.onchain.troop_arrival_cooldown_seconds),
-      hiddenOrderWindow: BigInt(cfg.onchain.hidden_order_window_seconds),
       hiddenArrivalSlack: BigInt(cfg.onchain.hidden_arrival_slack_seconds),
       inviteTtl: BigInt(cfg.onchain.invite_ttl_seconds),
       honorMinPercent: BigInt(cfg.honor.min_power_percent),

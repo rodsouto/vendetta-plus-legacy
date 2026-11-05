@@ -1,0 +1,19 @@
+{
+  "schema": "vendetta-unsafe-local-staged-validation-1",
+  "algorithm": "vendetta-unsafe-local-staged-phase2-1",
+  "goPackages": 4,
+  "goPassingTestEvents": 134,
+  "goFailures": 0,
+  "pythonTests": 30,
+  "pythonFailures": 0,
+  "goVetPassed": true,
+  "nativeInitializationBytesEqual": true,
+  "nativeEvaluationBytesEqual": true,
+  "nativeSealedKeyBytesEqual": true,
+  "groth16ProofPositiveAndWrongPublicInputNegative": true,
+  "resumedAtEveryPersistedBoundary": true,
+  "fullCacheResumeInSeparateWorker": true,
+  "gameDomainPeakMeasured": false,
+  "productionApproved": false,
+  "testsSha256": "7666a116ab9b88d40f4dd4a9ff1b0b2acc2d38626ecae1a8a9434895d4c73e3c"
+}

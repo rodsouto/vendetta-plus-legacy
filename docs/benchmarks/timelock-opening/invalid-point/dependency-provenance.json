@@ -1,0 +1,10 @@
+{
+  "module": "github.com/consensys/gnark",
+  "version": "v0.16.4",
+  "source": "std/algebra/emulated/sw_bls12381/g2.go",
+  "sha256": "c6ffc3e7ceccf6cca6ba9bdc6991c3a9e08059b9deb53839c570f1f8fd44f235",
+  "reviewCopyMatchesCompiledModule": true,
+  "goModVerify": "all modules verified",
+  "verificationBy": "Codex tools, not an assertion supplied by the human user",
+  "claudeFinalCompositionReviewReadCompiledModule": true
+}

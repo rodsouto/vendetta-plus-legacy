@@ -1,0 +1,278 @@
+{
+  "scope": "Integrated resident worker HTTP producer, three new Groth16 certificates, both circuits, real EVM/H3 on private Anvil; archived authenticated beacon signatures; unsafe local setups.",
+  "date": "2026-10-31T00:51:11.915Z",
+  "batchElapsedMs": 586440.929782,
+  "resources": {
+    "intervalMs": 1000,
+    "elapsedMs": 586443.869267,
+    "samples": 586,
+    "peakNodeRssBytes": 165539840,
+    "peakNativeRssBytes": 6548566016,
+    "peakNativeProcesses": 1,
+    "native": [
+      {
+        "kind": "opening",
+        "cpuSeconds": 2247.95,
+        "peakRssBytes": 6548566016,
+        "samples": 375
+      },
+      {
+        "kind": "invalid-point",
+        "cpuSeconds": 1253.68,
+        "peakRssBytes": 5212258304,
+        "samples": 209
+      }
+    ],
+    "limitation": "Sampled Linux RSS and CPU; may miss peaks and final CPU ticks. Node RSS excludes child processes. Not a memory ceiling or leak test."
+  },
+  "measurements": [
+    {
+      "name": "valid-fresh-packet-round-1001-max-salt",
+      "circuit": "opening",
+      "artifactsReused": false,
+      "nativeElapsedMs": 315451,
+      "profileMs": {
+        "artifactIntegrityMs": 3055.82159,
+        "encodeMs": 0.211472,
+        "loadArtifactsMs": 249063.777336,
+        "prepareAssignmentMs": 6.732099,
+        "proveMs": 63318.950298,
+        "verifyMs": 4.784089,
+        "witnessMs": 1.03188
+      },
+      "setupManifestSha256": "353bd28c1fe36a07fd7bb42a110f49cbe323fbcdc1dd323c036678502450a8ff"
+    },
+    {
+      "name": "invalid-commitment-five-H3-candidates",
+      "circuit": "opening",
+      "artifactsReused": true,
+      "nativeElapsedMs": 59725,
+      "profileMs": {
+        "artifactIntegrityMs": 2782.615947,
+        "encodeMs": 0.421922,
+        "loadArtifactsMs": 0.096894,
+        "prepareAssignmentMs": 8.039205,
+        "proveMs": 56928.833814,
+        "verifyMs": 4.023098,
+        "witnessMs": 1.356026
+      },
+      "setupManifestSha256": "353bd28c1fe36a07fd7bb42a110f49cbe323fbcdc1dd323c036678502450a8ff"
+    },
+    {
+      "name": "invalid-U",
+      "circuit": "invalid-point",
+      "artifactsReused": false,
+      "nativeElapsedMs": 209417,
+      "profileMs": {
+        "artifactIntegrityMs": 2123.702479,
+        "encodeMs": 0.19459,
+        "loadArtifactsMs": 170212.67532,
+        "prepareAssignmentMs": 0.475618,
+        "proveMs": 37075.292975,
+        "verifyMs": 4.025522,
+        "witnessMs": 1.277096
+      },
+      "setupManifestSha256": "6757f53a6b002dd917f545863279c5441c33ca77f39dbc56f0dadcd4c96b32ee"
+    }
+  ],
+  "statsBefore": {
+    "proofs": 0,
+    "cacheHits": 0,
+    "counters": {
+      "requests": 1
+    },
+    "stages": {
+      "job": {
+        "calls": 1,
+        "failures": 1,
+        "totalMs": 14.823585000000094,
+        "maxMs": 14.823585000000094
+      },
+      "cachePrune": {
+        "calls": 2,
+        "failures": 0,
+        "totalMs": 0.9642100000000937,
+        "maxMs": 0.48580699999911303
+      },
+      "rpcContext": {
+        "calls": 1,
+        "failures": 0,
+        "totalMs": 2.317151000001104,
+        "maxMs": 2.317151000001104
+      }
+    },
+    "memory": {
+      "rss": 165277696,
+      "heapTotal": 64327680,
+      "heapUsed": 37736752,
+      "external": 7221865,
+      "arrayBuffers": 2799894
+    },
+    "queue": {
+      "pending": 0,
+      "deduplicated": 0,
+      "rejected": 0,
+      "capacity": 8
+    },
+    "cache": {
+      "bytes": 0,
+      "files": 0
+    }
+  },
+  "statsAfter": {
+    "proofs": 3,
+    "cacheHits": 0,
+    "counters": {
+      "requests": 4,
+      "proofs": 3
+    },
+    "stages": {
+      "job": {
+        "calls": 4,
+        "failures": 1,
+        "totalMs": 586422.5524,
+        "maxMs": 315771.809675
+      },
+      "cachePrune": {
+        "calls": 8,
+        "failures": 0,
+        "totalMs": 14.1418310000372,
+        "maxMs": 4.404528000042774
+      },
+      "rpcContext": {
+        "calls": 4,
+        "failures": 0,
+        "totalMs": 9.104570999970747,
+        "maxMs": 2.5167819999624044
+      },
+      "inspect": {
+        "calls": 3,
+        "failures": 0,
+        "totalMs": 205.53451700002188,
+        "maxMs": 78.38739099999657
+      },
+      "beacon": {
+        "calls": 2,
+        "failures": 0,
+        "totalMs": 0.17344900000171037,
+        "maxMs": 0.159191999999166
+      },
+      "prove": {
+        "calls": 3,
+        "failures": 0,
+        "totalMs": 585813.6897489999,
+        "maxMs": 315512.703826
+      },
+      "h3Prefix": {
+        "calls": 2,
+        "failures": 0,
+        "totalMs": 207.04334400000516,
+        "maxMs": 142.27239400002873
+      },
+      "h3Transaction": {
+        "calls": 4,
+        "failures": 0,
+        "totalMs": 137.92156200000318,
+        "maxMs": 53.38496799999848
+      }
+    },
+    "memory": {
+      "rss": 128712704,
+      "heapTotal": 31559680,
+      "heapUsed": 29985816,
+      "external": 8489051,
+      "arrayBuffers": 4060924
+    },
+    "queue": {
+      "pending": 0,
+      "deduplicated": 0,
+      "rejected": 0,
+      "capacity": 8
+    },
+    "cache": {
+      "bytes": 8940,
+      "files": 3
+    }
+  },
+  "finalStats": {
+    "proofs": 3,
+    "cacheHits": 3,
+    "counters": {
+      "requests": 7,
+      "proofs": 3,
+      "cacheHits": 3
+    },
+    "stages": {
+      "job": {
+        "calls": 7,
+        "failures": 1,
+        "totalMs": 586861.069746,
+        "maxMs": 315771.809675
+      },
+      "cachePrune": {
+        "calls": 14,
+        "failures": 0,
+        "totalMs": 27.735336999925494,
+        "maxMs": 4.404528000042774
+      },
+      "rpcContext": {
+        "calls": 7,
+        "failures": 0,
+        "totalMs": 15.559384000018326,
+        "maxMs": 2.6800720000173897
+      },
+      "inspect": {
+        "calls": 6,
+        "failures": 0,
+        "totalMs": 384.9643560000113,
+        "maxMs": 78.38739099999657
+      },
+      "beacon": {
+        "calls": 2,
+        "failures": 0,
+        "totalMs": 0.17344900000171037,
+        "maxMs": 0.159191999999166
+      },
+      "prove": {
+        "calls": 3,
+        "failures": 0,
+        "totalMs": 585813.6897489999,
+        "maxMs": 315512.703826
+      },
+      "h3Prefix": {
+        "calls": 4,
+        "failures": 0,
+        "totalMs": 328.24195399985183,
+        "maxMs": 142.27239400002873
+      },
+      "h3Transaction": {
+        "calls": 8,
+        "failures": 0,
+        "totalMs": 231.60356600006344,
+        "maxMs": 53.38496799999848
+      }
+    },
+    "memory": {
+      "rss": 136499200,
+      "heapTotal": 50696192,
+      "heapUsed": 32552248,
+      "external": 7111217,
+      "arrayBuffers": 2651618
+    },
+    "queue": {
+      "pending": 0,
+      "deduplicated": 0,
+      "rejected": 0,
+      "capacity": 8
+    },
+    "cache": {
+      "bytes": 8940,
+      "files": 3
+    }
+  },
+  "limitations": [
+    "Short local replay, not prolonged load or remote RPC/beacon availability.",
+    "One sample of invalid-point; no warm invalid-point job.",
+    "Cache replay reconstructs H3 after Anvil revert; no stuck-transaction or deep-reorg recovery claim."
+  ]
+}

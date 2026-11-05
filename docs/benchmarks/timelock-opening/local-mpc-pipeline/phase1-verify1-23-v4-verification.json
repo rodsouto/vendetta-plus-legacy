@@ -1,0 +1,18 @@
+{
+  "schema": "vendetta-unsafe-local-phase1-verification-1",
+  "log2": 23,
+  "sourceArtifactSha256": "48c5f26ccea9f47b7c69253e99644b791f33e7016275692194d74f2d1b1b7677",
+  "previousVerificationSha256": "",
+  "transcriptSha256": "1b390bb4d3471a51ee2fbe320f3b9e26631a00c1f7c95994f5897a28b09cb0bf",
+  "anchor": {
+    "schema": "vendetta-local-phase1-anchor-1",
+    "domain": 8388608,
+    "sha256": "1b390bb4d3471a51ee2fbe320f3b9e26631a00c1f7c95994f5897a28b09cb0bf",
+    "tauG1": "8c77858887d02dd759afa8d7aa37b8b7f9610fff20734409d8741361e481aa2e",
+    "alphaG1": "d58e2415eda63d1f7332a952fb7aefa80d6a15f92c905f3bc788154dfef4f5aa",
+    "betaG1": "9075b0c956de04d262dbcd849b2afb4f796b00d73fedc7fe210125363a8f3d45",
+    "betaG2": "c4cac6904f1b009b1279bcefd6c26cc25a04bfb1edc4dbdbfcb0a6e76b9cc31009195dbc9c8ee0ff3d2be90efd83e2720a431c9f790fe4133d7fd5eae448bbee"
+  },
+  "nativeTransitionVerified": true,
+  "productionApproved": false
+}

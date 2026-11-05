@@ -1,0 +1,27 @@
+{
+  "extends": "../../../../tsconfig.base.json",
+  "compilerOptions": { "types": ["node"], "lib": ["ES2022", "DOM"] },
+  "include": [
+    "opening.ts",
+    "codec-v2.ts",
+    "check-point-encoding.ts",
+    "export-codec-v2.ts",
+    "../../test/codec-v2.test.ts",
+    "opening-fixtures.ts",
+    "generate-opening-fixtures.ts",
+    "run-opening.ts",
+    "measure-opening-evm.ts",
+    "snapshot-opening.ts",
+    "export-capsule.ts",
+    "export-age.ts",
+    "export-beacon.ts",
+    "export-mission.ts",
+    "audit-opening-domain.ts",
+    "measure-h3-stepper.ts",
+    "measure-paginated-kem.ts",
+    "measure-mission-v2.ts",
+    "measure-invalid-point-v2.ts",
+    "probe-h3-bound.ts",
+    "../../test/opening-experiment.test.ts"
+  ]
+}

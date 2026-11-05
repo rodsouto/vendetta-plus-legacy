@@ -1,0 +1,13 @@
+{
+  "capturedDuringFirstProof": true,
+  "capturedAt": "2026-10-31T00:44:11Z",
+  "binarySha256": "731c7dbbcf0d1c95947809dd13dc570f5d0c4149b20c0302db4069772452e4cc",
+  "os": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+  "logicalCpus": 16,
+  "GOMEMLIMIT": "6GiB",
+  "GOMAXPROCS": "8",
+  "setupManifestSha256": {
+    "opening": "353bd28c1fe36a07fd7bb42a110f49cbe323fbcdc1dd323c036678502450a8ff",
+    "invalid-point": "6757f53a6b002dd917f545863279c5441c33ca77f39dbc56f0dadcd4c96b32ee"
+  }
+}

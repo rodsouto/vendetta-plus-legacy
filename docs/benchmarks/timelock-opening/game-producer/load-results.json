@@ -1,0 +1,67 @@
+{
+  "scope": "Synthetic operational load: real HTTP/access/serial queue/filesystem cache; no RPC, H3, Groth16 or game replay. Not a production capacity estimate.",
+  "node": "v24.22.1",
+  "sustainedSeconds": 60,
+  "elapsedMsIncludingRecovery": 65119.110285999996,
+  "workers": 20,
+  "syntheticJobDelayMs": 8,
+  "statuses": {
+    "200": 14958,
+    "401": 1929,
+    "403": 1747,
+    "429": 27322,
+    "503": 22508
+  },
+  "metricsReads": 12366,
+  "latencyMsIncludingRejectionsAndRecovery": {
+    "p50": 2.540411000001768,
+    "p95": 13.870848999998998,
+    "p99": 408.3241360000029
+  },
+  "completedJobs": 1313,
+  "failedJobs": 16,
+  "cacheHits": 170,
+  "maxActiveJobs": 1,
+  "maxPending": 8,
+  "finalQueue": {
+    "pending": 0,
+    "deduplicated": 1282,
+    "rejected": 22488,
+    "capacity": 8
+  },
+  "access": {
+    "unauthorized": 1929,
+    "forbidden": 1747,
+    "limited": 27322
+  },
+  "cache": {
+    "bytes": 8192,
+    "files": 32
+  },
+  "limits": {
+    "maxBytes": 8192,
+    "maxFiles": 32,
+    "maxAgeMs": 60000
+  },
+  "recoveryKeys": 256,
+  "baselineMemory": {
+    "rss": 92114944,
+    "heapTotal": 19714048,
+    "heapUsed": 10506976,
+    "external": 4321392,
+    "arrayBuffers": 228993
+  },
+  "finalMemory": {
+    "rss": 239222784,
+    "heapTotal": 170795008,
+    "heapUsed": 56279848,
+    "external": 5254811,
+    "arrayBuffers": 1065613
+  },
+  "peakSampledRss": 235290624,
+  "eventLoopDelayMs": {
+    "mean": 10.118513525587183,
+    "max": 24.625151
+  },
+  "invariantsPassed": true
+}

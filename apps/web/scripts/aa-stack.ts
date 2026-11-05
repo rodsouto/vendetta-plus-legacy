@@ -2,7 +2,7 @@
 // Gnosis Chain installed at their real addresses (EntryPoint 0.7, Kernel v3.1 and its WebAuthn
 // validator, the P-256 verifier, SimpleAccount; snapshot in aa-contracts.json, see aa-fixture.ts),
 // the Game deployed, the Alto bundler and Pimlico's mock paymaster (sponsors everything), and the
-// keeper (B-08, B-22). Then the web app, pointed at it. No fork: public RPCs drop old state within minutes, and this way it runs
+// optional certificate keeper (B-08, B-22). Then the web app, pointed at it. No fork: public RPCs drop old state within minutes, and this way it runs
 // offline and in CI.
 //
 //   tsx scripts/aa-stack.ts [--base 8545] [--vite 5173] [--public]
@@ -116,7 +116,7 @@ execFileSync(
   "forge",
   [
     "script",
-    "script/Deploy.s.sol",
+    "script/DeployTest.s.sol",
     "--rpc-url",
     anvilRpc,
     "--private-key",
@@ -131,7 +131,7 @@ execFileSync(
 );
 const chainId = await client.getChainId();
 const broadcast = JSON.parse(
-  readFileSync(join(broadcastRoot, `Deploy.s.sol/${chainId}/run-latest.json`), "utf8"),
+  readFileSync(join(broadcastRoot, `DeployTest.s.sol/${chainId}/run-latest.json`), "utf8"),
 ) as { transactions: { contractName: string; contractAddress: `0x${string}` }[] };
 const deployed = (name: string) =>
   broadcast.transactions.find((t) => t.contractName === name)!.contractAddress;
@@ -188,9 +188,17 @@ const file =
     : join(mkdtempSync(join(tmpdir(), "vendetta-aa-")), "deployment.json"));
 writeFileSync(file, JSON.stringify(deployment, null, 2));
 if (!values.public) env.VITE_DEPLOYMENT = JSON.stringify(deployment);
-// The keeper reveals hidden missions and catches up the mission queue, as on a real deployment.
-if (!values["no-keeper"])
-  run(join(web, "node_modules/.bin/tsx"), ["scripts/keeper.ts", file, "local"], {
+// Test consumers still require certificates; no plaintext or clock-based fallback.
+if (!values["no-keeper"] && process.env.HIDDEN_PROVER_URL) {
+  if (!process.env.HIDDEN_PROVER_TOKEN) throw new Error("HIDDEN_PROVER_TOKEN is required");
+  run(process.execPath, ["--import", "tsx", "scripts/keeper.ts", file], {
     KEEPER_PRIVATE_KEY: KEEPER_KEY,
+    RPC_URL: anvilRpc,
+    KEEPER_STATE_DIR: mkdtempSync(join(tmpdir(), "vendetta-aa-keeper-")),
   });
+} else if (!values["no-keeper"]) {
+  console.log(
+    "V2 test world: no certificate provider configured; hidden missions wait for evidence.",
+  );
+}
 run(join(web, "node_modules/.bin/vite"), ["--port", values.vite!, "--strictPort"], env, false);

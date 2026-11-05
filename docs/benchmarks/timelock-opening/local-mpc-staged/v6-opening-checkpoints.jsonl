@@ -1,0 +1,33 @@
+{"at":"2026-11-04T23:31:10Z","maxRssBytes":9969664,"stage":"read-cs-start"}
+{"at":"2026-11-04T23:31:18Z","maxRssBytes":2086559744,"stage":"read-powers-tau1"}
+{"at":"2026-11-04T23:34:47Z","maxRssBytes":2958163968,"stage":"fft-start-tau1"}
+{"at":"2026-11-05T00:30:37Z","maxRssBytes":2958163968,"stage":"cache-persisted-lagrange-tau1 index=/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run2/23-phase2-init/public/staged-cache/index-02.json sha256=50084422534811d744eb3b6e9b3899704bd4fde61946f4bd827a94816a54a0d6"}
+{"at":"2026-11-05T00:30:37Z","maxRssBytes":2958163968,"stage":"accumulate-start-tau1"}
+{"at":"2026-11-05T00:38:26Z","maxRssBytes":3017117696,"stage":"cache-persisted-a index=/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run2/23-phase2-init/public/staged-cache/index-03.json sha256=cf09f9640ba99d3c3c7bd05e5268d270b9dd622198f7977402c3417677e0a084"}
+{"at":"2026-11-05T00:38:27Z","maxRssBytes":3017117696,"stage":"cache-persisted-b index=/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run2/23-phase2-init/public/staged-cache/index-04.json sha256=1b9c7a9e3bb46a5b1b1ab2bed427e0af5ad8bda34ee7e70f166cee3625db05ea"}
+{"at":"2026-11-05T00:38:28Z","maxRssBytes":3017117696,"stage":"cache-persisted-c index=/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run2/23-phase2-init/public/staged-cache/index-05.json sha256=c4e6d79f06e51123fc876f0fa80fe896419883321eda3bfb3605815a5bd1870e"}
+{"at":"2026-11-05T00:38:28Z","maxRssBytes":3017117696,"stage":"read-powers-alpha"}
+{"at":"2026-11-05T00:40:09Z","maxRssBytes":3017117696,"stage":"fft-start-alpha"}
+{"at":"2026-11-05T01:35:46Z","maxRssBytes":3017117696,"stage":"cache-persisted-lagrange-alpha index=/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run2/23-phase2-init/public/staged-cache/index-06.json sha256=1c17a5d97180cbdf2366259ceee5f31276d71c94e0d1426acf1956bfabc040fd"}
+{"at":"2026-11-05T01:36:06Z","maxRssBytes":3017117696,"stage":"cache-loaded-c"}
+{"at":"2026-11-05T01:36:06Z","maxRssBytes":3017117696,"stage":"accumulate-start-alpha"}
+{"at":"2026-11-05T01:38:17Z","maxRssBytes":3017117696,"stage":"cache-persisted-k-alpha index=/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run2/23-phase2-init/public/staged-cache/index-07.json sha256=2f5f950be3caee2f7f2327d8f3206542b5884fea0996fdacee6f2b758544c397"}
+{"at":"2026-11-05T01:38:17Z","maxRssBytes":3017117696,"stage":"read-powers-beta"}
+{"at":"2026-11-05T01:39:58Z","maxRssBytes":3017117696,"stage":"fft-start-beta"}
+{"at":"2026-11-05T02:35:56Z","maxRssBytes":3017117696,"stage":"cache-persisted-lagrange-beta index=/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run2/23-phase2-init/public/staged-cache/index-08.json sha256=6c2186befa30072648ed63c112ca78c4878f265aa3324a52e0b29270f4048167"}
+{"at":"2026-11-05T02:36:25Z","maxRssBytes":3017117696,"stage":"cache-loaded-k-alpha"}
+{"at":"2026-11-05T02:36:25Z","maxRssBytes":3017117696,"stage":"accumulate-start-beta"}
+{"at":"2026-11-05T02:41:06Z","maxRssBytes":3017117696,"stage":"cache-persisted-k index=/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run2/23-phase2-init/public/staged-cache/index-09.json sha256=37912145ae622a9585f181cd8568d3c714f84b513b51831721a1eaa601c82b15"}
+{"at":"2026-11-05T02:41:06Z","maxRssBytes":3017117696,"stage":"read-powers-tau2"}
+{"at":"2026-11-05T02:55:34Z","maxRssBytes":3017117696,"stage":"fft-start-tau2"}
+{"at":"2026-11-05T04:30:23Z","maxRssBytes":3017117696,"stage":"cache-persisted-lagrange-tau2 index=/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run2/23-phase2-init/public/staged-cache/index-10.json sha256=9e5a81335e82f1f735321edf0f74bab914f6ba3c41bf71bb4483bc0a6c0f4fb4"}
+{"at":"2026-11-05T04:30:23Z","maxRssBytes":3017117696,"stage":"accumulate-start-tau2"}
+{"at":"2026-11-05T04:34:12Z","maxRssBytes":3132063744,"stage":"cache-persisted-g2-b index=/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run2/23-phase2-init/public/staged-cache/index-11.json sha256=08effe131b6eeceaa9277898119eac3ca5a1eb388375b452c94bbf7f98838842"}
+{"at":"2026-11-05T04:34:12Z","maxRssBytes":3132063744,"stage":"staged-assemble-start"}
+{"at":"2026-11-05T04:34:47Z","maxRssBytes":3132063744,"stage":"cache-loaded-k"}
+{"at":"2026-11-05T04:35:31Z","maxRssBytes":3132063744,"stage":"cache-loaded-z"}
+{"at":"2026-11-05T04:36:05Z","maxRssBytes":3132063744,"stage":"cache-loaded-a"}
+{"at":"2026-11-05T04:36:31Z","maxRssBytes":3132063744,"stage":"cache-loaded-b"}
+{"at":"2026-11-05T04:39:18Z","maxRssBytes":3132063744,"stage":"cache-loaded-g2-b"}
+{"at":"2026-11-05T04:39:18Z","maxRssBytes":3132063744,"stage":"staged-initialize-complete"}
+{"at":"2026-11-05T04:39:32Z","maxRssBytes":3132063744,"stage":"phase2-caches-persisted"}

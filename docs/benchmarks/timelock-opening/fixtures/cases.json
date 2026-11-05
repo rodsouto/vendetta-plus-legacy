@@ -1,0 +1,831 @@
+[
+  {
+    "name": "valid",
+    "expected": "valid",
+    "ciphertext": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IHRsb2NrIDEwMDAgNTJkYjliYTcwZTBj\nYzBmNmVhZjc4MDNkZDA3NDQ3YTFmNTQ3NzczNWZkM2Y2NjE3OTJiYTk0NjAwYzg0\nZTk3MQpoNU5ySmtVck50STJNUTVLTTBvWW5SeHhyZ0dOOUltUmVuTEQvR1VwYk5M\nOTJYamtIZmZxREhuMEg2bnE3b0JQCkJ2T2cvb1RNdEpxS3IxT0tycmE4RHRBaHJn\ncUhKRGhHRldUaHEwcFBOU1grUzREZzB1eHJ3RnNiVi90YWwxTFcKd1hLQW5QV294\ncVBjYTBpdGhRc3Z1Y1ZiZzJLNmkzUnZPalhKdmt3ZExOZwotLS0gLzErL2FnVDJh\nemRKNy9IRUg5b1BERlN1Y2Uya05oVXJJQWU5R1VrYWxjMAo5L/T/noMNNCmUPoKq\nR3IJLq7UcmkTV+HXl3qCP/w2uM/i0KXxhcdQpD0RrxUGD5+NuiA=\n-----END AGE ENCRYPTED FILE-----\n",
+    "context": {
+      "chainId": "100",
+      "game": "0x1111111111111111111111111111111111111111",
+      "mission": "1",
+      "ruleset": "vendetta-opening-research-v1",
+      "owner": "1",
+      "from": {
+        "city": "1",
+        "neighborhood": "1",
+        "slot": "1"
+      },
+      "cover": "2",
+      "cargo": [
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "arrival": "1692806349",
+      "round": 1000,
+      "commitment": "0x23829e3166d9bb69103ff874ef807062e06f83205762e3166557c8377b1a0f88",
+      "ciphertextHash": "0x96069ea014a05b1704d016e164fbf2fc146db98cb49b1abc32a870278deaa2ba"
+    },
+    "beacon": {
+      "round": 1000,
+      "randomness": "fe290beca10872ef2fb164d2aa4442de4566183ec51c56ff3cd603d930e54fdd",
+      "signature": "b44679b9a59af2ec876b1a6b1ad52ea9b1615fc3982b19576350f93447cb1125e342b73a8dd2bacbe47e4b6b63ed5e39"
+    },
+    "now": "1692809964"
+  },
+  {
+    "name": "valid-after-long-outage",
+    "expected": "valid",
+    "ciphertext": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IHRsb2NrIDEwMDAgNTJkYjliYTcwZTBj\nYzBmNmVhZjc4MDNkZDA3NDQ3YTFmNTQ3NzczNWZkM2Y2NjE3OTJiYTk0NjAwYzg0\nZTk3MQpoNU5ySmtVck50STJNUTVLTTBvWW5SeHhyZ0dOOUltUmVuTEQvR1VwYk5M\nOTJYamtIZmZxREhuMEg2bnE3b0JQCkJ2T2cvb1RNdEpxS3IxT0tycmE4RHRBaHJn\ncUhKRGhHRldUaHEwcFBOU1grUzREZzB1eHJ3RnNiVi90YWwxTFcKd1hLQW5QV294\ncVBjYTBpdGhRc3Z1Y1ZiZzJLNmkzUnZPalhKdmt3ZExOZwotLS0gLzErL2FnVDJh\nemRKNy9IRUg5b1BERlN1Y2Uya05oVXJJQWU5R1VrYWxjMAo5L/T/noMNNCmUPoKq\nR3IJLq7UcmkTV+HXl3qCP/w2uM/i0KXxhcdQpD0RrxUGD5+NuiA=\n-----END AGE ENCRYPTED FILE-----\n",
+    "context": {
+      "chainId": "100",
+      "game": "0x1111111111111111111111111111111111111111",
+      "mission": "1",
+      "ruleset": "vendetta-opening-research-v1",
+      "owner": "1",
+      "from": {
+        "city": "1",
+        "neighborhood": "1",
+        "slot": "1"
+      },
+      "cover": "2",
+      "cargo": [
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "arrival": "1692806349",
+      "round": 1000,
+      "commitment": "0x23829e3166d9bb69103ff874ef807062e06f83205762e3166557c8377b1a0f88",
+      "ciphertextHash": "0x96069ea014a05b1704d016e164fbf2fc146db98cb49b1abc32a870278deaa2ba"
+    },
+    "beacon": {
+      "round": 1000,
+      "randomness": "fe290beca10872ef2fb164d2aa4442de4566183ec51c56ff3cd603d930e54fdd",
+      "signature": "b44679b9a59af2ec876b1a6b1ad52ea9b1615fc3982b19576350f93447cb1125e342b73a8dd2bacbe47e4b6b63ed5e39"
+    },
+    "now": "1692892764"
+  },
+  {
+    "name": "round-not-yet-open",
+    "expected": "wait",
+    "ciphertext": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IHRsb2NrIDEwMDAgNTJkYjliYTcwZTBj\nYzBmNmVhZjc4MDNkZDA3NDQ3YTFmNTQ3NzczNWZkM2Y2NjE3OTJiYTk0NjAwYzg0\nZTk3MQpoNU5ySmtVck50STJNUTVLTTBvWW5SeHhyZ0dOOUltUmVuTEQvR1VwYk5M\nOTJYamtIZmZxREhuMEg2bnE3b0JQCkJ2T2cvb1RNdEpxS3IxT0tycmE4RHRBaHJn\ncUhKRGhHRldUaHEwcFBOU1grUzREZzB1eHJ3RnNiVi90YWwxTFcKd1hLQW5QV294\ncVBjYTBpdGhRc3Z1Y1ZiZzJLNmkzUnZPalhKdmt3ZExOZwotLS0gLzErL2FnVDJh\nemRKNy9IRUg5b1BERlN1Y2Uya05oVXJJQWU5R1VrYWxjMAo5L/T/noMNNCmUPoKq\nR3IJLq7UcmkTV+HXl3qCP/w2uM/i0KXxhcdQpD0RrxUGD5+NuiA=\n-----END AGE ENCRYPTED FILE-----\n",
+    "context": {
+      "chainId": "100",
+      "game": "0x1111111111111111111111111111111111111111",
+      "mission": "1",
+      "ruleset": "vendetta-opening-research-v1",
+      "owner": "1",
+      "from": {
+        "city": "1",
+        "neighborhood": "1",
+        "slot": "1"
+      },
+      "cover": "2",
+      "cargo": [
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "arrival": "1692806349",
+      "round": 1000,
+      "commitment": "0x23829e3166d9bb69103ff874ef807062e06f83205762e3166557c8377b1a0f88",
+      "ciphertextHash": "0x96069ea014a05b1704d016e164fbf2fc146db98cb49b1abc32a870278deaa2ba"
+    },
+    "beacon": {
+      "round": 1000,
+      "randomness": "fe290beca10872ef2fb164d2aa4442de4566183ec51c56ff3cd603d930e54fdd",
+      "signature": "b44679b9a59af2ec876b1a6b1ad52ea9b1615fc3982b19576350f93447cb1125e342b73a8dd2bacbe47e4b6b63ed5e39"
+    },
+    "now": "1692806363",
+    "expectedReason": "round-not-open-yet"
+  },
+  {
+    "name": "drand-unavailable",
+    "expected": "wait",
+    "ciphertext": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IHRsb2NrIDEwMDAgNTJkYjliYTcwZTBj\nYzBmNmVhZjc4MDNkZDA3NDQ3YTFmNTQ3NzczNWZkM2Y2NjE3OTJiYTk0NjAwYzg0\nZTk3MQpoNU5ySmtVck50STJNUTVLTTBvWW5SeHhyZ0dOOUltUmVuTEQvR1VwYk5M\nOTJYamtIZmZxREhuMEg2bnE3b0JQCkJ2T2cvb1RNdEpxS3IxT0tycmE4RHRBaHJn\ncUhKRGhHRldUaHEwcFBOU1grUzREZzB1eHJ3RnNiVi90YWwxTFcKd1hLQW5QV294\ncVBjYTBpdGhRc3Z1Y1ZiZzJLNmkzUnZPalhKdmt3ZExOZwotLS0gLzErL2FnVDJh\nemRKNy9IRUg5b1BERlN1Y2Uya05oVXJJQWU5R1VrYWxjMAo5L/T/noMNNCmUPoKq\nR3IJLq7UcmkTV+HXl3qCP/w2uM/i0KXxhcdQpD0RrxUGD5+NuiA=\n-----END AGE ENCRYPTED FILE-----\n",
+    "context": {
+      "chainId": "100",
+      "game": "0x1111111111111111111111111111111111111111",
+      "mission": "1",
+      "ruleset": "vendetta-opening-research-v1",
+      "owner": "1",
+      "from": {
+        "city": "1",
+        "neighborhood": "1",
+        "slot": "1"
+      },
+      "cover": "2",
+      "cargo": [
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "arrival": "1692806349",
+      "round": 1000,
+      "commitment": "0x23829e3166d9bb69103ff874ef807062e06f83205762e3166557c8377b1a0f88",
+      "ciphertextHash": "0x96069ea014a05b1704d016e164fbf2fc146db98cb49b1abc32a870278deaa2ba"
+    },
+    "beacon": null,
+    "now": "1692892764",
+    "expectedReason": "beacon-unavailable"
+  },
+  {
+    "name": "wrong-commitment",
+    "expected": "invalid",
+    "ciphertext": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IHRsb2NrIDEwMDAgNTJkYjliYTcwZTBj\nYzBmNmVhZjc4MDNkZDA3NDQ3YTFmNTQ3NzczNWZkM2Y2NjE3OTJiYTk0NjAwYzg0\nZTk3MQpoNU5ySmtVck50STJNUTVLTTBvWW5SeHhyZ0dOOUltUmVuTEQvR1VwYk5M\nOTJYamtIZmZxREhuMEg2bnE3b0JQCkJ2T2cvb1RNdEpxS3IxT0tycmE4RHRBaHJn\ncUhKRGhHRldUaHEwcFBOU1grUzREZzB1eHJ3RnNiVi90YWwxTFcKd1hLQW5QV294\ncVBjYTBpdGhRc3Z1Y1ZiZzJLNmkzUnZPalhKdmt3ZExOZwotLS0gLzErL2FnVDJh\nemRKNy9IRUg5b1BERlN1Y2Uya05oVXJJQWU5R1VrYWxjMAo5L/T/noMNNCmUPoKq\nR3IJLq7UcmkTV+HXl3qCP/w2uM/i0KXxhcdQpD0RrxUGD5+NuiA=\n-----END AGE ENCRYPTED FILE-----\n",
+    "context": {
+      "chainId": "100",
+      "game": "0x1111111111111111111111111111111111111111",
+      "mission": "1",
+      "ruleset": "vendetta-opening-research-v1",
+      "owner": "1",
+      "from": {
+        "city": "1",
+        "neighborhood": "1",
+        "slot": "1"
+      },
+      "cover": "2",
+      "cargo": [
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "arrival": "1692806349",
+      "round": 1000,
+      "commitment": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "ciphertextHash": "0x96069ea014a05b1704d016e164fbf2fc146db98cb49b1abc32a870278deaa2ba"
+    },
+    "beacon": {
+      "round": 1000,
+      "randomness": "fe290beca10872ef2fb164d2aa4442de4566183ec51c56ff3cd603d930e54fdd",
+      "signature": "b44679b9a59af2ec876b1a6b1ad52ea9b1615fc3982b19576350f93447cb1125e342b73a8dd2bacbe47e4b6b63ed5e39"
+    },
+    "now": "1692809964",
+    "expectedReason": "commitment-mismatch"
+  },
+  {
+    "name": "cargo-forbidden-for-attack",
+    "expected": "invalid",
+    "ciphertext": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IHRsb2NrIDEwMDAgNTJkYjliYTcwZTBj\nYzBmNmVhZjc4MDNkZDA3NDQ3YTFmNTQ3NzczNWZkM2Y2NjE3OTJiYTk0NjAwYzg0\nZTk3MQpoNU5ySmtVck50STJNUTVLTTBvWW5SeHhyZ0dOOUltUmVuTEQvR1VwYk5M\nOTJYamtIZmZxREhuMEg2bnE3b0JQCkJ2T2cvb1RNdEpxS3IxT0tycmE4RHRBaHJn\ncUhKRGhHRldUaHEwcFBOU1grUzREZzB1eHJ3RnNiVi90YWwxTFcKd1hLQW5QV294\ncVBjYTBpdGhRc3Z1Y1ZiZzJLNmkzUnZPalhKdmt3ZExOZwotLS0gLzErL2FnVDJh\nemRKNy9IRUg5b1BERlN1Y2Uya05oVXJJQWU5R1VrYWxjMAo5L/T/noMNNCmUPoKq\nR3IJLq7UcmkTV+HXl3qCP/w2uM/i0KXxhcdQpD0RrxUGD5+NuiA=\n-----END AGE ENCRYPTED FILE-----\n",
+    "context": {
+      "chainId": "100",
+      "game": "0x1111111111111111111111111111111111111111",
+      "mission": "1",
+      "ruleset": "vendetta-opening-research-v1",
+      "owner": "1",
+      "from": {
+        "city": "1",
+        "neighborhood": "1",
+        "slot": "1"
+      },
+      "cover": "2",
+      "cargo": [
+        "1",
+        "0",
+        "0",
+        "0"
+      ],
+      "arrival": "1692806349",
+      "round": 1000,
+      "commitment": "0x23829e3166d9bb69103ff874ef807062e06f83205762e3166557c8377b1a0f88",
+      "ciphertextHash": "0x96069ea014a05b1704d016e164fbf2fc146db98cb49b1abc32a870278deaa2ba"
+    },
+    "beacon": {
+      "round": 1000,
+      "randomness": "fe290beca10872ef2fb164d2aa4442de4566183ec51c56ff3cd603d930e54fdd",
+      "signature": "b44679b9a59af2ec876b1a6b1ad52ea9b1615fc3982b19576350f93447cb1125e342b73a8dd2bacbe47e4b6b63ed5e39"
+    },
+    "now": "1692809964",
+    "expectedReason": "message-cargo"
+  },
+  {
+    "name": "substituted-ciphertext",
+    "expected": "untrusted",
+    "ciphertext": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IHRsb2NrIDEwMDAgNTJkYjliYTcwZTBj\nYzBmNmVhZjc4MDNkZDA3NDQ3YTFmNTQ3NzczNWZkM2Y2NjE3OTJiYTk0NjAwYzg0\nZTk3MQpoNU5ySmtVck50STJNUTVLTTBvWW5SeHhyZ0dOOUltUmVuTEQvR1VwYk5M\nOTJYamtIZmZxREhuMEg2bnE3b0JQCkJ2T2cvb1RNdEpxS3IxT0tycmE4RHRBaHJn\ncUhKRGhHRldUaHEwcFBOU1grUzREZzB1eHJ3RnNiVi90YWwxTFcKd1hLQW5QV294\ncVBjYTBpdGhRc3Z1Y1ZiZzJLNmkzUnZPalhKdmt3ZExOZwotLS0gLzErL2FnVDJh\nemRKNy9IRUg5b1BERlN1Y2Uya05oVXJJQWU5R1VrYWxjMAo5L/T/noMNNCmUPoKq\nR3IJLq7UcmkTV+HXl3qCP/w2uM/i0KXxhcdQpD0RrxUGD5+NuiA=\n-----END AGE ENCRYPTED FILE-----\n ",
+    "context": {
+      "chainId": "100",
+      "game": "0x1111111111111111111111111111111111111111",
+      "mission": "1",
+      "ruleset": "vendetta-opening-research-v1",
+      "owner": "1",
+      "from": {
+        "city": "1",
+        "neighborhood": "1",
+        "slot": "1"
+      },
+      "cover": "2",
+      "cargo": [
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "arrival": "1692806349",
+      "round": 1000,
+      "commitment": "0x23829e3166d9bb69103ff874ef807062e06f83205762e3166557c8377b1a0f88",
+      "ciphertextHash": "0x96069ea014a05b1704d016e164fbf2fc146db98cb49b1abc32a870278deaa2ba"
+    },
+    "beacon": {
+      "round": 1000,
+      "randomness": "fe290beca10872ef2fb164d2aa4442de4566183ec51c56ff3cd603d930e54fdd",
+      "signature": "b44679b9a59af2ec876b1a6b1ad52ea9b1615fc3982b19576350f93447cb1125e342b73a8dd2bacbe47e4b6b63ed5e39"
+    },
+    "now": "1692809964",
+    "expectedReason": "ciphertext-hash-mismatch"
+  },
+  {
+    "name": "forged-beacon-round",
+    "expected": "untrusted",
+    "ciphertext": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IHRsb2NrIDEwMDAgNTJkYjliYTcwZTBj\nYzBmNmVhZjc4MDNkZDA3NDQ3YTFmNTQ3NzczNWZkM2Y2NjE3OTJiYTk0NjAwYzg0\nZTk3MQpoNU5ySmtVck50STJNUTVLTTBvWW5SeHhyZ0dOOUltUmVuTEQvR1VwYk5M\nOTJYamtIZmZxREhuMEg2bnE3b0JQCkJ2T2cvb1RNdEpxS3IxT0tycmE4RHRBaHJn\ncUhKRGhHRldUaHEwcFBOU1grUzREZzB1eHJ3RnNiVi90YWwxTFcKd1hLQW5QV294\ncVBjYTBpdGhRc3Z1Y1ZiZzJLNmkzUnZPalhKdmt3ZExOZwotLS0gLzErL2FnVDJh\nemRKNy9IRUg5b1BERlN1Y2Uya05oVXJJQWU5R1VrYWxjMAo5L/T/noMNNCmUPoKq\nR3IJLq7UcmkTV+HXl3qCP/w2uM/i0KXxhcdQpD0RrxUGD5+NuiA=\n-----END AGE ENCRYPTED FILE-----\n",
+    "context": {
+      "chainId": "100",
+      "game": "0x1111111111111111111111111111111111111111",
+      "mission": "1",
+      "ruleset": "vendetta-opening-research-v1",
+      "owner": "1",
+      "from": {
+        "city": "1",
+        "neighborhood": "1",
+        "slot": "1"
+      },
+      "cover": "2",
+      "cargo": [
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "arrival": "1692806349",
+      "round": 1000,
+      "commitment": "0x23829e3166d9bb69103ff874ef807062e06f83205762e3166557c8377b1a0f88",
+      "ciphertextHash": "0x96069ea014a05b1704d016e164fbf2fc146db98cb49b1abc32a870278deaa2ba"
+    },
+    "beacon": {
+      "round": 1000,
+      "randomness": "b0a591ad1b9002cfc372ac6e30abd3da8d3088d4caae026961743474fb94235f",
+      "signature": "b33bf3667cbd5a82de3a24b4e0e9fe5513cc1a0e840368c6e31f5fcfa79bea03f73896b25883abf2853d10337fb8fa41"
+    },
+    "now": "1692809964",
+    "expectedReason": "unauthenticated-beacon"
+  },
+  {
+    "name": "wrong-beacon-round",
+    "expected": "untrusted",
+    "ciphertext": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IHRsb2NrIDEwMDAgNTJkYjliYTcwZTBj\nYzBmNmVhZjc4MDNkZDA3NDQ3YTFmNTQ3NzczNWZkM2Y2NjE3OTJiYTk0NjAwYzg0\nZTk3MQpoNU5ySmtVck50STJNUTVLTTBvWW5SeHhyZ0dOOUltUmVuTEQvR1VwYk5M\nOTJYamtIZmZxREhuMEg2bnE3b0JQCkJ2T2cvb1RNdEpxS3IxT0tycmE4RHRBaHJn\ncUhKRGhHRldUaHEwcFBOU1grUzREZzB1eHJ3RnNiVi90YWwxTFcKd1hLQW5QV294\ncVBjYTBpdGhRc3Z1Y1ZiZzJLNmkzUnZPalhKdmt3ZExOZwotLS0gLzErL2FnVDJh\nemRKNy9IRUg5b1BERlN1Y2Uya05oVXJJQWU5R1VrYWxjMAo5L/T/noMNNCmUPoKq\nR3IJLq7UcmkTV+HXl3qCP/w2uM/i0KXxhcdQpD0RrxUGD5+NuiA=\n-----END AGE ENCRYPTED FILE-----\n",
+    "context": {
+      "chainId": "100",
+      "game": "0x1111111111111111111111111111111111111111",
+      "mission": "1",
+      "ruleset": "vendetta-opening-research-v1",
+      "owner": "1",
+      "from": {
+        "city": "1",
+        "neighborhood": "1",
+        "slot": "1"
+      },
+      "cover": "2",
+      "cargo": [
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "arrival": "1692806349",
+      "round": 1000,
+      "commitment": "0x23829e3166d9bb69103ff874ef807062e06f83205762e3166557c8377b1a0f88",
+      "ciphertextHash": "0x96069ea014a05b1704d016e164fbf2fc146db98cb49b1abc32a870278deaa2ba"
+    },
+    "beacon": {
+      "round": 1001,
+      "randomness": "b0a591ad1b9002cfc372ac6e30abd3da8d3088d4caae026961743474fb94235f",
+      "signature": "b33bf3667cbd5a82de3a24b4e0e9fe5513cc1a0e840368c6e31f5fcfa79bea03f73896b25883abf2853d10337fb8fa41"
+    },
+    "now": "1692809964",
+    "expectedReason": "unauthenticated-beacon"
+  },
+  {
+    "name": "wrong-randomness",
+    "expected": "untrusted",
+    "ciphertext": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IHRsb2NrIDEwMDAgNTJkYjliYTcwZTBj\nYzBmNmVhZjc4MDNkZDA3NDQ3YTFmNTQ3NzczNWZkM2Y2NjE3OTJiYTk0NjAwYzg0\nZTk3MQpoNU5ySmtVck50STJNUTVLTTBvWW5SeHhyZ0dOOUltUmVuTEQvR1VwYk5M\nOTJYamtIZmZxREhuMEg2bnE3b0JQCkJ2T2cvb1RNdEpxS3IxT0tycmE4RHRBaHJn\ncUhKRGhHRldUaHEwcFBOU1grUzREZzB1eHJ3RnNiVi90YWwxTFcKd1hLQW5QV294\ncVBjYTBpdGhRc3Z1Y1ZiZzJLNmkzUnZPalhKdmt3ZExOZwotLS0gLzErL2FnVDJh\nemRKNy9IRUg5b1BERlN1Y2Uya05oVXJJQWU5R1VrYWxjMAo5L/T/noMNNCmUPoKq\nR3IJLq7UcmkTV+HXl3qCP/w2uM/i0KXxhcdQpD0RrxUGD5+NuiA=\n-----END AGE ENCRYPTED FILE-----\n",
+    "context": {
+      "chainId": "100",
+      "game": "0x1111111111111111111111111111111111111111",
+      "mission": "1",
+      "ruleset": "vendetta-opening-research-v1",
+      "owner": "1",
+      "from": {
+        "city": "1",
+        "neighborhood": "1",
+        "slot": "1"
+      },
+      "cover": "2",
+      "cargo": [
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "arrival": "1692806349",
+      "round": 1000,
+      "commitment": "0x23829e3166d9bb69103ff874ef807062e06f83205762e3166557c8377b1a0f88",
+      "ciphertextHash": "0x96069ea014a05b1704d016e164fbf2fc146db98cb49b1abc32a870278deaa2ba"
+    },
+    "beacon": {
+      "round": 1000,
+      "randomness": "0000000000000000000000000000000000000000000000000000000000000000",
+      "signature": "b44679b9a59af2ec876b1a6b1ad52ea9b1615fc3982b19576350f93447cb1125e342b73a8dd2bacbe47e4b6b63ed5e39"
+    },
+    "now": "1692809964",
+    "expectedReason": "unauthenticated-beacon"
+  },
+  {
+    "name": "malformed-age",
+    "expected": "invalid",
+    "ciphertext": "this is not age",
+    "context": {
+      "chainId": "100",
+      "game": "0x1111111111111111111111111111111111111111",
+      "mission": "1",
+      "ruleset": "vendetta-opening-research-v1",
+      "owner": "1",
+      "from": {
+        "city": "1",
+        "neighborhood": "1",
+        "slot": "1"
+      },
+      "cover": "2",
+      "cargo": [
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "arrival": "1692806349",
+      "round": 1000,
+      "commitment": "0x23829e3166d9bb69103ff874ef807062e06f83205762e3166557c8377b1a0f88",
+      "ciphertextHash": "0xb4d4a175869ef21a28029103647a987993b4bf4a27f66a704fed4397b0cb4004"
+    },
+    "beacon": {
+      "round": 1000,
+      "randomness": "fe290beca10872ef2fb164d2aa4442de4566183ec51c56ff3cd603d930e54fdd",
+      "signature": "b44679b9a59af2ec876b1a6b1ad52ea9b1615fc3982b19576350f93447cb1125e342b73a8dd2bacbe47e4b6b63ed5e39"
+    },
+    "now": "1692809964",
+    "expectedReason": "malformed-age-envelope"
+  },
+  {
+    "name": "unknown-age-version",
+    "expected": "unsupported",
+    "ciphertext": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YyCi0+IHRsb2NrIDEwMDAgNTJkYjliYTcwZTBj\nYzBmNmVhZjc4MDNkZDA3NDQ3YTFmNTQ3NzczNWZkM2Y2NjE3OTJiYTk0NjAwYzg0\nZTk3MQpoNU5ySmtVck50STJNUTVLTTBvWW5SeHhyZ0dOOUltUmVuTEQvR1VwYk5M\nOTJYamtIZmZxREhuMEg2bnE3b0JQCkJ2T2cvb1RNdEpxS3IxT0tycmE4RHRBaHJn\ncUhKRGhHRldUaHEwcFBOU1grUzREZzB1eHJ3RnNiVi90YWwxTFcKd1hLQW5QV294\ncVBjYTBpdGhRc3Z1Y1ZiZzJLNmkzUnZPalhKdmt3ZExOZwotLS0gLzErL2FnVDJh\nemRKNy9IRUg5b1BERlN1Y2Uya05oVXJJQWU5R1VrYWxjMAo5L/T/noMNNCmUPoKq\nR3IJLq7UcmkTV+HXl3qCP/w2uM/i0KXxhcdQpD0RrxUGD5+NuiA=\n-----END AGE ENCRYPTED FILE-----\n",
+    "context": {
+      "chainId": "100",
+      "game": "0x1111111111111111111111111111111111111111",
+      "mission": "1",
+      "ruleset": "vendetta-opening-research-v1",
+      "owner": "1",
+      "from": {
+        "city": "1",
+        "neighborhood": "1",
+        "slot": "1"
+      },
+      "cover": "2",
+      "cargo": [
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "arrival": "1692806349",
+      "round": 1000,
+      "commitment": "0x23829e3166d9bb69103ff874ef807062e06f83205762e3166557c8377b1a0f88",
+      "ciphertextHash": "0xa6cca54ab07765ef346c7973635afdf182f00aef0e2a5ff9b794cdb2e3b4193f"
+    },
+    "beacon": {
+      "round": 1000,
+      "randomness": "fe290beca10872ef2fb164d2aa4442de4566183ec51c56ff3cd603d930e54fdd",
+      "signature": "b44679b9a59af2ec876b1a6b1ad52ea9b1615fc3982b19576350f93447cb1125e342b73a8dd2bacbe47e4b6b63ed5e39"
+    },
+    "now": "1692809964",
+    "expectedReason": "age-version"
+  },
+  {
+    "name": "different-network",
+    "expected": "unsupported",
+    "ciphertext": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IHRsb2NrIDEwMDAgMDAwMDAwMDAwMDAw\nMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAw\nMDAwMApoNU5ySmtVck50STJNUTVLTTBvWW5SeHhyZ0dOOUltUmVuTEQvR1VwYk5M\nOTJYamtIZmZxREhuMEg2bnE3b0JQCkJ2T2cvb1RNdEpxS3IxT0tycmE4RHRBaHJn\ncUhKRGhHRldUaHEwcFBOU1grUzREZzB1eHJ3RnNiVi90YWwxTFcKd1hLQW5QV294\ncVBjYTBpdGhRc3Z1Y1ZiZzJLNmkzUnZPalhKdmt3ZExOZwotLS0gLzErL2FnVDJh\nemRKNy9IRUg5b1BERlN1Y2Uya05oVXJJQWU5R1VrYWxjMAo5L/T/noMNNCmUPoKq\nR3IJLq7UcmkTV+HXl3qCP/w2uM/i0KXxhcdQpD0RrxUGD5+NuiA=\n-----END AGE ENCRYPTED FILE-----\n",
+    "context": {
+      "chainId": "100",
+      "game": "0x1111111111111111111111111111111111111111",
+      "mission": "1",
+      "ruleset": "vendetta-opening-research-v1",
+      "owner": "1",
+      "from": {
+        "city": "1",
+        "neighborhood": "1",
+        "slot": "1"
+      },
+      "cover": "2",
+      "cargo": [
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "arrival": "1692806349",
+      "round": 1000,
+      "commitment": "0x23829e3166d9bb69103ff874ef807062e06f83205762e3166557c8377b1a0f88",
+      "ciphertextHash": "0x8d0d4977e3cd5e567bd921c986412025aaa1b3f2853439b299188d336f1b2bf1"
+    },
+    "beacon": {
+      "round": 1000,
+      "randomness": "fe290beca10872ef2fb164d2aa4442de4566183ec51c56ff3cd603d930e54fdd",
+      "signature": "b44679b9a59af2ec876b1a6b1ad52ea9b1615fc3982b19576350f93447cb1125e342b73a8dd2bacbe47e4b6b63ed5e39"
+    },
+    "now": "1692809964",
+    "expectedReason": "different-drand-network"
+  },
+  {
+    "name": "noncanonical-round-encoding",
+    "expected": "unsupported",
+    "ciphertext": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IHRsb2NrIDAxMDAwIDUyZGI5YmE3MGUw\nY2MwZjZlYWY3ODAzZGQwNzQ0N2ExZjU0Nzc3MzVmZDNmNjYxNzkyYmE5NDYwMGM4\nNGU5NzEKaDVOckprVXJOdEkyTVE1S00wb1luUnh4cmdHTjlJbVJlbkxEL0dVcGJO\nTDkyWGprSGZmcURIbjBINm5xN29CUApCdk9nL29UTXRKcUtyMU9LcnJhOER0QWhy\nZ3FISkRoR0ZXVGhxMHBQTlNYK1M0RGcwdXhyd0ZzYlYvdGFsMUxXCndYS0FuUFdv\neHFQY2EwaXRoUXN2dWNWYmcySzZpM1J2T2pYSnZrd2RMTmcKLS0tIC8xKy9hZ1Qy\nYXpkSjcvSEVIOW9QREZTdWNlMmtOaFVySUFlOUdVa2FsYzAKOS/0/56DDTQplD6C\nqkdyCS6u1HJpE1fh15d6gj/8NrjP4tCl8YXHUKQ9Ea8VBg+fjbog\n-----END AGE ENCRYPTED FILE-----\n",
+    "context": {
+      "chainId": "100",
+      "game": "0x1111111111111111111111111111111111111111",
+      "mission": "1",
+      "ruleset": "vendetta-opening-research-v1",
+      "owner": "1",
+      "from": {
+        "city": "1",
+        "neighborhood": "1",
+        "slot": "1"
+      },
+      "cover": "2",
+      "cargo": [
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "arrival": "1692806349",
+      "round": 1000,
+      "commitment": "0x23829e3166d9bb69103ff874ef807062e06f83205762e3166557c8377b1a0f88",
+      "ciphertextHash": "0xe5ab14703a0bce2471efceff4c43fb415f3113b9c3d921b5ab4b5cc89b0e3a4c"
+    },
+    "beacon": {
+      "round": 1000,
+      "randomness": "fe290beca10872ef2fb164d2aa4442de4566183ec51c56ff3cd603d930e54fdd",
+      "signature": "b44679b9a59af2ec876b1a6b1ad52ea9b1615fc3982b19576350f93447cb1125e342b73a8dd2bacbe47e4b6b63ed5e39"
+    },
+    "now": "1692809964",
+    "expectedReason": "round-encoding"
+  },
+  {
+    "name": "header-mac-corrupted",
+    "expected": "invalid",
+    "ciphertext": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IHRsb2NrIDEwMDAgNTJkYjliYTcwZTBj\nYzBmNmVhZjc4MDNkZDA3NDQ3YTFmNTQ3NzczNWZkM2Y2NjE3OTJiYTk0NjAwYzg0\nZTk3MQpoNU5ySmtVck50STJNUTVLTTBvWW5SeHhyZ0dOOUltUmVuTEQvR1VwYk5M\nOTJYamtIZmZxREhuMEg2bnE3b0JQCkJ2T2cvb1RNdEpxS3IxT0tycmE4RHRBaHJn\ncUhKRGhHRldUaHEwcFBOU1grUzREZzB1eHJ3RnNiVi90YWwxTFcKd1hLQW5QV294\ncVBjYTBpdGhRc3Z1Y1ZiZzJLNmkzUnZPalhKdmt3ZExOZwotLS0gQTErL2FnVDJh\nemRKNy9IRUg5b1BERlN1Y2Uya05oVXJJQWU5R1VrYWxjMAo5L/T/noMNNCmUPoKq\nR3IJLq7UcmkTV+HXl3qCP/w2uM/i0KXxhcdQpD0RrxUGD5+NuiA=\n-----END AGE ENCRYPTED FILE-----\n",
+    "context": {
+      "chainId": "100",
+      "game": "0x1111111111111111111111111111111111111111",
+      "mission": "1",
+      "ruleset": "vendetta-opening-research-v1",
+      "owner": "1",
+      "from": {
+        "city": "1",
+        "neighborhood": "1",
+        "slot": "1"
+      },
+      "cover": "2",
+      "cargo": [
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "arrival": "1692806349",
+      "round": 1000,
+      "commitment": "0x23829e3166d9bb69103ff874ef807062e06f83205762e3166557c8377b1a0f88",
+      "ciphertextHash": "0xb2f86d3a1c7e7da9f5a20feb49fc0e3e7c0e6ca3eb6557629a0e6c49ce938070"
+    },
+    "beacon": {
+      "round": 1000,
+      "randomness": "fe290beca10872ef2fb164d2aa4442de4566183ec51c56ff3cd603d930e54fdd",
+      "signature": "b44679b9a59af2ec876b1a6b1ad52ea9b1615fc3982b19576350f93447cb1125e342b73a8dd2bacbe47e4b6b63ed5e39"
+    },
+    "now": "1692809964",
+    "expectedReason": "header-authentication"
+  },
+  {
+    "name": "payload-tag-corrupted",
+    "expected": "invalid",
+    "ciphertext": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IHRsb2NrIDEwMDAgNTJkYjliYTcwZTBj\nYzBmNmVhZjc4MDNkZDA3NDQ3YTFmNTQ3NzczNWZkM2Y2NjE3OTJiYTk0NjAwYzg0\nZTk3MQpoNU5ySmtVck50STJNUTVLTTBvWW5SeHhyZ0dOOUltUmVuTEQvR1VwYk5M\nOTJYamtIZmZxREhuMEg2bnE3b0JQCkJ2T2cvb1RNdEpxS3IxT0tycmE4RHRBaHJn\ncUhKRGhHRldUaHEwcFBOU1grUzREZzB1eHJ3RnNiVi90YWwxTFcKd1hLQW5QV294\ncVBjYTBpdGhRc3Z1Y1ZiZzJLNmkzUnZPalhKdmt3ZExOZwotLS0gLzErL2FnVDJh\nemRKNy9IRUg5b1BERlN1Y2Uya05oVXJJQWU5R1VrYWxjMAo5L/T/noMNNCmUPoKq\nR3IJLq7UcmkTV+HXl3qCP/w2uM/i0KXxhcdQpD0RrxUGD5+NuiE=\n-----END AGE ENCRYPTED FILE-----\n",
+    "context": {
+      "chainId": "100",
+      "game": "0x1111111111111111111111111111111111111111",
+      "mission": "1",
+      "ruleset": "vendetta-opening-research-v1",
+      "owner": "1",
+      "from": {
+        "city": "1",
+        "neighborhood": "1",
+        "slot": "1"
+      },
+      "cover": "2",
+      "cargo": [
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "arrival": "1692806349",
+      "round": 1000,
+      "commitment": "0x23829e3166d9bb69103ff874ef807062e06f83205762e3166557c8377b1a0f88",
+      "ciphertextHash": "0x3f17dc5380a55f313f318c6aa838cb557d02fcc85b6442b5eafc14255d514823"
+    },
+    "beacon": {
+      "round": 1000,
+      "randomness": "fe290beca10872ef2fb164d2aa4442de4566183ec51c56ff3cd603d930e54fdd",
+      "signature": "b44679b9a59af2ec876b1a6b1ad52ea9b1615fc3982b19576350f93447cb1125e342b73a8dd2bacbe47e4b6b63ed5e39"
+    },
+    "now": "1692809964",
+    "expectedReason": "payload-authentication"
+  },
+  {
+    "name": "truncated-payload",
+    "expected": "invalid",
+    "ciphertext": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IHRsb2NrIDEwMDAgNTJkYjliYTcwZTBj\nYzBmNmVhZjc4MDNkZDA3NDQ3YTFmNTQ3NzczNWZkM2Y2NjE3OTJiYTk0NjAwYzg0\nZTk3MQpoNU5ySmtVck50STJNUTVLTTBvWW5SeHhyZ0dOOUltUmVuTEQvR1VwYk5M\nOTJYamtIZmZxREhuMEg2bnE3b0JQCkJ2T2cvb1RNdEpxS3IxT0tycmE4RHRBaHJn\ncUhKRGhHRldUaHEwcFBOU1grUzREZzB1eHJ3RnNiVi90YWwxTFcKd1hLQW5QV294\ncVBjYTBpdGhRc3Z1Y1ZiZzJLNmkzUnZPalhKdmt3ZExOZwotLS0gLzErL2FnVDJh\nemRKNy9IRUg5b1BERlN1Y2Uya05oVXJJQWU5R1VrYWxjMApzaG9ydA==\n-----END AGE ENCRYPTED FILE-----\n",
+    "context": {
+      "chainId": "100",
+      "game": "0x1111111111111111111111111111111111111111",
+      "mission": "1",
+      "ruleset": "vendetta-opening-research-v1",
+      "owner": "1",
+      "from": {
+        "city": "1",
+        "neighborhood": "1",
+        "slot": "1"
+      },
+      "cover": "2",
+      "cargo": [
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "arrival": "1692806349",
+      "round": 1000,
+      "commitment": "0x23829e3166d9bb69103ff874ef807062e06f83205762e3166557c8377b1a0f88",
+      "ciphertextHash": "0xaa20bf790c7325c4839467ecee427046c35fe00eadd3b91482dbd57c1deba6b6"
+    },
+    "beacon": {
+      "round": 1000,
+      "randomness": "fe290beca10872ef2fb164d2aa4442de4566183ec51c56ff3cd603d930e54fdd",
+      "signature": "b44679b9a59af2ec876b1a6b1ad52ea9b1615fc3982b19576350f93447cb1125e342b73a8dd2bacbe47e4b6b63ed5e39"
+    },
+    "now": "1692809964",
+    "expectedReason": "truncated-body"
+  },
+  {
+    "name": "capsule-corrupted",
+    "expected": "invalid",
+    "ciphertext": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IHRsb2NrIDEwMDAgNTJkYjliYTcwZTBj\nYzBmNmVhZjc4MDNkZDA3NDQ3YTFmNTQ3NzczNWZkM2Y2NjE3OTJiYTk0NjAwYzg0\nZTk3MQpoNU5ySmtVck50STJNUTVLTTBvWW5SeHhyZ0dOOUltUmVuTEQvR1VwYk5M\nOTJYamtIZmZxREhuMEg2bnE3b0JQCkJ2T2cvb1RNdEpxS3IxT0tycmE4RHRBaHJn\ncUhKRGhHRldUaHEwcFBOU1grUzREZzB1eHJ3RnNiVi90YWwxTFcKd0hLQW5QV294\ncVBjYTBpdGhRc3Z1Y1ZiZzJLNmkzUnZPalhKdmt3ZExOZwotLS0gLzErL2FnVDJh\nemRKNy9IRUg5b1BERlN1Y2Uya05oVXJJQWU5R1VrYWxjMAo5L/T/noMNNCmUPoKq\nR3IJLq7UcmkTV+HXl3qCP/w2uM/i0KXxhcdQpD0RrxUGD5+NuiA=\n-----END AGE ENCRYPTED FILE-----\n",
+    "context": {
+      "chainId": "100",
+      "game": "0x1111111111111111111111111111111111111111",
+      "mission": "1",
+      "ruleset": "vendetta-opening-research-v1",
+      "owner": "1",
+      "from": {
+        "city": "1",
+        "neighborhood": "1",
+        "slot": "1"
+      },
+      "cover": "2",
+      "cargo": [
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "arrival": "1692806349",
+      "round": 1000,
+      "commitment": "0x23829e3166d9bb69103ff874ef807062e06f83205762e3166557c8377b1a0f88",
+      "ciphertextHash": "0xdaab5c056ed9f0eb89f52ebddcd30b1fc58405bbad3ffefae621cab784b36a07"
+    },
+    "beacon": {
+      "round": 1000,
+      "randomness": "fe290beca10872ef2fb164d2aa4442de4566183ec51c56ff3cd603d930e54fdd",
+      "signature": "b44679b9a59af2ec876b1a6b1ad52ea9b1615fc3982b19576350f93447cb1125e342b73a8dd2bacbe47e4b6b63ed5e39"
+    },
+    "now": "1692809964",
+    "expectedReason": "capsule-rp-check"
+  },
+  {
+    "name": "invalid-message",
+    "expected": "invalid",
+    "ciphertext": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IHRsb2NrIDEwMDAgNTJkYjliYTcwZTBj\nYzBmNmVhZjc4MDNkZDA3NDQ3YTFmNTQ3NzczNWZkM2Y2NjE3OTJiYTk0NjAwYzg0\nZTk3MQp1V2N1U3VCQWJhMHlmQTJrd2k4NlhKeTI4ZXlLaVUweEdyRjlHUThqVCtx\neDZ0Rnc5V0pkb2krakJBb3hWMm12CkZBbllWMmlkalVIeThOdUJja1IxaTkyZS84\nSFAxN2hxS243bzVMVCtCT2NyQVkxTmJiKzVJTXNlSXBOdU0xSE4KRlVLTTM3dWl0\nSE9xdXFjd2haTmhHbmh5MHVvSGlUY3RUU2ZDekF6WEgvZwotLS0gc0lEREtjNkhp\naEVyNThGbHVrZlVQRUJuU3hoWnlya3JJNGZPQkgyVGNycwp1AHljk3j0PNEIhLIf\ngjBaJDq2Fu9yurQ9C4eyvaaN0bX8xRo7QbPl\n-----END AGE ENCRYPTED FILE-----\n",
+    "context": {
+      "chainId": "100",
+      "game": "0x1111111111111111111111111111111111111111",
+      "mission": "1",
+      "ruleset": "vendetta-opening-research-v1",
+      "owner": "1",
+      "from": {
+        "city": "1",
+        "neighborhood": "1",
+        "slot": "1"
+      },
+      "cover": "2",
+      "cargo": [
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "arrival": "1692806349",
+      "round": 1000,
+      "commitment": "0x23829e3166d9bb69103ff874ef807062e06f83205762e3166557c8377b1a0f88",
+      "ciphertextHash": "0x8b2ce1f8434330498a294302ff299ee3c5f82d35a71a06680e0643fd6e1f2774"
+    },
+    "beacon": {
+      "round": 1000,
+      "randomness": "fe290beca10872ef2fb164d2aa4442de4566183ec51c56ff3cd603d930e54fdd",
+      "signature": "b44679b9a59af2ec876b1a6b1ad52ea9b1615fc3982b19576350f93447cb1125e342b73a8dd2bacbe47e4b6b63ed5e39"
+    },
+    "now": "1692809964",
+    "expectedReason": "message-decoding"
+  },
+  {
+    "name": "coordinates-outside-map",
+    "expected": "invalid",
+    "ciphertext": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IHRsb2NrIDEwMDAgNTJkYjliYTcwZTBj\nYzBmNmVhZjc4MDNkZDA3NDQ3YTFmNTQ3NzczNWZkM2Y2NjE3OTJiYTk0NjAwYzg0\nZTk3MQpxODh1UnZzc3NXeHhRZkMxV3JFL3dGSWxkQU9SMDdKZnJiRU05VnJ3L1lj\nRXFmK0FjZFNrRDA1VHRlZ0pZWEpwCkN4c2hMZG8wZmUxN2JlTTFKSDRtbnR6aThn\nUzhueXF5Q094Y3JRbW9oWW1Lb0Ric0ZTYjI2WjJNU0JOVFZJNTAKREErbU40dlpI\nd1V6bk1vR3d0V0l5bGErSmJ0YXI4T0F3bFp4b21wS1pXdwotLS0geUxrcVV4QUt5\nSms3dUplQWErZHFyTE1RRUh3azd6UU1keUdJNEU2N2NycwqaSzjEOm+LUgIpfPOs\nrdpTAkk30sUEX/dhzjCj8USeXWGJk2ihkrLUr1dGVEeT/tIjn1w6\n-----END AGE ENCRYPTED FILE-----\n",
+    "context": {
+      "chainId": "100",
+      "game": "0x1111111111111111111111111111111111111111",
+      "mission": "1",
+      "ruleset": "vendetta-opening-research-v1",
+      "owner": "1",
+      "from": {
+        "city": "1",
+        "neighborhood": "1",
+        "slot": "1"
+      },
+      "cover": "2",
+      "cargo": [
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "arrival": "1692806349",
+      "round": 1000,
+      "commitment": "0xc92ec76971fcb27913073562b60bacfe0313d30f9c6489738047255a597e83cd",
+      "ciphertextHash": "0x50cf9dac3e38330562ce31ec4c42bfbd87c814ff31bb2c8fc421a59225dc9f73"
+    },
+    "beacon": {
+      "round": 1000,
+      "randomness": "fe290beca10872ef2fb164d2aa4442de4566183ec51c56ff3cd603d930e54fdd",
+      "signature": "b44679b9a59af2ec876b1a6b1ad52ea9b1615fc3982b19576350f93447cb1125e342b73a8dd2bacbe47e4b6b63ed5e39"
+    },
+    "now": "1692809964",
+    "expectedReason": "message-target"
+  },
+  {
+    "name": "distance-outside-cover",
+    "expected": "invalid",
+    "ciphertext": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IHRsb2NrIDEwMDAgNTJkYjliYTcwZTBj\nYzBmNmVhZjc4MDNkZDA3NDQ3YTFmNTQ3NzczNWZkM2Y2NjE3OTJiYTk0NjAwYzg0\nZTk3MQpzMmxvWUlLamlkT0QzRmlqN2VsQW0rU3oyRmNKSHF6RVcrdHluc3I4UHY2\ndFJaYnd1L1NEdmhCQ1Yza1pYeFMvCkIwUGR0aEE5Q2pPN2JUMktaazQyNC9halRh\nOWpFSmRpbGNWbGsyZUFvQTJNbnNHbjMwQXBYS3VlTFBJbTdVSGQKUmpxVWRQUmIy\nNjZHODJZUjZ6SmVMTmtEaS9NTEw3YWVKS20vMGw0azBrVQotLS0gYUlRa2pUc2xq\nV09SajhERitqazR0enRZTW1HeXNOcUZYWmhXa3cvOFEwZwqUUUlpP3L71fnzhBOz\ntR6CtUfSkHRJ0brH3ODXtN7EiiJlja9n/wZPQV0F1hn2Jx+6PwVC\n-----END AGE ENCRYPTED FILE-----\n",
+    "context": {
+      "chainId": "100",
+      "game": "0x1111111111111111111111111111111111111111",
+      "mission": "1",
+      "ruleset": "vendetta-opening-research-v1",
+      "owner": "1",
+      "from": {
+        "city": "1",
+        "neighborhood": "1",
+        "slot": "1"
+      },
+      "cover": "2",
+      "cargo": [
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "arrival": "1692806349",
+      "round": 1000,
+      "commitment": "0x5560f095c5b06b5f5975e1e38c809233813ae056fd5c2cc2700a1b7d5380c25d",
+      "ciphertextHash": "0xe8babf0cb1c06c0a20d955ec676fd48a7f7cd5f99fd4c18ecca0e85d9bf5f9da"
+    },
+    "beacon": {
+      "round": 1000,
+      "randomness": "fe290beca10872ef2fb164d2aa4442de4566183ec51c56ff3cd603d930e54fdd",
+      "signature": "b44679b9a59af2ec876b1a6b1ad52ea9b1615fc3982b19576350f93447cb1125e342b73a8dd2bacbe47e4b6b63ed5e39"
+    },
+    "now": "1692809964",
+    "expectedReason": "message-cover"
+  },
+  {
+    "name": "legacy-decoder-extra-element",
+    "expected": "valid",
+    "ciphertext": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IHRsb2NrIDEwMDAgNTJkYjliYTcwZTBj\nYzBmNmVhZjc4MDNkZDA3NDQ3YTFmNTQ3NzczNWZkM2Y2NjE3OTJiYTk0NjAwYzg0\nZTk3MQpvNVhjYWoyUWc4YXlMam5jVnJqdEpOaDdoRzJaKytpUW5KTVhERXQvL3pl\nRlp2SE50dHlXYUNsZ1BkdVBRWGNOCkNGaHl5dFhYM3FPczA3djlFdjJpZGJWOG42\nMWpXRGRYYW5PWDZYbDV4clNnTTlOTmNheE5aQ3E2K1E0NEJoNVUKTTU0ZmNvclJ1\naHR5MkxZMEZLakVscW1LcHZsQVIxT3VpWHNnVW5tek5TRQotLS0ga1hteEF3YzZM\nZUFmS3BXNTl5eERzL2hzNGNMQ0xiaVR2MVFrSmYxRFlLTQr0AmrJLH0JTnvUAJ4A\nVbADvbYRAi4zJEiUVc81NxNVgM/S2r4LJXYDlg4RmcY5os7osV8LbA==\n-----END AGE ENCRYPTED FILE-----\n",
+    "context": {
+      "chainId": "100",
+      "game": "0x1111111111111111111111111111111111111111",
+      "mission": "1",
+      "ruleset": "vendetta-opening-research-v1",
+      "owner": "1",
+      "from": {
+        "city": "1",
+        "neighborhood": "1",
+        "slot": "1"
+      },
+      "cover": "2",
+      "cargo": [
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "arrival": "1692806349",
+      "round": 1000,
+      "commitment": "0x23829e3166d9bb69103ff874ef807062e06f83205762e3166557c8377b1a0f88",
+      "ciphertextHash": "0xee48968f3ff1f331d8e601c41b46983b4425d68edec09f0834dc014b998fe29c"
+    },
+    "beacon": {
+      "round": 1000,
+      "randomness": "fe290beca10872ef2fb164d2aa4442de4566183ec51c56ff3cd603d930e54fdd",
+      "signature": "b44679b9a59af2ec876b1a6b1ad52ea9b1615fc3982b19576350f93447cb1125e342b73a8dd2bacbe47e4b6b63ed5e39"
+    },
+    "now": "1692809964"
+  },
+  {
+    "name": "ciphertext-for-wrong-future-round",
+    "expected": "unsupported",
+    "ciphertext": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IHRsb2NrIDEwMDEgNTJkYjliYTcwZTBj\nYzBmNmVhZjc4MDNkZDA3NDQ3YTFmNTQ3NzczNWZkM2Y2NjE3OTJiYTk0NjAwYzg0\nZTk3MQpxeVIvWTJ2MExaaVBWbWNXd05HZzlwSXJYVEF1RGpkT052Qml0dGZPcGtv\ndTl1WXZFaGFhYi93M0g3dDBBVkJZCkNmbGRGKy9rdEhsTHpUZHpLRTlHdUVNVy9D\nNFovcWpIRUd0U3FMV3lUU3ZnOWVuS0xGa2VWcVVzK21vZkVHN08KYjJCZ0pqb3RR\nOEp2R05Xcm9UMEJBd2JVNlhubWw3Tis0YWo4K1VrTjc5QQotLS0gT3BqbkpoRXM3\nMXVoSHVpdDBNWDUxNFlnbGNNMTZQQ1lRNXFEVlEyK1ZrOAqsawBPg/21RRLt52DZ\n3k2GWzR0kR6k8KYmhcmR94arECXroREjzgatmbOqrf316Khhk+Y=\n-----END AGE ENCRYPTED FILE-----\n",
+    "context": {
+      "chainId": "100",
+      "game": "0x1111111111111111111111111111111111111111",
+      "mission": "1",
+      "ruleset": "vendetta-opening-research-v1",
+      "owner": "1",
+      "from": {
+        "city": "1",
+        "neighborhood": "1",
+        "slot": "1"
+      },
+      "cover": "2",
+      "cargo": [
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "arrival": "1692806349",
+      "round": 1000,
+      "commitment": "0x23829e3166d9bb69103ff874ef807062e06f83205762e3166557c8377b1a0f88",
+      "ciphertextHash": "0x4a62dd9432c6b9cfe38dd912ed73fdb6a4027ab6e2e5c8660526c20504094501"
+    },
+    "beacon": {
+      "round": 1000,
+      "randomness": "fe290beca10872ef2fb164d2aa4442de4566183ec51c56ff3cd603d930e54fdd",
+      "signature": "b44679b9a59af2ec876b1a6b1ad52ea9b1615fc3982b19576350f93447cb1125e342b73a8dd2bacbe47e4b6b63ed5e39"
+    },
+    "now": "1692809964",
+    "expectedReason": "ciphertext-round-profile"
+  },
+  {
+    "name": "valid-future-ciphertext-must-wait",
+    "expected": "wait",
+    "ciphertext": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IHRsb2NrIDEwMDEgNTJkYjliYTcwZTBj\nYzBmNmVhZjc4MDNkZDA3NDQ3YTFmNTQ3NzczNWZkM2Y2NjE3OTJiYTk0NjAwYzg0\nZTk3MQpxeVIvWTJ2MExaaVBWbWNXd05HZzlwSXJYVEF1RGpkT052Qml0dGZPcGtv\ndTl1WXZFaGFhYi93M0g3dDBBVkJZCkNmbGRGKy9rdEhsTHpUZHpLRTlHdUVNVy9D\nNFovcWpIRUd0U3FMV3lUU3ZnOWVuS0xGa2VWcVVzK21vZkVHN08KYjJCZ0pqb3RR\nOEp2R05Xcm9UMEJBd2JVNlhubWw3Tis0YWo4K1VrTjc5QQotLS0gT3BqbkpoRXM3\nMXVoSHVpdDBNWDUxNFlnbGNNMTZQQ1lRNXFEVlEyK1ZrOAqsawBPg/21RRLt52DZ\n3k2GWzR0kR6k8KYmhcmR94arECXroREjzgatmbOqrf316Khhk+Y=\n-----END AGE ENCRYPTED FILE-----\n",
+    "context": {
+      "chainId": "100",
+      "game": "0x1111111111111111111111111111111111111111",
+      "mission": "1",
+      "ruleset": "vendetta-opening-research-v1",
+      "owner": "1",
+      "from": {
+        "city": "1",
+        "neighborhood": "1",
+        "slot": "1"
+      },
+      "cover": "2",
+      "cargo": [
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "arrival": "1692806352",
+      "round": 1001,
+      "commitment": "0x23829e3166d9bb69103ff874ef807062e06f83205762e3166557c8377b1a0f88",
+      "ciphertextHash": "0x4a62dd9432c6b9cfe38dd912ed73fdb6a4027ab6e2e5c8660526c20504094501"
+    },
+    "beacon": null,
+    "now": "1692806365",
+    "expectedReason": "round-not-open-yet"
+  }
+]

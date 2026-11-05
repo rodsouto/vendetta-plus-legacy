@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.28;
 
+import {HiddenEvidenceState} from "../../src/core/HiddenResolution.sol";
 import {Game} from "../../src/Game.sol";
 import {
     TROOPS,
@@ -8,6 +9,9 @@ import {
     VendettaRuleset as Ruleset
 } from "../../src/generated/VendettaRuleset.sol";
 import {STATION, OCCUPY} from "../../src/core/GameStorage.sol";
+import {Map} from "../../src/rules/Map.sol";
+import {TroopStats} from "../../src/combat/TroopStats.sol";
+import {RESEARCH} from "../../src/generated/VendettaRuleset.sol";
 import {TroopsResting} from "../../src/core/GameErrors.sol";
 import {GameTestBase} from "./GameTestBase.sol";
 
@@ -17,8 +21,16 @@ contract StationBatchSender {
         game.acceptSession(1);
     }
 
-    function revealAndSend(Game game, uint64 mission, bytes32 salt) external {
-        game.reveal(mission, STATION, [uint256(1), 1, 3], salt);
+    function certifyAndSend(Game game, uint64 mission, bytes32 salt) external {
+        HiddenEvidenceState memory e =
+            abi.decode(game.getHiddenEvidence(mission), (HiddenEvidenceState));
+        uint256[55] memory x;
+        x[48] = uint256(e.receipt.statement) >> 128;
+        x[49] = uint128(uint256(e.receipt.statement));
+        bytes memory plain = abi.encodePacked(bytes5(hex"0202010103"), salt);
+        game.submitHiddenEvidence(
+            mission, abi.encode(uint8(1), abi.encode(true, plain), abi.encode(x))
+        );
         uint256[TROOPS] memory troops;
         troops[0] = 1;
         uint256[RESOURCES] memory cargo;
@@ -96,16 +108,30 @@ contract StationCooldownTest is GameTestBase {
     }
 
     function _station(bool hidden, uint256 n) internal returns (uint64) {
+        uint40 at = hiddenArrival(game, 1, 3, _rowdies(n));
         vm.prank(alice);
         if (hidden) {
-            return game.sendHiddenMission(1, _commit(STATION, 3), 3, _rowdies(n), _none(), "", 0);
+            return game.sendHiddenMission(
+                1, _commit(STATION, 3), 3, _rowdies(n), _none(), testPacket(at), at
+            );
         }
         return game.sendMission(1, STATION, [uint256(1), 1, 3], _rowdies(n), _none(), 0);
     }
 
+    function _routing() internal pure returns (uint256[RESEARCH] memory r) {
+        r[0] = 5;
+    }
+
     function _depart(bool hidden, uint256 n) internal {
         if (hidden) {
-            game.sendHiddenMission(3, _commit(STATION, 1), 3, _rowdies(n), _none(), "", 0);
+            uint40 at = uint40(
+                block.timestamp
+                    + Map.travelSeconds(3 * Ruleset.DISTANCE_UNIT, TroopStats.speed(0, _routing()))
+            );
+            at += uint40((3 - (uint256(at) + 15 - 1692803367) % 3) % 3);
+            game.sendHiddenMission(
+                3, _commit(STATION, 1), 3, _rowdies(n), _none(), testPacket(at), at
+            );
         } else {
             game.sendMission(3, STATION, [uint256(1), 1, 1], _rowdies(n), _none(), 0);
         }
@@ -124,7 +150,7 @@ contract StationCooldownTest is GameTestBase {
         uint64 id = _station(hidden, 5);
         uint256 arrival = game.getMission(id).arrival;
         vm.warp(arrival);
-        if (hidden) game.reveal(id, STATION, [uint256(1), 1, 3], SALT);
+        if (hidden) certify(game, id, STATION, [uint256(1), 1, 3], SALT);
         _blocked(1); // the send drains the arrival, then reverts the entire transaction
         assertEq(game.getMission(id).owner, 1);
         assertEq(game.getBuilding(3).troops[ROWDY], 0);
@@ -148,10 +174,13 @@ contract StationCooldownTest is GameTestBase {
     }
 
     function test_hiddenStationOnForeignBuildingDoesNotLockDestination() public {
+        uint40 at = hiddenArrival(game, 1, 3, _rowdies(5));
         vm.prank(alice);
-        uint64 id = game.sendHiddenMission(1, _commit(STATION, 2), 3, _rowdies(5), _none(), "", 0);
+        uint64 id = game.sendHiddenMission(
+            1, _commit(STATION, 2), 3, _rowdies(5), _none(), testPacket(at), at
+        );
         vm.warp(game.getMission(id).arrival);
-        game.reveal(id, STATION, [uint256(1), 1, 2], SALT);
+        certify(game, id, STATION, [uint256(1), 1, 2], SALT);
         game.advance(10);
         assertTrue(game.getMission(id).returning);
         assertEq(game.getBuilding(2).troops[ROWDY], 0);
@@ -160,7 +189,7 @@ contract StationCooldownTest is GameTestBase {
         );
     }
 
-    function test_atomicRevealAndDepartureReverts() public {
+    function test_atomicCertificateAndDepartureReverts() public {
         uint64 id = _station(true, 5);
         StationBatchSender batch = new StationBatchSender();
         vm.prank(alice);
@@ -168,7 +197,7 @@ contract StationCooldownTest is GameTestBase {
         batch.accept(game);
         vm.warp(game.getMission(id).arrival);
         vm.expectRevert(TroopsResting.selector);
-        batch.revealAndSend(game, id, SALT);
+        batch.certifyAndSend(game, id, SALT);
         assertTrue(game.getMission(id).hidden, "the reveal is rolled back too");
         assertEq(game.getBuilding(3).troops[ROWDY], 0);
     }
@@ -188,16 +217,15 @@ contract StationCooldownTest is GameTestBase {
         _depart(false, 5);
     }
 
-    function test_lateHiddenStationRestsFromRevealTime() public {
+    function test_lateHiddenStationRestsFromOriginalArrival() public {
         uint64 id = _station(true, 5);
         uint256 arrival = game.getMission(id).arrival;
         uint256 revealed = arrival + 20;
         vm.warp(revealed);
-        game.reveal(id, STATION, [uint256(1), 1, 3], SALT);
+        certify(game, id, STATION, [uint256(1), 1, 3], SALT);
         game.advance(10);
-        assertEq(game.getBuilding(3).lastTroopArrival, revealed);
+        assertEq(game.getBuilding(3).lastTroopArrival, arrival);
         vm.warp(arrival + Ruleset.TROOP_ARRIVAL_COOLDOWN);
-        _blocked(1);
         vm.warp(revealed + Ruleset.TROOP_ARRIVAL_COOLDOWN);
         vm.prank(alice);
         _depart(false, 1);
@@ -206,7 +234,7 @@ contract StationCooldownTest is GameTestBase {
     function _checkLazyStation(bool hidden) internal {
         uint64 id = _station(hidden, 5);
         uint256 arrival = game.getMission(id).arrival;
-        if (hidden) game.reveal(id, STATION, [uint256(1), 1, 3], SALT);
+        if (hidden) certify(game, id, STATION, [uint256(1), 1, 3], SALT);
         vm.warp(arrival + Ruleset.TROOP_ARRIVAL_COOLDOWN);
         vm.prank(alice);
         _depart(false, 1); // settles the old arrival and sends immediately after its cooldown
@@ -217,7 +245,7 @@ contract StationCooldownTest is GameTestBase {
         _checkLazyStation(false);
     }
 
-    function test_earlyRevealedStationUsesScheduledArrival() public {
+    function test_earlyCertifiedStationUsesScheduledArrival() public {
         _checkLazyStation(true);
     }
 

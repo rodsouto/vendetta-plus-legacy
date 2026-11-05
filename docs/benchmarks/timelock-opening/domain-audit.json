@@ -1,0 +1,659 @@
+{
+  "scope": "Executable current-decoder acceptance audit; not a new verifier, proof, or production policy",
+  "node": "v24.22.1",
+  "messageCases": [
+    {
+      "name": "canonical",
+      "plain": "[1,\"1\",\"1\",\"2\",\"5\"]",
+      "expected": "valid",
+      "reference": "valid",
+      "reason": null,
+      "canonical": "[1,\"1\",\"1\",\"2\",\"5\"]",
+      "canonicalBytesEqual": true,
+      "decoded": {
+        "kind": 1,
+        "target": {
+          "city": "1",
+          "neighborhood": "1",
+          "slot": "2"
+        },
+        "salt": "5"
+      }
+    },
+    {
+      "name": "json-whitespace",
+      "plain": " \n [ 1 , \"1\", \"1\", \"2\", \"5\" ] \t",
+      "expected": "valid",
+      "reference": "valid",
+      "reason": null,
+      "canonical": "[1,\"1\",\"1\",\"2\",\"5\"]",
+      "canonicalBytesEqual": false,
+      "decoded": {
+        "kind": 1,
+        "target": {
+          "city": "1",
+          "neighborhood": "1",
+          "slot": "2"
+        },
+        "salt": "5"
+      }
+    },
+    {
+      "name": "extra-element",
+      "plain": "[1,\"1\",\"1\",\"2\",\"5\",{\"ignored\":[null,true]}]",
+      "expected": "valid",
+      "reference": "valid",
+      "reason": null,
+      "canonical": "[1,\"1\",\"1\",\"2\",\"5\"]",
+      "canonicalBytesEqual": false,
+      "decoded": {
+        "kind": 1,
+        "target": {
+          "city": "1",
+          "neighborhood": "1",
+          "slot": "2"
+        },
+        "salt": "5"
+      }
+    },
+    {
+      "name": "kind-exponent",
+      "plain": "[1e0,\"1\",\"1\",\"2\",\"5\"]",
+      "expected": "valid",
+      "reference": "valid",
+      "reason": null,
+      "canonical": "[1,\"1\",\"1\",\"2\",\"5\"]",
+      "canonicalBytesEqual": false,
+      "decoded": {
+        "kind": 1,
+        "target": {
+          "city": "1",
+          "neighborhood": "1",
+          "slot": "2"
+        },
+        "salt": "5"
+      }
+    },
+    {
+      "name": "kind-fractional-spelling",
+      "plain": "[1.0,\"1\",\"1\",\"2\",\"5\"]",
+      "expected": "valid",
+      "reference": "valid",
+      "reason": null,
+      "canonical": "[1,\"1\",\"1\",\"2\",\"5\"]",
+      "canonicalBytesEqual": false,
+      "decoded": {
+        "kind": 1,
+        "target": {
+          "city": "1",
+          "neighborhood": "1",
+          "slot": "2"
+        },
+        "salt": "5"
+      }
+    },
+    {
+      "name": "numeric-coordinates",
+      "plain": "[1,1,1,2,5]",
+      "expected": "valid",
+      "reference": "valid",
+      "reason": null,
+      "canonical": "[1,\"1\",\"1\",\"2\",\"5\"]",
+      "canonicalBytesEqual": false,
+      "decoded": {
+        "kind": 1,
+        "target": {
+          "city": "1",
+          "neighborhood": "1",
+          "slot": "2"
+        },
+        "salt": "5"
+      }
+    },
+    {
+      "name": "leading-zero-strings",
+      "plain": "[1,\"01\",\"001\",\"02\",\"005\"]",
+      "expected": "valid",
+      "reference": "valid",
+      "reason": null,
+      "canonical": "[1,\"1\",\"1\",\"2\",\"5\"]",
+      "canonicalBytesEqual": false,
+      "decoded": {
+        "kind": 1,
+        "target": {
+          "city": "1",
+          "neighborhood": "1",
+          "slot": "2"
+        },
+        "salt": "5"
+      }
+    },
+    {
+      "name": "signed-and-whitespace-strings",
+      "plain": "[1,\"+1\",\" 1 \",\"+2\",\" +5 \"]",
+      "expected": "valid",
+      "reference": "valid",
+      "reason": null,
+      "canonical": "[1,\"1\",\"1\",\"2\",\"5\"]",
+      "canonicalBytesEqual": false,
+      "decoded": {
+        "kind": 1,
+        "target": {
+          "city": "1",
+          "neighborhood": "1",
+          "slot": "2"
+        },
+        "salt": "5"
+      }
+    },
+    {
+      "name": "radix-strings",
+      "plain": "[1,\"0x1\",\"0b1\",\"0o2\",\"0x5\"]",
+      "expected": "valid",
+      "reference": "valid",
+      "reason": null,
+      "canonical": "[1,\"1\",\"1\",\"2\",\"5\"]",
+      "canonicalBytesEqual": false,
+      "decoded": {
+        "kind": 1,
+        "target": {
+          "city": "1",
+          "neighborhood": "1",
+          "slot": "2"
+        },
+        "salt": "5"
+      }
+    },
+    {
+      "name": "boolean-and-array-coercion",
+      "plain": "[1,true,true,[2],[5]]",
+      "expected": "valid",
+      "reference": "valid",
+      "reason": null,
+      "canonical": "[1,\"1\",\"1\",\"2\",\"5\"]",
+      "canonicalBytesEqual": false,
+      "decoded": {
+        "kind": 1,
+        "target": {
+          "city": "1",
+          "neighborhood": "1",
+          "slot": "2"
+        },
+        "salt": "5"
+      }
+    },
+    {
+      "name": "nested-singleton-arrays",
+      "plain": "[1,[[1]],[[\"1\"]],[[2]],[[\"5\"]]]",
+      "expected": "valid",
+      "reference": "valid",
+      "reason": null,
+      "canonical": "[1,\"1\",\"1\",\"2\",\"5\"]",
+      "canonicalBytesEqual": false,
+      "decoded": {
+        "kind": 1,
+        "target": {
+          "city": "1",
+          "neighborhood": "1",
+          "slot": "2"
+        },
+        "salt": "5"
+      }
+    },
+    {
+      "name": "boolean-salt",
+      "plain": "[1,\"1\",\"1\",\"2\",true]",
+      "expected": "valid",
+      "reference": "valid",
+      "reason": null,
+      "canonical": "[1,\"1\",\"1\",\"2\",\"1\"]",
+      "canonicalBytesEqual": false,
+      "decoded": {
+        "kind": 1,
+        "target": {
+          "city": "1",
+          "neighborhood": "1",
+          "slot": "2"
+        },
+        "salt": "1"
+      }
+    },
+    {
+      "name": "empty-array-salt",
+      "plain": "[1,\"1\",\"1\",\"2\",[]]",
+      "expected": "valid",
+      "reference": "valid",
+      "reason": null,
+      "canonical": "[1,\"1\",\"1\",\"2\",\"0\"]",
+      "canonicalBytesEqual": false,
+      "decoded": {
+        "kind": 1,
+        "target": {
+          "city": "1",
+          "neighborhood": "1",
+          "slot": "2"
+        },
+        "salt": "0"
+      }
+    },
+    {
+      "name": "null-array-salt",
+      "plain": "[1,\"1\",\"1\",\"2\",[null]]",
+      "expected": "valid",
+      "reference": "valid",
+      "reason": null,
+      "canonical": "[1,\"1\",\"1\",\"2\",\"0\"]",
+      "canonicalBytesEqual": false,
+      "decoded": {
+        "kind": 1,
+        "target": {
+          "city": "1",
+          "neighborhood": "1",
+          "slot": "2"
+        },
+        "salt": "0"
+      }
+    },
+    {
+      "name": "null-salt",
+      "plain": "[1,\"1\",\"1\",\"2\",null]",
+      "expected": "invalid",
+      "reference": "invalid",
+      "reason": "message-decoding",
+      "canonical": null,
+      "canonicalBytesEqual": false,
+      "decoded": null
+    },
+    {
+      "name": "empty-string-salt",
+      "plain": "[1,\"1\",\"1\",\"2\",\"\"]",
+      "expected": "valid",
+      "reference": "valid",
+      "reason": null,
+      "canonical": "[1,\"1\",\"1\",\"2\",\"0\"]",
+      "canonicalBytesEqual": false,
+      "decoded": {
+        "kind": 1,
+        "target": {
+          "city": "1",
+          "neighborhood": "1",
+          "slot": "2"
+        },
+        "salt": "0"
+      }
+    },
+    {
+      "name": "negative-zero-salt",
+      "plain": "[1,\"1\",\"1\",\"2\",\"-0\"]",
+      "expected": "valid",
+      "reference": "valid",
+      "reason": null,
+      "canonical": "[1,\"1\",\"1\",\"2\",\"0\"]",
+      "canonicalBytesEqual": false,
+      "decoded": {
+        "kind": 1,
+        "target": {
+          "city": "1",
+          "neighborhood": "1",
+          "slot": "2"
+        },
+        "salt": "0"
+      }
+    },
+    {
+      "name": "unsafe-json-number-rounded",
+      "plain": "[1,\"1\",\"1\",\"2\",9007199254740993]",
+      "expected": "valid",
+      "reference": "valid",
+      "reason": null,
+      "canonical": "[1,\"1\",\"1\",\"2\",\"9007199254740992\"]",
+      "canonicalBytesEqual": false,
+      "decoded": {
+        "kind": 1,
+        "target": {
+          "city": "1",
+          "neighborhood": "1",
+          "slot": "2"
+        },
+        "salt": "9007199254740992"
+      }
+    },
+    {
+      "name": "large-json-number",
+      "plain": "[1,\"1\",\"1\",\"2\",1e77]",
+      "expected": "valid",
+      "reference": "valid",
+      "reason": null,
+      "canonical": "[1,\"1\",\"1\",\"2\",\"99999999999999998278261272554585856747747644714015897553975120217811154108416\"]",
+      "canonicalBytesEqual": false,
+      "decoded": {
+        "kind": 1,
+        "target": {
+          "city": "1",
+          "neighborhood": "1",
+          "slot": "2"
+        },
+        "salt": "99999999999999998278261272554585856747747644714015897553975120217811154108416"
+      }
+    },
+    {
+      "name": "numeric-exponent-salt",
+      "plain": "[1,\"1\",\"1\",\"2\",1e3]",
+      "expected": "valid",
+      "reference": "valid",
+      "reason": null,
+      "canonical": "[1,\"1\",\"1\",\"2\",\"1000\"]",
+      "canonicalBytesEqual": false,
+      "decoded": {
+        "kind": 1,
+        "target": {
+          "city": "1",
+          "neighborhood": "1",
+          "slot": "2"
+        },
+        "salt": "1000"
+      }
+    },
+    {
+      "name": "string-exponent-is-not-bigint",
+      "plain": "[1,\"1\",\"1\",\"2\",\"1e3\"]",
+      "expected": "invalid",
+      "reference": "invalid",
+      "reason": "message-decoding",
+      "canonical": null,
+      "canonicalBytesEqual": false,
+      "decoded": null
+    },
+    {
+      "name": "array-boolean-is-not-boolean",
+      "plain": "[1,\"1\",\"1\",\"2\",[true]]",
+      "expected": "invalid",
+      "reference": "invalid",
+      "reason": "message-decoding",
+      "canonical": null,
+      "canonicalBytesEqual": false,
+      "decoded": null
+    },
+    {
+      "name": "object-salt",
+      "plain": "[1,\"1\",\"1\",\"2\",{}]",
+      "expected": "invalid",
+      "reference": "invalid",
+      "reason": "message-decoding",
+      "canonical": null,
+      "canonicalBytesEqual": false,
+      "decoded": null
+    },
+    {
+      "name": "missing-salt",
+      "plain": "[1,\"1\",\"1\",\"2\"]",
+      "expected": "invalid",
+      "reference": "invalid",
+      "reason": "message-decoding",
+      "canonical": null,
+      "canonicalBytesEqual": false,
+      "decoded": null
+    },
+    {
+      "name": "string-kind",
+      "plain": "[\"1\",\"1\",\"1\",\"2\",\"5\"]",
+      "expected": "invalid",
+      "reference": "invalid",
+      "reason": "message-decoding",
+      "canonical": null,
+      "canonicalBytesEqual": false,
+      "decoded": null
+    },
+    {
+      "name": "fractional-coordinate",
+      "plain": "[1,1.5,\"1\",\"2\",\"5\"]",
+      "expected": "invalid",
+      "reference": "invalid",
+      "reason": "message-decoding",
+      "canonical": null,
+      "canonicalBytesEqual": false,
+      "decoded": null
+    },
+    {
+      "name": "number-above-uint256",
+      "plain": "[1,\"1\",\"1\",\"2\",1e80]",
+      "expected": "invalid",
+      "reference": "invalid",
+      "reason": "message-domain",
+      "canonical": "[1,\"1\",\"1\",\"2\",\"100000000000000000026609864708367276537402401181200809098131977453489758916313088\"]",
+      "canonicalBytesEqual": false,
+      "decoded": {
+        "kind": 1,
+        "target": {
+          "city": "1",
+          "neighborhood": "1",
+          "slot": "2"
+        },
+        "salt": "100000000000000000026609864708367276537402401181200809098131977453489758916313088"
+      }
+    }
+  ],
+  "profileGaps": [
+    {
+      "name": "earlier-ciphertext-round",
+      "nativePayloadStatus": "valid",
+      "referenceStatus": "unsupported",
+      "referenceReason": "ciphertext-round-profile"
+    },
+    {
+      "name": "unaligned-arrival",
+      "nativePayloadStatus": "valid",
+      "referenceStatus": "unsupported",
+      "referenceReason": "context-round-profile"
+    }
+  ],
+  "prePrivacy": {
+    "publishedPreAllowsRecoveryWithoutBeaconSignature": true,
+    "observerInputs": "pre, public PK/round and ciphertext only",
+    "plaintextMatchesSource": true,
+    "fixturePreparation": "pre prepared from archived opening; observer function itself receives no signature or secret key",
+    "consequence": "Do not publish pre or r at send time. Honest H3 pagination must occur after opening; this prototype has no release-time enforcement."
+  },
+  "commitmentWordGuardRegressions": [
+    {
+      "input": "115792089237316195423570985008687907853269984665640564039457584007913129639936",
+      "historicalAlias": "7237005577332262213973186563042994240829374041602535252466099000494570602496",
+      "historicalEncoderAliased": true,
+      "currentEncoderRejected": true
+    },
+    {
+      "input": "-5",
+      "historicalAlias": "251",
+      "historicalEncoderAliased": true,
+      "currentEncoderRejected": true
+    }
+  ],
+  "wireCases": [
+    {
+      "nativePayloadStatus": "valid",
+      "name": "canonical-armor",
+      "utf8Bytes": 576,
+      "nativeTlockAccepted": true,
+      "error": null,
+      "referenceStatus": "valid",
+      "referenceReason": null,
+      "sameAsCanonicalCiphertext": true,
+      "decodedMessage": true
+    },
+    {
+      "nativePayloadStatus": "valid",
+      "name": "unarmored-binary-string",
+      "utf8Bytes": 401,
+      "nativeTlockAccepted": true,
+      "error": null,
+      "referenceStatus": "valid",
+      "referenceReason": null,
+      "sameAsCanonicalCiphertext": false,
+      "decodedMessage": true
+    },
+    {
+      "nativePayloadStatus": "valid",
+      "name": "armor-columns-32",
+      "utf8Bytes": 584,
+      "nativeTlockAccepted": true,
+      "error": null,
+      "referenceStatus": "valid",
+      "referenceReason": null,
+      "sameAsCanonicalCiphertext": false,
+      "decodedMessage": true
+    },
+    {
+      "nativePayloadStatus": "valid",
+      "name": "armor-columns-1",
+      "utf8Bytes": 1068,
+      "nativeTlockAccepted": true,
+      "error": null,
+      "referenceStatus": "valid",
+      "referenceReason": null,
+      "sameAsCanonicalCiphertext": false,
+      "decodedMessage": true
+    },
+    {
+      "nativePayloadStatus": "valid",
+      "name": "armor-without-base64-padding",
+      "utf8Bytes": 575,
+      "nativeTlockAccepted": true,
+      "error": null,
+      "referenceStatus": "valid",
+      "referenceReason": null,
+      "sameAsCanonicalCiphertext": false,
+      "decodedMessage": true
+    },
+    {
+      "nativePayloadStatus": "valid",
+      "name": "armor-crlf-columns-32",
+      "utf8Bytes": 602,
+      "nativeTlockAccepted": true,
+      "error": null,
+      "referenceStatus": "valid",
+      "referenceReason": null,
+      "sameAsCanonicalCiphertext": false,
+      "decodedMessage": true
+    },
+    {
+      "nativePayloadStatus": null,
+      "name": "armor-crlf-columns-64",
+      "utf8Bytes": 586,
+      "nativeTlockAccepted": false,
+      "error": "Armor to decode cannot have lines longer than 64 (configurable) in order to stop padding attacks",
+      "referenceStatus": "invalid",
+      "referenceReason": "malformed-age-envelope",
+      "sameAsCanonicalCiphertext": false,
+      "decodedMessage": false
+    },
+    {
+      "nativePayloadStatus": "valid",
+      "name": "armor-trailing-whitespace-1024-total",
+      "utf8Bytes": 1599,
+      "nativeTlockAccepted": true,
+      "error": null,
+      "referenceStatus": "valid",
+      "referenceReason": null,
+      "sameAsCanonicalCiphertext": false,
+      "decodedMessage": true
+    },
+    {
+      "nativePayloadStatus": null,
+      "name": "armor-trailing-whitespace-1025-total",
+      "utf8Bytes": 1600,
+      "nativeTlockAccepted": false,
+      "error": "too much whitespace at the end of the armor payload",
+      "referenceStatus": "invalid",
+      "referenceReason": "malformed-age-envelope",
+      "sameAsCanonicalCiphertext": false,
+      "decodedMessage": false
+    },
+    {
+      "nativePayloadStatus": null,
+      "name": "armor-leading-whitespace",
+      "utf8Bytes": 577,
+      "nativeTlockAccepted": false,
+      "error": "Expected at least one stanza! (beginning with -->)",
+      "referenceStatus": "invalid",
+      "referenceReason": "malformed-age-envelope",
+      "sameAsCanonicalCiphertext": false,
+      "decodedMessage": false
+    },
+    {
+      "nativePayloadStatus": "valid",
+      "name": "duplicate-tlock-recipients",
+      "utf8Bytes": 918,
+      "nativeTlockAccepted": true,
+      "error": null,
+      "referenceStatus": "unsupported",
+      "referenceReason": "recipient-profile",
+      "sameAsCanonicalCiphertext": false,
+      "decodedMessage": true
+    },
+    {
+      "nativePayloadStatus": "valid",
+      "name": "round-leading-zeros",
+      "utf8Bytes": 576,
+      "nativeTlockAccepted": true,
+      "error": null,
+      "referenceStatus": "unsupported",
+      "referenceReason": "round-encoding",
+      "sameAsCanonicalCiphertext": false,
+      "decodedMessage": true
+    },
+    {
+      "nativePayloadStatus": "valid",
+      "name": "round-numeric-prefix",
+      "utf8Bytes": 584,
+      "nativeTlockAccepted": true,
+      "error": null,
+      "referenceStatus": "unsupported",
+      "referenceReason": "round-encoding",
+      "sameAsCanonicalCiphertext": false,
+      "decodedMessage": true
+    },
+    {
+      "nativePayloadStatus": "valid",
+      "name": "network-label-not-checked-by-library",
+      "utf8Bytes": 576,
+      "nativeTlockAccepted": true,
+      "error": null,
+      "referenceStatus": "unsupported",
+      "referenceReason": "different-drand-network",
+      "sameAsCanonicalCiphertext": false,
+      "decodedMessage": true
+    },
+    {
+      "nativePayloadStatus": "valid",
+      "name": "multi-chunk-with-ignored-json-tail",
+      "utf8Bytes": 89976,
+      "nativeTlockAccepted": true,
+      "error": null,
+      "referenceStatus": "unsupported",
+      "referenceReason": "multi-chunk-body",
+      "sameAsCanonicalCiphertext": false,
+      "decodedMessage": true
+    }
+  ],
+  "h3ActualCounterRange": {
+    "first": 1,
+    "last": 65534,
+    "source": "tlock-js 0.9.0 crypto/ibe.js: i < 65535"
+  },
+  "existingValidFiveCandidateProbe": {
+    "scope": "Native H3 grind only; no ZK proof or complete ciphertext",
+    "fixedCircuitBound": 4,
+    "elapsedMs": 338.4195199999999,
+    "trials": 11749,
+    "sigma": "877f2fd6671e038859d75c05b7de16b7",
+    "fileKey": "9415e8e6ba66e27da9a388461020453d",
+    "firstAcceptedCounter": 5,
+    "scalar": "45007087982830307960066972967956446568514081403645713084635648904263614511513",
+    "consequence": "These legitimate KEM encryption inputs cannot be handled by the four-candidate circuit. A failed proof is not evidence of invalidity."
+  },
+  "notes": [
+    "Native acceptance is not a recommendation to preserve all quirks in a future codec; changing validity requires explicit version/admission policy.",
+    "Reference unsupported is a coverage gap; a valid native input is not garbage because the research profile cannot certify it.",
+    "Recomputed context commitments in message cases isolate decoding semantics; this is not proof of a packet's on-chain acceptance."
+  ]
+}

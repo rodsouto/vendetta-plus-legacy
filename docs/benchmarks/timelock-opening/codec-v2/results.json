@@ -1,0 +1,18 @@
+{
+  "scope": "Fixed future codec: native interoperability and full mission constraint checks; no new Groth16 proof or production integration",
+  "plainBytes": 37,
+  "packetBytes": 273,
+  "headerBytes": 290,
+  "constraints": 5139537,
+  "publicInputs": 55,
+  "messageVectors": 9,
+  "witnessChecks": 25,
+  "mutationCases": 7,
+  "webTestsPassed": 45,
+  "newCodecWebTests": 9,
+  "nativeFiveCandidateFullMissionWitnessPassed": true,
+  "originalMissionRegressionPassed": true,
+  "groth16MissionProofGenerated": false,
+  "productionIntegrated": false,
+  "goTestLogSha256": "c459f41ee755ea98060cc9fd355cfa8be6a5caa294a3d15e225004b627790662"
+}

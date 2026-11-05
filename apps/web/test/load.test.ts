@@ -1,5 +1,7 @@
 // The loader + projection must agree with the contract: project the loaded world to a time T, then
 // make the chain settle every building at exactly T and compare.
+import { readFileSync } from "node:fs";
+import { encodeAbiParameters, toHex, type Address, type Hex } from "viem";
 import { execFileSync } from "node:child_process";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { sim, vendetta as rs } from "@vendetta/rules";
@@ -42,6 +44,109 @@ describe.skipIf(!hasAnvil)("chain loader", () => {
     });
     await clients.public.request({ method: "evm_mine" as never });
   };
+
+  it("loads activated v2 receipts, stops projection at evidence waits and replays late resolution", async () => {
+    const local = await startChain(8617),
+      c = local.clients,
+      game = c.deployment.game;
+    try {
+      const sendV2 = async (account: number, functionName: string, args: unknown[]) => {
+        const hash = await c.wallet(account).writeContract({
+          address: game,
+          abi: gameAbi,
+          functionName,
+          args,
+          chain: null,
+          // Historical draining requires the 7M per-mission reserve plus processing gas.
+          gas: 12_000_000n,
+        } as never);
+        const receipt = await c.public.waitForTransactionReceipt({ hash });
+        expect(receipt.status, functionName).toBe("success");
+      };
+      const warpV2 = async (seconds: number) => {
+        await c.public.request({ method: "evm_increaseTime" as never, params: [seconds] as never });
+        await c.public.request({ method: "evm_mine" as never });
+      };
+      const [consumer] = await c.public.readContract({
+        address: game,
+        abi: gameAbi,
+        functionName: "hiddenConsumers",
+      });
+      await sendV2(1, "register", [1n, 1n, 1n]);
+      await sendV2(2, "register", [1n, 1n, 2n]);
+      await sendV2(1, "queueRoom", [1n, 11n]);
+      await warpV2(86400);
+      await sendV2(1, "train", [1n, 0n, 7n]);
+      await warpV2(86400);
+      await sendV2(1, "poke", [1n]);
+      const before = await loadWorld(c.public, game);
+      expect(before.world.hiddenConsumers.openingConsumer).toBe(consumer.toLowerCase());
+      const alice = controllerKey(c.wallet(1).account!.address),
+        target = { city: 1n, neighborhood: 1n, slot: 2n };
+      const commit = sim.hiddenCommit(1n, sim.ATTACK, target, 5n),
+        troops = rs.troops.map((_, i) => (i === 0 ? 5n : 0n)),
+        cargo = [0n, 0n, 0n, 0n];
+      // Compute the natural duration in an identical legacy economic world, then admit with margin.
+      const trial = cloneWorld(before.world);
+      const natural =
+        sim.previewHiddenMission(trial, alice, 1n, commit, 1n, troops, cargo, before.chainTime)
+          .arrival + 20n;
+      const id = before.world.nextMission;
+      const arrival = natural + ((3n - ((natural + 15n - 1692803367n) % 3n)) % 3n);
+      const packet = Buffer.alloc(273);
+      packet.set(Buffer.from("56444832" + sim.hiddenContext.NETWORK, "hex"));
+      packet.writeBigUInt64BE((arrival + 15n - 1692803367n) / 3n + 1n, 36);
+      await sendV2(1, "sendHiddenMission", [1n, commit, 1, troops, cargo, toHex(packet), arrival]);
+      const pending = await loadWorld(c.public, game),
+        e = pending.world.hiddenEvidence.get(id)!;
+      expect(e.receipt.statement).toBe(
+        sim.hiddenContext.statement(pending.world, id, packet, { chainId: 31337n, game }),
+      );
+      expect(e.receipt.status).toBe(sim.hiddenResolution.PENDING);
+      const late = arrival + 7200n;
+      // Knowing the commitment plaintext cannot bypass certificate admission or advance buildings.
+      const projected = project(
+        pending.world,
+        late,
+        new Map([[commit, { kind: sim.ATTACK, target, salt: 5n }]]),
+      );
+      expect(projected.buildings).toEqual(pending.world.buildings);
+      expect(projected.pending).toEqual([id]);
+      await c.public.request({
+        method: "evm_setNextBlockTimestamp" as never,
+        params: [Number(late)] as never,
+      });
+      const inputs = Array<bigint>(55).fill(0n),
+        root = BigInt(e.receipt.statement);
+      inputs[48] = root >> 128n;
+      inputs[49] = root & ((1n << 128n) - 1n);
+      const certificate = encodeAbiParameters(
+        [{ type: "uint8" }, { type: "bytes" }, { type: "bytes" }],
+        [
+          1,
+          encodeAbiParameters(
+            [{ type: "bool" }, { type: "bytes" }],
+            [true, toHex(Buffer.from("0201010102" + "00".repeat(31) + "05", "hex"))],
+          ),
+          encodeAbiParameters([{ type: "uint256[55]" }], [inputs]),
+        ],
+      );
+      // Mock verifies routing only; the all-zero U above is not a real valid cryptographic packet.
+      await sendV2(0, "submitHiddenEvidence", [id, certificate]);
+      const certified = await loadWorld(c.public, game);
+      expect(certified.world.hiddenEvidence.get(id)!.receipt.status).toBe(
+        sim.hiddenResolution.VALID,
+      );
+      const expected = cloneWorld(certified.world);
+      sim.advance(expected, 20, late + 10n);
+      await sendV2(0, "advance", [20n]);
+      const resolved = await loadWorld(c.public, game);
+      expect(resolved.world).toEqual(expected);
+      expect(resolved.world.hiddenEvidence.get(id)!.receipt.consumed).toBe(true);
+    } finally {
+      local.stop();
+    }
+  }, 60_000);
 
   it("projects exactly what the contract settles", async () => {
     const room = (id: string) => rs.buildings.findIndex((b) => b.id === id);
@@ -92,62 +197,6 @@ describe.skipIf(!hasAnvil)("chain loader", () => {
   }, 60_000);
 
   // Runs after the test above: player 1 has its 5 rowdies back home.
-  it("loads hidden missions, reads their ciphertext and projects their reveal (B-22)", async () => {
-    const timelock = timelockFor({ id: "local" } as Network);
-    const target = { city: 1n, neighborhood: 1n, slot: 2n };
-    const plain = { kind: sim.ATTACK, target, salt: 12345n };
-    const commit = sim.hiddenCommit(1n, sim.ATTACK, target, plain.salt);
-    const troops = rs.troops.map((_, i) => (i === 0 ? 5n : 0n));
-    const ciphertext = await timelock.encrypt(plain, timelock.prepare(0n));
-    await send(1, "sendHiddenMission", [
-      1n,
-      commit,
-      4,
-      troops,
-      [0n, 0n, 0n, 0n],
-      ciphertext,
-      0n, // the natural arrival
-    ]);
-
-    const snap = await loadWorld(clients.public, clients.deployment.game);
-    const [m] = [...snap.world.missions.values()];
-    expect(m).toMatchObject({ hidden: true, kind: 0, cover: 4n, commit });
-    const c = await new CiphertextIndex(clients.public, clients.deployment.game, 0).get(m!.id);
-    expect(await timelock.open(c!)).toEqual({ plain });
-
-    const at = m!.arrival + 1n;
-    const unknown = project(snap.world, at);
-    expect(unknown.missions.get(m!.id)!.returning).toBe(false); // parked, waiting for its reveal
-    expect(unknown.parked).toEqual([m!.id]);
-    const known = new Map([[commit, plain]]);
-    const projected = project(snap.world, at, known);
-    expect(projected.missions.get(m!.id)!.returning).toBe(true);
-
-    // Revealed at `at`, after its arrival: it resolves at the reveal, as the projection did.
-    const salt = `0x${plain.salt.toString(16).padStart(64, "0")}`;
-    await clients.public.request({
-      method: "evm_setNextBlockTimestamp" as never,
-      params: [Number(at)] as never,
-    });
-    await send(3, "reveal", [m!.id, sim.ATTACK, [1n, 1n, 2n], salt]);
-    for (const id of [1n, 2n]) {
-      await clients.public.request({
-        method: "evm_setNextBlockTimestamp" as never,
-        params: [Number(at)] as never,
-      });
-      await send(3, "poke", [id]);
-    }
-    const chain = (await loadWorld(clients.public, clients.deployment.game)).world;
-    for (const id of [1n, 2n]) {
-      const a = projected.buildings.get(id)!;
-      const b = chain.buildings.get(id)!;
-      expect({ stock: a.stock, troops: a.troops }).toEqual({ stock: b.stock, troops: b.troops });
-    }
-    expect(chain.missions.get(m!.id)).toMatchObject({ hidden: false, returning: true });
-  }, 60_000);
-
-  // Runs after the tests above. The loader rebuilds a market trade as the simulator would hold it
-  // (D-19, B-11): terms, escrow and both players' trade lists.
   it("loads an accepted trade as the simulator accepts it", async () => {
     const buyer = controllerKey(clients.wallet(1).account!.address);
     await send(2, "offerTrade", [1n, 2n, 0n, 300n, [0n, 0n, 0n, 100n]]);

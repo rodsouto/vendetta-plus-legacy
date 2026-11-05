@@ -1,0 +1,17 @@
+{
+  "status": "incomplete",
+  "failure": "sampled-memory-budget-exceeded",
+  "operation": "phase2-init",
+  "log2": 23,
+  "binarySha256": "376a2ea1c3c48dbaf083c27a47c17709eccceb0f7dfc2f5bf0b9334e4e50d680",
+  "pid": 606772,
+  "wallMilliseconds": 12363595,
+  "cpuUserMilliseconds": 38286732,
+  "cpuSystemMilliseconds": 170513,
+  "maxRssBytes": 8594599936,
+  "exited": true,
+  "addressSpaceBytes": 15032385536,
+  "cpuSeconds": 86400,
+  "wallSeconds": 43200,
+  "productionApproved": false
+}

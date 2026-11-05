@@ -1,3 +1,4 @@
+import { world, sendHidden, certify } from "./v2-helpers.js";
 import { describe, expect, it } from "vitest";
 import { sim, vendetta as rs } from "../src/index.js";
 
@@ -12,7 +13,7 @@ const salt = 123n;
 
 /** Reach two owned buildings through real actions, so the fixture also works in the replay. */
 function ready() {
-  const w = sim.newWorld(rs);
+  const w = world(rs);
   let now = 1700000000n;
   sim.setGlobalPremium(w, now + 100n * year);
   sim.register(w, "alice", coord(1n), now);
@@ -65,7 +66,7 @@ function ready() {
 
 function station(w: sim.World, now: bigint, hidden: boolean, n = 5n) {
   return hidden
-    ? sim.sendHiddenMission(
+    ? sendHidden(
         w,
         "alice",
         1n,
@@ -81,7 +82,7 @@ function station(w: sim.World, now: bigint, hidden: boolean, n = 5n) {
 
 function send(w: sim.World, now: bigint, hidden: boolean, n = 1n) {
   return hidden
-    ? sim.sendHiddenMission(
+    ? sendHidden(
         w,
         "alice",
         3n,
@@ -102,7 +103,7 @@ describe("station arrival cooldown (B-22)", () => {
       const { w, now } = ready();
       const id = station(w, now, hidden);
       const arrival = w.missions.get(id)!.arrival;
-      if (hidden) sim.reveal(w, id, sim.STATION, coord(3n), salt, arrival);
+      if (hidden) certify(w, id, sim.STATION, coord(3n), salt, arrival);
       // The send drains the arrival itself. Reverting must also roll that arrival back.
       for (const outgoingHidden of [false, true]) {
         expect(() => send(w, arrival, outgoingHidden)).toThrow("TroopsResting");
@@ -139,7 +140,7 @@ describe("station arrival cooldown (B-22)", () => {
   it("bounces a hidden station on a foreign building without locking its destination", () => {
     const { w, now } = ready();
     const target = coord(2n);
-    const id = sim.sendHiddenMission(
+    const id = sendHidden(
       w,
       "alice",
       1n,
@@ -151,7 +152,7 @@ describe("station arrival cooldown (B-22)", () => {
       now,
     );
     const arrival = w.missions.get(id)!.arrival;
-    sim.reveal(w, id, sim.STATION, target, salt, arrival);
+    certify(w, id, sim.STATION, target, salt, arrival);
     sim.advance(w, 10, arrival);
     expect(w.missions.get(id)!.returning).toBe(true);
     expect(w.buildings.get(2n)!.troops[rowdy]).toBe(0n);
@@ -163,10 +164,10 @@ describe("station arrival cooldown (B-22)", () => {
     const id = station(w, now, true);
     const arrival = w.missions.get(id)!.arrival;
     const revealed = arrival + 20n;
-    sim.reveal(w, id, sim.STATION, coord(3n), salt, revealed);
+    certify(w, id, sim.STATION, coord(3n), salt, revealed);
     sim.advance(w, 10, revealed);
-    expect(w.buildings.get(3n)!.lastTroopArrival).toBe(revealed);
-    expect(() => send(w, arrival + rs.config.troopArrivalCooldown, false)).toThrow("TroopsResting");
+    expect(w.buildings.get(3n)!.lastTroopArrival).toBe(arrival);
+    send(w, arrival + rs.config.troopArrivalCooldown, false);
     send(w, revealed + rs.config.troopArrivalCooldown, false);
   });
 
@@ -176,7 +177,7 @@ describe("station arrival cooldown (B-22)", () => {
       const { w, now } = ready();
       const id = station(w, now, hidden);
       const arrival = w.missions.get(id)!.arrival;
-      if (hidden) sim.reveal(w, id, sim.STATION, coord(3n), salt, now);
+      if (hidden) certify(w, id, sim.STATION, coord(3n), salt, now);
       send(w, arrival + rs.config.troopArrivalCooldown, false);
       expect(w.buildings.get(3n)!.lastTroopArrival).toBe(arrival);
     },

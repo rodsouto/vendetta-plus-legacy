@@ -1,0 +1,16 @@
+{
+  "status": "phase2-sealed",
+  "operation": "phase2-seal",
+  "log2": 22,
+  "binarySha256": "23788e02da9fbe9d3c5692348dd499b9270b6c26d2c3c76544a7487ddfffda72",
+  "pid": 367921,
+  "wallMilliseconds": 1121058,
+  "cpuUserMilliseconds": 2436269,
+  "cpuSystemMilliseconds": 45610,
+  "maxRssBytes": 7740268544,
+  "exited": true,
+  "addressSpaceBytes": 15032385536,
+  "cpuSeconds": 86400,
+  "wallSeconds": 21600,
+  "productionApproved": false
+}

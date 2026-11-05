@@ -1,0 +1,2 @@
+{"stage":"initialize","log2":23,"milliseconds":4123,"maxRssBytes":3231342592,"wireBytes":0,"sha256":""}
+{"stage":"serialize-initial-state-to-hash","log2":23,"milliseconds":10363,"maxRssBytes":5092098048,"wireBytes":1610612969,"sha256":"1e109a72796c380a84a193b644ac652790a6a4223a06783a6dc710b00a94a93c"}

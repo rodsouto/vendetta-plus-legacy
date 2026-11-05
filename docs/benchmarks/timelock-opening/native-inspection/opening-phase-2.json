@@ -1,0 +1,10 @@
+{
+  "schema": "vendetta-hidden-v2-native-shape-1",
+  "circuitSha256": "06e4740642174a1f0f03ab0c0f06f2199b996534c30546df6896b9f3ab777b1f",
+  "phase": 2,
+  "domain": 8388608,
+  "private": 4198707,
+  "privateCommitted": [
+    2695403
+  ]
+}

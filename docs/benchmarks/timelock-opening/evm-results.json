@@ -1,0 +1,19 @@
+{
+  "componentOnly": true,
+  "deployedBytecodeBytes": 21088,
+  "eip170LimitBytes": 24576,
+  "standardDeploymentPossible": true,
+  "evm": "cancun",
+  "solc": "0.8.28",
+  "measuredVerifierCallGas": 1032480,
+  "calldataBytes": 3908,
+  "proofBytes": 384,
+  "positiveAndTamperTestsPassed": 4,
+  "componentVerifierCallGasBudget": 2000000,
+  "badPublicInputCallGas": 1034099,
+  "badProofCallGas": 1998581,
+  "transactionGasOrGnosisDeploymentMeasured": false,
+  "verifierSha256": "a5aa9bcc1b28e0904aeadd1ec8fa3ce5050f2ea9c37fb28135ac714d170cf970",
+  "proofJsonSha256": "612c0f48441663958e096a7019cbd3e38f54a4841560485b7f92505618285b79",
+  "testHarnessSha256": "52d4fb44e80b91b0763f343fed7c13f8106ee1ee37280bc65c2e6e89577006e3"
+}

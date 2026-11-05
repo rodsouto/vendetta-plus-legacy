@@ -1,0 +1,17 @@
+{
+  "componentOnly": true,
+  "scope": "pairing + compressed-byte binding + bounded tlock KEM; not authenticated beacon, age or mission",
+  "evm": "cancun",
+  "solc": "0.8.28",
+  "deployedBytecodeBytes": 47163,
+  "eip170LimitBytes": 24576,
+  "standardDeploymentPossible": false,
+  "deploymentAttempted": false,
+  "measuredVerifierCallGas": null,
+  "positiveAndTamperTestsPassed": 0,
+  "reason": "Generated verifier exceeds EIP-170; code size limits were not relaxed",
+  "publicInputs": 301,
+  "proofBytes": 384,
+  "verifierSha256": "1a56ef87fa759b27dcc388dd4eb93d763e5026b5292c1129e92c7d7cdc46e4c0",
+  "proofJsonSha256": "1975aeac4e5147785ecb1672a9d32259d3e731fefc9035a0f21cd0d851756b23"
+}

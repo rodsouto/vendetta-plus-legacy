@@ -1,0 +1,26 @@
+{
+  "date": "2026-10-30",
+  "scope": "Trusted test consumers; delayed TS full-World equality against punctual oracle and Solidity replay of exported state after every delayed action. No real Groth16 proving, RPC load, stuck transaction or reorg recovery validation.",
+  "scenarios": 18,
+  "evidenceOrders": 6,
+  "drainBudgets": [
+    1,
+    2,
+    20
+  ],
+  "delaySeconds": 604800,
+  "newScenarioIndices": [
+    36,
+    53
+  ],
+  "newSteps": 518,
+  "totalScenarios": 54,
+  "totalSteps": 8345,
+  "rulesTestsPassed": 762,
+  "foundryScenariosTestsPassed": 43,
+  "logs": {
+    "generation": "/tmp/vendetta-hidden-differential-generation.log",
+    "rules": "/tmp/vendetta-hidden-differential-rules.log",
+    "solidity": "/tmp/vendetta-hidden-differential.log"
+  }
+}

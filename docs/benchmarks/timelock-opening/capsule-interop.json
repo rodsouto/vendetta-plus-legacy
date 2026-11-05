@@ -1,0 +1,41 @@
+{
+  "library": "tlock-js 0.9.0 decryptOnG2",
+  "cases": [
+    {
+      "name": "archived-client",
+      "expectedValid": true,
+      "libraryAccepted": true,
+      "capsuleSha256": "bf7e9091008948afd83bbaa279f1d2f260eb92e93a7b41adc4f1a035628aeb7d"
+    },
+    {
+      "name": "tampered-v",
+      "expectedValid": false,
+      "libraryAccepted": false,
+      "capsuleSha256": "da8fd458e8c8211c96f015819d9d3ee76a8d213266a310b2076e706ee334b35d"
+    },
+    {
+      "name": "tampered-w",
+      "expectedValid": false,
+      "libraryAccepted": false,
+      "capsuleSha256": "b6395baf0ceeeea0c286d63133a80c7bc0db1a2b85bfb26b74e58d97b5a1545f"
+    },
+    {
+      "name": "h3-second-candidate",
+      "expectedValid": true,
+      "libraryAccepted": true,
+      "capsuleSha256": "9c08f7a4b7a0c455f5d11573991040538c2c69e02462b58fe4eed4e05167c1fe"
+    },
+    {
+      "name": "valid-five-candidates",
+      "expectedValid": true,
+      "libraryAccepted": true,
+      "capsuleSha256": "6c133b34703080e74bbd29065153a86e0d5b5ca6dcdddffc78e2c8e0c76c4bea"
+    },
+    {
+      "name": "skipped-first-accepted-candidate",
+      "expectedValid": false,
+      "libraryAccepted": false,
+      "capsuleSha256": "129c6f60cc13197d9c2379981a16b51449894f1cd5fc8c50fc33f617e7da83d4"
+    }
+  ]
+}

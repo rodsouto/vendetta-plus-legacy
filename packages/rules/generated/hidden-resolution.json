@@ -1,0 +1,959 @@
+{
+  "scope": "Inactive shared receipt lifecycle kernel; no proof verification, queue frontier or Game activation",
+  "cases": [
+    {
+      "name": "late-valid-keeps-arrival-and-sequence",
+      "stepCount": 9,
+      "steps": [
+        {
+          "input": {
+            "arrival": 100,
+            "op": 0,
+            "plain": "0x",
+            "seq": 7,
+            "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+            "time": 0,
+            "valid": false
+          },
+          "expected": {
+            "changed": false,
+            "error": "",
+            "resultArrival": 0,
+            "resultPlain": "0x",
+            "resultSeq": 0,
+            "resultStatus": 0,
+            "state": {
+              "arrival": 100,
+              "consumed": false,
+              "initialized": true,
+              "plain": "0x",
+              "seq": 7,
+              "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+              "status": 1
+            }
+          }
+        },
+        {
+          "input": {
+            "arrival": 0,
+            "op": 2,
+            "plain": "0x",
+            "seq": 0,
+            "statement": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "time": 7300,
+            "valid": false
+          },
+          "expected": {
+            "changed": false,
+            "error": "ResolutionPending",
+            "resultArrival": 0,
+            "resultPlain": "0x",
+            "resultSeq": 0,
+            "resultStatus": 0,
+            "state": {
+              "arrival": 100,
+              "consumed": false,
+              "initialized": true,
+              "plain": "0x",
+              "seq": 7,
+              "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+              "status": 1
+            }
+          }
+        },
+        {
+          "input": {
+            "arrival": 0,
+            "op": 1,
+            "plain": "0x02010101020000000000000000000000000000000000000000000000000000000000000005",
+            "seq": 0,
+            "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+            "time": 7300,
+            "valid": true
+          },
+          "expected": {
+            "changed": true,
+            "error": "",
+            "resultArrival": 0,
+            "resultPlain": "0x",
+            "resultSeq": 0,
+            "resultStatus": 0,
+            "state": {
+              "arrival": 100,
+              "consumed": false,
+              "initialized": true,
+              "plain": "0x02010101020000000000000000000000000000000000000000000000000000000000000005",
+              "seq": 7,
+              "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+              "status": 2
+            }
+          }
+        },
+        {
+          "input": {
+            "arrival": 0,
+            "op": 1,
+            "plain": "0x02010101020000000000000000000000000000000000000000000000000000000000000005",
+            "seq": 0,
+            "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+            "time": 7301,
+            "valid": true
+          },
+          "expected": {
+            "changed": false,
+            "error": "",
+            "resultArrival": 0,
+            "resultPlain": "0x",
+            "resultSeq": 0,
+            "resultStatus": 0,
+            "state": {
+              "arrival": 100,
+              "consumed": false,
+              "initialized": true,
+              "plain": "0x02010101020000000000000000000000000000000000000000000000000000000000000005",
+              "seq": 7,
+              "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+              "status": 2
+            }
+          }
+        },
+        {
+          "input": {
+            "arrival": 0,
+            "op": 2,
+            "plain": "0x",
+            "seq": 0,
+            "statement": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "time": 7301,
+            "valid": false
+          },
+          "expected": {
+            "changed": false,
+            "error": "",
+            "resultArrival": 100,
+            "resultPlain": "0x02010101020000000000000000000000000000000000000000000000000000000000000005",
+            "resultSeq": 7,
+            "resultStatus": 2,
+            "state": {
+              "arrival": 100,
+              "consumed": true,
+              "initialized": true,
+              "plain": "0x02010101020000000000000000000000000000000000000000000000000000000000000005",
+              "seq": 7,
+              "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+              "status": 2
+            }
+          }
+        },
+        {
+          "input": {
+            "arrival": 0,
+            "op": 1,
+            "plain": "0x02010101020000000000000000000000000000000000000000000000000000000000000005",
+            "seq": 0,
+            "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+            "time": 7302,
+            "valid": true
+          },
+          "expected": {
+            "changed": false,
+            "error": "",
+            "resultArrival": 0,
+            "resultPlain": "0x",
+            "resultSeq": 0,
+            "resultStatus": 0,
+            "state": {
+              "arrival": 100,
+              "consumed": true,
+              "initialized": true,
+              "plain": "0x02010101020000000000000000000000000000000000000000000000000000000000000005",
+              "seq": 7,
+              "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+              "status": 2
+            }
+          }
+        },
+        {
+          "input": {
+            "arrival": 0,
+            "op": 2,
+            "plain": "0x",
+            "seq": 0,
+            "statement": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "time": 7303,
+            "valid": false
+          },
+          "expected": {
+            "changed": false,
+            "error": "ResolutionConsumed",
+            "resultArrival": 0,
+            "resultPlain": "0x",
+            "resultSeq": 0,
+            "resultStatus": 0,
+            "state": {
+              "arrival": 100,
+              "consumed": true,
+              "initialized": true,
+              "plain": "0x02010101020000000000000000000000000000000000000000000000000000000000000005",
+              "seq": 7,
+              "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+              "status": 2
+            }
+          }
+        },
+        {
+          "input": {
+            "arrival": 0,
+            "op": 1,
+            "plain": "0x",
+            "seq": 0,
+            "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+            "time": 7304,
+            "valid": false
+          },
+          "expected": {
+            "changed": false,
+            "error": "ResolutionConflict",
+            "resultArrival": 0,
+            "resultPlain": "0x",
+            "resultSeq": 0,
+            "resultStatus": 0,
+            "state": {
+              "arrival": 100,
+              "consumed": true,
+              "initialized": true,
+              "plain": "0x02010101020000000000000000000000000000000000000000000000000000000000000005",
+              "seq": 7,
+              "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+              "status": 2
+            }
+          }
+        },
+        {
+          "input": {
+            "arrival": 100,
+            "op": 0,
+            "plain": "0x",
+            "seq": 7,
+            "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+            "time": 0,
+            "valid": false
+          },
+          "expected": {
+            "changed": false,
+            "error": "ResolutionAlreadyInitialized",
+            "resultArrival": 0,
+            "resultPlain": "0x",
+            "resultSeq": 0,
+            "resultStatus": 0,
+            "state": {
+              "arrival": 100,
+              "consumed": true,
+              "initialized": true,
+              "plain": "0x02010101020000000000000000000000000000000000000000000000000000000000000005",
+              "seq": 7,
+              "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+              "status": 2
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "only-verified-invalidity-can-consume-invalid",
+      "stepCount": 8,
+      "steps": [
+        {
+          "input": {
+            "arrival": 0,
+            "op": 2,
+            "plain": "0x",
+            "seq": 0,
+            "statement": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "time": 10000,
+            "valid": false
+          },
+          "expected": {
+            "changed": false,
+            "error": "ResolutionUnknown",
+            "resultArrival": 0,
+            "resultPlain": "0x",
+            "resultSeq": 0,
+            "resultStatus": 0,
+            "state": {
+              "arrival": 0,
+              "consumed": false,
+              "initialized": false,
+              "plain": "0x",
+              "seq": 0,
+              "statement": "0x0000000000000000000000000000000000000000000000000000000000000000",
+              "status": 0
+            }
+          }
+        },
+        {
+          "input": {
+            "arrival": 0,
+            "op": 1,
+            "plain": "0x",
+            "seq": 0,
+            "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+            "time": 10000,
+            "valid": false
+          },
+          "expected": {
+            "changed": false,
+            "error": "ResolutionUnknown",
+            "resultArrival": 0,
+            "resultPlain": "0x",
+            "resultSeq": 0,
+            "resultStatus": 0,
+            "state": {
+              "arrival": 0,
+              "consumed": false,
+              "initialized": false,
+              "plain": "0x",
+              "seq": 0,
+              "statement": "0x0000000000000000000000000000000000000000000000000000000000000000",
+              "status": 0
+            }
+          }
+        },
+        {
+          "input": {
+            "arrival": 100,
+            "op": 0,
+            "plain": "0x",
+            "seq": 7,
+            "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+            "time": 0,
+            "valid": false
+          },
+          "expected": {
+            "changed": false,
+            "error": "",
+            "resultArrival": 0,
+            "resultPlain": "0x",
+            "resultSeq": 0,
+            "resultStatus": 0,
+            "state": {
+              "arrival": 100,
+              "consumed": false,
+              "initialized": true,
+              "plain": "0x",
+              "seq": 7,
+              "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+              "status": 1
+            }
+          }
+        },
+        {
+          "input": {
+            "arrival": 0,
+            "op": 2,
+            "plain": "0x",
+            "seq": 0,
+            "statement": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "time": 10000,
+            "valid": false
+          },
+          "expected": {
+            "changed": false,
+            "error": "ResolutionPending",
+            "resultArrival": 0,
+            "resultPlain": "0x",
+            "resultSeq": 0,
+            "resultStatus": 0,
+            "state": {
+              "arrival": 100,
+              "consumed": false,
+              "initialized": true,
+              "plain": "0x",
+              "seq": 7,
+              "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+              "status": 1
+            }
+          }
+        },
+        {
+          "input": {
+            "arrival": 0,
+            "op": 1,
+            "plain": "0x",
+            "seq": 0,
+            "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+            "time": 10000,
+            "valid": false
+          },
+          "expected": {
+            "changed": true,
+            "error": "",
+            "resultArrival": 0,
+            "resultPlain": "0x",
+            "resultSeq": 0,
+            "resultStatus": 0,
+            "state": {
+              "arrival": 100,
+              "consumed": false,
+              "initialized": true,
+              "plain": "0x",
+              "seq": 7,
+              "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+              "status": 3
+            }
+          }
+        },
+        {
+          "input": {
+            "arrival": 0,
+            "op": 2,
+            "plain": "0x",
+            "seq": 0,
+            "statement": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "time": 10000,
+            "valid": false
+          },
+          "expected": {
+            "changed": false,
+            "error": "",
+            "resultArrival": 100,
+            "resultPlain": "0x",
+            "resultSeq": 7,
+            "resultStatus": 3,
+            "state": {
+              "arrival": 100,
+              "consumed": true,
+              "initialized": true,
+              "plain": "0x",
+              "seq": 7,
+              "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+              "status": 3
+            }
+          }
+        },
+        {
+          "input": {
+            "arrival": 0,
+            "op": 1,
+            "plain": "0x",
+            "seq": 0,
+            "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+            "time": 10001,
+            "valid": false
+          },
+          "expected": {
+            "changed": false,
+            "error": "",
+            "resultArrival": 0,
+            "resultPlain": "0x",
+            "resultSeq": 0,
+            "resultStatus": 0,
+            "state": {
+              "arrival": 100,
+              "consumed": true,
+              "initialized": true,
+              "plain": "0x",
+              "seq": 7,
+              "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+              "status": 3
+            }
+          }
+        },
+        {
+          "input": {
+            "arrival": 0,
+            "op": 1,
+            "plain": "0x02010101020000000000000000000000000000000000000000000000000000000000000005",
+            "seq": 0,
+            "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+            "time": 10002,
+            "valid": true
+          },
+          "expected": {
+            "changed": false,
+            "error": "ResolutionConflict",
+            "resultArrival": 0,
+            "resultPlain": "0x",
+            "resultSeq": 0,
+            "resultStatus": 0,
+            "state": {
+              "arrival": 100,
+              "consumed": true,
+              "initialized": true,
+              "plain": "0x",
+              "seq": 7,
+              "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+              "status": 3
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "early-evidence-waits-for-arrival",
+      "stepCount": 4,
+      "steps": [
+        {
+          "input": {
+            "arrival": 100,
+            "op": 0,
+            "plain": "0x",
+            "seq": 7,
+            "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+            "time": 0,
+            "valid": false
+          },
+          "expected": {
+            "changed": false,
+            "error": "",
+            "resultArrival": 0,
+            "resultPlain": "0x",
+            "resultSeq": 0,
+            "resultStatus": 0,
+            "state": {
+              "arrival": 100,
+              "consumed": false,
+              "initialized": true,
+              "plain": "0x",
+              "seq": 7,
+              "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+              "status": 1
+            }
+          }
+        },
+        {
+          "input": {
+            "arrival": 0,
+            "op": 1,
+            "plain": "0x02010101020000000000000000000000000000000000000000000000000000000000000005",
+            "seq": 0,
+            "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+            "time": 10,
+            "valid": true
+          },
+          "expected": {
+            "changed": true,
+            "error": "",
+            "resultArrival": 0,
+            "resultPlain": "0x",
+            "resultSeq": 0,
+            "resultStatus": 0,
+            "state": {
+              "arrival": 100,
+              "consumed": false,
+              "initialized": true,
+              "plain": "0x02010101020000000000000000000000000000000000000000000000000000000000000005",
+              "seq": 7,
+              "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+              "status": 2
+            }
+          }
+        },
+        {
+          "input": {
+            "arrival": 0,
+            "op": 2,
+            "plain": "0x",
+            "seq": 0,
+            "statement": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "time": 99,
+            "valid": false
+          },
+          "expected": {
+            "changed": false,
+            "error": "ResolutionNotDue",
+            "resultArrival": 0,
+            "resultPlain": "0x",
+            "resultSeq": 0,
+            "resultStatus": 0,
+            "state": {
+              "arrival": 100,
+              "consumed": false,
+              "initialized": true,
+              "plain": "0x02010101020000000000000000000000000000000000000000000000000000000000000005",
+              "seq": 7,
+              "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+              "status": 2
+            }
+          }
+        },
+        {
+          "input": {
+            "arrival": 0,
+            "op": 2,
+            "plain": "0x",
+            "seq": 0,
+            "statement": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "time": 100,
+            "valid": false
+          },
+          "expected": {
+            "changed": false,
+            "error": "",
+            "resultArrival": 100,
+            "resultPlain": "0x02010101020000000000000000000000000000000000000000000000000000000000000005",
+            "resultSeq": 7,
+            "resultStatus": 2,
+            "state": {
+              "arrival": 100,
+              "consumed": true,
+              "initialized": true,
+              "plain": "0x02010101020000000000000000000000000000000000000000000000000000000000000005",
+              "seq": 7,
+              "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+              "status": 2
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "wrong-statement-and-payload-never-change-state",
+      "stepCount": 7,
+      "steps": [
+        {
+          "input": {
+            "arrival": 100,
+            "op": 0,
+            "plain": "0x",
+            "seq": 7,
+            "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+            "time": 0,
+            "valid": false
+          },
+          "expected": {
+            "changed": false,
+            "error": "",
+            "resultArrival": 0,
+            "resultPlain": "0x",
+            "resultSeq": 0,
+            "resultStatus": 0,
+            "state": {
+              "arrival": 100,
+              "consumed": false,
+              "initialized": true,
+              "plain": "0x",
+              "seq": 7,
+              "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+              "status": 1
+            }
+          }
+        },
+        {
+          "input": {
+            "arrival": 0,
+            "op": 1,
+            "plain": "0x02010101020000000000000000000000000000000000000000000000000000000000000005",
+            "seq": 0,
+            "statement": "0x3434343434343434343434343434343434343434343434343434343434343434",
+            "time": 100,
+            "valid": true
+          },
+          "expected": {
+            "changed": false,
+            "error": "ResolutionStatementMismatch",
+            "resultArrival": 0,
+            "resultPlain": "0x",
+            "resultSeq": 0,
+            "resultStatus": 0,
+            "state": {
+              "arrival": 100,
+              "consumed": false,
+              "initialized": true,
+              "plain": "0x",
+              "seq": 7,
+              "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+              "status": 1
+            }
+          }
+        },
+        {
+          "input": {
+            "arrival": 0,
+            "op": 1,
+            "plain": "0x020101010200000000000000000000000000000000000000000000000000000000000000",
+            "seq": 0,
+            "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+            "time": 100,
+            "valid": true
+          },
+          "expected": {
+            "changed": false,
+            "error": "ResolutionInvalidPlain",
+            "resultArrival": 0,
+            "resultPlain": "0x",
+            "resultSeq": 0,
+            "resultStatus": 0,
+            "state": {
+              "arrival": 100,
+              "consumed": false,
+              "initialized": true,
+              "plain": "0x",
+              "seq": 7,
+              "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+              "status": 1
+            }
+          }
+        },
+        {
+          "input": {
+            "arrival": 0,
+            "op": 1,
+            "plain": "0x01010101020000000000000000000000000000000000000000000000000000000000000005",
+            "seq": 0,
+            "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+            "time": 100,
+            "valid": true
+          },
+          "expected": {
+            "changed": false,
+            "error": "ResolutionInvalidPlain",
+            "resultArrival": 0,
+            "resultPlain": "0x",
+            "resultSeq": 0,
+            "resultStatus": 0,
+            "state": {
+              "arrival": 100,
+              "consumed": false,
+              "initialized": true,
+              "plain": "0x",
+              "seq": 7,
+              "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+              "status": 1
+            }
+          }
+        },
+        {
+          "input": {
+            "arrival": 0,
+            "op": 1,
+            "plain": "0x02010101020000000000000000000000000000000000000000000000000000000000000005",
+            "seq": 0,
+            "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+            "time": 100,
+            "valid": false
+          },
+          "expected": {
+            "changed": false,
+            "error": "ResolutionInvalidPlain",
+            "resultArrival": 0,
+            "resultPlain": "0x",
+            "resultSeq": 0,
+            "resultStatus": 0,
+            "state": {
+              "arrival": 100,
+              "consumed": false,
+              "initialized": true,
+              "plain": "0x",
+              "seq": 7,
+              "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+              "status": 1
+            }
+          }
+        },
+        {
+          "input": {
+            "arrival": 0,
+            "op": 1,
+            "plain": "0x02010101020000000000000000000000000000000000000000000000000000000000000005",
+            "seq": 0,
+            "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+            "time": 100,
+            "valid": true
+          },
+          "expected": {
+            "changed": true,
+            "error": "",
+            "resultArrival": 0,
+            "resultPlain": "0x",
+            "resultSeq": 0,
+            "resultStatus": 0,
+            "state": {
+              "arrival": 100,
+              "consumed": false,
+              "initialized": true,
+              "plain": "0x02010101020000000000000000000000000000000000000000000000000000000000000005",
+              "seq": 7,
+              "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+              "status": 2
+            }
+          }
+        },
+        {
+          "input": {
+            "arrival": 0,
+            "op": 1,
+            "plain": "0x02010101020000000000000000000000000000000000000000000000000000000000000006",
+            "seq": 0,
+            "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+            "time": 101,
+            "valid": true
+          },
+          "expected": {
+            "changed": false,
+            "error": "ResolutionConflict",
+            "resultArrival": 0,
+            "resultPlain": "0x",
+            "resultSeq": 0,
+            "resultStatus": 0,
+            "state": {
+              "arrival": 100,
+              "consumed": false,
+              "initialized": true,
+              "plain": "0x02010101020000000000000000000000000000000000000000000000000000000000000005",
+              "seq": 7,
+              "statement": "0x1212121212121212121212121212121212121212121212121212121212121212",
+              "status": 2
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "zero-statement-is-an-initialized-receipt",
+      "stepCount": 5,
+      "steps": [
+        {
+          "input": {
+            "arrival": 50,
+            "op": 0,
+            "plain": "0x",
+            "seq": 0,
+            "statement": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "time": 0,
+            "valid": false
+          },
+          "expected": {
+            "changed": false,
+            "error": "",
+            "resultArrival": 0,
+            "resultPlain": "0x",
+            "resultSeq": 0,
+            "resultStatus": 0,
+            "state": {
+              "arrival": 50,
+              "consumed": false,
+              "initialized": true,
+              "plain": "0x",
+              "seq": 0,
+              "statement": "0x0000000000000000000000000000000000000000000000000000000000000000",
+              "status": 1
+            }
+          }
+        },
+        {
+          "input": {
+            "arrival": 0,
+            "op": 1,
+            "plain": "0x02010101020000000000000000000000000000000000000000000000000000000000000005",
+            "seq": 0,
+            "statement": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "time": 100,
+            "valid": true
+          },
+          "expected": {
+            "changed": true,
+            "error": "",
+            "resultArrival": 0,
+            "resultPlain": "0x",
+            "resultSeq": 0,
+            "resultStatus": 0,
+            "state": {
+              "arrival": 50,
+              "consumed": false,
+              "initialized": true,
+              "plain": "0x02010101020000000000000000000000000000000000000000000000000000000000000005",
+              "seq": 0,
+              "statement": "0x0000000000000000000000000000000000000000000000000000000000000000",
+              "status": 2
+            }
+          }
+        },
+        {
+          "input": {
+            "arrival": 0,
+            "op": 2,
+            "plain": "0x",
+            "seq": 0,
+            "statement": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "time": 100,
+            "valid": false
+          },
+          "expected": {
+            "changed": false,
+            "error": "",
+            "resultArrival": 50,
+            "resultPlain": "0x02010101020000000000000000000000000000000000000000000000000000000000000005",
+            "resultSeq": 0,
+            "resultStatus": 2,
+            "state": {
+              "arrival": 50,
+              "consumed": true,
+              "initialized": true,
+              "plain": "0x02010101020000000000000000000000000000000000000000000000000000000000000005",
+              "seq": 0,
+              "statement": "0x0000000000000000000000000000000000000000000000000000000000000000",
+              "status": 2
+            }
+          }
+        },
+        {
+          "input": {
+            "arrival": 0,
+            "op": 1,
+            "plain": "0x02010101020000000000000000000000000000000000000000000000000000000000000005",
+            "seq": 0,
+            "statement": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "time": 101,
+            "valid": true
+          },
+          "expected": {
+            "changed": false,
+            "error": "",
+            "resultArrival": 0,
+            "resultPlain": "0x",
+            "resultSeq": 0,
+            "resultStatus": 0,
+            "state": {
+              "arrival": 50,
+              "consumed": true,
+              "initialized": true,
+              "plain": "0x02010101020000000000000000000000000000000000000000000000000000000000000005",
+              "seq": 0,
+              "statement": "0x0000000000000000000000000000000000000000000000000000000000000000",
+              "status": 2
+            }
+          }
+        },
+        {
+          "input": {
+            "arrival": 100,
+            "op": 0,
+            "plain": "0x",
+            "seq": 7,
+            "statement": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "time": 0,
+            "valid": false
+          },
+          "expected": {
+            "changed": false,
+            "error": "ResolutionAlreadyInitialized",
+            "resultArrival": 0,
+            "resultPlain": "0x",
+            "resultSeq": 0,
+            "resultStatus": 0,
+            "state": {
+              "arrival": 50,
+              "consumed": true,
+              "initialized": true,
+              "plain": "0x02010101020000000000000000000000000000000000000000000000000000000000000005",
+              "seq": 0,
+              "statement": "0x0000000000000000000000000000000000000000000000000000000000000000",
+              "status": 2
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

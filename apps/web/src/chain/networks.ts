@@ -23,8 +23,6 @@ export interface Deployment {
   paymaster?: string;
   /** Pimlico sponsorship policy that sets the limits (B-16); without it, the project's defaults. */
   sponsorshipPolicy?: string;
-  /** Bundler whose executor keeps reveal transactions out of the public mempool (B-22). */
-  revealBundler?: string;
 }
 
 /** How players sign: anvil's development keys, or passkey accounts with per-device sessions. */
@@ -38,8 +36,7 @@ export interface Network {
 }
 
 /** Why the app cannot connect, as an i18n key under `connect.` */
-export type ConnectProblem =
-  "noLocal" | "notDeployed" | "noPimlicoKey" | "invalidDeployment" | "noPrivateReveal";
+export type ConnectProblem = "noLocal" | "notDeployed" | "noPimlicoKey" | "invalidDeployment";
 
 export const networkId = (): NetworkId =>
   (import.meta.env.VITE_NETWORK as NetworkId | undefined) ?? "local";
@@ -62,9 +59,6 @@ export async function loadNetwork(): Promise<Network | ConnectProblem> {
     if (base.chainId !== gnosis.id || !base.directory) return "invalidDeployment";
     const key = import.meta.env.VITE_PIMLICO_API_KEY as string | undefined;
     if (!key) return "noPimlicoKey";
-    const revealBundler =
-      (import.meta.env.VITE_REVEAL_BUNDLER_URL as string | undefined) || undefined;
-    if (!revealBundler) return "noPrivateReveal";
     const pimlico = `https://api.pimlico.io/v2/${gnosis.id}/rpc?apikey=${key}`;
     const deployment: Deployment = {
       ...base,
@@ -72,7 +66,6 @@ export async function loadNetwork(): Promise<Network | ConnectProblem> {
       rpc: (import.meta.env.VITE_RPC_URL as string | undefined) || base.rpc,
       bundler: pimlico,
       paymaster: pimlico,
-      revealBundler,
       sponsorshipPolicy:
         (import.meta.env.VITE_PIMLICO_POLICY_ID as string | undefined) || undefined,
     };

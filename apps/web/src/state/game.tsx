@@ -2,9 +2,8 @@
 // and the world projected to that clock (B-20), the player's selection, and act(): validate an
 // action in the simulator, then send it, wait for it and reload. With passkeys, act() first renews
 // this device's session when it has lapsed (one passkey prompt), so game actions never prompt.
-// Hidden missions (B-22): a hidden mission resolves at its reveal, so this client reveals its own
-// as they arrive, and every send reveals first its own due ones it has not revealed yet. Others'
-// are revealed by their owner or the keeper: a parked mission holds no action back.
+// Hidden missions resolve from verified certificates at their original arrival. A missing
+// certificate stops projection and drained actions; local plaintext never bypasses it.
 import {
   createContext,
   useCallback,
@@ -23,7 +22,6 @@ import { sim, vendetta as rs, type HiddenPlain } from "@vendetta/rules";
 import { makeClients, type Clients } from "../chain/config.js";
 import { loadNetwork, type Network } from "../chain/networks.js";
 import {
-  byArrival,
   clockOffset,
   cloneWorld,
   controllerKey,
@@ -33,16 +31,10 @@ import {
   type Pending,
   type Snapshot,
 } from "../chain/load.js";
-import {
-  allStoredPlains,
-  storePlain,
-  storedPlains,
-  timelockFor,
-  type Timelock,
-} from "../chain/hidden.js";
+import { storePlain, storedPlains, timelockFor, type Timelock } from "../chain/hidden.js";
 import { parseRecoveryCode, recoveryKey, rememberUsedRecovery } from "../account/recovery.js";
 import { DevSigner, PasskeySigner, makeSigner, type Call, type From } from "../account/signer.js";
-import { cancelled, errorName, gameCall, revealPlan, sendBehindQueue } from "./backlog.js";
+import { cancelled, errorName, gameCall, sendBehindQueue } from "./backlog.js";
 
 // The passkey stack (permissionless, ox) loads on first use, not with the app.
 const passkeys = () => import("../account/passkey.js");
@@ -89,7 +81,7 @@ interface Game {
   chainNow: () => Promise<bigint>;
   /** Encrypts hidden missions until their arrival (B-22). */
   timelock: Timelock;
-  /** Plaintexts of hidden missions this client can reveal, by commitment. */
+  /** Local mission drafts by commitment; they do not authorize a certificate. */
   known: ReadonlyMap<string, HiddenPlain>;
   /** Keeps the plaintext of a hidden mission this device sends. */
   rememberHidden: (commit: string, p: HiddenPlain) => void;
@@ -204,7 +196,7 @@ export function GameProvider({
     [game, account],
   );
   const world = useMemo(
-    () => (snapshot ? project(snapshot.world, now, known) : null),
+    () => (snapshot ? project(snapshot.world, now) : null),
     [snapshot, now, known],
   );
 
@@ -294,27 +286,17 @@ export function GameProvider({
   /** The chain time now, from the wall clock (anvil time travel moves `offset`). */
   const clock = useCallback(() => BigInt(Math.floor(Date.now() / 1000) + offset.current), []);
 
-  /**
-   * The time of a block fetched now. On a live chain what must not leave before a time on chain
-   * waits for it: a reveal before its mission arrives shows the target (B-22). An idle anvil's
-   * latest block lags, so a local chain uses the clock.
-   */
+  /** Fresh chain time; local Anvil clocks also account for explicit time travel. */
   const chainNow = useCallback(
     async () => (live ? (await clients.public.getBlock()).timestamp : clock()),
     [live, clients, clock],
   );
 
-  /**
-   * Sends the calls behind an advance() for the due missions and the reveals they need
-   * (backlog.ts: one retry on Backlog, then the keeper catches up, B-08; reveals in order, B-22)
-   * and resolves to the ids it revealed. The reveals are planned at a fresh block's time: only
-   * missions that arrived on chain go.
-   */
+  /** Sends actions behind already-certified arrivals, with one Backlog retry. */
   const send = useCallback(
-    (calls: Call[], from: From): Promise<bigint[]> =>
+    (calls: Call[], from: From): Promise<void> =>
       sendBehindQueue({
         world: snapshot ? cloneWorld(snapshot.world) : undefined,
-        known,
         game,
         calls,
         submit: (c) => signer.send(c, from),
@@ -322,35 +304,6 @@ export function GameProvider({
       }),
     [snapshot, known, game, signer, chainNow],
   );
-
-  // Reveals this client's own hidden missions as they arrive (B-22): a hidden mission resolves at
-  // its reveal, so the sender reveals at the arrival, within the head start before anyone else can
-  // open the ciphertext, instead of waiting for the keeper. send() plans at a fresh block's time,
-  // so until the chain reaches the arrival it reveals nothing and this tries again on the next
-  // tick. One try per mission once sent (a reveal that does not land goes in front of the next
-  // action, or the keeper makes it); never during an action, and never with a lapsed passkey
-  // session, which would prompt out of the blue. It holds `busy` while its transaction is out: a
-  // concurrent action from the same account would take the same nonce.
-  const revealedAtArrival = useRef(new Set<bigint>());
-  useEffect(() => {
-    if (!snapshot || !me || busy) return;
-    if (signer.mode === "passkey" && liveSession === 0n) return;
-    const due = revealPlan(snapshot.world, known, game, now).accepted.filter(
-      (x) => !revealedAtArrival.current.has(x.id),
-    );
-    if (due.length === 0) return;
-    setBusy(true);
-    send([], "actor")
-      .then((ids) => {
-        for (const id of ids) revealedAtArrival.current.add(id);
-        if (ids.length > 0) return refresh();
-      })
-      .catch((e) => {
-        for (const x of due) revealedAtArrival.current.add(x.id);
-        console.warn("reveal at arrival", e);
-      })
-      .finally(() => setBusy(false));
-  }, [snapshot, me, now, busy, signer, liveSession, known, game, send, refresh]);
 
   const fail = useCallback(
     (e: unknown) => {
@@ -376,7 +329,7 @@ export function GameProvider({
     }) => {
       if (!snapshot) return false;
       try {
-        const w = project(snapshot.world, now, known);
+        const w = project(snapshot.world, now);
         r.renew?.check(w);
         r.check?.(w, now);
       } catch (e) {
@@ -729,7 +682,7 @@ export function GameProvider({
         const kernel = controllerKey(id.address);
         const session = signer.session!.address;
         const until = sessionDeadline(now);
-        const w = project(snapshot.world, now, known); // a fresh copy
+        const w = project(snapshot.world, now); // a fresh copy
         sim.inviteController(w, rec, kernel, false, now);
         sim.acceptController(w, kernel, pid, now);
         sim.authorizeSession(w, kernel, controllerKey(session), until, now);
@@ -764,14 +717,7 @@ export function GameProvider({
     [signer, snapshot, clients, now, known, game, send, toast, t, fail, refresh],
   );
 
-  /**
-   * Dev only. A jump in one go would carry every due hidden mission past its grace and forfeit
-   * it (B-22), so the jump stops at the arrival of each mission this browser can reveal (any
-   * account's plaintext it stored) and reveals it there, in arrival order, as the keeper would in
-   * real time, behind an advance() like any send. A mission that does not reveal stops the jump
-   * there: going on would forfeit it before the keeper had a tick. It holds `busy` throughout:
-   * the reveals at arrival and the player's actions wait.
-   */
+  /** Dev clock changes do not reveal, cancel or move pending missions. */
   const warp = useCallback(
     async (seconds: number) => {
       const increase = async (s: number) => {
@@ -782,50 +728,9 @@ export function GameProvider({
         await clients.public.request({ method: "evm_mine" as never });
         offset.current += s;
       };
-      const start = BigInt(Math.floor(Date.now() / 1000) + offset.current);
-      const target = start + BigInt(seconds);
-      const plains = allStoredPlains(game);
-      const landing = [...(snapshot?.world.missions.values() ?? [])]
-        .filter(
-          (m) =>
-            m.hidden &&
-            !m.returning &&
-            plains.has(m.commit) &&
-            m.arrival > start &&
-            m.arrival <= target,
-        )
-        .sort(byArrival);
-      const w = snapshot ? cloneWorld(snapshot.world) : undefined;
-      const revealed = new Set<bigint>();
       setBusy(true);
       try {
-        let at = start;
-        for (const m of landing) {
-          if (m.arrival > at) {
-            await increase(Number(m.arrival - at));
-            at = m.arrival;
-          }
-          if (!revealed.has(m.id)) {
-            try {
-              const sent = await sendBehindQueue({
-                world: w,
-                known: plains,
-                game,
-                calls: [],
-                submit: (c) => signer.send(c, "admin"),
-                clock: () => at,
-              });
-              for (const id of sent) revealed.add(id);
-            } catch (e) {
-              console.warn("reveal during warp", m.id, e);
-            }
-          }
-          if (!revealed.has(m.id)) {
-            toast(t("dev.warpStopped"), true);
-            return;
-          }
-        }
-        if (target > at) await increase(Number(target - at));
+        await increase(seconds);
       } finally {
         setBusy(false);
         await refresh();

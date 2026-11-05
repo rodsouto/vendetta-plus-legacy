@@ -1,0 +1,1466 @@
+{
+  "seed": 1,
+  "delay": "7200",
+  "occupation": true,
+  "permanent": false,
+  "preparationActions": 59,
+  "equal": true,
+  "receiptsEqual": true,
+  "worldDigests": {
+    "local": "bceb45bdaa9c31ec99c3842ed7165045b018edd80c2e18b676566640b122e1ef",
+    "oracle": "bceb45bdaa9c31ec99c3842ed7165045b018edd80c2e18b676566640b122e1ef"
+  },
+  "accepted": 9,
+  "reverted": 4,
+  "blocked": 33,
+  "allocatorBlocked": 6,
+  "lateRootExecutions": 3,
+  "pending": 0,
+  "tradePaymentApplied": true,
+  "evidence": [
+    {
+      "mission": "1",
+      "kind": 1,
+      "target": {
+        "city": "1",
+        "neighborhood": "1",
+        "slot": "2"
+      },
+      "salt": "101",
+      "ready": "3024523216"
+    },
+    {
+      "mission": "2",
+      "kind": 1,
+      "target": {
+        "city": "1",
+        "neighborhood": "1",
+        "slot": "1"
+      },
+      "salt": "102",
+      "ready": "3024523379"
+    },
+    {
+      "mission": "3",
+      "kind": 4,
+      "target": {
+        "city": "1",
+        "neighborhood": "1",
+        "slot": "4"
+      },
+      "salt": "103",
+      "ready": "3024524184"
+    }
+  ],
+  "trace": [
+    {
+      "at": "3024516007",
+      "action": {
+        "type": "queueResearch",
+        "caller": "carol",
+        "building": "3",
+        "research": 0
+      },
+      "result": {
+        "status": "accepted"
+      }
+    },
+    {
+      "at": "3024516007",
+      "action": {
+        "type": "train",
+        "caller": "bob",
+        "building": "2",
+        "troop": 0,
+        "quantity": "1"
+      },
+      "result": {
+        "status": "accepted"
+      }
+    },
+    {
+      "at": "3024516009",
+      "action": {
+        "type": "poke",
+        "building": "3"
+      },
+      "result": {
+        "status": "accepted"
+      }
+    },
+    {
+      "at": "3024516010",
+      "action": {
+        "type": "queueRoom",
+        "caller": "carol",
+        "building": "3",
+        "room": 2
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "1",
+        "resource": "allocator:seq"
+      }
+    },
+    {
+      "at": "3024516011",
+      "action": {
+        "type": "register",
+        "caller": "outside-1",
+        "coord": {
+          "city": "50",
+          "neighborhood": "50",
+          "slot": "201"
+        }
+      },
+      "result": {
+        "status": "accepted",
+        "value": "5"
+      }
+    },
+    {
+      "at": "3024516012",
+      "action": {
+        "type": "poke",
+        "building": "1"
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "1",
+        "resource": "player:1"
+      }
+    },
+    {
+      "at": "3024516013",
+      "action": {
+        "type": "acceptTrade",
+        "caller": "dave",
+        "trade": "1",
+        "building": "4"
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "1",
+        "resource": "building:2"
+      }
+    },
+    {
+      "at": "3024516014",
+      "action": {
+        "type": "dissolveFamily",
+        "caller": "carol"
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "1",
+        "resource": "family:1"
+      }
+    },
+    {
+      "at": "3024516015",
+      "action": {
+        "type": "setRank",
+        "caller": "carol",
+        "target": "1",
+        "rank": 2
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "1",
+        "resource": "player:1"
+      }
+    },
+    {
+      "at": "3024516016",
+      "action": {
+        "type": "register",
+        "caller": "inside-1",
+        "coord": {
+          "city": "1",
+          "neighborhood": "1",
+          "slot": "3"
+        }
+      },
+      "result": {
+        "status": "accepted",
+        "value": "6"
+      }
+    },
+    {
+      "at": "3024516220",
+      "action": {
+        "type": "poke",
+        "building": "2"
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "1",
+        "resource": "building:2"
+      }
+    },
+    {
+      "at": "3024516257",
+      "action": {
+        "type": "cancelResearch",
+        "caller": "dave",
+        "building": "4",
+        "position": 0
+      },
+      "result": {
+        "status": "reverted",
+        "error": "NothingToCancel"
+      }
+    },
+    {
+      "at": "3024517702",
+      "action": {
+        "type": "poke",
+        "building": "1"
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "1",
+        "resource": "player:1"
+      }
+    },
+    {
+      "at": "3024517971",
+      "action": {
+        "type": "setRank",
+        "caller": "carol",
+        "target": "1",
+        "rank": 3
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "1",
+        "resource": "player:1"
+      }
+    },
+    {
+      "at": "3024518505",
+      "action": {
+        "type": "queueResearch",
+        "caller": "alice",
+        "building": "1",
+        "research": 0
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "1",
+        "resource": "player:1"
+      }
+    },
+    {
+      "at": "3024518567",
+      "action": {
+        "type": "abandon",
+        "caller": "carol",
+        "building": "3"
+      },
+      "result": {
+        "status": "reverted",
+        "error": "LastBuilding"
+      }
+    },
+    {
+      "at": "3024518624",
+      "action": {
+        "type": "withdrawTrade",
+        "caller": "dave",
+        "trade": "1",
+        "building": "4",
+        "amount": [
+          "1",
+          "0",
+          "0",
+          "0"
+        ]
+      },
+      "result": {
+        "status": "reverted",
+        "error": "InvalidTrade"
+      }
+    },
+    {
+      "at": "3024518713",
+      "action": {
+        "type": "cancelResearch",
+        "caller": "alice",
+        "building": "1",
+        "position": 0
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "1",
+        "resource": "player:1"
+      }
+    },
+    {
+      "at": "3024518757",
+      "action": {
+        "type": "queueRoom",
+        "caller": "carol",
+        "building": "3",
+        "room": 2
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "1",
+        "resource": "allocator:seq"
+      }
+    },
+    {
+      "at": "3024518774",
+      "action": {
+        "type": "queueResearch",
+        "caller": "alice",
+        "building": "1",
+        "research": 0
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "1",
+        "resource": "player:1"
+      }
+    },
+    {
+      "at": "3024518921",
+      "action": {
+        "type": "train",
+        "caller": "carol",
+        "building": "3",
+        "troop": 0,
+        "quantity": "1"
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "1",
+        "resource": "allocator:seq"
+      }
+    },
+    {
+      "at": "3024519199",
+      "action": {
+        "type": "setRank",
+        "caller": "carol",
+        "target": "1",
+        "rank": 3
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "1",
+        "resource": "player:1"
+      }
+    },
+    {
+      "at": "3024519260",
+      "action": {
+        "type": "cancelTraining",
+        "caller": "alice",
+        "building": "1",
+        "queue": 0,
+        "position": 0
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "1",
+        "resource": "player:1"
+      }
+    },
+    {
+      "at": "3024519569",
+      "action": {
+        "type": "queueResearch",
+        "caller": "bob",
+        "building": "2",
+        "research": 0
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "1",
+        "resource": "allocator:seq"
+      }
+    },
+    {
+      "at": "3024519857",
+      "action": {
+        "type": "setRank",
+        "caller": "carol",
+        "target": "1",
+        "rank": 3
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "1",
+        "resource": "player:1"
+      }
+    },
+    {
+      "at": "3024520222",
+      "action": {
+        "type": "withdrawTrade",
+        "caller": "alice",
+        "trade": "1",
+        "building": "1",
+        "amount": [
+          "1",
+          "0",
+          "0",
+          "0"
+        ]
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "1",
+        "resource": "player:1"
+      }
+    },
+    {
+      "at": "3024520292",
+      "action": {
+        "type": "recall",
+        "caller": "bob",
+        "mission": "3"
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "1",
+        "resource": "allocator:seq"
+      }
+    },
+    {
+      "at": "3024520356",
+      "action": {
+        "type": "setRank",
+        "caller": "carol",
+        "target": "1",
+        "rank": 3
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "1",
+        "resource": "player:1"
+      }
+    },
+    {
+      "at": "3024520412",
+      "action": {
+        "type": "dissolveFamily",
+        "caller": "carol"
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "1",
+        "resource": "family:1"
+      }
+    },
+    {
+      "at": "3024520564",
+      "action": {
+        "type": "acceptTrade",
+        "caller": "dave",
+        "trade": "1",
+        "building": "4"
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "1",
+        "resource": "building:2"
+      }
+    },
+    {
+      "at": "3024521566",
+      "action": {
+        "type": "recall",
+        "caller": "dave",
+        "mission": "1"
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "1",
+        "resource": "mission:1"
+      }
+    },
+    {
+      "at": "3024521844",
+      "action": {
+        "type": "setRank",
+        "caller": "carol",
+        "target": "1",
+        "rank": 3
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "1",
+        "resource": "player:1"
+      }
+    },
+    {
+      "at": "3024521859",
+      "action": {
+        "type": "send",
+        "caller": "bob",
+        "building": "2",
+        "kind": 3,
+        "target": {
+          "city": "1",
+          "neighborhood": "1",
+          "slot": "1"
+        },
+        "troops": [
+          "1",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0"
+        ],
+        "cargo": [
+          "0",
+          "0",
+          "0",
+          "0"
+        ],
+        "trade": "0"
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "1",
+        "resource": "player:1"
+      }
+    },
+    {
+      "at": "3024521875",
+      "action": {
+        "type": "train",
+        "caller": "dave",
+        "building": "4",
+        "troop": 0,
+        "quantity": "1"
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "1",
+        "resource": "allocator:seq"
+      }
+    },
+    {
+      "at": "3024522079",
+      "action": {
+        "type": "cancelTraining",
+        "caller": "bob",
+        "building": "2",
+        "queue": 0,
+        "position": 0
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "1",
+        "resource": "building:2"
+      }
+    },
+    {
+      "at": "3024522213",
+      "action": {
+        "type": "poke",
+        "building": "4"
+      },
+      "result": {
+        "status": "accepted"
+      }
+    },
+    {
+      "at": "3024522546",
+      "action": {
+        "type": "recall",
+        "caller": "alice",
+        "mission": "3"
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "1",
+        "resource": "player:1"
+      }
+    },
+    {
+      "at": "3024522574",
+      "action": {
+        "type": "poke",
+        "building": "2"
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "1",
+        "resource": "building:2"
+      }
+    },
+    {
+      "at": "3024522818",
+      "action": {
+        "type": "poke",
+        "building": "2"
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "1",
+        "resource": "building:2"
+      }
+    },
+    {
+      "at": "3024523359",
+      "action": {
+        "type": "send",
+        "caller": "bob",
+        "building": "2",
+        "kind": 3,
+        "target": {
+          "city": "1",
+          "neighborhood": "1",
+          "slot": "1"
+        },
+        "troops": [
+          "1",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0"
+        ],
+        "cargo": [
+          "0",
+          "0",
+          "0",
+          "0"
+        ],
+        "trade": "0"
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "2",
+        "resource": "player:2"
+      }
+    },
+    {
+      "at": "3024523436",
+      "action": {
+        "type": "cancelResearch",
+        "caller": "alice",
+        "building": "1",
+        "position": 0
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "3",
+        "resource": "player:1"
+      }
+    },
+    {
+      "at": "3024523546",
+      "action": {
+        "type": "send",
+        "caller": "carol",
+        "building": "3",
+        "kind": 3,
+        "target": {
+          "city": "1",
+          "neighborhood": "1",
+          "slot": "1"
+        },
+        "troops": [
+          "1",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0"
+        ],
+        "cargo": [
+          "0",
+          "0",
+          "0",
+          "0"
+        ],
+        "trade": "0"
+      },
+      "result": {
+        "status": "blocked",
+        "blocker": "3",
+        "resource": "player:1"
+      }
+    },
+    {
+      "at": "3024955547",
+      "action": {
+        "type": "train",
+        "caller": "bob",
+        "building": "2",
+        "troop": 0,
+        "quantity": "1"
+      },
+      "result": {
+        "status": "accepted"
+      }
+    },
+    {
+      "at": "3024955547",
+      "action": {
+        "type": "withdrawTrade",
+        "caller": "bob",
+        "trade": "1",
+        "building": "2",
+        "amount": [
+          "1",
+          "0",
+          "0",
+          "0"
+        ]
+      },
+      "result": {
+        "status": "reverted",
+        "error": "InvalidTrade"
+      }
+    },
+    {
+      "at": "3024955548",
+      "action": {
+        "type": "train",
+        "caller": "alice",
+        "building": "1",
+        "troop": 0,
+        "quantity": "1"
+      },
+      "result": {
+        "status": "accepted"
+      }
+    },
+    {
+      "at": "3024955548",
+      "action": {
+        "type": "withdrawTrade",
+        "caller": "alice",
+        "trade": "2",
+        "building": "1",
+        "amount": [
+          "1",
+          "0",
+          "0",
+          "0"
+        ]
+      },
+      "result": {
+        "status": "accepted"
+      }
+    }
+  ],
+  "execution": [
+    {
+      "mission": "1",
+      "returning": false,
+      "at": "3024516008",
+      "seq": "42",
+      "wall": "3024523216",
+      "effect": {
+        "mission": null,
+        "target": {
+          "id": "2",
+          "owner": "2",
+          "coord": {
+            "city": "1",
+            "neighborhood": "1",
+            "slot": "2"
+          },
+          "levels": [
+            "1",
+            "1",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "1",
+            "0",
+            "0",
+            "0"
+          ],
+          "stock": [
+            "987840280",
+            "907200280",
+            "1008000000",
+            "1005379200"
+          ],
+          "lastUpdate": "3024516008",
+          "lastTroopArrival": "0",
+          "roomQueue": [],
+          "centipoints": "9875",
+          "troops": [
+            "3",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0"
+          ],
+          "training": [
+            [
+              {
+                "index": 0,
+                "quantity": "1",
+                "seq": "47",
+                "finishAt": "3024517407"
+              }
+            ],
+            []
+          ]
+        },
+        "players": [
+          {
+            "id": "1",
+            "research": [
+              "5",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0"
+            ],
+            "buildings": "1",
+            "centipoints": "67530",
+            "missions": "2"
+          },
+          {
+            "id": "2",
+            "research": [
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0"
+            ],
+            "buildings": "1",
+            "centipoints": "19475",
+            "missions": "1"
+          }
+        ],
+        "wars": [
+          {
+            "id": "1",
+            "a": "1",
+            "b": "2",
+            "lostA": "3000",
+            "lostB": "2400",
+            "ended": false,
+            "winner": "0",
+            "offer": 0,
+            "offerBy": "0"
+          }
+        ]
+      }
+    },
+    {
+      "mission": "4",
+      "returning": false,
+      "at": "3024516008",
+      "seq": "45",
+      "wall": "3024523216",
+      "effect": {
+        "mission": {
+          "id": "4",
+          "owner": "1",
+          "origin": "1",
+          "kind": 3,
+          "returning": true,
+          "target": {
+            "city": "1",
+            "neighborhood": "1",
+            "slot": "2"
+          },
+          "start": "3024516008",
+          "arrival": "3024520016",
+          "duration": "4008",
+          "seq": "48",
+          "troops": [
+            "1",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0"
+          ],
+          "cargo": [
+            "0",
+            "0",
+            "0",
+            "0"
+          ],
+          "trade": "2",
+          "from": {
+            "city": "1",
+            "neighborhood": "1",
+            "slot": "1"
+          },
+          "hidden": false,
+          "cover": "0",
+          "commit": "0x0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "target": {
+          "id": "2",
+          "owner": "2",
+          "coord": {
+            "city": "1",
+            "neighborhood": "1",
+            "slot": "2"
+          },
+          "levels": [
+            "1",
+            "1",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "1",
+            "0",
+            "0",
+            "0"
+          ],
+          "stock": [
+            "987840280",
+            "908208280",
+            "1008000000",
+            "1005379200"
+          ],
+          "lastUpdate": "3024516008",
+          "lastTroopArrival": "0",
+          "roomQueue": [],
+          "centipoints": "9875",
+          "troops": [
+            "3",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0"
+          ],
+          "training": [
+            [
+              {
+                "index": 0,
+                "quantity": "1",
+                "seq": "47",
+                "finishAt": "3024517407"
+              }
+            ],
+            []
+          ]
+        },
+        "players": [
+          {
+            "id": "1",
+            "research": [
+              "5",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0"
+            ],
+            "buildings": "1",
+            "centipoints": "67530",
+            "missions": "2"
+          },
+          {
+            "id": "2",
+            "research": [
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0"
+            ],
+            "buildings": "1",
+            "centipoints": "19475",
+            "missions": "1"
+          }
+        ],
+        "wars": []
+      }
+    },
+    {
+      "mission": "2",
+      "returning": false,
+      "at": "3024516173",
+      "seq": "43",
+      "wall": "3024523379",
+      "effect": {
+        "mission": null,
+        "target": {
+          "id": "1",
+          "owner": "1",
+          "coord": {
+            "city": "1",
+            "neighborhood": "1",
+            "slot": "1"
+          },
+          "levels": [
+            "1",
+            "1",
+            "5",
+            "5",
+            "5",
+            "5",
+            "0",
+            "1",
+            "1",
+            "0",
+            "1",
+            "1",
+            "0",
+            "0",
+            "0"
+          ],
+          "stock": [
+            "16128000000",
+            "16128000000",
+            "1008000000",
+            "16122845592"
+          ],
+          "lastUpdate": "3024516173",
+          "lastTroopArrival": "0",
+          "roomQueue": [],
+          "centipoints": "25680",
+          "troops": [
+            "3",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0"
+          ],
+          "training": [
+            [],
+            []
+          ]
+        },
+        "players": [
+          {
+            "id": "2",
+            "research": [
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0"
+            ],
+            "buildings": "1",
+            "centipoints": "11675",
+            "missions": "0"
+          },
+          {
+            "id": "1",
+            "research": [
+              "5",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0"
+            ],
+            "buildings": "1",
+            "centipoints": "60930",
+            "missions": "2"
+          }
+        ],
+        "wars": [
+          {
+            "id": "1",
+            "a": "1",
+            "b": "2",
+            "lostA": "9600",
+            "lostB": "10200",
+            "ended": false,
+            "winner": "0",
+            "offer": 0,
+            "offerBy": "0"
+          }
+        ]
+      }
+    },
+    {
+      "mission": "3",
+      "returning": false,
+      "at": "3024516971",
+      "seq": "44",
+      "wall": "3024524184",
+      "effect": {
+        "mission": null,
+        "target": {
+          "id": "7",
+          "owner": "1",
+          "coord": {
+            "city": "1",
+            "neighborhood": "1",
+            "slot": "4"
+          },
+          "levels": [
+            "1",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0"
+          ],
+          "stock": [
+            "100800000",
+            "100800000",
+            "100800000",
+            "100800000"
+          ],
+          "lastUpdate": "3024516971",
+          "lastTroopArrival": "0",
+          "roomQueue": [],
+          "centipoints": "600",
+          "troops": [
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0"
+          ],
+          "training": [
+            [],
+            []
+          ]
+        },
+        "players": [
+          {
+            "id": "1",
+            "research": [
+              "5",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0"
+            ],
+            "buildings": "2",
+            "centipoints": "36430",
+            "missions": "1"
+          }
+        ],
+        "wars": []
+      }
+    },
+    {
+      "mission": "4",
+      "returning": true,
+      "at": "3024520016",
+      "seq": "48",
+      "wall": "3024524184",
+      "effect": {
+        "mission": null,
+        "target": {
+          "id": "1",
+          "owner": "1",
+          "coord": {
+            "city": "1",
+            "neighborhood": "1",
+            "slot": "1"
+          },
+          "levels": [
+            "1",
+            "1",
+            "5",
+            "5",
+            "5",
+            "5",
+            "0",
+            "1",
+            "1",
+            "0",
+            "1",
+            "1",
+            "0",
+            "0",
+            "0"
+          ],
+          "stock": [
+            "16128000000",
+            "16128000000",
+            "1008000000",
+            "16124782464"
+          ],
+          "lastUpdate": "3024520016",
+          "lastTroopArrival": "3024520016",
+          "roomQueue": [],
+          "centipoints": "25680",
+          "troops": [
+            "4",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0"
+          ],
+          "training": [
+            [],
+            []
+          ]
+        },
+        "players": [
+          {
+            "id": "1",
+            "research": [
+              "5",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0"
+            ],
+            "buildings": "2",
+            "centipoints": "36430",
+            "missions": "0"
+          }
+        ],
+        "wars": []
+      }
+    }
+  ]
+}

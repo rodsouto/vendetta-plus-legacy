@@ -71,6 +71,11 @@
       "encoding": "inplace",
       "numberOfBytes": "1"
     },
+    "t_bytes_storage": {
+      "label": "bytes",
+      "encoding": "bytes",
+      "numberOfBytes": "32"
+    },
     "t_bytes32": {
       "label": "bytes32",
       "encoding": "inplace",
@@ -132,6 +137,13 @@
       "key": "t_uint64",
       "value": "t_struct(Family)_storage"
     },
+    "t_mapping(t_uint64,t_struct(HiddenEvidenceState)_storage)": {
+      "label": "mapping(uint64 => struct HiddenEvidenceState)",
+      "encoding": "mapping",
+      "numberOfBytes": "32",
+      "key": "t_uint64",
+      "value": "t_struct(HiddenEvidenceState)_storage"
+    },
     "t_mapping(t_uint64,t_struct(Invite)_storage)": {
       "label": "mapping(uint64 => struct Invite)",
       "encoding": "mapping",
@@ -173,13 +185,6 @@
       "numberOfBytes": "32",
       "key": "t_uint64",
       "value": "t_uint256"
-    },
-    "t_mapping(t_uint64,t_uint64)": {
-      "label": "mapping(uint64 => uint64)",
-      "encoding": "mapping",
-      "numberOfBytes": "32",
-      "key": "t_uint64",
-      "value": "t_uint64"
     },
     "t_mapping(t_uint8,t_address)": {
       "label": "mapping(uint8 => address)",
@@ -387,94 +392,88 @@
           "type": "t_mapping(t_uint64,t_uint256)"
         },
         {
-          "label": "parkedHead",
-          "slot": "12",
-          "offset": 0,
-          "type": "t_uint64"
-        },
-        {
-          "label": "parkedTail",
-          "slot": "12",
-          "offset": 8,
-          "type": "t_uint64"
-        },
-        {
-          "label": "parkedPrev",
-          "slot": "13",
-          "offset": 0,
-          "type": "t_mapping(t_uint64,t_uint64)"
-        },
-        {
-          "label": "parkedNext",
-          "slot": "14",
-          "offset": 0,
-          "type": "t_mapping(t_uint64,t_uint64)"
-        },
-        {
           "label": "nextFamily",
-          "slot": "15",
+          "slot": "12",
           "offset": 0,
           "type": "t_uint64"
         },
         {
           "label": "families",
-          "slot": "16",
+          "slot": "13",
           "offset": 0,
           "type": "t_mapping(t_uint64,t_struct(Family)_storage)"
         },
         {
           "label": "familyNames",
-          "slot": "17",
+          "slot": "14",
           "offset": 0,
           "type": "t_mapping(t_bytes32,t_uint64)"
         },
         {
           "label": "nextWar",
-          "slot": "18",
+          "slot": "15",
           "offset": 0,
           "type": "t_uint64"
         },
         {
           "label": "wars",
-          "slot": "19",
+          "slot": "16",
           "offset": 0,
           "type": "t_mapping(t_uint64,t_struct(War)_storage)"
         },
         {
           "label": "activeWar",
-          "slot": "20",
+          "slot": "17",
           "offset": 0,
           "type": "t_mapping(t_bytes32,t_uint64)"
         },
         {
           "label": "nextTrade",
-          "slot": "21",
+          "slot": "18",
           "offset": 0,
           "type": "t_uint64"
         },
         {
           "label": "trades",
-          "slot": "22",
+          "slot": "19",
           "offset": 0,
           "type": "t_mapping(t_uint64,t_struct(Trade)_storage)"
         },
         {
           "label": "sessions",
-          "slot": "23",
+          "slot": "20",
           "offset": 0,
           "type": "t_mapping(t_address,t_struct(Session)_storage)"
         },
         {
           "label": "controllerInfo",
-          "slot": "24",
+          "slot": "21",
           "offset": 0,
           "type": "t_mapping(t_address,t_struct(ControllerInfo)_storage)"
         },
         {
           "label": "invites",
-          "slot": "25",
+          "slot": "22",
           "offset": 0,
           "type": "t_mapping(t_address,t_mapping(t_uint64,t_struct(Invite)_storage))"
+        },
+        {
+          "label": "hiddenEvidence",
+          "slot": "23",
+          "offset": 0,
+          "type": "t_mapping(t_uint64,t_struct(HiddenEvidenceState)_storage)"
+        },
+        {
+          "label": "hiddenOpeningConsumer",
+          "slot": "24",
+          "offset": 0,
+          "type": "t_address"
+        },
+        {
+          "label": "hiddenInvalidPointConsumer",
+          "slot": "25",
+          "offset": 0,
+          "type": "t_address"
         }
       ]
     },
@@ -506,6 +505,80 @@
           "slot": "2",
           "offset": 0,
           "type": "t_string_storage"
+        }
+      ]
+    },
+    "t_struct(HiddenEvidenceState)_storage": {
+      "label": "struct HiddenEvidenceState",
+      "encoding": "inplace",
+      "numberOfBytes": "160",
+      "members": [
+        {
+          "label": "receipt",
+          "slot": "0",
+          "offset": 0,
+          "type": "t_struct(HiddenResolutionState)_storage"
+        },
+        {
+          "label": "openingConsumer",
+          "slot": "3",
+          "offset": 0,
+          "type": "t_address"
+        },
+        {
+          "label": "invalidPointConsumer",
+          "slot": "4",
+          "offset": 0,
+          "type": "t_address"
+        },
+        {
+          "label": "cancelled",
+          "slot": "4",
+          "offset": 20,
+          "type": "t_bool"
+        }
+      ]
+    },
+    "t_struct(HiddenResolutionState)_storage": {
+      "label": "struct HiddenResolutionState",
+      "encoding": "inplace",
+      "numberOfBytes": "96",
+      "members": [
+        {
+          "label": "statement",
+          "slot": "0",
+          "offset": 0,
+          "type": "t_bytes32"
+        },
+        {
+          "label": "arrival",
+          "slot": "1",
+          "offset": 0,
+          "type": "t_uint40"
+        },
+        {
+          "label": "seq",
+          "slot": "1",
+          "offset": 5,
+          "type": "t_uint64"
+        },
+        {
+          "label": "status",
+          "slot": "1",
+          "offset": 13,
+          "type": "t_uint8"
+        },
+        {
+          "label": "consumed",
+          "slot": "1",
+          "offset": 14,
+          "type": "t_bool"
+        },
+        {
+          "label": "plain",
+          "slot": "2",
+          "offset": 0,
+          "type": "t_bytes_storage"
         }
       ]
     },

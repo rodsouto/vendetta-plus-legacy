@@ -113,11 +113,11 @@ onchain:
   max_session_seconds: 2592000          # longest session key authorization: 30 days (B-15)
   max_controllers_per_player: 5         # devices (passkeys) and recovery codes that manage an account (B-26)
   controller_removal_delay_seconds: 259200 # removing another controller or transferring the account completes after 3 days; any controller can cancel meanwhile (B-26)
-  hidden_reveal_grace_seconds: 60       # a parked hidden mission (nobody revealed it) can be forfeited from here on (B-22)
+  hidden_reveal_grace_seconds: 60       # Reserved input of the pinned research circuit digest; unused by the v2 rules.
   # A building receiving stationed or returning troops cannot send a mission this long (B-22).
-  # ≥ arrival gap (3) + hidden_order_window (15) + reveal latency (~5), with slack.
+  # Troop rest is independent of certificate delivery time.
   troop_arrival_cooldown_seconds: 30
-  hidden_order_window_seconds: 15       # reveals go in arrival order: a parked hidden mission holds the ones behind it this long at most (B-22):
+  hidden_order_window_seconds: 15       # Reserved input of the pinned research circuit digest; unused by the v2 rules.
                                         # > the keeper's latency, head start (8, client) + drand and the keeper's tick (~3)
   hidden_arrival_slack_seconds: 30      # a hidden mission's fixed arrival may follow its natural one (inclusion + duration) by this much at most (B-22)
   invite_ttl_seconds: 604800            # a controller or transfer invitation lasts 7 days (B-26)

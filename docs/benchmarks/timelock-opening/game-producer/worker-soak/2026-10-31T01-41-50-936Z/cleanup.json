@@ -1,0 +1,21 @@
+{
+  "checkedAt": "2026-10-31T02:46:02.840778+00:00",
+  "observedWorkerPids": [
+    3488589,
+    3500564,
+    3511860,
+    3521277,
+    3526546,
+    3534846,
+    3539145,
+    3551092,
+    3564086,
+    3577193,
+    3583271,
+    3603426,
+    3608767,
+    3619943
+  ],
+  "allObservedWorkerPidsExited": true,
+  "matchesSampledWorkerProcessCount": true
+}

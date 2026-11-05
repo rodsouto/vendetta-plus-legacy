@@ -1,0 +1,45 @@
+{
+  "scope": "Constraint tests only: quicknet BLS authentication joined to KEM/age/canonical ciphertext; not a complete mission predicate",
+  "date": "2026-10-29",
+  "publicKey": "83cf0f2896adee7eb8b5f01fcad3912212c437e0073e911fb90022d3e760183c8c4b450b6a0a6c3ac6a5776a2d1064510d1fec758c921cc22b0e17e63aaf4bcb5ed66304de9cf809bd274ca73bab4af5a6e9c76a4bc09e76eae8991ef5ece45a",
+  "chainHash": "52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971",
+  "scheme": "bls-unchained-g1-rfc9380",
+  "dst": "BLS_SIG_BLS12381G1_XMD:SHA-256_SSWU_RO_NUL_",
+  "nativeInteropCases": 7,
+  "nativeAuthenticRounds": [
+    1000,
+    1001
+  ],
+  "beaconCircuit": {
+    "constraints": 1257811,
+    "publicInputs": 4,
+    "positiveCases": 2,
+    "negativeCases": 9,
+    "roundDomain": "1..2^64-1",
+    "randomnessJsonFieldUsed": false
+  },
+  "authenticatedOpeningCircuit": {
+    "constraints": 4813028,
+    "publicInputs": 45,
+    "h3Candidates": 4,
+    "plaintextBytes": 19,
+    "headerBytes": 278,
+    "roundDomain": "1..2^53-1",
+    "positiveConstraintCases": 5,
+    "negativeConstraintCases": 4,
+    "sameSignatureUsedByBeaconAndKem": true,
+    "sameRoundUsedByBeaconAndHeader": true
+  },
+  "forgedBeaconBoundary": {
+    "originalCiphertextHashUnchanged": true,
+    "previousUnauthenticatedComponentSatisfiable": true,
+    "authenticatedWrapperSatisfiable": false,
+    "invalidMissionCertificateProduced": false
+  },
+  "newGroth16SetupRun": false,
+  "newGroth16ProofGenerated": false,
+  "newSolidityVerifierGenerated": false,
+  "evmGasMeasured": false,
+  "completeMissionValidated": false,
+  "productionContractsChanged": false
+}

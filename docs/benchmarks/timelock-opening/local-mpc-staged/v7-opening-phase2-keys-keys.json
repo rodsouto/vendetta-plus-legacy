@@ -1,0 +1,19 @@
+{
+  "schema": "vendetta-unsafe-local-phase2-keys-1",
+  "log2": 23,
+  "initializationSha256": "f23056da6aac64466512dea6496a098dbdb5562b208ff4d326a9c8f9de0f0675",
+  "sourceArtifactSha256": "2f0ab99869f9bb0b893d857e998efccaa9069d5946f462ba9812859f260c613c",
+  "verificationSha256": "ec985289cd6f9632eabeed08b3a71161f9d0aa706e75c4b352f23bffbbcbb38d",
+  "commonsArtifactSha256": "8869842524ab18c47dadf74da6ab1a2267e98109005483f8a6a5a35926266972",
+  "beacon": "VENDETTA_UNSAFE_LOCAL_PHASE2_CAPACITY_BEACON_V1",
+  "sha256": {
+    "Verifier.sol": "5bcd76e107a434e642d3547527c44f1bf30b6aed81a93eff71a21f76d19bb41c",
+    "circuit.bin": "06e4740642174a1f0f03ab0c0f06f2199b996534c30546df6896b9f3ab777b1f",
+    "manifest.json": "e1c210611c3c110ff45027f7fc7f2459c2b065ee3ffcb3a1b9ed38a4dfcc1455",
+    "proving.key": "1d86e86939e4404c3c82d8b73cbe7444665914abbc6ab9977c3fd58bbb0dcf05",
+    "verifying.key": "10a9f756efb0bfe85d2a12abca3461be6eec02ac7aa03f1688ccdbffb6e590c4"
+  },
+  "beaconAfterClosureProven": false,
+  "unsafeLocalSetup": true,
+  "productionApproved": false
+}

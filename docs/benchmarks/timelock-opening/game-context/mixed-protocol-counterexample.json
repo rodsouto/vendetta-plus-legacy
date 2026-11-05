@@ -1,0 +1,11 @@
+{
+  "scope": "Reference engine with trusted-result mock; executable activation blocker, not a cryptographic test",
+  "historicalMission": "1",
+  "legacyMission": "2",
+  "delaySeconds": "7200",
+  "punctualLegacyReturnSequence": "5",
+  "delayedLegacyReturnSequence": "4",
+  "equalReturnArrival": true,
+  "wholeWorldEquality": false,
+  "finding": "Legacy forfeit allocates a sequence while an earlier v2 mission waits. Mixed admission must remain disabled until a transition/ordering policy prevents this interleaving."
+}

@@ -1,0 +1,52 @@
+{
+  "scope": "Single mandatory v2 hidden protocol from Game initialization, no v1 sender/parking/direct reveal/forfeit/activation compatibility",
+  "rulesTestsPassed": 744,
+  "contractsTestsPassed": 188,
+  "webTestsPassed": 107,
+  "layoutCheckerTestsPassed": 11,
+  "differentialScenarioTestsPassed": 25,
+  "generatedHistories": 36,
+  "generatedScenarioSteps": 7827,
+  "skippedTests": 0,
+  "archivedRealGroth16CanonicalConsumerTests": 3,
+  "initializationRequiresConsumers": true,
+  "removedPublicMethods": [
+    "activateHiddenV2",
+    "reveal",
+    "forfeit",
+    "parkedMissions"
+  ],
+  "legacyWireFormatSupported": false,
+  "plaintextLocalProtocolSupported": false,
+  "hiddenProtocolVersionSwitchPresent": false,
+  "worldConstructionRequiresConsumers": true,
+  "operationalFailureCanInvalidateMission": false,
+  "runtimeBytes": {
+    "Game": 23151,
+    "Missions": 21341,
+    "HiddenAdmission": 2401,
+    "HiddenEvidence": 3328,
+    "GameViews": 2923,
+    "MissionV2Consumer": 2642,
+    "InvalidPointV2Consumer": 710,
+    "H3Prefix": 1940
+  },
+  "layoutReset": "Predeployment only; removed parked fields and recorded new baseline with --force at user request; no migration code",
+  "browserPacketNativeTlockInteropPassed": true,
+  "anvilGameReceiptReplayUsesMocks": true,
+  "newGameContextGroth16ProofGenerated": true,
+  "certificateKeeperTransportImplemented": true,
+  "newGameCertificateProducerServiceImplemented": true,
+  "webBuildPassed": true,
+  "keeperTypecheckPassed": true,
+  "experimentTypecheckPassed": true,
+  "realNetworkDeploymentPerformed": false,
+  "logSha256": {
+    "rules": "40a75f304c41dc6fae280c80ff7b80ec855a39fa60113ee179dca5d15522ce9f",
+    "contracts": "9680d25a25e7f918879d0a4651ff397f6623287b7b72c04b747bcface95527db",
+    "web": "0b48f7808acfd4243483b7424c9913fbe5fb50bb2f04f2af0495486f87ffd685"
+  },
+  "realProducerReplay": "../game-producer/results.json",
+  "realProducerReplayUsesMocks": false,
+  "productionReady": false
+}

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.28;
 
+import {HiddenEvidenceState} from "../../src/core/HiddenResolution.sol";
+import {Map} from "../../src/rules/Map.sol";
 import {console} from "forge-std/Test.sol";
 import {Game} from "../../src/Game.sol";
 import {ROOMS, RESEARCH, RESOURCES, TROOPS} from "../../src/generated/VendettaRuleset.sol";
@@ -29,7 +31,7 @@ contract ScenariosTest is GameTestBase {
         "FamilySnap(bool alive,uint256 id,uint256 members,string name,string tag)"
         "PlayerSnap(uint256[] applications,uint256 buildings,uint256 centipoints,uint256[] controllers,uint256 id,uint256 missions,uint256[] offers,uint256[] purchases,uint256[] queueFinish,uint256[] queueIndex,uint256[] queueSeq,uint256[] recovery,uint256[] removalAt,uint256[] research,uint256 researchBuilding,uint256[] social)"
         "SessionSnap(uint256 actor,uint256 epoch,uint256 player,uint256 until)"
-        "State(BuildingSnap[] buildings,FamilySnap[] families,InviteSnap[] invites,MissionSnap[] missions,uint256[] parked,PlayerSnap[] players,SessionSnap[] sessions,TradeSnap[] trades,WarSnap[] wars)"
+        "State(BuildingSnap[] buildings,FamilySnap[] families,InviteSnap[] invites,MissionSnap[] missions,PlayerSnap[] players,SessionSnap[] sessions,TradeSnap[] trades,WarSnap[] wars)"
         "TradeSnap(uint256[] buyerTook,uint256[] deposit,uint256[] fields,uint256 id,uint256[] paid,uint256[] price,uint256[] rate,uint256[] sellerTook)"
         "WarSnap(uint256[] fields,uint256 id)"
         "Step(uint256 action,uint256 actor,uint256[] args,string error,State state,uint256 time)";
@@ -125,7 +127,6 @@ contract ScenariosTest is GameTestBase {
         FamilySnap[] families;
         InviteSnap[] invites;
         MissionSnap[] missions;
-        uint256[] parked; // due hidden missions nobody revealed yet, in list order (B-22)
         PlayerSnap[] players;
         SessionSnap[] sessions;
         TradeSnap[] trades;
@@ -244,14 +245,86 @@ contract ScenariosTest is GameTestBase {
         _run(34, 35);
     }
 
-    function test_station_35() public {
+    function test_v2_invalid_35() public {
         _run(35, 36);
+    }
+
+    function test_v2_history_36() public {
+        _run(36, 37);
+    }
+
+    function test_v2_history_37() public {
+        _run(37, 38);
+    }
+
+    function test_v2_history_38() public {
+        _run(38, 39);
+    }
+
+    function test_v2_history_39() public {
+        _run(39, 40);
+    }
+
+    function test_v2_history_40() public {
+        _run(40, 41);
+    }
+
+    function test_v2_history_41() public {
+        _run(41, 42);
+    }
+
+    function test_v2_history_42() public {
+        _run(42, 43);
+    }
+
+    function test_v2_history_43() public {
+        _run(43, 44);
+    }
+
+    function test_v2_history_44() public {
+        _run(44, 45);
+    }
+
+    function test_v2_history_45() public {
+        _run(45, 46);
+    }
+
+    function test_v2_history_46() public {
+        _run(46, 47);
+    }
+
+    function test_v2_history_47() public {
+        _run(47, 48);
+    }
+
+    function test_v2_history_48() public {
+        _run(48, 49);
+    }
+
+    function test_v2_history_49() public {
+        _run(49, 50);
+    }
+
+    function test_v2_history_50() public {
+        _run(50, 51);
+    }
+
+    function test_v2_history_51() public {
+        _run(51, 52);
+    }
+
+    function test_v2_history_52() public {
+        _run(52, 53);
+    }
+
+    function test_v2_history_53() public {
+        _run(53, 54);
     }
 
     function test_allScenariosCovered() public view {
         assertEq(
             vm.parseJsonUint(vm.readFile(string.concat(DIR, "index.json")), ".count"),
-            36,
+            54,
             "update the test groups"
         );
     }
@@ -323,15 +396,13 @@ contract ScenariosTest is GameTestBase {
         } else if (act == 37) {
             call = _hiddenCall(game, who, a);
         } else if (act == 38) {
-            call = abi.encodeCall(
-                Game.reveal, (uint64(a[0]), uint8(a[1]), [a[2], a[3], a[4]], bytes32(a[5]))
-            );
+            call = certificateCall(game, a, false);
         } else if (act == 39) {
             call = abi.encodeCall(
                 Game.withdrawTrade, (uint64(a[0]), uint64(a[1]), [a[2], a[3], a[4], a[5]])
             );
         } else if (act == 47) {
-            call = abi.encodeCall(Game.forfeit, (uint64(a[0])));
+            call = certificateCall(game, a, true);
         } else {
             call = _socialCall(act, a);
         }
@@ -444,14 +515,77 @@ contract ScenariosTest is GameTestBase {
             res[r] = a[7 + TROOPS + r];
         }
         uint40 arrival = uint40(a[7 + TROOPS + RESOURCES]);
+        if (arrival == 0) arrival = uint40(block.timestamp + 20);
         return abi.encodeCall(
             Game.sendHiddenMission,
-            (uint64(a[0]), commit, uint32(a[6]), troops, res, hex"c0ffee", arrival)
+            (uint64(a[0]), commit, uint32(a[6]), troops, res, testPacket(arrival), arrival)
         );
     }
 
+    function certificateCall(Game game, uint256[] memory a, bool invalid)
+        internal
+        view
+        returns (bytes memory)
+    {
+        HiddenEvidenceState memory e =
+            abi.decode(game.getHiddenEvidence(uint64(a[0])), (HiddenEvidenceState));
+        if (invalid) {
+            uint256[2] memory x = [
+                uint256(e.receipt.statement) >> 128, uint256(uint128(uint256(e.receipt.statement)))
+            ];
+            return abi.encodeCall(
+                Game.submitHiddenEvidence,
+                (uint64(a[0]), abi.encode(uint8(2), abi.encode(true), abi.encode(x)))
+            );
+        }
+        uint256[55] memory x;
+        x[48] = uint256(e.receipt.statement) >> 128;
+        x[49] = uint128(uint256(e.receipt.statement));
+        bytes memory plain = abi.encodePacked(
+            bytes1(uint8(2)), uint8(a[1]), uint8(a[2]), uint8(a[3]), uint8(a[4]), bytes32(a[5])
+        );
+        bool valid = _staticValidity(game, a);
+        return abi.encodeCall(
+            Game.submitHiddenEvidence,
+            (
+                uint64(a[0]),
+                abi.encode(uint8(1), abi.encode(valid, valid ? plain : new bytes(0)), abi.encode(x))
+            )
+        );
+    }
+
+    function _staticValidity(Game game, uint256[] memory a) internal view returns (bool) {
+        Mission memory m = game.getMission(uint64(a[0]));
+        if (
+            a[1] < 1 || a[1] > 4 || a[2] < 1 || a[2] > 50 || a[3] < 1 || a[3] > 50 || a[4] < 1
+                || a[4] > 255
+        ) {
+            return false;
+        }
+        if (m.fromCity == a[2] && m.fromNeighborhood == a[3] && m.fromSlot == a[4]) return false;
+        if (
+            keccak256(abi.encode(m.owner, uint8(a[1]), a[2], a[3], a[4], bytes32(a[5]))) != m.commit
+        ) {
+            return false;
+        }
+        if (
+            Map.distance([uint256(m.fromCity), m.fromNeighborhood, m.fromSlot], [a[2], a[3], a[4]])
+                > uint256(m.cover) * 1000
+        ) return false;
+        if (a[1] != 3) {
+            for (uint256 i; i < RESOURCES; ++i) {
+                if (m.cargo[i] > 0) return false;
+            }
+        }
+        return true;
+    }
+
     function _errorName(bytes4 sel) internal pure returns (string memory) {
-        string[62] memory names = [
+        string[64] memory names = [
+            "ResolutionConflict",
+            "ResolutionUnknown",
+            "ResolutionInvalidContext",
+            "ResolutionInvalidPacket",
             "AlreadyRegistered",
             "InvalidCoordinate",
             "SlotTaken",
@@ -511,9 +645,7 @@ contract ScenariosTest is GameTestBase {
             "NoInvite",
             "TooLate",
             "InvalidArrival",
-            "TooEarly",
-            "TroopsResting",
-            "OutOfOrder"
+            "TroopsResting"
         ];
         for (uint256 i; i < names.length; ++i) {
             if (bytes4(keccak256(bytes(string.concat(names[i], "()")))) == sel) return names[i];
@@ -566,7 +698,7 @@ contract ScenariosTest is GameTestBase {
         }
         return _sameFamilies(game, exp.families) && _sameWars(game, exp.wars)
             && _sameTrades(game, exp.trades) && _sameSessions(game, exp.sessions)
-            && _sameInvites(game, exp.invites) && _sameParked(game, exp.parked);
+            && _sameInvites(game, exp.invites);
     }
 
     function _sameInvites(Game game, InviteSnap[] memory exp) internal view returns (bool) {
@@ -584,15 +716,6 @@ contract ScenariosTest is GameTestBase {
     /// Every actor ever listed stays in the snapshot; a delisted one must read false on-chain.
     /// The parked list in order: a linked list in (arrival, seq) order on-chain, a sorted array in
     /// the simulator (B-22).
-    function _sameParked(Game game, uint256[] memory exp) internal view returns (bool) {
-        uint64[] memory parked = game.parkedMissions();
-        if (parked.length != exp.length) return false;
-        for (uint256 i; i < exp.length; ++i) {
-            if (parked[i] != exp[i]) return false;
-        }
-        return true;
-    }
-
     function _sameControllers(Game.PlayerView memory p, PlayerSnap memory e)
         internal
         pure
@@ -739,7 +862,7 @@ contract ScenariosTest is GameTestBase {
     function _sameMissions(Game game, MissionSnap[] memory exp) internal view returns (bool) {
         (,,,, uint64 active,) = game.counters();
         // Every live mission is queued or parked (B-22).
-        uint256 live = game.pendingMissions().length + game.parkedMissions().length;
+        uint256 live = game.pendingMissions().length;
         if (active != exp.length || live != exp.length) return false;
         for (uint256 i; i < exp.length; ++i) {
             MissionSnap memory e = exp[i];

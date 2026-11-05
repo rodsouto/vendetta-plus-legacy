@@ -56,7 +56,8 @@ library Account {
         }
         if (block.timestamp <= p.tradeLockUntil) revert TradeOpen();
         p.vacationUntil = uint40(
-            block.timestamp + (premium ? Ruleset.VACATION_SECONDS_PREMIUM : Ruleset.VACATION_SECONDS)
+            block.timestamp
+                + (premium ? Ruleset.VACATION_SECONDS_PREMIUM : Ruleset.VACATION_SECONDS)
         );
         p.vacationStart = uint40(block.timestamp);
         p.vacationSeq = s.seq++; // ordered against sends in the same second (B-07, B-22)

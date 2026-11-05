@@ -1,0 +1,20 @@
+{
+  "scope": "Canonical mission profile with external H3; constraints/witness checks only, NOT Groth16 mission proof or Game integration",
+  "constraints": 5343281,
+  "publicInputs": 52,
+  "profilePlainBytes": 19,
+  "witnessCases": 6,
+  "tests": [
+    "valid",
+    "cannot-forfeit-valid",
+    "wrong-commitment",
+    "wrong-pre",
+    "wrong-context",
+    "wrong-beacon-round"
+  ],
+  "originalMissionRegressionPassed": true,
+  "fullMissionGroth16ProofGenerated": false,
+  "fullFiveCandidateMissionFixtureTested": false,
+  "productionIntegrated": false,
+  "logSha256": "b8b2d87bac3996fcc24b59e341b9c4b88b69a745573129a4d72c6f2bf0090dc9"
+}

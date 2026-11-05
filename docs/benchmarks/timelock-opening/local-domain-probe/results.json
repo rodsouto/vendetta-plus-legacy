@@ -1,0 +1,26 @@
+{
+  "artifactSha256": {
+    "init-22.jsonl": "17f74034af791ea46e94183c1e73f44f1fabfb963327c9d528f3a5041583e1d2",
+    "init-23.jsonl": "b8f300c4453c44e0079b5ace66d2aa50ccb4dc196ce0d06b0fe00de9c3fe4ee0",
+    "report.json": "43f6cd01177574bb0c510ba17624b7d996929db3806983137f4fa3b6515cf51f",
+    "run.txt": "cdd98b521a9a27b78aa8747e90be59f0e4c1757920052aede526472255842bbe",
+    "tests.jsonl": "b33f0835f5700cda1f367bc9669b08b5ad5f5329a66b989bd530a830ab0bb442"
+  },
+  "domainReferenceCompileReportSha256": "a45e4f7a982c0ed044e0676ef089585cc8f48529c6ac0f1a3c3fab66f239297c",
+  "gameDomainInitializationMeasured": true,
+  "gameDomainMpcMeasured": false,
+  "phase2Measured": false,
+  "productionApproved": false,
+  "scope": "Measured phase-1 initialization and streamed hash in both game domains locally; contributions, full verification and phase 2 unmeasured",
+  "sourceSha256": {
+    "apps/web/scripts/experiments/opening-zk/cmd/mpc-local-probe/main.go": "57b03fa0471b9a518afb175d4b62a5dc10419e498f4e4830a40052c6ef1474af",
+    "apps/web/scripts/experiments/opening-zk/cmd/mpc-local-probe/main_test.go": "84ce48750c3c2b1b96ddc0a58b4a8410e4e8ee5b5d66abc1bc3e5e76c401bd5a",
+    "apps/web/scripts/experiments/opening-zk/mpcrehearsal/runner.go": "f3bb66896d30e150e6424d8bd133d174826958087a9d69b8f2852aa8cddc8647",
+    "scripts/hidden-v2-local-probe.sh": "141c7334424a70f81967ab1ebff23d62223ac2c799466079827c1e084d4b3f30"
+  },
+  "tests": {
+    "mainTests": 10,
+    "passedEvents": 32,
+    "subtests": 22
+  }
+}

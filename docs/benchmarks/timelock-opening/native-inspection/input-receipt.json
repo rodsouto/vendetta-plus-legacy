@@ -1,0 +1,9 @@
+{
+  "source": "docs/benchmarks/timelock-opening/mpc-rehearsal/phase-1-contribution-1.json",
+  "sourceSha256": "d028f821e479195edcbfec3178f7cce024fcad54f05ec4bf9aac7c9e7c11b4a9",
+  "transcriptSha256": "3a9a87f65faad6d98de27e0123db3c2359481708b3e6b4ce10bc6a398b77e827",
+  "shapeSha256": "d8b4a9ab76ac157680a973fb2248e0b5042da0692e0e8a46867e298e67c9e815",
+  "phase": 1,
+  "domain": 8,
+  "newSignatureVerificationPerformed": false
+}

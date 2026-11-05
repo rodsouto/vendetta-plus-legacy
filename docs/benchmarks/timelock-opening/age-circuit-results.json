@@ -1,0 +1,92 @@
+{
+  "scope": "Constraint-solver validation only: age plus compact KEM and canonical ciphertext hash; no authenticated beacon or mission predicate",
+  "date": "2026-10-29",
+  "nodeGoNativeCases": 18,
+  "authenticationClaimsFlippedAndRejected": 36,
+  "poly1305Rfc8439VectorPassed": true,
+  "canonicalBase64VectorPassed": true,
+  "ageProfiles": [
+    {
+      "plaintextBytes": 19,
+      "constraints": 983508,
+      "publicInputs": 29
+    },
+    {
+      "plaintextBytes": 0,
+      "constraints": 967515,
+      "publicInputs": 25
+    },
+    {
+      "plaintextBytes": 1,
+      "constraints": 982929,
+      "publicInputs": 27
+    },
+    {
+      "plaintextBytes": 15,
+      "constraints": 983085,
+      "publicInputs": 27
+    },
+    {
+      "plaintextBytes": 16,
+      "constraints": 983096,
+      "publicInputs": 27
+    },
+    {
+      "plaintextBytes": 17,
+      "constraints": 983486,
+      "publicInputs": 29
+    },
+    {
+      "plaintextBytes": 63,
+      "constraints": 984751,
+      "publicInputs": 33
+    },
+    {
+      "plaintextBytes": 64,
+      "constraints": 984762,
+      "publicInputs": 33
+    },
+    {
+      "plaintextBytes": 65,
+      "constraints": 1000177,
+      "publicInputs": 35
+    },
+    {
+      "plaintextBytes": 95,
+      "constraints": 1000886,
+      "publicInputs": 37
+    },
+    {
+      "plaintextBytes": 128,
+      "constraints": 1002007,
+      "publicInputs": 41
+    },
+    {
+      "plaintextBytes": 256,
+      "constraints": 1036498,
+      "publicInputs": 57
+    }
+  ],
+  "joinedProfile": {
+    "plaintextBytes": 19,
+    "headerBytes": 278,
+    "constraints": 3756467,
+    "publicInputs": 45,
+    "h3Candidates": 4,
+    "positiveAndNegativeSubtestsCovered": 14,
+    "ciphertextHashBound": true,
+    "hashUsesTwo128BitWords": true
+  },
+  "boundaryRegression": {
+    "sameOriginalCiphertextHash": true,
+    "forgedBeaconAuthenticated": false,
+    "componentCanStillProduceFalseAuthenticationFlags": true,
+    "referenceClassifiesAs": "untrusted",
+    "consequence": "The component is not a mission invalidity certificate; authenticated beacon verification is still mandatory"
+  },
+  "newGroth16SetupRun": false,
+  "newGroth16ProofGenerated": false,
+  "newSolidityVerifierGenerated": false,
+  "evmGasMeasured": false,
+  "productionContractsChanged": false
+}

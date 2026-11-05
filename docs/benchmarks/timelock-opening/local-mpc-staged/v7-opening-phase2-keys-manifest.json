@@ -1,0 +1,13 @@
+{
+  "constraints": 5139537,
+  "kind": "opening",
+  "profile": "VENDETTA_OPENING_V2",
+  "publicInputs": 55,
+  "sha256": {
+    "Verifier.sol": "5bcd76e107a434e642d3547527c44f1bf30b6aed81a93eff71a21f76d19bb41c",
+    "circuit.bin": "06e4740642174a1f0f03ab0c0f06f2199b996534c30546df6896b9f3ab777b1f",
+    "proving.key": "1d86e86939e4404c3c82d8b73cbe7444665914abbc6ab9977c3fd58bbb0dcf05",
+    "verifying.key": "10a9f756efb0bfe85d2a12abca3461be6eec02ac7aa03f1688ccdbffb6e590c4"
+  },
+  "unsafeLocalSetup": true
+}

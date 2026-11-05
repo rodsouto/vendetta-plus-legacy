@@ -1,0 +1,26 @@
+{
+  "scope": "Native phase profiling only; no circuit, game-rule or Solidity changes",
+  "checks": {
+    "nativeProducerTests": {
+      "topLevelTests": 4,
+      "passed": true,
+      "log": "/tmp/vendetta-producer-profile-native.log"
+    },
+    "resourceAndJobsTests": {
+      "tests": 11,
+      "passed": true,
+      "log": "/tmp/vendetta-producer-profile-tests.log"
+    },
+    "scriptTypecheck": true,
+    "existingReportRejectedBeforeBinaryExecution": true,
+    "newNativeProofsVerifiedWithVK": 2,
+    "phaseDurationsReconciledWithTotals": true
+  },
+  "notRepeated": [
+    "full web suite",
+    "rules suite",
+    "contracts suite",
+    "EVM/H3 replay"
+  ],
+  "setupsRegenerated": false
+}

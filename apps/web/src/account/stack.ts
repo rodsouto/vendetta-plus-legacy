@@ -52,15 +52,9 @@ function pimlico(url: string) {
   return p;
 }
 
-/** A reveal's calldata must never reach the ordinary public submission path on Gnosis. */
-export function operationBundler(network: Network, calls: Call[]): string {
-  const { deployment } = network;
-  const reveals = calls.some(
-    (c) => c.to.toLowerCase() === deployment.game.toLowerCase() && c.functionName === "reveal",
-  );
-  if (network.id === "gnosis" && reveals && !deployment.revealBundler)
-    throw new Error("Private reveal submission is not configured");
-  return reveals ? (deployment.revealBundler ?? deployment.bundler!) : deployment.bundler!;
+/** Certificates use the ordinary sponsored path after the timelock releases. */
+export function operationBundler(network: Network, _calls: Call[]): string {
+  return network.deployment.bundler!;
 }
 
 /**

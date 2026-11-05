@@ -423,19 +423,6 @@ export const gameAbi = [
   },
   {
     "type": "function",
-    "name": "forfeit",
-    "inputs": [
-      {
-        "name": "mission",
-        "type": "uint64",
-        "internalType": "uint64"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
     "name": "getBuilding",
     "inputs": [
       {
@@ -624,6 +611,25 @@ export const gameAbi = [
   },
   {
     "type": "function",
+    "name": "getHiddenEvidence",
+    "inputs": [
+      {
+        "name": "mission",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "getInvite",
     "inputs": [
       {
@@ -801,7 +807,7 @@ export const gameAbi = [
     ],
     "outputs": [
       {
-        "name": "v",
+        "name": "",
         "type": "tuple",
         "internalType": "struct Game.PlayerView",
         "components": [
@@ -1158,6 +1164,24 @@ export const gameAbi = [
   },
   {
     "type": "function",
+    "name": "hiddenConsumers",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "opening",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "invalidPoint",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "initialize",
     "inputs": [
       {
@@ -1172,6 +1196,16 @@ export const gameAbi = [
       },
       {
         "name": "arbiter",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "opening",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "invalidPoint",
         "type": "address",
         "internalType": "address"
       }
@@ -1273,19 +1307,6 @@ export const gameAbi = [
       }
     ],
     "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "parkedMissions",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "out",
-        "type": "uint64[]",
-        "internalType": "uint64[]"
-      }
-    ],
-    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -1468,34 +1489,6 @@ export const gameAbi = [
         "name": "controller",
         "type": "address",
         "internalType": "address"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "reveal",
-    "inputs": [
-      {
-        "name": "mission",
-        "type": "uint64",
-        "internalType": "uint64"
-      },
-      {
-        "name": "kind",
-        "type": "uint8",
-        "internalType": "uint8"
-      },
-      {
-        "name": "target",
-        "type": "uint256[3]",
-        "internalType": "uint256[3]"
-      },
-      {
-        "name": "salt",
-        "type": "bytes32",
-        "internalType": "bytes32"
       }
     ],
     "outputs": [],
@@ -1708,6 +1701,30 @@ export const gameAbi = [
     "name": "startVacation",
     "inputs": [],
     "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "submitHiddenEvidence",
+    "inputs": [
+      {
+        "name": "mission",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "certificate",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
     "stateMutability": "nonpayable"
   },
   {
@@ -2198,6 +2215,38 @@ export const gameAbi = [
   },
   {
     "type": "event",
+    "name": "HiddenEvidenceRecorded",
+    "inputs": [
+      {
+        "name": "mission",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      },
+      {
+        "name": "valid",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "HiddenMissionInvalidated",
+    "inputs": [
+      {
+        "name": "mission",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "HiddenMissionSent",
     "inputs": [
       {
@@ -2262,32 +2311,6 @@ export const gameAbi = [
   {
     "type": "event",
     "name": "MissionEnded",
-    "inputs": [
-      {
-        "name": "mission",
-        "type": "uint64",
-        "indexed": true,
-        "internalType": "uint64"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "MissionForfeited",
-    "inputs": [
-      {
-        "name": "mission",
-        "type": "uint64",
-        "indexed": true,
-        "internalType": "uint64"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "MissionParked",
     "inputs": [
       {
         "name": "mission",
@@ -3280,6 +3303,11 @@ export const gameAbi = [
   },
   {
     "type": "error",
+    "name": "ResolutionInvalidConsumers",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "UUPSUnauthorizedCallContext",
     "inputs": []
   },
@@ -3421,22 +3449,37 @@ export const gameAbi = [
   },
   {
     "type": "error",
-    "name": "OutOfOrder",
-    "inputs": []
-  },
-  {
-    "type": "error",
     "name": "OwnTarget",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "TargetOnVacation",
+    "name": "ResolutionConsumed",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "TooEarly",
+    "name": "ResolutionIdentityMismatch",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ResolutionNotDue",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ResolutionPending",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ResolutionUnknown",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TargetOnVacation",
     "inputs": []
   },
   {
@@ -3452,6 +3495,51 @@ export const gameAbi = [
   {
     "type": "error",
     "name": "TroopsResting",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ResolutionCertificateRequired",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ResolutionConflict",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ResolutionInvalidBinding",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ResolutionInvalidPlain",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ResolutionInvalidProof",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ResolutionStatementMismatch",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ResolutionAlreadyInitialized",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ResolutionInvalidContext",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ResolutionInvalidPacket",
     "inputs": []
   },
   {

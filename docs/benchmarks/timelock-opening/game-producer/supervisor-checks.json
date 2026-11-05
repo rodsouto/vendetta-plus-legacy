@@ -1,0 +1,34 @@
+{
+  "scope": "Worker supervisor lifecycle and correlated native protocol; HTTP service mode unchanged",
+  "checks": {
+    "typescript": {
+      "passed": true,
+      "tests": 22,
+      "files": 3,
+      "supervisorTests": 11,
+      "log": "/tmp/vendetta-producer-supervisor-tests.log"
+    },
+    "nativeProducerTests": {
+      "passed": true,
+      "topLevelTests": 6,
+      "log": "/tmp/vendetta-producer-supervisor-native.log"
+    },
+    "realGoWorkerFailureCleanupAndRestart": {
+      "passed": true,
+      "log": "/tmp/vendetta-producer-supervisor-smoke.log"
+    },
+    "scriptTypecheckIncludingProfileScripts": true,
+    "formatAndDiffChecks": true
+  },
+  "roadmap": {
+    "stage1": "complete: process lifecycle tests",
+    "stage2": "pending: service integration and real both-circuit EVM/H3 replay"
+  },
+  "notRepeated": [
+    "full web suite",
+    "rules suite",
+    "contracts suite",
+    "Groth16 proving replay"
+  ],
+  "setupsRegenerated": false
+}

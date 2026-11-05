@@ -1,0 +1,28 @@
+{
+  "constraints": 3760005,
+  "publicInputs": 2,
+  "schema": "vendetta-unsafe-local-phase2-init-1",
+  "log2": 22,
+  "csHash": "89a9897b75e9cd785bd62feda8fc60ed50239f58e8b60211561fa560d8832898",
+  "commonsArtifactHash": "0710478bd4396f8ad0bfca28fc56013d6162bd610b33e01211f1c00cb1bc9824",
+  "commonsHash": "6ec975c115ff16c263497c2a13f775b1cf2f786c6d5c5b5e56e7239a668d1ad2",
+  "shape": {
+    "schema": "vendetta-hidden-v2-native-shape-1",
+    "circuitSha256": "89a9897b75e9cd785bd62feda8fc60ed50239f58e8b60211561fa560d8832898",
+    "phase": 2,
+    "domain": 4194304,
+    "private": 3338949,
+    "privateCommitted": [2243213]
+  },
+  "evaluations": {
+    "wires": 5582166,
+    "public": 3,
+    "committed": [2243213],
+    "publicAndCommitmentCommitted": [[]]
+  },
+  "initialBytes": 312847247,
+  "initialHash": "9612a2e5d02247e42ef971abffae9430617ea66b4c6bfa393313042bfc7a649d",
+  "evaluationBytes": 786300222,
+  "evaluationHash": "0779596717c4f9376c6bfd77b95e62582b6748c9f40ddd2d5f1473768d2af197",
+  "productionApproved": false
+}

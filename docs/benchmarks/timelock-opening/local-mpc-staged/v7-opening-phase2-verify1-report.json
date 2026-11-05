@@ -1,0 +1,16 @@
+{
+  "status": "phase2-verify-complete",
+  "operation": "phase2-verify",
+  "log2": 23,
+  "binarySha256": "e7d920d4c1f3b676740dc52d2e0a6ba1f9d17ec3e5409e4e8456bb362a88af3e",
+  "pid": 1858009,
+  "wallMilliseconds": 172532,
+  "cpuUserMilliseconds": 594076,
+  "cpuSystemMilliseconds": 18194,
+  "maxRssBytes": 5370855424,
+  "exited": true,
+  "addressSpaceBytes": 10737418240,
+  "cpuSeconds": 18000,
+  "wallSeconds": 21600,
+  "productionApproved": false
+}

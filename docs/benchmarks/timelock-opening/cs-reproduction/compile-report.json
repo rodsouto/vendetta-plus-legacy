@@ -1,0 +1,180 @@
+{
+  "allStartedWorkersExited": true,
+  "binarySha256": "b8ed4d74217573a21fc711f304a4977ce6dfc61f1c145398038dc47136996bc1",
+  "gameCircuitBytesVerified": true,
+  "gameDomainMpcMeasured": false,
+  "limits": {
+    "addressSpaceBytes": 10737418240,
+    "cpuPolicy": "kernel-RLIMIT_CPU-not-core-quota",
+    "cpuSecondsPerProcess": 2400,
+    "fileBytes": 1048576,
+    "goMemoryTargetBytes": 6442450944,
+    "gomaxprocs": 4,
+    "memoryPolicy": "kernel-RLIMIT_AS-not-cgroup-RSS",
+    "wallSeconds": 600
+  },
+  "phase2Measured": false,
+  "productionApproved": false,
+  "samples": [
+    {
+      "compiled": {
+        "bytes": 225400632,
+        "commitments": [
+          {
+            "commitmentIndex": 3182805,
+            "privateCommitted": 2243213,
+            "publicAndCommitmentCommitted": 0,
+            "publicCommitted": 0
+          }
+        ],
+        "constraints": 3760005,
+        "domain": 4194304,
+        "gameDomainMpcMeasured": false,
+        "internalVariables": 5582074,
+        "kind": "invalid-point",
+        "phase2Measured": false,
+        "productionApproved": false,
+        "publicInputs": 2,
+        "schema": "vendetta-hidden-v2-compiled-cs-1",
+        "secretVariables": 89,
+        "sha256": "89a9897b75e9cd785bd62feda8fc60ed50239f58e8b60211561fa560d8832898"
+      },
+      "cpuSystemSeconds": 31.09592,
+      "cpuUserSeconds": 41.070991,
+      "exitCode": 0,
+      "exited": true,
+      "hostAvailableBytesBeforeStart": 16126337024,
+      "index": 1,
+      "kind": "invalid-point",
+      "log": "invalid-point-1.log",
+      "logSha256": "a46de85139d89c92ec41d6040ad0007f74623c82d11895f8e665adea4475e06b",
+      "maxRssBytes": 4428836864,
+      "output": "invalid-point-1.json",
+      "outputSha256": "9399fe0811c4fe51d7ffad8c66dc6d63fd6018e1041f62eeeb7b3fe2e7db620f",
+      "pid": 105843,
+      "status": "complete",
+      "wallSeconds": 50.902901573000236
+    },
+    {
+      "compiled": {
+        "bytes": 225400632,
+        "commitments": [
+          {
+            "commitmentIndex": 3182805,
+            "privateCommitted": 2243213,
+            "publicAndCommitmentCommitted": 0,
+            "publicCommitted": 0
+          }
+        ],
+        "constraints": 3760005,
+        "domain": 4194304,
+        "gameDomainMpcMeasured": false,
+        "internalVariables": 5582074,
+        "kind": "invalid-point",
+        "phase2Measured": false,
+        "productionApproved": false,
+        "publicInputs": 2,
+        "schema": "vendetta-hidden-v2-compiled-cs-1",
+        "secretVariables": 89,
+        "sha256": "89a9897b75e9cd785bd62feda8fc60ed50239f58e8b60211561fa560d8832898"
+      },
+      "cpuSystemSeconds": 13.587417,
+      "cpuUserSeconds": 39.520113,
+      "exitCode": 0,
+      "exited": true,
+      "hostAvailableBytesBeforeStart": 16242950144,
+      "index": 2,
+      "kind": "invalid-point",
+      "log": "invalid-point-2.log",
+      "logSha256": "551f16ce44b0c348f72899b5d2993b0d275fd32447b8cfea3a462a8978a272aa",
+      "maxRssBytes": 4452753408,
+      "output": "invalid-point-2.json",
+      "outputSha256": "9399fe0811c4fe51d7ffad8c66dc6d63fd6018e1041f62eeeb7b3fe2e7db620f",
+      "pid": 106627,
+      "status": "complete",
+      "wallSeconds": 35.398179189000075
+    },
+    {
+      "compiled": {
+        "bytes": 341035999,
+        "commitments": [
+          {
+            "commitmentIndex": 3758205,
+            "privateCommitted": 2695403,
+            "publicAndCommitmentCommitted": 0,
+            "publicCommitted": 0
+          }
+        ],
+        "constraints": 5139537,
+        "domain": 8388608,
+        "gameDomainMpcMeasured": false,
+        "internalVariables": 6893945,
+        "kind": "opening",
+        "phase2Measured": false,
+        "productionApproved": false,
+        "publicInputs": 55,
+        "schema": "vendetta-hidden-v2-compiled-cs-1",
+        "secretVariables": 166,
+        "sha256": "06e4740642174a1f0f03ab0c0f06f2199b996534c30546df6896b9f3ab777b1f"
+      },
+      "cpuSystemSeconds": 19.87645,
+      "cpuUserSeconds": 58.024669,
+      "exitCode": 0,
+      "exited": true,
+      "hostAvailableBytesBeforeStart": 16147628032,
+      "index": 1,
+      "kind": "opening",
+      "log": "opening-1.log",
+      "logSha256": "55441ad66378109d527b21db5fc8c3c3f5d85054267c94a49b6a4547ac2d0032",
+      "maxRssBytes": 5729800192,
+      "output": "opening-1.json",
+      "outputSha256": "a6d95d061df2701f726e6ac7f9464a156070701201c29e6cd02a774dd4715986",
+      "pid": 106829,
+      "status": "complete",
+      "wallSeconds": 50.255308209999384
+    },
+    {
+      "compiled": {
+        "bytes": 341035999,
+        "commitments": [
+          {
+            "commitmentIndex": 3758205,
+            "privateCommitted": 2695403,
+            "publicAndCommitmentCommitted": 0,
+            "publicCommitted": 0
+          }
+        ],
+        "constraints": 5139537,
+        "domain": 8388608,
+        "gameDomainMpcMeasured": false,
+        "internalVariables": 6893945,
+        "kind": "opening",
+        "phase2Measured": false,
+        "productionApproved": false,
+        "publicInputs": 55,
+        "schema": "vendetta-hidden-v2-compiled-cs-1",
+        "secretVariables": 166,
+        "sha256": "06e4740642174a1f0f03ab0c0f06f2199b996534c30546df6896b9f3ab777b1f"
+      },
+      "cpuSystemSeconds": 13.173026,
+      "cpuUserSeconds": 57.558396,
+      "exitCode": 0,
+      "exited": true,
+      "hostAvailableBytesBeforeStart": 15925293056,
+      "index": 2,
+      "kind": "opening",
+      "log": "opening-2.log",
+      "logSha256": "1870260f2800f6549933e119e0b8638d07e61d54f6c6bb44c10d75d2ea8dca15",
+      "maxRssBytes": 5980278784,
+      "output": "opening-2.json",
+      "outputSha256": "a6d95d061df2701f726e6ac7f9464a156070701201c29e6cd02a774dd4715986",
+      "pid": 107401,
+      "status": "complete",
+      "wallSeconds": 45.14064439899994
+    }
+  ],
+  "schema": "vendetta-hidden-v2-compile-capacity-1",
+  "sourceBundleBinding": "caller-pinned-build-not-attestation",
+  "sourceBundleSha256": "db07990896e9ba8d39502fdb40046708f948a403454eeadbbdb3443c04570d02",
+  "status": "complete"
+}

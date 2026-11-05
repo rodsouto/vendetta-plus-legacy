@@ -10,8 +10,11 @@ import {
     TROOPS,
     VendettaRuleset as Ruleset
 } from "./generated/VendettaRuleset.sol";
+import {GameViews} from "./core/GameViews.sol";
 import {Core} from "./core/Core.sol";
 import {Training} from "./core/Training.sol";
+import {HiddenAdmission} from "./core/HiddenAdmission.sol";
+import {HiddenEvidence} from "./core/HiddenEvidence.sol";
 import {Missions} from "./core/Missions.sol";
 import {Account} from "./core/Account.sol";
 import {Families} from "./core/Families.sol";
@@ -45,7 +48,14 @@ contract Game is Initializable, UUPSUpgradeable, IGameEvents {
         _disableInitializers();
     }
 
-    function initialize(address admin, address operator, address arbiter) external initializer {
+    function initialize(
+        address admin,
+        address operator,
+        address arbiter,
+        address opening,
+        address invalidPoint
+    ) external initializer {
+        HiddenAdmission.initialize(opening, invalidPoint);
         Roles.init(admin, operator, arbiter);
     }
 
@@ -125,7 +135,7 @@ contract Game is Initializable, UUPSUpgradeable, IGameEvents {
         return Missions.send(msg.sender, building, kind, target, troops, resources, trade);
     }
 
-    /// A mission whose kind and target stay secret until revealed (B-22). `arrival`: the fixed
+    /// A fixed v2 hidden packet, bound to the initialized consumers. `arrival`: the fixed
     /// arrival the ciphertext's timelock was made for, 0 for the natural one (TooLate before the
     /// natural arrival, so the client encrypts again; InvalidArrival past the slack).
     function sendHiddenMission(
@@ -142,19 +152,21 @@ contract Game is Initializable, UUPSUpgradeable, IGameEvents {
         );
     }
 
-    /// Anyone, until the grace ends. Drains the queue first, so the due missions ahead are processed
-    /// or parked and reveals go in arrival order (B-22).
-    function reveal(uint64 mission, uint8 kind, uint256[3] calldata target, bytes32 salt)
-        external
-        drained
-    {
-        Missions.reveal(mission, kind, target, salt);
+    function hiddenConsumers() external view returns (address opening, address invalidPoint) {
+        return HiddenAdmission.consumers();
     }
 
-    /// Anyone, past the grace, on a hidden mission nobody revealed (B-22): it turns back from now.
-    /// Never drains the queue: it touches no building.
-    function forfeit(uint64 mission) external {
-        Missions.forfeit(mission);
+    /// Certificate ingress deliberately does not drain the queue; v1 receipts remain unknown.
+    function submitHiddenEvidence(uint64 mission, bytes calldata certificate)
+        external
+        returns (bool)
+    {
+        return HiddenEvidence.submit(mission, certificate);
+    }
+
+    /// ABI-encoded HiddenEvidenceState; encoding lives in the linked library to keep Game deployable.
+    function getHiddenEvidence(uint64 mission) external view returns (bytes memory) {
+        return HiddenEvidence.getData(mission);
     }
 
     function recall(uint64 mission) external drained {
@@ -405,37 +417,10 @@ contract Game is Initializable, UUPSUpgradeable, IGameEvents {
         );
     }
 
-    function getPlayer(uint64 id) external view returns (PlayerView memory v) {
-        CoreState storage s = GameStorage.core();
-        Player storage p = s.players[id];
-        v.controllers = p.controllers;
-        v.researchBuilding = p.researchBuilding;
-        v.buildings = p.buildings;
-        v.centipoints = p.centipoints;
-        v.missions = p.missions;
-        v.research = p.research;
-        v.researchQueue = p.researchQueue;
-        v.vacationUntil = p.vacationUntil;
-        v.suspendedUntil = p.suspendedUntil;
-        v.premiumUntil = p.premiumUntil;
-        v.family = p.family;
-        v.rank = p.rank;
-        v.applications = p.applications;
-        v.offers = p.offers;
-        v.sessionEpoch = p.sessionEpoch;
-        v.vacationStart = p.vacationStart;
-        v.tradeLockUntil = p.tradeLockUntil;
-        v.removalAt = new uint40[](p.controllers.length);
-        v.recovery = new bool[](p.controllers.length);
-        for (uint256 i; i < p.controllers.length; ++i) {
-            ControllerInfo storage info = s.controllerInfo[p.controllers[i]];
-            v.removalAt[i] = info.removalAt;
-            v.recovery[i] = info.recovery;
-        }
-        v.transferTo = p.transferTo;
-        v.transferAt = p.transferAt;
-        v.vacationSeq = p.vacationSeq;
-        v.purchases = p.purchases;
+    function getPlayer(uint64 id) external view returns (PlayerView memory) {
+        bytes memory encoded = GameViews.playerData(id);
+        // Forward the exact ABI encoding of the existing PlayerView, without re-encoding it here.
+        assembly ("memory-safe") { return(add(encoded, 32), mload(encoded)) }
     }
 
     function getFamily(uint64 id) external view returns (Family memory) {
@@ -471,19 +456,6 @@ contract Game is Initializable, UUPSUpgradeable, IGameEvents {
     }
 
     /// Due hidden missions nobody revealed yet, out of the queue, in arrival order (B-22).
-    function parkedMissions() external view returns (uint64[] memory out) {
-        CoreState storage s = GameStorage.core();
-        uint256 n;
-        for (uint64 id = s.parkedHead; id != 0; id = s.parkedNext[id]) {
-            ++n;
-        }
-        out = new uint64[](n);
-        uint256 i;
-        for (uint64 id = s.parkedHead; id != 0; id = s.parkedNext[id]) {
-            out[i++] = id;
-        }
-    }
-
     function playerOf(address controller) external view returns (uint64) {
         return GameStorage.core().playerOf[controller];
     }

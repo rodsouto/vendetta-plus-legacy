@@ -1,0 +1,19 @@
+{
+  "scope": "Real invalid-U v2 certificates with exact stored statement; no H3, beacon or Game effects",
+  "testsPassed": 6,
+  "verifierCallGasCap": 2000000,
+  "verifierDeployedBytes": 6697,
+  "evm": "cancun",
+  "solc": "0.8.28",
+  "optimizerRuns": 200,
+  "productionIntegrated": false,
+  "setup": "Local unsafe research setup; never reuse in production",
+  "verifierSourceSha256": "fab04cfd05b0791ae3795b7994395e349cf71f49512428a744094ed1bb19937a",
+  "anvilTransactionGas": {
+    "verifierDeployment": "1501265",
+    "consumerDeployment": "211633",
+    "invalidCompressionVerification": "348676",
+    "order13TorsionVerification": "348676"
+  },
+  "anvilMeasurementScope": "Separate transactions on a fresh private Cancun Anvil; invalid-U certificates and exact immutable context checked. No Gnosis deployment."
+}

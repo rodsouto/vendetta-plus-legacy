@@ -1,0 +1,8 @@
+
+> vendetta-onchain@ probe:local-hidden-v2 /home/rodrigo/orca-projects/vendetta-plus-legacy
+> bash scripts/hidden-v2-local-probe.sh "--directory" "/home/rodrigo/.cache/vendetta-audit/local-domain-probe-20261104-run1" "--unsafe-test-only"
+
+domain 2^22: bounded initialization starting
+domain 2^22: exited, 8939 ms, peak 2.41 GiB
+domain 2^23: bounded initialization starting
+domain 2^23: exited, 15210 ms, peak 4.74 GiB

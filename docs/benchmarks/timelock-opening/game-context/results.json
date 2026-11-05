@@ -1,0 +1,35 @@
+{
+  "scope": "Storage-derived fixed v2 research context and internal packet binding; public v2 admission remains disabled",
+  "rulesTestsPassed": 773,
+  "contractsTestsPassed": 203,
+  "webTestsPassed": 108,
+  "layoutCheckerTestsPassed": 11,
+  "existingScenariosPassed": 25,
+  "skippedTests": 0,
+  "archivedContextVectorsMatched": 9,
+  "newContextContractTests": 8,
+  "newContextRulesTests": 6,
+  "newGameBindingQueueTests": 1,
+  "newProfileWebTests": 1,
+  "contextMutationFuzzRuns": 256,
+  "encodingWords": 20,
+  "encodingBytes": 640,
+  "packetBytes": 273,
+  "publicV2AdmissionAvailable": false,
+  "realProofGeneratedForNewGameContext": false,
+  "gameQueueTestUsesTrustedResultMock": true,
+  "mixedProtocolCounterexampleConfirmed": true,
+  "mixedProtocolOrderingFixed": false,
+  "storageChangedThisPhase": false,
+  "runtimeBytes": {
+    "Game": 23644,
+    "HiddenEvidence": 3328,
+    "Missions": 23039,
+    "GameViews": 2923
+  },
+  "logSha256": {
+    "rules": "a28f42fdb5a441bdee8dbf6094ad35ee82ab3da5fa7b9e3b95ee883179ac4c99",
+    "contracts": "9cc8881aacf21050a21e3bf9f66aa9950a77e64799240cad634433d508ec70a1",
+    "web": "17955b4b36b2b5363469f1cf77463a7a18f4d9b022337adbf997279d69e148eb"
+  }
+}

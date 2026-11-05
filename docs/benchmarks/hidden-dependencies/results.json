@@ -1,0 +1,1467 @@
+{
+  "schema": 1,
+  "nodeVersion": "v24.22.1",
+  "model": "Seeded state; controlled queue isolation over the real TS simulator. Counterfactual ordering is not permitted by the current public API.",
+  "sourceHashes": {
+    "packages/rules/scripts/experiments/dependency-probes.ts": "3b744845bea8a368361589c71f6953d43e27c1124744d8b8639e02d3246e33b3",
+    "packages/rules/scripts/experiments/run-dependency-probes.ts": "7d98ac1d19310e91b89602c28b1306f8871294423413934a22e75f22954480e3",
+    "packages/rules/src/sim/missions.ts": "dd3d10eab1da0d745b4bd743581cd6365d6435d2483f25b580b4bc4ebfc7f429",
+    "packages/rules/src/sim/settle.ts": "cb75e443e6502eb849669c417fa18602fd0fa5c493b1c3862e23a881425a177c",
+    "packages/rules/src/sim/common.ts": "7cc863e08a9e44af3062f474e031884e177463c6bea44204d64c64ddcd1a92de",
+    "packages/rules/src/sim/actions.ts": "8f093af6f8c1650df68b9c73e2f407c06bddf6031fe057ec66ac3b30475e68de",
+    "packages/rules/src/sim/families.ts": "f0e1ac6194a2268c7eef4734af09ea126795ef625b6143370e5302b0e1b54065",
+    "packages/rules/src/sim/market.ts": "d22496282b318d05e5523cf4f1a4d9497474e1977387b17a11a428470ada8352",
+    "packages/rules/src/sim/state.ts": "0d72f037d70fa75a97eee0edb86abc254ea1864defc2df2ec632d3bba879cbd0",
+    "packages/rules/src/combat.ts": "b75f8f6b4fb654ae150d04d0c3549b949a166a85f99cf9a08bea45c6cbd3b97a",
+    "packages/rules/src/honor.ts": "57e97f610db57cf3f3e6ccf824045f40fa700c770ce06b69b89ca3f902e295b6",
+    "packages/rules/src/stats.ts": "f74e261385df6bb61322c78accb6e7b1f34d7dead4cf954d52ad124fb5e94dc1",
+    "packages/spec-data/generated/vendetta.json": "f5295c9e355a2d0ce65fffd998e49ee87dd1bfa87339fea01feba802c381a7dd",
+    "packages/spec-data/generated/game_config.json": "79fbea7fe772bd93e03c3f917bf8b77bdf6fb51b10d1c11b810c79eda2e8e251",
+    "pnpm-lock.yaml": "c564cedb66719b41c07a8eb1ac7049f82568b63913cd84a77dfbac88ee23e816"
+  },
+  "probes": [
+    {
+      "name": "remote-research-affects-battle",
+      "expected": "conflict",
+      "projection": "Surviving troops after attack; research completed by poke outside the cover",
+      "chronological": {
+        "survivors": [
+          "0",
+          "68",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0"
+        ],
+        "defenders": [
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0"
+        ]
+      },
+      "overtaken": {
+        "survivors": [
+          "0",
+          "74",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0"
+        ],
+        "defenders": [
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0"
+        ]
+      },
+      "matches": false
+    },
+    {
+      "name": "poke-materializes-future-training",
+      "expected": "conflict",
+      "projection": "Troops after resolving attack and later training; poke is permissionless",
+      "chronological": {
+        "survivors": [
+          "100",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0"
+        ],
+        "defenders": [
+          "200",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0"
+        ]
+      },
+      "overtaken": {
+        "defenders": [
+          "137",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0"
+        ]
+      },
+      "matches": false
+    },
+    {
+      "name": "external-capo-dissolves-war-family",
+      "expected": "conflict",
+      "projection": "War loss counters; troop outcome is unchanged",
+      "chronological": {
+        "lostA": "58800",
+        "lostB": "58800"
+      },
+      "overtaken": {
+        "lostA": "0",
+        "lostB": "0"
+      },
+      "matches": false
+    },
+    {
+      "name": "market-acceptance-from-outside-cover",
+      "expected": "conflict",
+      "projection": "Buyer acceptance outcome and attack loot",
+      "chronological": {
+        "acceptance": "CannotAfford",
+        "accepted": false,
+        "loot": [
+          "5000",
+          "5000",
+          "5000",
+          "5000"
+        ]
+      },
+      "overtaken": {
+        "acceptance": "ok",
+        "accepted": true,
+        "loot": [
+          "2000",
+          "6000",
+          "6000",
+          "6000"
+        ]
+      },
+      "matches": false
+    },
+    {
+      "name": "empty-coordinate-registration",
+      "expected": "conflict",
+      "projection": "Attack loot after registration on a previously empty target",
+      "chronological": {
+        "loot": [
+          "0",
+          "0",
+          "0",
+          "0"
+        ]
+      },
+      "overtaken": {
+        "loot": [
+          "5000",
+          "5000",
+          "5000",
+          "5000"
+        ]
+      },
+      "matches": false
+    },
+    {
+      "name": "blocked-payment-versus-final-trade-withdrawal",
+      "expected": "conflict",
+      "projection": "A pending payment must precede a withdrawal computed after the trade deadline",
+      "chronological": {
+        "withdrawal": "InvalidWithdrawal",
+        "paid": [
+          "0",
+          "5000",
+          "0",
+          "0"
+        ],
+        "sellerTook": [
+          "0",
+          "0",
+          "0",
+          "0"
+        ]
+      },
+      "overtaken": {
+        "withdrawal": "ok",
+        "paid": [
+          "0",
+          "5000",
+          "0",
+          "0"
+        ],
+        "sellerTook": [
+          "0",
+          "500",
+          "0",
+          "0"
+        ]
+      },
+      "matches": false
+    },
+    {
+      "name": "disjoint-registration-changes-occupation-id",
+      "expected": "conflict",
+      "projection": "Building id assigned to occupation, despite disjoint coordinates and owners",
+      "chronological": {
+        "occupiedId": "5",
+        "registeredId": "6"
+      },
+      "overtaken": {
+        "occupiedId": "6",
+        "registeredId": "5"
+      },
+      "matches": false
+    },
+    {
+      "name": "outside-occupation-changes-honor",
+      "expected": "conflict",
+      "projection": "Attacker honor percentage observed before the attack",
+      "chronological": {
+        "attackHonorPct": "100"
+      },
+      "overtaken": {
+        "attackHonorPct": "99"
+      },
+      "matches": false
+    },
+    {
+      "name": "return-sequence-crosses-unrelated-queue",
+      "expected": "conflict",
+      "projection": "Return seq versus a later unrelated room queue seq",
+      "chronological": {
+        "returnSeq": "1",
+        "unrelatedQueueSeq": "2"
+      },
+      "overtaken": {
+        "returnSeq": "2",
+        "unrelatedQueueSeq": "1"
+      },
+      "matches": false
+    },
+    {
+      "name": "unrelated-poke-does-not-alter-battle",
+      "expected": "commutes-on-projection",
+      "projection": "Projected player/building values, missions and sequence",
+      "chronological": {
+        "players": [
+          [
+            "1",
+            {
+              "id": "1",
+              "controllers": [
+                "alice"
+              ],
+              "research": [
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "researchQueue": [],
+              "researchBuilding": "0",
+              "buildings": "1",
+              "centipoints": "1000000000",
+              "missions": "1",
+              "vacationUntil": "0",
+              "vacationStart": "0",
+              "suspendedUntil": "0",
+              "premiumUntil": "0",
+              "family": "0",
+              "rank": 0,
+              "applications": [],
+              "offers": [],
+              "purchases": [],
+              "sessionEpoch": "0",
+              "tradeLockUntil": "0",
+              "removalAt": {},
+              "recovery": {},
+              "transferTo": "",
+              "transferAt": "0",
+              "vacationSeq": "0"
+            }
+          ],
+          [
+            "2",
+            {
+              "id": "2",
+              "controllers": [
+                "bob"
+              ],
+              "research": [
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "researchQueue": [],
+              "researchBuilding": "0",
+              "buildings": "1",
+              "centipoints": "1000000000",
+              "missions": "0",
+              "vacationUntil": "0",
+              "vacationStart": "0",
+              "suspendedUntil": "0",
+              "premiumUntil": "0",
+              "family": "0",
+              "rank": 0,
+              "applications": [],
+              "offers": [],
+              "purchases": [],
+              "sessionEpoch": "0",
+              "tradeLockUntil": "0",
+              "removalAt": {},
+              "recovery": {},
+              "transferTo": "",
+              "transferAt": "0",
+              "vacationSeq": "0"
+            }
+          ],
+          [
+            "3",
+            {
+              "id": "3",
+              "controllers": [
+                "carol"
+              ],
+              "research": [
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "researchQueue": [],
+              "researchBuilding": "0",
+              "buildings": "1",
+              "centipoints": "1000000000",
+              "missions": "0",
+              "vacationUntil": "0",
+              "vacationStart": "0",
+              "suspendedUntil": "0",
+              "premiumUntil": "0",
+              "family": "0",
+              "rank": 0,
+              "applications": [],
+              "offers": [],
+              "purchases": [],
+              "sessionEpoch": "0",
+              "tradeLockUntil": "0",
+              "removalAt": {},
+              "recovery": {},
+              "transferTo": "",
+              "transferAt": "0",
+              "vacationSeq": "0"
+            }
+          ],
+          [
+            "4",
+            {
+              "id": "4",
+              "controllers": [
+                "dave"
+              ],
+              "research": [
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "researchQueue": [],
+              "researchBuilding": "0",
+              "buildings": "1",
+              "centipoints": "1000000000",
+              "missions": "0",
+              "vacationUntil": "0",
+              "vacationStart": "0",
+              "suspendedUntil": "0",
+              "premiumUntil": "0",
+              "family": "0",
+              "rank": 0,
+              "applications": [],
+              "offers": [],
+              "purchases": [],
+              "sessionEpoch": "0",
+              "tradeLockUntil": "0",
+              "removalAt": {},
+              "recovery": {},
+              "transferTo": "",
+              "transferAt": "0",
+              "vacationSeq": "0"
+            }
+          ]
+        ],
+        "buildings": [
+          [
+            "1",
+            {
+              "id": "1",
+              "owner": "1",
+              "coord": {
+                "city": "1",
+                "neighborhood": "1",
+                "slot": "1"
+              },
+              "levels": [
+                "1",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "stock": [
+                "1008000000",
+                "1008000000",
+                "1008000000",
+                "1008000000"
+              ],
+              "lastUpdate": "1000000",
+              "lastTroopArrival": "0",
+              "roomQueue": [],
+              "centipoints": "600",
+              "troops": [
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "training": [
+                [],
+                []
+              ]
+            }
+          ],
+          [
+            "2",
+            {
+              "id": "2",
+              "owner": "2",
+              "coord": {
+                "city": "1",
+                "neighborhood": "1",
+                "slot": "2"
+              },
+              "levels": [
+                "1",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "stock": [
+                "504000000",
+                "504000000",
+                "504000000",
+                "504000000"
+              ],
+              "lastUpdate": "1000100",
+              "lastTroopArrival": "0",
+              "roomQueue": [],
+              "centipoints": "600",
+              "troops": [
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "training": [
+                [],
+                []
+              ]
+            }
+          ],
+          [
+            "3",
+            {
+              "id": "3",
+              "owner": "3",
+              "coord": {
+                "city": "50",
+                "neighborhood": "50",
+                "slot": "255"
+              },
+              "levels": [
+                "1",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "stock": [
+                "1008000000",
+                "1008000000",
+                "1008000000",
+                "1008000000"
+              ],
+              "lastUpdate": "1000200",
+              "lastTroopArrival": "0",
+              "roomQueue": [],
+              "centipoints": "600",
+              "troops": [
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "training": [
+                [],
+                []
+              ]
+            }
+          ],
+          [
+            "4",
+            {
+              "id": "4",
+              "owner": "4",
+              "coord": {
+                "city": "50",
+                "neighborhood": "50",
+                "slot": "254"
+              },
+              "levels": [
+                "1",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "stock": [
+                "1008000000",
+                "1008000000",
+                "1008000000",
+                "1008000000"
+              ],
+              "lastUpdate": "1000000",
+              "lastTroopArrival": "0",
+              "roomQueue": [],
+              "centipoints": "600",
+              "troops": [
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "training": [
+                [],
+                []
+              ]
+            }
+          ]
+        ],
+        "missions": [
+          [
+            "1",
+            {
+              "id": "1",
+              "owner": "1",
+              "origin": "1",
+              "kind": 1,
+              "returning": true,
+              "target": {
+                "city": "1",
+                "neighborhood": "1",
+                "slot": "2"
+              },
+              "from": {
+                "city": "1",
+                "neighborhood": "1",
+                "slot": "1"
+              },
+              "start": "1000100",
+              "arrival": "1001100",
+              "duration": "1000",
+              "seq": "1",
+              "troops": [
+                "100",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "cargo": [
+                "5000",
+                "5000",
+                "5000",
+                "5000"
+              ],
+              "trade": "0",
+              "hidden": false,
+              "cover": "2",
+              "commit": "0x0000000000000000000000000000000000000000000000000000000000000000"
+            }
+          ]
+        ],
+        "seq": "2"
+      },
+      "overtaken": {
+        "players": [
+          [
+            "1",
+            {
+              "id": "1",
+              "controllers": [
+                "alice"
+              ],
+              "research": [
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "researchQueue": [],
+              "researchBuilding": "0",
+              "buildings": "1",
+              "centipoints": "1000000000",
+              "missions": "1",
+              "vacationUntil": "0",
+              "vacationStart": "0",
+              "suspendedUntil": "0",
+              "premiumUntil": "0",
+              "family": "0",
+              "rank": 0,
+              "applications": [],
+              "offers": [],
+              "purchases": [],
+              "sessionEpoch": "0",
+              "tradeLockUntil": "0",
+              "removalAt": {},
+              "recovery": {},
+              "transferTo": "",
+              "transferAt": "0",
+              "vacationSeq": "0"
+            }
+          ],
+          [
+            "2",
+            {
+              "id": "2",
+              "controllers": [
+                "bob"
+              ],
+              "research": [
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "researchQueue": [],
+              "researchBuilding": "0",
+              "buildings": "1",
+              "centipoints": "1000000000",
+              "missions": "0",
+              "vacationUntil": "0",
+              "vacationStart": "0",
+              "suspendedUntil": "0",
+              "premiumUntil": "0",
+              "family": "0",
+              "rank": 0,
+              "applications": [],
+              "offers": [],
+              "purchases": [],
+              "sessionEpoch": "0",
+              "tradeLockUntil": "0",
+              "removalAt": {},
+              "recovery": {},
+              "transferTo": "",
+              "transferAt": "0",
+              "vacationSeq": "0"
+            }
+          ],
+          [
+            "3",
+            {
+              "id": "3",
+              "controllers": [
+                "carol"
+              ],
+              "research": [
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "researchQueue": [],
+              "researchBuilding": "0",
+              "buildings": "1",
+              "centipoints": "1000000000",
+              "missions": "0",
+              "vacationUntil": "0",
+              "vacationStart": "0",
+              "suspendedUntil": "0",
+              "premiumUntil": "0",
+              "family": "0",
+              "rank": 0,
+              "applications": [],
+              "offers": [],
+              "purchases": [],
+              "sessionEpoch": "0",
+              "tradeLockUntil": "0",
+              "removalAt": {},
+              "recovery": {},
+              "transferTo": "",
+              "transferAt": "0",
+              "vacationSeq": "0"
+            }
+          ],
+          [
+            "4",
+            {
+              "id": "4",
+              "controllers": [
+                "dave"
+              ],
+              "research": [
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "researchQueue": [],
+              "researchBuilding": "0",
+              "buildings": "1",
+              "centipoints": "1000000000",
+              "missions": "0",
+              "vacationUntil": "0",
+              "vacationStart": "0",
+              "suspendedUntil": "0",
+              "premiumUntil": "0",
+              "family": "0",
+              "rank": 0,
+              "applications": [],
+              "offers": [],
+              "purchases": [],
+              "sessionEpoch": "0",
+              "tradeLockUntil": "0",
+              "removalAt": {},
+              "recovery": {},
+              "transferTo": "",
+              "transferAt": "0",
+              "vacationSeq": "0"
+            }
+          ]
+        ],
+        "buildings": [
+          [
+            "1",
+            {
+              "id": "1",
+              "owner": "1",
+              "coord": {
+                "city": "1",
+                "neighborhood": "1",
+                "slot": "1"
+              },
+              "levels": [
+                "1",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "stock": [
+                "1008000000",
+                "1008000000",
+                "1008000000",
+                "1008000000"
+              ],
+              "lastUpdate": "1000000",
+              "lastTroopArrival": "0",
+              "roomQueue": [],
+              "centipoints": "600",
+              "troops": [
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "training": [
+                [],
+                []
+              ]
+            }
+          ],
+          [
+            "2",
+            {
+              "id": "2",
+              "owner": "2",
+              "coord": {
+                "city": "1",
+                "neighborhood": "1",
+                "slot": "2"
+              },
+              "levels": [
+                "1",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "stock": [
+                "504000000",
+                "504000000",
+                "504000000",
+                "504000000"
+              ],
+              "lastUpdate": "1000100",
+              "lastTroopArrival": "0",
+              "roomQueue": [],
+              "centipoints": "600",
+              "troops": [
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "training": [
+                [],
+                []
+              ]
+            }
+          ],
+          [
+            "3",
+            {
+              "id": "3",
+              "owner": "3",
+              "coord": {
+                "city": "50",
+                "neighborhood": "50",
+                "slot": "255"
+              },
+              "levels": [
+                "1",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "stock": [
+                "1008000000",
+                "1008000000",
+                "1008000000",
+                "1008000000"
+              ],
+              "lastUpdate": "1000200",
+              "lastTroopArrival": "0",
+              "roomQueue": [],
+              "centipoints": "600",
+              "troops": [
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "training": [
+                [],
+                []
+              ]
+            }
+          ],
+          [
+            "4",
+            {
+              "id": "4",
+              "owner": "4",
+              "coord": {
+                "city": "50",
+                "neighborhood": "50",
+                "slot": "254"
+              },
+              "levels": [
+                "1",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "stock": [
+                "1008000000",
+                "1008000000",
+                "1008000000",
+                "1008000000"
+              ],
+              "lastUpdate": "1000000",
+              "lastTroopArrival": "0",
+              "roomQueue": [],
+              "centipoints": "600",
+              "troops": [
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "training": [
+                [],
+                []
+              ]
+            }
+          ]
+        ],
+        "missions": [
+          [
+            "1",
+            {
+              "id": "1",
+              "owner": "1",
+              "origin": "1",
+              "kind": 1,
+              "returning": true,
+              "target": {
+                "city": "1",
+                "neighborhood": "1",
+                "slot": "2"
+              },
+              "from": {
+                "city": "1",
+                "neighborhood": "1",
+                "slot": "1"
+              },
+              "start": "1000100",
+              "arrival": "1001100",
+              "duration": "1000",
+              "seq": "1",
+              "troops": [
+                "100",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "cargo": [
+                "5000",
+                "5000",
+                "5000",
+                "5000"
+              ],
+              "trade": "0",
+              "hidden": false,
+              "cover": "2",
+              "commit": "0x0000000000000000000000000000000000000000000000000000000000000000"
+            }
+          ]
+        ],
+        "seq": "2"
+      },
+      "matches": true
+    },
+    {
+      "name": "rank-only-change-does-not-alter-war-battle",
+      "expected": "commutes-on-projection",
+      "projection": "War counters and battle survivors with stable family membership and war lifecycle",
+      "chronological": {
+        "lostA": "58800",
+        "lostB": "58800",
+        "survivors": [
+          "2",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0"
+        ]
+      },
+      "overtaken": {
+        "lostA": "58800",
+        "lostB": "58800",
+        "survivors": [
+          "2",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0"
+        ]
+      },
+      "matches": true
+    },
+    {
+      "name": "war-loss-additions-with-stable-lifecycle",
+      "expected": "commutes-on-projection",
+      "projection": "Additive war loss totals only, not arbitrary family operations",
+      "chronological": {
+        "lostA": "400",
+        "lostB": "600"
+      },
+      "overtaken": {
+        "lostA": "400",
+        "lostB": "600"
+      },
+      "matches": true
+    }
+  ]
+}

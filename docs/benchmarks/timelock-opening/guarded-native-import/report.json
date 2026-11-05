@@ -1,0 +1,96 @@
+{
+  "binarySha256": "6289b924124886e2af36c7c41ba3dd72a043549ba9ca99a9e22a35837879b522",
+  "verification": {
+    "status": "unsafe-small-mpc-rehearsal-verified",
+    "configSha256": "dc38484140bc0359659b9efdeb50be4a13023c6612bdfe48daa72a05ee15ff09",
+    "circuitSha256": "60e1ee869d2a665aa7d80f5519c1c56799862cc99a0c7bc3f02ec001dc0e604f",
+    "constraints": 5,
+    "domainSize": 8,
+    "phase1ClosureSha256": "c225b5100c5362e6a6814c0860f7585c986ba31a86f80b2e72979d3ba477253b",
+    "phase2ClosureSha256": "c4dff218cf8a784db158c5e56b45bdb5a36cac135e505787c1641d4b1bdc0fa4",
+    "provingKeySha256": "7d67f1ef85f699f7d3119071ee7f8d829461db546b8a0be34e1f233ef027a4b7",
+    "verifyingKeySha256": "6e014983d14dd9b0e5a2be913e857a63bc029b99068d89d6ca0f1046a20fa535",
+    "soliditySha256": "6bcba304ef1d4072232e4acdce575c1d6ee2be3a26866476be4a012cafbd6d14",
+    "nativeTranscriptVerified": true,
+    "guardedNativeDecoding": true,
+    "contributionSignaturesVerified": true,
+    "beaconSignaturesAuthenticated": true,
+    "proofVerified": true,
+    "wrongPublicInputRejected": true,
+    "extractionReproduced": true,
+    "productionApproved": false,
+    "independentParticipants": false,
+    "beaconAfterClosureProven": false
+  },
+  "workerMeasurements": [
+    {
+      "command": "init",
+      "pid": 157941,
+      "wallMilliseconds": 36,
+      "cpuUserMilliseconds": 8,
+      "cpuSystemMilliseconds": 5,
+      "maxRssKiB": 29316
+    },
+    {
+      "command": "contribute",
+      "pid": 157949,
+      "wallMilliseconds": 32,
+      "cpuUserMilliseconds": 18,
+      "cpuSystemMilliseconds": 7,
+      "maxRssKiB": 29316
+    },
+    {
+      "command": "contribute",
+      "pid": 157957,
+      "wallMilliseconds": 43,
+      "cpuUserMilliseconds": 30,
+      "cpuSystemMilliseconds": 11,
+      "maxRssKiB": 29444
+    },
+    {
+      "command": "close",
+      "pid": 157962,
+      "wallMilliseconds": 52,
+      "cpuUserMilliseconds": 33,
+      "cpuSystemMilliseconds": 22,
+      "maxRssKiB": 29444
+    },
+    {
+      "command": "contribute",
+      "pid": 157967,
+      "wallMilliseconds": 106,
+      "cpuUserMilliseconds": 103,
+      "cpuSystemMilliseconds": 11,
+      "maxRssKiB": 29700
+    },
+    {
+      "command": "contribute",
+      "pid": 157988,
+      "wallMilliseconds": 120,
+      "cpuUserMilliseconds": 113,
+      "cpuSystemMilliseconds": 21,
+      "maxRssKiB": 29828
+    },
+    {
+      "command": "close",
+      "pid": 158000,
+      "wallMilliseconds": 118,
+      "cpuUserMilliseconds": 115,
+      "cpuSystemMilliseconds": 15,
+      "maxRssKiB": 29956
+    },
+    {
+      "command": "verify",
+      "pid": 158012,
+      "wallMilliseconds": 286,
+      "cpuUserMilliseconds": 301,
+      "cpuSystemMilliseconds": 31,
+      "maxRssKiB": 30084
+    }
+  ],
+  "workerWallSeconds": 30,
+  "workerCpuSeconds": 20,
+  "workerAddressSpaceBytes": 4294967296,
+  "workerFileBytes": 65536,
+  "allWorkersExited": true
+}

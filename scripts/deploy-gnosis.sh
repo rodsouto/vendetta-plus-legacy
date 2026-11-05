@@ -4,6 +4,11 @@
 # docs/deploy-gnosis.md). Simulates first, shows the cost and asks before spending real xDAI.
 set -euo pipefail
 
+# No operator-supplied flag can establish setup provenance. Remove this gate
+# only when independently approved artifacts are verified by the deploy path.
+echo "Hidden v2 production setup approval is not implemented; Gnosis deployment is blocked." >&2
+exit 1
+
 root="$(git rev-parse --show-toplevel)"
 out="$root/deployments/gnosis.json"
 public_rpc="https://rpc.gnosischain.com"

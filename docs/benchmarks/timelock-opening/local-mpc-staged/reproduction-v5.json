@@ -1,0 +1,8 @@
+{
+  "schema": "vendetta-unsafe-local-binary-reproduction-1",
+  "binarySha256": "196e7497e1da023aeb0a90940ff4d522bcf45b4eef281dc0041dd0b9a78c0c42",
+  "reproducedSha256": "196e7497e1da023aeb0a90940ff4d522bcf45b4eef281dc0041dd0b9a78c0c42",
+  "sourceBundleSha256": "90e23dc01eb627a84bb0f66cbbd70f246d0bb18ae5f91af198637a183790e195",
+  "offlineBuild": true,
+  "productionApproved": false
+}

@@ -1,0 +1,23 @@
+{
+  "capturedDuringProving": false,
+  "capturedAt": "2026-10-31T02:57:00.517433+00:00",
+  "binarySha256": "731c7dbbcf0d1c95947809dd13dc570f5d0c4149b20c0302db4069772452e4cc",
+  "os": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+  "logicalCpus": 16,
+  "nodeVersion": "v24.22.1",
+  "GOMEMLIMIT": "6GiB",
+  "GOMAXPROCS": "8",
+  "setupManifestSha256": {
+    "opening": "353bd28c1fe36a07fd7bb42a110f49cbe323fbcdc1dd323c036678502450a8ff",
+    "invalid-point": "6757f53a6b002dd917f545863279c5441c33ca77f39dbc56f0dadcd4c96b32ee"
+  },
+  "sourceSha256": {
+    "apps/web/scripts/experiments/run-producer-game.ts": "831007aeb581a6adb6af032d0ff659fcffd39350b6205fd9d96c37f1bf7f5306",
+    "apps/web/scripts/experiments/producer-faults.ts": "53ccbb13bd2d88b82ea5935440df5c4581cd6076d9e6dd797027dd0e32d8095e",
+    "apps/web/scripts/prover/service.ts": "3b04ceeb62a044d28d419357bae10968820385e1fc950ead794af1ae7a2a1420",
+    "apps/web/scripts/prover/beacon.ts": "5f02a2a95107e83d8478dd7eb3f3ab4c99d1956dc4f86f7fd3421413aa13e860",
+    "apps/web/scripts/prover/worker.ts": "2e1a5ffdae3110257096c7670c8b95b521070f8d039edb25299684b2fab8dd92",
+    "apps/web/scripts/prover/recovery.ts": "cd3f61297ecefd7de5a9cf4fdbf8890a93dabdc836816a4e7a85ba3c50ed47c5"
+  },
+  "capturePhase": "after replay completion"
+}

@@ -1,0 +1,12 @@
+
+> vendetta-onchain@ rehearse:hidden-v2 /home/rodrigo/orca-projects/vendetta-plus-legacy
+> bash scripts/hidden-v2-mpc-rehearsal.sh "--directory" "/home/rodrigo/.cache/vendetta-audit/mpc-guarded-import-20261103-buffered-final" "--unsafe-test-only"
+
+init: worker 157941 exited (36 ms)
+contribute: worker 157949 exited (32 ms)
+contribute: worker 157957 exited (43 ms)
+close: worker 157962 exited (52 ms)
+contribute: worker 157967 exited (106 ms)
+contribute: worker 157988 exited (120 ms)
+close: worker 158000 exited (118 ms)
+verify: worker 158012 exited (286 ms)

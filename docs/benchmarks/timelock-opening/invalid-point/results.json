@@ -1,0 +1,23 @@
+{
+  "scope": "Constraint tests and native point decoder comparison only; no Groth16 invalid-point certificate or Game integration",
+  "pointConstraints": 2929395,
+  "pointPublicInputs": 7,
+  "pointBoundaryVectors": 22,
+  "pointWitnessChecks": 48,
+  "pointSubtests": 26,
+  "invalidMissionPointConstraints": 3760005,
+  "invalidMissionPublicInputs": 2,
+  "invalidMissionWitnessChecks": 11,
+  "nativeDecoderComparisonsPassed": 22,
+  "adversarialWitnessesTested": [
+    "opposite root with false and true result claims",
+    "false nonsquare branch",
+    "substituted Y",
+    "substituted packet under original context",
+    "nonzero packet padding"
+  ],
+  "groth16InvalidPointProofGenerated": false,
+  "productionIntegrated": false,
+  "pointTestLogSha256": "7cad85cc75ab84d1873819a97c3bb7e9060715ed78fb88494a4e091bebe61c49",
+  "missionTestLogSha256": "1d9deec5434c4dd2be52bb5380fc3440615a952941e3cc150485dc8a12938377"
+}

@@ -1,0 +1,31 @@
+{
+  "command": [
+    "python3",
+    "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-20261105-tools/sequence-v5.py",
+    "--binary",
+    "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-20261105-tools/pipeline-v5",
+    "--binary-sha256",
+    "196e7497e1da023aeb0a90940ff4d522bcf45b4eef281dc0041dd0b9a78c0c42",
+    "--directory",
+    "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run1",
+    "--cs22",
+    "/home/rodrigo/.cache/vendetta-audit/local-mpc-game-cs-20261104/invalid-point.bin",
+    "--cs23",
+    "/home/rodrigo/.cache/vendetta-audit/local-mpc-game-cs-20261104/opening.bin",
+    "--resume-keys22",
+    "/home/rodrigo/.cache/vendetta-audit/local-mpc-sequence-20261104-run2/22-phase2-keys",
+    "--resume-keys22-sha256",
+    "dcf669308831f5dd9595c6cedc8e14709df734deb535b07fde17d4cccecb115e",
+    "--resume-commons23",
+    "/home/rodrigo/.cache/vendetta-audit/local-mpc-sequence-20261104-run3/23-seal",
+    "--resume-commons23-sha256",
+    "8869842524ab18c47dadf74da6ab1a2267e98109005483f8a6a5a35926266972",
+    "--staged-initialization",
+    "--wait-for-memory",
+    "--unsafe-test-only"
+  ],
+  "sourceBundleSha256": "90e23dc01eb627a84bb0f66cbbd70f246d0bb18ae5f91af198637a183790e195",
+  "runnerSha256": "3c2fd6568a79c78799479c1945d18d24cf89a6219ef21daf9f90143f9f17ab5a",
+  "binarySha256": "196e7497e1da023aeb0a90940ff4d522bcf45b4eef281dc0041dd0b9a78c0c42",
+  "productionApproved": false
+}

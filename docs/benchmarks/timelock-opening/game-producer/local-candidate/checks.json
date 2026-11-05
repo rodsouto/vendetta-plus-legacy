@@ -1,0 +1,185 @@
+{
+  "candidate": "hidden-v2-local-20261031",
+  "checkedAt": "2026-10-31T04:01:40.628264+00:00",
+  "scope": "Current working tree, local roadmap stages 1-5; production is separate stage 6",
+  "freshCloneCI": false,
+  "reason": "Uncommitted and untracked session work is absent from HEAD; CI-equivalent checks ran directly on this working tree without creating a commit.",
+  "commitCreated": false,
+  "realNetworkDeployment": false,
+  "unsafeLocalSetups": true,
+  "checks": {
+    "rules": 763,
+    "contracts": 206,
+    "web": 188,
+    "layout": 11,
+    "goProducerTopLevel": 6,
+    "goProducerSubtests": true,
+    "e2e": 5,
+    "e2eAA": 2,
+    "skipped": 0,
+    "generatedFilesCompared": 75,
+    "generatedChanges": 0,
+    "webBuild": true,
+    "indexerBuild": true,
+    "scriptTypecheck": true,
+    "prettier": true,
+    "forgeFormat": true,
+    "diffCheck": true
+  },
+  "realProducerEvidence": {
+    "soak": "../worker-soak/2026-10-31T01-41-50-936Z/soak-results.json",
+    "sustainedFailures": "../worker-faults/2026-10-31T02-46-05-365Z/fault-results.json",
+    "remoteObservations": "../worker-soak/2026-10-31T01-41-50-936Z/remote-observations.json"
+  },
+  "sourceSha256": {
+    "apps/web/scripts/keeper.ts": "abe39b6755cac1e2112d05dafb9d6a53ccee2895473e8bdb94ca7670cf679627",
+    "apps/web/scripts/keeper/transactions.ts": "924435c4c29961ec358f5e6d5137dda58d477a1084ea1cb0f03084d0e57a2a0e",
+    "apps/web/scripts/prover/recovery.ts": "cd3f61297ecefd7de5a9cf4fdbf8890a93dabdc836816a4e7a85ba3c50ed47c5",
+    "apps/web/src/chain/hidden.ts": "90bb9d94619bf351f17b02c6fff33fd5fb9871e4bb5b44b7bd7f7870fa696fd8",
+    "packages/rules/src/sim/forecast.ts": "62a7f3e55a744c5c941ff7201e285b5bd3a8d49f5466b7ac039782859b698509",
+    "packages/rules/test/sim.test.ts": "91d019f748174ea456eba8309065e4842c26c7387ba0493857d3fb18987a25a1",
+    "apps/web/test/keeper-reorg.test.ts": "1488d185a89d7d8199fc1584a033127976353ac18fdb2aa686d5859ed02c289c",
+    "apps/web/test/producer-settlement.test.ts": "76331bfbe532b82f2ac90a97e69ac1e38114d8a4bfbc114b517c5ea9672bfd9b",
+    "apps/web/test/ciphertext-reorg.test.ts": "0c2064b818731c43083229033f72dd84a6da03b39f671cec0fae056ad15ed006",
+    "apps/web/test/anvil.ts": "616b3d958f015cb6e0d542ae27fbb7c7134520279b67a1b710f14b24920321c2",
+    "apps/web/e2e/test-evidence.ts": "827a47c647316c3b358887e0a9c143408f02e4b981091421b06678629e2d920a",
+    "apps/web/e2e/flow.spec.ts": "80dddd308da191550abea03415f43db4bcc585ee3bd19454417306c68bcccad5",
+    "apps/web/e2e/backlog.spec.ts": "84c51d8a851a251b023697aec26a94c550a1eee28dc44827a43b291c4a39bc7f",
+    "apps/web/e2e-aa/passkey.spec.ts": "7f8899652e96688d21696158dfff32cbc4ab131127b77106cdc18dce7e2e37dc",
+    "contracts/src/core/Account.sol": "adffaf3e3097d2ae1683e4f6e4ee3965e8ce216948d33e89d6866e405d410e78",
+    "contracts/test/core/Scenarios.t.sol": "b4ee136ea13d9bfe26e0054ee4a520a1516d1608a29f5c1b9d6564e678b599cc"
+  },
+  "generatedArtifactSha256": {
+    "apps/web/src/chain/abi.ts": "a2ae6ba03a8c9294a12ea16c39eb866e6f720d536328aa33ef8ed516cc7ae4cb",
+    "contracts/src/generated/VendettaRuleset.sol": "4cec0d55b960e0dd40fb94190c4aa784dc448f5fb636cb1404cc754b6f9f3aa3",
+    "contracts/storage-layout.json": "af2c6912d5fe16f2f7f540877a75cc34a846ca5a3a0d05de919a0c88bff3163a",
+    "contracts/test/fixtures/hidden/OpeningVerifier.sol": "81fe5adbea50809b74ddc43423ffdd2d08aa9e6f88b179f86f2e5e40cd696222",
+    "contracts/test/fixtures/hidden/PointVerifier.sol": "fab04cfd05b0791ae3795b7994395e349cf71f49512428a744094ed1bb19937a",
+    "packages/rules/generated/hidden-resolution.json": "9a4afb3fca57e86d1d1776a11e1be6bc5bf895d0387e4b93f40870d02e22c1fd",
+    "packages/rules/generated/scenarios/vendetta/00.json": "9ef2ea4fca0af6f7042cf8e09b1ad18b3e2e8a5a2f337314ce7b00408e867165",
+    "packages/rules/generated/scenarios/vendetta/01.json": "2ce5972141f973eb4cbc03d00545650a68d6019f1cc76fd276aaa2afebbc6e14",
+    "packages/rules/generated/scenarios/vendetta/02.json": "3d319488e769d9af162f864a214e4a93f8173d077c4010ca2b107d7d83f53678",
+    "packages/rules/generated/scenarios/vendetta/03.json": "543352ddfd284bc01c69fba60f7f65edd52492543ba2b5a291479c0355fb12df",
+    "packages/rules/generated/scenarios/vendetta/04.json": "845c2cbb787ae1f128b96db9a384f1a22d7ee4e481e652bd552c711b30da621e",
+    "packages/rules/generated/scenarios/vendetta/05.json": "72b8c66e5c1de1237b479ea8390259e4adc8f0c0be9b6aeb23e1d3c2a0f5a800",
+    "packages/rules/generated/scenarios/vendetta/06.json": "9ae23a847a6e0c8783545b443b11a1b99b2e2c831b59a25aeb7882a9b0a0a3e3",
+    "packages/rules/generated/scenarios/vendetta/07.json": "8c82c0322c24181d4134286029b775dbe7af1e09f761d58ff2b2fd231381dae4",
+    "packages/rules/generated/scenarios/vendetta/08.json": "e35439122b14a81734c2833a35102da3a3fe436e6aaa44efdf1253956a7aaae6",
+    "packages/rules/generated/scenarios/vendetta/09.json": "f2ab8f27e1ff69826ebbee123bbc30b08c303f9f70896c3b92d09bcbe8271267",
+    "packages/rules/generated/scenarios/vendetta/10.json": "89034c38413e4276bdbc8ee96bcab523ddf839a528690e776c6577a93389c65e",
+    "packages/rules/generated/scenarios/vendetta/11.json": "a46297e0fda26f20cc92aba35942516bc672d59600e7251fa5a4dbb11b31c67c",
+    "packages/rules/generated/scenarios/vendetta/12.json": "e65d19f7474238563784bdf17f4ecff4914bd25f1a1733998353ca8abb8eadab",
+    "packages/rules/generated/scenarios/vendetta/13.json": "c1e00145d77993b1e0b7203854ddba90dc589a61716755c83399275c9420785a",
+    "packages/rules/generated/scenarios/vendetta/14.json": "7b301448d9a3dabea4c1fade3b247e0c0e9f644b56afa349f97918895ab6ad4b",
+    "packages/rules/generated/scenarios/vendetta/15.json": "3dbfb4f10e2e6f76dc9278b0bcab9f02e812b7fd00fdeff6db6ce9fed2a340e3",
+    "packages/rules/generated/scenarios/vendetta/16.json": "45f1b632358e783208bec290f8857fa0efb30a14c19e65301b71bb8de4196a73",
+    "packages/rules/generated/scenarios/vendetta/17.json": "10e760cefefcc56edfd8a4950a1cbac712acc19c0fb2dc0240000f78d2bbca94",
+    "packages/rules/generated/scenarios/vendetta/18.json": "5ea637024488bb36c894f62db2c59aa9864a8809c73534a0ff52131b9b312bb4",
+    "packages/rules/generated/scenarios/vendetta/19.json": "ee09e98b4c82c99fb8d5239f2ecf84902627ce2faadf21838aae53587e026992",
+    "packages/rules/generated/scenarios/vendetta/20.json": "561f32c1792b0ef278e7716c2efd52ec45ae758bf554a518c90d6e5381133c41",
+    "packages/rules/generated/scenarios/vendetta/21.json": "5495baf2216d72ee3cf66c03f5a72179aeac76b814beb419f8c52316701fa72a",
+    "packages/rules/generated/scenarios/vendetta/22.json": "f1ddeb893d4ee48d804981993a8f2a4762be60bf883ad9b85ccd1174ff9cb968",
+    "packages/rules/generated/scenarios/vendetta/23.json": "de7b86a7286b0179592c5708f9920977369b5bf8b27c9de61d55bd9cf24920e2",
+    "packages/rules/generated/scenarios/vendetta/24.json": "b810acdafef6dcd664224979deeedd061234fa55e7c0f954cb19b3b58c258530",
+    "packages/rules/generated/scenarios/vendetta/25.json": "8f3e1cdb4b8424cfdc1f3f77ea9a37cb8dfded7a88ca4a3be67046b17f93b1ac",
+    "packages/rules/generated/scenarios/vendetta/26.json": "84d2230dcbf5418361a3e445e70c084656486de160eef02476ccd5b11c4760e6",
+    "packages/rules/generated/scenarios/vendetta/27.json": "27ae01c2759b49df705de7fb5d89efdeb4590bcf9c0215f807748833434ef0a4",
+    "packages/rules/generated/scenarios/vendetta/28.json": "91bbe1e164da7986c444430608e8d380d99dd627c8f667711a1912f4e609d60c",
+    "packages/rules/generated/scenarios/vendetta/29.json": "40f50fa3ff5e0227288f3215877fbe499f132305d62127be448e79e755b8d5e2",
+    "packages/rules/generated/scenarios/vendetta/30.json": "9b4aa2c438170a253903b7e7d40a4085539393cf47748bd061e2742d324b55d7",
+    "packages/rules/generated/scenarios/vendetta/31.json": "27af3bb02d260c2fc2073d64ad2f4d5becb391c072b8f4c7f831031041f136de",
+    "packages/rules/generated/scenarios/vendetta/32.json": "97ac94089022341174f5df59aa8072fabbd3cdc374e46063879f336be04019e5",
+    "packages/rules/generated/scenarios/vendetta/33.json": "056776eb78d0910cd43cd7a9c361e420d4ea68c4c971e39978ae452691c2b2da",
+    "packages/rules/generated/scenarios/vendetta/34.json": "4515f782a5951dbce8b083e760791d0683ef5acf23df6a4e6cd0a8c5515aa3e7",
+    "packages/rules/generated/scenarios/vendetta/35.json": "52b42a00c14e5c215308ab15e060a71837632c75fe12bf454e71abe0b4b11002",
+    "packages/rules/generated/scenarios/vendetta/36.json": "507131fe6d624a7a0b44aebc5a292da533da064a247dd922a888c624529bc770",
+    "packages/rules/generated/scenarios/vendetta/37.json": "9dc17bbd79a4316e578b5c1812a093fc6c96ded5cbed38cb57f61e35671f6318",
+    "packages/rules/generated/scenarios/vendetta/38.json": "4b1bdd79f3028b40de456873bfe39757727facea9e14ec6883933f9acbd6f2db",
+    "packages/rules/generated/scenarios/vendetta/39.json": "eb199d4dfb3c70fb11d3aca7b92f057c8ae5ea332238418cc550148eef883b97",
+    "packages/rules/generated/scenarios/vendetta/40.json": "378b00a059b25a2c26c27378c859cbb6d6bb301996056c6974fd33c219444730",
+    "packages/rules/generated/scenarios/vendetta/41.json": "5163995ab7e9ee820c78101ab7bb6ee901c2de3c9bb529f88ad61dbc06dcdfac",
+    "packages/rules/generated/scenarios/vendetta/42.json": "4b566aacde4799569ecbdf14e0bc4a5ccd3d4b82d69076a5282ea365abf58450",
+    "packages/rules/generated/scenarios/vendetta/43.json": "86b88f3d6c13ef3f019b1a34e69312edf61cbd7d95b2ddad3c16db65d15cd0ba",
+    "packages/rules/generated/scenarios/vendetta/44.json": "ab58addaa30327150a5150ce38e0f0e9841e0530bd824edb96d0a365b92c9a0f",
+    "packages/rules/generated/scenarios/vendetta/45.json": "67230a03cd6e81a6ac452c75cb432b7860b217e738d3c95c404182bd6fe90760",
+    "packages/rules/generated/scenarios/vendetta/46.json": "775e111864899e314bdc0bed0d277ebfa685fd4835b74961b93924f74e20ab0a",
+    "packages/rules/generated/scenarios/vendetta/47.json": "fab599ba6c078c8f6d5e4ff3088e487e1c217d5f1f3f968d5887279543572be6",
+    "packages/rules/generated/scenarios/vendetta/48.json": "53e88feea8be3109f40a5d4254a57dd6cf3e35e06c05736764dbd3a55741740b",
+    "packages/rules/generated/scenarios/vendetta/49.json": "3d7f8d28b368cd3ab48e37d8400d1618227201bf49222d3c3f46c956786ff1b4",
+    "packages/rules/generated/scenarios/vendetta/50.json": "b2f055cac7914438177477e4bb6f742e4981ed17b2c52824040127115baf5a32",
+    "packages/rules/generated/scenarios/vendetta/51.json": "0a1a57584915e3654b0ba61f77526b748a3a17dedbadef9be8620505b443679a",
+    "packages/rules/generated/scenarios/vendetta/52.json": "ec0c43989adc84f5b17420dbd721adf5b4546a41a857ef7017df399384774cf8",
+    "packages/rules/generated/scenarios/vendetta/53.json": "a1d919673025f25efad80305bb4d40e5bf694fd76b93cf781731182354965ac7",
+    "packages/rules/generated/scenarios/vendetta/index.json": "542f2e675c46d663960f72e4c0a2e11a0d8937f98b9fbec96efcf721a7f5b1f1",
+    "packages/spec-data/generated/fixtures/vendetta/combat.json": "e15a8168b2f1757f8ba92994e7e0cf40e3c668ef4f774365e58d24549536d455",
+    "packages/spec-data/generated/fixtures/vendetta/distance.json": "a7c7ddedccbec01b8c6b01d459a972f0d58b37e173e260c421a503ae531ba0d6",
+    "packages/spec-data/generated/fixtures/vendetta/honor.json": "24e21bd5dc5fc93bb0a6526a97bd1094f55b206e8a974aa92f3bed6510aca055",
+    "packages/spec-data/generated/fixtures/vendetta/loot.json": "b2c0b095f09bbf6d8fb84026a3a0b7624dfbc32a90b140ea63bb983427e5fa01",
+    "packages/spec-data/generated/fixtures/vendetta/troop_stats.json": "889a2f93d86b117af9c40c2b8dfa7285a26d630c00dcab7b03e8688edf6c724f",
+    "packages/spec-data/generated/fixtures/vendetta/upgrades.json": "3e577bc7750a50425410f12ea8f77270c9930d9ca6a89189fe6bd74d4b6864ea",
+    "packages/spec-data/generated/game_config.json": "79fbea7fe772bd93e03c3f917bf8b77bdf6fb51b10d1c11b810c79eda2e8e251",
+    "packages/spec-data/generated/i18n/en.json": "7f5a872915aa4b0d0359d02ae8dff31ba137017622d7fc022adcba92d849dd80",
+    "packages/spec-data/generated/i18n/es.json": "3ae1ab31a9db4493cc508c2bac1f5d5b9dedafc368e3f9a5770c8e8316c10abd",
+    "packages/spec-data/generated/space4k.json": "a04d5350bc6d1b2d409b87bf11927ecb228067197939e486a012bbe728b64fd4",
+    "packages/spec-data/generated/test_vectors.json": "88327f6576638de08fc80cfb5375f7f4d802833e018860c0c7eedec65863a324",
+    "packages/spec-data/generated/test_vectors_space4k.json": "8f697dce6445d9204fbe1bb9339a8e0fdaf6c088cc7beb55a840f88a17e59346",
+    "packages/spec-data/generated/test_vectors_target.json": "a885b19fea90e1d0104189737ab2eed5f9a15df8b2bd3d89124d3accd2d3e254",
+    "packages/spec-data/generated/vendetta.json": "f5295c9e355a2d0ce65fffd998e49ee87dd1bfa87339fea01feba802c381a7dd"
+  },
+  "logSha256": {
+    "codegen": {
+      "path": "/tmp/vendetta-v2-release-codegen-final.log",
+      "sha256": "1d34bd300c4f22ab23ebaa1a68f321b6b317f9352a8721a3f0cb11bb7e67e2fe"
+    },
+    "tests": {
+      "path": "/tmp/vendetta-v2-release-tests.log",
+      "sha256": "da6cc352a6d470139dd07265f686419c8645af7e00b76385799b2a1f66271252"
+    },
+    "contractsAfterFormatting": {
+      "path": "/tmp/vendetta-v2-release-contracts-final.log",
+      "sha256": "3df895bbc5662ce8f49f35b071ffac38890a6c9b84bf74c934ec2917d8ec794c"
+    },
+    "webBuild": {
+      "path": "/tmp/vendetta-v2-release-build.log",
+      "sha256": "d9202192babb0731f9b127892e9f4c72bfb6bd0b0bd406d5981c7e101ab0f5b2"
+    },
+    "indexerBuild": {
+      "path": "/tmp/vendetta-v2-candidate-indexer-build.log",
+      "sha256": "de3d72d46eed260daa50465ef1e7c07fbdca7a0d2f2f95954a55ce88d72f2588"
+    },
+    "scriptTypes": {
+      "path": "/tmp/vendetta-v2-release-types.log",
+      "sha256": "f9c2f8771fce7ef21210cc88f73fcd94891d46c68a05d06bdff1ffbbf097a1ca"
+    },
+    "prettier": {
+      "path": "/tmp/vendetta-v2-release-format-final.log",
+      "sha256": "e8849a1ee25f2acf9cc146679645936d2e57849e6c322ed255eedfc89a9b9f9b"
+    },
+    "forgeFormat": {
+      "path": "/tmp/vendetta-v2-release-forge-fmt-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "nativeProducer": {
+      "path": "/tmp/vendetta-v2-candidate-go.log",
+      "sha256": "0250c419dbd14fac0bc8a75c1ad6b41bd330c61fc18eee6abcadbe1207559dae"
+    },
+    "e2e": {
+      "path": "/tmp/vendetta-v2-candidate-e2e-final.log",
+      "sha256": "09e5b4759bf0fc34a01e5a7dd4ba27816d14124396bf548b91c46b5d71e3d4a5"
+    },
+    "e2eAA": {
+      "path": "/tmp/vendetta-v2-candidate-e2e-aa-complete.log",
+      "sha256": "4a1660edced9cf4e272c670ab24609bc20553b4428f768713fdac116bc38bc99"
+    }
+  },
+  "knownLimits": [
+    "Existing insecure local setups only; secure production setup and independent audit/corrections remain mandatory before deployment.",
+    "Soak repeats six admitted contexts; sampled RSS/CPU and finite HTTPS point observations are not capacity, memory-ceiling, leak-free or SLA guarantees.",
+    "Native RSS exceeded the soft 6GiB Go heap target; strict memory/process limits require an external supervisor/cgroup.",
+    "Signed journals use atomic rename but do not establish power-loss/fsync durability; exclusive persistent directories and dedicated signers are operational requirements.",
+    "No automatic fee replacement or nonce cancellation; unresolved replaced nonces fail closed and require explicit operator rotation with old journals preserved.",
+    "Receipt inclusion is not finality; index recovery assumes a coherent RPC. No universal deep-reorg/public-provider-failover proof.",
+    "Keeper CLI/Game and Playwright integration use explicit trusted test consumers; cryptographic/H3 evidence is in separate real-producer reports.",
+    "Web build passes with chunk-size and tlock dynamic/static import warnings; no bundle optimization is included in this closure."
+  ]
+}

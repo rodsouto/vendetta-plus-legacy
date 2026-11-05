@@ -1,0 +1,88 @@
+{
+  "sourceSha256": "06b5474f0d892cf87f0fd8c0e6a3949eec3799e55b468400d094f9aaf63d6f04",
+  "batchElapsedMs": 3752483.612542,
+  "proofsGenerated": 35,
+  "uniqueAdmittedContexts": 6,
+  "circuits": [
+    {
+      "circuit": "opening",
+      "repeatedProofs": 20,
+      "warmProofs": 15,
+      "coldProofs": 5,
+      "repeatedProofNativeMs": {
+        "count": 20,
+        "min": 42429,
+        "mean": 92835.35,
+        "max": 250503
+      },
+      "repeatedProofHttpMs": {
+        "count": 20,
+        "min": 42544,
+        "mean": 93226.65,
+        "max": 251714
+      },
+      "processCpuSeconds": {
+        "count": 7,
+        "min": 1715.04,
+        "mean": 2130.3642857142854,
+        "max": 2366.98
+      },
+      "processPeakRssBytes": {
+        "count": 7,
+        "min": 6389354496,
+        "mean": 6513937846.857142,
+        "max": 6620250112
+      }
+    },
+    {
+      "circuit": "invalid-point",
+      "repeatedProofs": 9,
+      "warmProofs": 4,
+      "coldProofs": 5,
+      "repeatedProofNativeMs": {
+        "count": 9,
+        "min": 28262,
+        "mean": 101981,
+        "max": 166903
+      },
+      "repeatedProofHttpMs": {
+        "count": 9,
+        "min": 28355,
+        "mean": 102662.44444444444,
+        "max": 167995
+      },
+      "processCpuSeconds": {
+        "count": 7,
+        "min": 921.96,
+        "mean": 1062.7285714285713,
+        "max": 1154.91
+      },
+      "processPeakRssBytes": {
+        "count": 7,
+        "min": 5207539712,
+        "mean": 5861819538.285714,
+        "max": 6281560064
+      }
+    }
+  ],
+  "faults": {
+    "rpcRejected": 6,
+    "beaconRejected": 3,
+    "lostBroadcastReplies": 1,
+    "receiptsRejected": 2
+  },
+  "peakNativeProcesses": 1,
+  "peakNativeRssBytes": 6620250112,
+  "peakNodeRssBytes": 173199360,
+  "finalQueuePending": 0,
+  "punctualAndDelayedFullWorldEqual": true,
+  "limitations": [
+    "Six distinct admitted contexts are reproved repeatedly; not an arrival-rate or production-capacity benchmark.",
+    "Local HTTP archived beacon signatures; no public beacon/RPC availability measurement.",
+    "Fault episodes precede the sustained proof loop; not every interleaving of faults and circuit switches.",
+    "Sampled RSS/CPU are observations, not memory limits or absence-of-leak proof.",
+    "No stuck-transaction replacement policy or deep reorg recovery claim.",
+    "Proof duration distributions cover repeated proofs only; process CPU/RSS covers the full run, including initial proving and recovery.",
+    "No throughput extrapolation: the same six contexts are reproved and the run includes deliberately injected downtime."
+  ]
+}

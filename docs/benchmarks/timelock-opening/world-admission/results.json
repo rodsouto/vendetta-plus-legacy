@@ -1,0 +1,40 @@
+{
+  "scope": "Opt-in one-way v2 world activation and public sender binding, loader and stopped projection; real proof for newly admitted Game context remains pending",
+  "rulesTestsPassed": 779,
+  "contractsTestsPassed": 207,
+  "webTestsPassed": 109,
+  "layoutCheckerTestsPassed": 11,
+  "existingScenariosPassed": 25,
+  "skippedTests": 0,
+  "newRulesTests": 6,
+  "newContractTests": 4,
+  "newWebAnvilTests": 1,
+  "publicV2AdmissionImplemented": true,
+  "deploymentActivatesV2": false,
+  "activationRequiresAdmin": true,
+  "activationRequiresNoActiveMissions": true,
+  "activationCanRotateOrDisable": false,
+  "v1HiddenAdmissionAllowedAfterActivation": false,
+  "packetAndBindingAtomicWithCharging": true,
+  "mixedProtocolPublicAdmissionPrevented": true,
+  "loaderReadsConfigurationAndReceipts": true,
+  "projectionStopsAtPendingHistoricalHead": true,
+  "newGameContextRealGroth16ReplayComplete": false,
+  "anvilIntegratedTestUsesTrustedMock": true,
+  "onChainEvidenceDelaySeconds": 7200,
+  "anvilWorldMatchesReferenceAfterResolution": true,
+  "realNetworkDeploymentPerformed": false,
+  "runtimeBytes": {
+    "Game": 24000,
+    "HiddenAdmission": 2968,
+    "HiddenEvidence": 3328,
+    "Missions": 23130,
+    "GameViews": 2923
+  },
+  "storageChange": "Append two configured consumer addresses at end of CoreState, recorded compatibly without force",
+  "logSha256": {
+    "rules": "59a6072276a6869922f133c84822d5b683eedc658b2bf5f61eeaa395fc2baf26",
+    "contracts": "04dcc286486aadc5d2b36e3b294c1812d95ed0a55abe5be36648cfbf78a304d1",
+    "web": "08aafefa7d88c806c1ee8033844c4c7564655b78b9a002b1e726d41f9169d3bd"
+  }
+}

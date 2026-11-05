@@ -1,0 +1,72 @@
+{
+  "scope": "Native gnark MPC backend compatibility on a small commitment circuit; not a game setup or independent ceremony",
+  "date": "2026-10-31",
+  "gnark": {
+    "Version": "v0.16.4",
+    "Time": "2026-10-07T10:11:05Z",
+    "Origin": {
+      "VCS": "git",
+      "URL": "https://github.com/consensys/gnark",
+      "Hash": "e974abb44722dd201a7f1949baeabca0fef5866e",
+      "Ref": "refs/tags/v0.16.4"
+    }
+  },
+  "backendSourceSha256": {
+    "lagrange.go": "9a24908f857fb049f43f00dc1b0ea19e9f017155152d35c7c122d23e2fd88fb6",
+    "marshal.go": "5409d2bf89d8ec79a109a9b480835df6fd1f38d41bd0cc3ab7707a217b74cc38",
+    "phase1.go": "a5fe610f60a3ca0c183fbb532d20243ac977bf50d59eb102e96f794b68058b46",
+    "phase2.go": "01bb7be08a4525acb95cf9e49d5d94e7f0b78d68a7a2c2e27d6bb3b8c8ef820e",
+    "setup.go": "f82f422ec778f65828bf726a4bd9751f0545ed188ba32731526cb043bc73ff23",
+    "setup_test.go": "b9bf6ba64b3211ef5ef9c84803eefaa2e1df457a53e44dc370bb002b9d508b8e"
+  },
+  "testSource": {
+    "path": "apps/web/scripts/experiments/opening-zk/setup_mpc_test.go",
+    "sha256": "382845675d70847b112096d8aeb6119bd28efa0a61b68168a7533b62bb17416e"
+  },
+  "validation": {
+    "command": "GOMEMLIMIT=6GiB GOMAXPROCS=8 /tmp/vendetta-opening-tools/go/bin/go test -v -run '^(TestSetupMPCCompatibility|TestProducer)' -count=1 .",
+    "cwd": "apps/web/scripts/experiments/opening-zk",
+    "exitCode": 0,
+    "mainTestsPassed": [
+      "TestProducerNativeWitness",
+      "TestProducerSetupNeverOverwrites",
+      "TestProducerArtifactIntegrity",
+      "TestProducerProfile",
+      "TestProducerWorkerProtocol",
+      "TestProducerWorkerPinsSetupManifest",
+      "TestSetupMPCCompatibility"
+    ],
+    "mpcTamperSubtestsPassed": [
+      "phase1-challenge-tamper",
+      "phase2-challenge-tamper"
+    ],
+    "phases": 2,
+    "contributionsPerPhase": 2,
+    "commitmentCircuit": true,
+    "serializedKeysRoundTrip": true,
+    "repeatVerificationKeysEqual": true,
+    "solidityExport": true,
+    "nativeProofVerified": true,
+    "substitutedPublicInputRejected": true,
+    "solidityTargetOptionsMatchProducer": true,
+    "moduleIntegrity": "go mod verify: all modules verified",
+    "log": {
+      "path": "/tmp/vendetta-v2-production-mpc-go.log",
+      "sha256": "77d879be2b533b40021c35c05f4917bb3aad3c89ad1515c52601c8edeceb7ba5"
+    }
+  },
+  "limitations": [
+    "One process, fixed test beacons, no independent participants or secret disposal evidence",
+    "No game circuit setup, EVM execution, final approval registry or production enablement",
+    "No full-size MPC resource measurement; existing local game setups unchanged"
+  ],
+  "auditBundleValidation": {
+    "command": "pnpm test:audit-hidden-v2",
+    "testsPassed": 5,
+    "exitCode": 0,
+    "log": {
+      "path": "/tmp/vendetta-v2-production-audit-tests.log",
+      "sha256": "fd3bdcfa68e1ce1c23e8e860f6c809698016b9c90f2f27c9f88742393f49a878"
+    }
+  }
+}

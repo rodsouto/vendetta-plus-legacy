@@ -16,7 +16,22 @@
     "aa:fixture": "tsx scripts/aa-fixture.ts",
     "benchmark:gas": "tsx scripts/benchmark-gas.ts",
     "keeper": "tsx scripts/keeper.ts",
-    "prepare:occupation": "tsx scripts/prepare-occupation.ts"
+    "prepare:occupation": "tsx scripts/prepare-occupation.ts",
+    "prover": "tsx scripts/prover.ts",
+    "prover:compile": "tsx scripts/compile-prover.ts",
+    "prover:replay": "tsx scripts/experiments/run-producer-game.ts",
+    "typecheck:scripts": "tsc --noEmit -p scripts/tsconfig.json",
+    "snapshot:opening": "tsx scripts/experiments/snapshot-opening.ts",
+    "prover:load": "tsx scripts/experiments/run-producer-load.ts",
+    "prover:capacity": "tsx scripts/experiments/run-producer-game.ts --capacity",
+    "prover:capacity:summary": "tsx scripts/experiments/summarize-producer-capacity.ts",
+    "prover:profile": "tsx scripts/experiments/profile-producer.ts",
+    "prover:worker:profile": "tsx scripts/experiments/profile-worker.ts",
+    "prover:worker:replay": "tsx scripts/experiments/run-producer-game.ts --worker-replay",
+    "prover:soak": "tsx scripts/experiments/run-producer-game.ts --soak",
+    "prover:soak:summary": "tsx scripts/experiments/summarize-producer-soak.ts",
+    "prover:probe:remotes": "tsx scripts/experiments/probe-producer-remotes.ts",
+    "prover:faults:replay": "tsx scripts/experiments/run-producer-game.ts --fault-replay"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.104.0",
@@ -30,9 +45,12 @@
     "react-i18next": "^17.0.0",
     "tlock-js": "0.9.0",
     "uqr": "0.1.2",
-    "viem": "2.57.7"
+    "viem": "2.57.7",
+    "@noble/hashes": "1.8.0",
+    "@stablelib/chacha20poly1305": "1.0.1"
   },
   "devDependencies": {
+    "@noble/curves": "1.9.1",
     "@pimlico/alto": "0.0.21",
     "@pimlico/mock-paymaster": "0.0.8",
     "@playwright/test": "1.64.1",

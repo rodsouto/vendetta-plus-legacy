@@ -63,9 +63,7 @@ error NoTransfer();
 error NoInvite();
 error TooLate();
 error InvalidArrival();
-error TooEarly();
 error TroopsResting();
-error OutOfOrder();
 
 struct BattleReport {
     uint64[TROOPS] attacker;
@@ -111,12 +109,12 @@ interface IGameEvents {
     /// A hidden mission (B-22): `MissionSent` carries kind 0 and coordinate 0; the tlock
     /// ciphertext of (kind, target, salt) is only here, never stored.
     event HiddenMissionSent(uint64 indexed mission, bytes32 commit, uint32 cover, bytes ciphertext);
+    event HiddenEvidenceRecorded(uint64 indexed mission, bool valid);
     event MissionRevealed(
         uint64 indexed mission, uint8 kind, uint8 city, uint8 neighborhood, uint8 slot
     );
-    /// A due hidden mission nobody revealed yet left the queue for the parked list (B-22).
-    event MissionParked(uint64 indexed mission);
-    event MissionForfeited(uint64 indexed mission);
+    /// A certificate established invalidity; the mission returns from its original arrival.
+    event HiddenMissionInvalidated(uint64 indexed mission);
     event MissionRecalled(uint64 indexed mission, uint40 arrival);
     event MissionReturning(uint64 indexed mission, uint40 arrival);
     event MissionEnded(uint64 indexed mission);

@@ -1,0 +1,468 @@
+{
+  "schema": 1,
+  "node": "v24.22.1",
+  "componentOnly": false,
+  "succinctProofGeneratedByThisScript": false,
+  "rulesDigest": "0xca68555c4e55b79b4e357509f49c61947b4ceac1ed174d51350db9069a8d1f40",
+  "hardware": {
+    "cpu": "AMD Ryzen 7 5825U with Radeon Graphics",
+    "logicalCpus": 16,
+    "totalMemoryBytes": 20348297216
+  },
+  "profile": "tlock-js 0.9.0 / quicknet / single age stanza / 16-byte capsule key / one payload chunk",
+  "libraryInteroperability": true,
+  "ciphertextBytes": 576,
+  "plaintextBytes": 19,
+  "nodeOpeningMedianMs": 133.40646199999992,
+  "nodeOpeningMinMs": 129.85788000000002,
+  "nodeOpeningMaxMs": 154.555022,
+  "maxRssKiB": 122084,
+  "samples": [
+    {
+      "totalMs": 133.40646199999992,
+      "parse": 0.05827999999974054,
+      "beaconAuthentication": 71.01788799999986,
+      "capsule": 60.8127800000002,
+      "age": 0.4201180000000022,
+      "mission": 0.3965539999999237
+    },
+    {
+      "totalMs": 129.85788000000002,
+      "parse": 0.05792999999994208,
+      "beaconAuthentication": 66.97585799999979,
+      "capsule": 61.43395999999984,
+      "age": 0.5482010000000628,
+      "mission": 0.3217410000002019
+    },
+    {
+      "totalMs": 154.555022,
+      "parse": 0.054743999999573134,
+      "beaconAuthentication": 68.00909199999978,
+      "capsule": 85.17841200000021,
+      "age": 0.5057409999999436,
+      "mission": 0.26900099999966187
+    },
+    {
+      "totalMs": 130.119737,
+      "parse": 0.05498500000021522,
+      "beaconAuthentication": 68.01379099999986,
+      "capsule": 60.62610500000028,
+      "age": 0.6564979999998286,
+      "mission": 0.22684099999969476
+    },
+    {
+      "totalMs": 130.28484100000014,
+      "parse": 0.1099989999997888,
+      "beaconAuthentication": 68.7203340000001,
+      "capsule": 59.348967999999786,
+      "age": 0.6736999999998261,
+      "mission": 0.3367500000003929
+    },
+    {
+      "totalMs": 133.53287199999977,
+      "parse": 0.05874200000016572,
+      "beaconAuthentication": 69.95961800000032,
+      "capsule": 62.34189400000014,
+      "age": 0.4371309999996811,
+      "mission": 0.21873499999992418
+    },
+    {
+      "totalMs": 134.32375900000034,
+      "parse": 0.05751899999995658,
+      "beaconAuthentication": 72.77055800000016,
+      "capsule": 59.92141099999981,
+      "age": 0.5718770000003133,
+      "mission": 0.3609160000000884
+    },
+    {
+      "totalMs": 130.00508400000035,
+      "parse": 0.08168499999965206,
+      "beaconAuthentication": 67.28888899999993,
+      "capsule": 61.07684000000063,
+      "age": 0.5123439999997572,
+      "mission": 0.447439999999915
+    },
+    {
+      "totalMs": 135.3160799999996,
+      "parse": 0.06120599999940168,
+      "beaconAuthentication": 68.81445200000053,
+      "capsule": 65.11263999999937,
+      "age": 0.4059509999997317,
+      "mission": 0.30402799999956187
+    },
+    {
+      "totalMs": 135.01217199999974,
+      "parse": 0.05356200000005629,
+      "beaconAuthentication": 68.4045530000003,
+      "capsule": 65.37720100000024,
+      "age": 0.38327899999967485,
+      "mission": 0.21841499999936786
+    }
+  ],
+  "hashes": {
+    "opening.ts": "0eef4f4ba6bfae7fbdf16528d6496f2de9191feb91f7ecaade7e6ad501c3bbf7",
+    "opening-fixtures.ts": "f0d2c22c1be97adea1e10755ed0ae003f9d56ca462e5bc20073a811f66fd1416",
+    "run-opening.ts": "4fd0b35895b65701e9bd29d905c710e8cb3d4ce3a9514657cc11176188d8d62d",
+    "fixtures/cases.json": "d9c075e21ff2be0a915f467945cbbeda15637c4b35b36ab2415c139307aadf2f",
+    "fixtures/quicknet-1000.json": "7fc6e6956940f0f02920a5ff8bdad77db0406d75555caddc6d0c96ae7aef1a18",
+    "fixtures/quicknet-1001.json": "3fd739a3d3849baafeca255bed0d4b042772f38f1def5b63ffcd099b4c76bab0"
+  },
+  "cases": [
+    {
+      "name": "valid",
+      "expected": "valid",
+      "result": {
+        "status": "valid",
+        "plain": {
+          "kind": 1,
+          "target": {
+            "city": "1",
+            "neighborhood": "1",
+            "slot": "2"
+          },
+          "salt": "5"
+        }
+      },
+      "ms": {
+        "parse": 0.8379620000000614,
+        "beaconAuthentication": 96.62826599999994,
+        "capsule": 66.97900500000014,
+        "age": 7.4590619999999035,
+        "mission": 1.4045889999999872
+      },
+      "statement": "0x07cacc7dd0c57c1db3b76542be3c87b497cc7014f821d5eee98fca5b7e26098b"
+    },
+    {
+      "name": "valid-after-long-outage",
+      "expected": "valid",
+      "result": {
+        "status": "valid",
+        "plain": {
+          "kind": 1,
+          "target": {
+            "city": "1",
+            "neighborhood": "1",
+            "slot": "2"
+          },
+          "salt": "5"
+        }
+      },
+      "ms": {
+        "parse": 0.1886580000000322,
+        "beaconAuthentication": 72.03036199999997,
+        "capsule": 63.4046330000001,
+        "age": 1.0789899999999761,
+        "mission": 0.289169000000129
+      },
+      "statement": "0x07cacc7dd0c57c1db3b76542be3c87b497cc7014f821d5eee98fca5b7e26098b"
+    },
+    {
+      "name": "round-not-yet-open",
+      "expected": "wait",
+      "result": {
+        "status": "wait",
+        "reason": "round-not-open-yet"
+      },
+      "ms": {
+        "parse": 0.12293399999998655
+      },
+      "statement": "0x07cacc7dd0c57c1db3b76542be3c87b497cc7014f821d5eee98fca5b7e26098b"
+    },
+    {
+      "name": "drand-unavailable",
+      "expected": "wait",
+      "result": {
+        "status": "wait",
+        "reason": "beacon-unavailable"
+      },
+      "ms": {
+        "parse": 0.14761099999986982
+      },
+      "statement": "0x07cacc7dd0c57c1db3b76542be3c87b497cc7014f821d5eee98fca5b7e26098b"
+    },
+    {
+      "name": "wrong-commitment",
+      "expected": "invalid",
+      "result": {
+        "status": "invalid",
+        "reason": "commitment-mismatch"
+      },
+      "ms": {
+        "parse": 0.12482699999986835,
+        "beaconAuthentication": 71.33936900000003,
+        "capsule": 62.392871000000014,
+        "age": 0.9702330000000075,
+        "mission": 0.25040500000000065
+      },
+      "statement": "0x1b57e954a93c72f0a43feb5fbd41e145119f949b7e991c18fc75efbbdee69f30"
+    },
+    {
+      "name": "cargo-forbidden-for-attack",
+      "expected": "invalid",
+      "result": {
+        "status": "invalid",
+        "reason": "message-cargo"
+      },
+      "ms": {
+        "parse": 0.24894300000005387,
+        "beaconAuthentication": 70.99178000000006,
+        "capsule": 62.27090000000021,
+        "age": 0.7681689999999435,
+        "mission": 0.2837889999998424
+      },
+      "statement": "0xd96992fd108e5cc111835b65230944114159477eba02c43c96513e7631e6ca84"
+    },
+    {
+      "name": "substituted-ciphertext",
+      "expected": "untrusted",
+      "result": {
+        "status": "untrusted",
+        "reason": "ciphertext-hash-mismatch"
+      },
+      "ms": {},
+      "statement": "0x07cacc7dd0c57c1db3b76542be3c87b497cc7014f821d5eee98fca5b7e26098b"
+    },
+    {
+      "name": "forged-beacon-round",
+      "expected": "untrusted",
+      "result": {
+        "status": "untrusted",
+        "reason": "unauthenticated-beacon"
+      },
+      "ms": {
+        "parse": 0.16673599999990074,
+        "beaconAuthentication": 69.29346200000009
+      },
+      "statement": "0x07cacc7dd0c57c1db3b76542be3c87b497cc7014f821d5eee98fca5b7e26098b"
+    },
+    {
+      "name": "wrong-beacon-round",
+      "expected": "untrusted",
+      "result": {
+        "status": "untrusted",
+        "reason": "unauthenticated-beacon"
+      },
+      "ms": {
+        "parse": 0.12381499999992229,
+        "beaconAuthentication": 0.0011630000001332519
+      },
+      "statement": "0x07cacc7dd0c57c1db3b76542be3c87b497cc7014f821d5eee98fca5b7e26098b"
+    },
+    {
+      "name": "wrong-randomness",
+      "expected": "untrusted",
+      "result": {
+        "status": "untrusted",
+        "reason": "unauthenticated-beacon"
+      },
+      "ms": {
+        "parse": 0.1559469999999692,
+        "beaconAuthentication": 0.06402200000002267
+      },
+      "statement": "0x07cacc7dd0c57c1db3b76542be3c87b497cc7014f821d5eee98fca5b7e26098b"
+    },
+    {
+      "name": "malformed-age",
+      "expected": "invalid",
+      "result": {
+        "status": "invalid",
+        "reason": "malformed-age-envelope"
+      },
+      "ms": {
+        "parse": 0.08796700000016244
+      },
+      "statement": "0x8b9f699560580875b70a09a6c0c7a7c18fff34f03f0034cd609b4dbba55c2b7d"
+    },
+    {
+      "name": "unknown-age-version",
+      "expected": "unsupported",
+      "result": {
+        "status": "unsupported",
+        "reason": "age-version"
+      },
+      "ms": {
+        "parse": 0.13906400000018948
+      },
+      "statement": "0x1e4c9d7ca02b36c21d0817d00975362dc685148f741632595c5af15b1f81c797"
+    },
+    {
+      "name": "different-network",
+      "expected": "unsupported",
+      "result": {
+        "status": "unsupported",
+        "reason": "different-drand-network"
+      },
+      "ms": {
+        "parse": 0.07823899999993955
+      },
+      "statement": "0xbfcdcfac2919d3e5ec60158d7c1e23674a2c9c431a74ed26a9e960af5376a2d8"
+    },
+    {
+      "name": "noncanonical-round-encoding",
+      "expected": "unsupported",
+      "result": {
+        "status": "unsupported",
+        "reason": "round-encoding"
+      },
+      "ms": {
+        "parse": 0.039445000000114305
+      },
+      "statement": "0x1615b6df88bb3dda66a4b83ee217b7ffcd2b01b78a0d3b3842d96a9dff8936ea"
+    },
+    {
+      "name": "header-mac-corrupted",
+      "expected": "invalid",
+      "result": {
+        "status": "invalid",
+        "reason": "header-authentication"
+      },
+      "ms": {
+        "parse": 0.045827000000144835,
+        "beaconAuthentication": 73.40686699999992,
+        "capsule": 63.43661599999996,
+        "age": 0.5160809999999856
+      },
+      "statement": "0xa99ab9d644af82d9d230c7e0ff83598ba39f0cd5aae14c4ea908d00aa883f26a"
+    },
+    {
+      "name": "payload-tag-corrupted",
+      "expected": "invalid",
+      "result": {
+        "status": "invalid",
+        "reason": "payload-authentication"
+      },
+      "ms": {
+        "parse": 0.060365000000047075,
+        "beaconAuthentication": 72.52744600000005,
+        "capsule": 66.5781730000001,
+        "age": 0.7077850000000581
+      },
+      "statement": "0x3460456ad240b0d9a8d595328f68f33dafd3bbe404fb27bc91400edfc35834b8"
+    },
+    {
+      "name": "truncated-payload",
+      "expected": "invalid",
+      "result": {
+        "status": "invalid",
+        "reason": "truncated-body"
+      },
+      "ms": {
+        "parse": 0.06619599999999082,
+        "beaconAuthentication": 71.333257,
+        "capsule": 61.89809200000036,
+        "age": 0.3690409999999247
+      },
+      "statement": "0xc8a060379b49d4060df2181be6c1b0b107a6fc8a091c465e2c9494f8dadcba8c"
+    },
+    {
+      "name": "capsule-corrupted",
+      "expected": "invalid",
+      "result": {
+        "status": "invalid",
+        "reason": "capsule-rp-check"
+      },
+      "ms": {
+        "parse": 0.06088500000032582,
+        "beaconAuthentication": 71.67302800000016,
+        "capsule": 61.2976950000002
+      },
+      "statement": "0x02c2cf87ed483a4af1a2ac6d94340ab7c99df0b296e9df673eadbc909d1ef556"
+    },
+    {
+      "name": "invalid-message",
+      "expected": "invalid",
+      "result": {
+        "status": "invalid",
+        "reason": "message-decoding"
+      },
+      "ms": {
+        "parse": 0.07129500000019107,
+        "beaconAuthentication": 69.16506800000025,
+        "capsule": 63.03458200000023,
+        "age": 0.5794710000000123,
+        "mission": 0.09287600000016027
+      },
+      "statement": "0x57ad515d768b415f1bccbe4f43ed9c1f942fb3684496b7deea5d4db4dd300098"
+    },
+    {
+      "name": "coordinates-outside-map",
+      "expected": "invalid",
+      "result": {
+        "status": "invalid",
+        "reason": "message-target"
+      },
+      "ms": {
+        "parse": 0.06399099999998725,
+        "beaconAuthentication": 70.38392299999987,
+        "capsule": 62.17366399999992,
+        "age": 0.883980000000065,
+        "mission": 0.24392399999987902
+      },
+      "statement": "0x4a49a0b283f6e4cce5ebf3a2846ecfbc4535a7ed84436e5d5883f1a8cf197c4c"
+    },
+    {
+      "name": "distance-outside-cover",
+      "expected": "invalid",
+      "result": {
+        "status": "invalid",
+        "reason": "message-cover"
+      },
+      "ms": {
+        "parse": 0.05526499999996304,
+        "beaconAuthentication": 69.653636,
+        "capsule": 63.35324199999968,
+        "age": 0.7042380000002595,
+        "mission": 0.3900309999999081
+      },
+      "statement": "0x184e7c638bd2a057bbed6b8dc69523875bb80ace90b4a503885a2e8ce5d18b28"
+    },
+    {
+      "name": "legacy-decoder-extra-element",
+      "expected": "valid",
+      "result": {
+        "status": "valid",
+        "plain": {
+          "kind": 1,
+          "target": {
+            "city": "1",
+            "neighborhood": "1",
+            "slot": "2"
+          },
+          "salt": "5"
+        }
+      },
+      "ms": {
+        "parse": 0.059262999999646127,
+        "beaconAuthentication": 70.26075499999979,
+        "capsule": 63.992089999999735,
+        "age": 0.6694619999998395,
+        "mission": 0.2928970000002664
+      },
+      "statement": "0x03ed91162a8e9a9c430f8e06b14294c49ad4bc306c1757b0ea646db73519e98f"
+    },
+    {
+      "name": "ciphertext-for-wrong-future-round",
+      "expected": "unsupported",
+      "result": {
+        "status": "unsupported",
+        "reason": "ciphertext-round-profile"
+      },
+      "ms": {
+        "parse": 0.05464299999994182
+      },
+      "statement": "0x2569878bd80b6b574746f0b3f51608adee3c2568b38ce90d855d6ce9c360eaf2"
+    },
+    {
+      "name": "valid-future-ciphertext-must-wait",
+      "expected": "wait",
+      "result": {
+        "status": "wait",
+        "reason": "round-not-open-yet"
+      },
+      "ms": {
+        "parse": 0.05472400000007838
+      },
+      "statement": "0x213e70b1a5450c830928d54cf3b55da907b888af46afbc4e35949201b651fc5e"
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 // World state of the on-chain game, mirrored in TypeScript (blockchain.md B-20). The shape follows
 // contracts/src/storage: ids are bigint, stocks are in 1/STOCK_SCALE units (B-27), levels per index.
 import { rateDenominator } from "../economy.js";
+import type { HiddenEvidence } from "./hidden-evidence.js";
 import type { Ruleset } from "../ruleset.js";
 
 /** A queue item. `finishAt` = 0 while it has not started (B-29: duration is computed at start). */
@@ -172,7 +173,6 @@ export interface World {
   missions: Map<bigint, Mission>;
   /** The global mission queue (B-07): ids ordered by (arrival, seq). */
   pending: bigint[]; // the global queue (B-07), in (arrival, seq) order
-  parked: bigint[]; // due hidden missions nobody revealed yet, out of the queue (B-22), in (arrival, seq) order
   nextFamily: bigint;
   families: Map<bigint, Family>;
   familyNames: Map<string, bigint>; // "tag:<lowercase>" / "name:<lowercase>" → family
@@ -182,13 +182,21 @@ export interface World {
   nextTrade: bigint;
   trades: Map<bigint, Trade>;
   sessions: Map<string, Session>; // session address → authorization
+  hiddenEvidence: Map<bigint, HiddenEvidence>;
+  readonly hiddenConsumers: {
+    readonly openingConsumer: string;
+    readonly invalidPointConsumer: string;
+  };
   invites: Map<string, Invite>; // inviteKey(address, player) → invitation (B-15, B-26)
 }
 
 /** Units per resource: 3600 s × rate denominator (B-27). */
 export const stockScale = (rs: Ruleset) => 3600n * rateDenominator(rs);
 
-export function newWorld(rs: Ruleset): World {
+export function newWorld(rs: Ruleset, hiddenConsumers: World["hiddenConsumers"]): World {
+  const address = (v: string) => /^0x[0-9a-f]{40}$/i.test(v) && !/^0x0{40}$/i.test(v);
+  if (!address(hiddenConsumers.openingConsumer) || !address(hiddenConsumers.invalidPointConsumer))
+    throw new Error("ResolutionInvalidConsumers");
   return {
     rs,
     seq: 0n,
@@ -202,7 +210,6 @@ export function newWorld(rs: Ruleset): World {
     nextMission: 1n,
     missions: new Map(),
     pending: [],
-    parked: [],
     nextFamily: 1n,
     families: new Map(),
     familyNames: new Map(),
@@ -213,6 +220,11 @@ export function newWorld(rs: Ruleset): World {
     trades: new Map(),
     sessions: new Map(),
     invites: new Map(),
+    hiddenEvidence: new Map(),
+    hiddenConsumers: Object.freeze({
+      openingConsumer: hiddenConsumers.openingConsumer.toLowerCase(),
+      invalidPointConsumer: hiddenConsumers.invalidPointConsumer.toLowerCase(),
+    }),
   };
 }
 

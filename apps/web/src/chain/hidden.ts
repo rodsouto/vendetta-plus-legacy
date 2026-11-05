@@ -1,11 +1,9 @@
+import { decodePlain, decodePacket, encryptPacket, packetToArmor } from "./codec.js";
 // Hidden missions on the client (B-22): the timelock that keeps (kind, target, salt) secret until
 // the mission arrives, this device's own plaintexts, and the ciphertexts the keeper opens.
 //
-// - drand: production tlock for a drand quicknet round, and a fixed arrival a head start before it: the
-//   sender's reveal lands while nobody else can decrypt. The rounds are computed from quicknet's
-//   fixed parameters; tlock-js loads on first use, like the passkey stack.
-// - plain: local chains only. Anvil's clock jumps (the Workshop's time travel) and drand's does
-//   not, so the plaintext travels as is: anyone can read it, which is fine for development.
+// Every network uses the fixed v2 packet and quicknet schedule. Local clocks do not
+// create a plaintext protocol; certificates are required even if a client knows the message.
 import { fromHex, toHex, type Address, type Hex, type PublicClient } from "viem";
 import { decodeHiddenPlain, encodeHiddenPlain, type HiddenPlain } from "@vendetta/rules";
 import { gameAbi } from "./abi.js";
@@ -26,7 +24,7 @@ export interface Prepared {
 }
 
 export interface Timelock {
-  /** Whether the ciphertext hides the plaintext: a reveal must then wait for its arrival on chain. */
+  /** The sole wire protocol encrypts its plaintext on every network. */
   hides: boolean;
   /** The fixed arrival for a mission whose natural one (now + duration) is `natural` (B-22). */
   prepare(natural: bigint): Prepared;
@@ -37,8 +35,8 @@ export interface Timelock {
 }
 
 /**
- * Seconds between the arrival and the round: the sender's reveal must land in them, before anyone
- * else can open the ciphertext (B-22). More than the reveal's inclusion latency on this network.
+ * Fixed offset between historical arrival and beacon release, pinned by the v2 circuit.
+ * Certificate latency never changes the arrival or causes expiration.
  */
 export const HEAD_START = 15n;
 
@@ -75,66 +73,24 @@ export function checkQuicknet(info: { hash: string; genesis_time: number; period
   }
 }
 
-const PLAIN = "plain:";
-
-const openPlain: Timelock["open"] = async (c) => {
-  let text: string;
-  try {
-    text = fromHex(c, "string");
-  } catch {
-    return { garbage: true };
-  }
-  if (!text.startsWith(PLAIN)) return { garbage: true };
-  const plain = decodeHiddenPlain(text.slice(PLAIN.length));
-  return plain ? { plain } : { garbage: true };
-};
-
-const plainTimelock: Timelock = {
-  hides: false,
-  prepare: () => ({ arrival: 0n, round: 0n }),
-  encrypt: async (p) => toHex(PLAIN + encodeHiddenPlain(p)),
-  open: openPlain,
-};
-
-const tlock = () => import("tlock-js");
-const openDrand: Timelock["open"] = async (c) => {
-  const { mainnetClient, timelockDecrypt } = await tlock();
-  let text: string;
-  try {
-    text = fromHex(c, "string");
-  } catch {
-    return { garbage: true };
-  }
-  let out: { toString(): string };
-  try {
-    out = await timelockDecrypt(text, mainnetClient());
-  } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    if (/too early/i.test(message)) return { locked: true };
-    // tlock-js parses the envelope before any network call: those errors are the envelope's.
-    if (/stanza|armor|age|header|mac|round|parse|decrypt|unsupported/i.test(message)) {
-      return { garbage: true };
-    }
-    throw e; // drand or the network: transient
-  }
-  const plain = decodeHiddenPlain(out.toString());
-  return plain ? { plain } : { garbage: true };
-};
-
+/** All networks use the same packet and certificate protocol. */
 const drandTimelock: Timelock = {
   hides: true,
   prepare: quicknetPrepare,
-  async encrypt(p, { round }) {
-    const { mainnetClient, timelockEncrypt, Buffer } = await tlock();
-    const client = mainnetClient();
-    checkQuicknet(await client.chain().info()); // cached: timelockEncrypt reads the same info
-    return toHex(await timelockEncrypt(Number(round), Buffer.from(encodeHiddenPlain(p)), client));
+  encrypt: async (p, { round }) => toHex(await encryptPacket(p, round)),
+  async open(c) {
+    const bytes = fromHex(c, "bytes"),
+      packet = decodePacket(bytes);
+    if (!packet) return { garbage: true };
+    const release = QUICKNET.genesis + (packet.round - 1n) * QUICKNET.period;
+    if (BigInt(Math.floor(Date.now() / 1000)) < release) return { locked: true };
+    const { mainnetClient, timelockDecrypt } = await import("tlock-js");
+    const decrypted = await timelockDecrypt(packetToArmor(bytes), mainnetClient());
+    const plain = decodePlain(decrypted);
+    return plain ? { plain } : { garbage: true };
   },
-  open: openDrand,
 };
-
-export const timelockFor = (network: Network): Timelock =>
-  network.id === "local" ? plainTimelock : drandTimelock;
+export const timelockFor = (_network: Network): Timelock => drandTimelock;
 
 /** A random 256-bit salt. */
 export function randomSalt(): bigint {
@@ -161,7 +117,7 @@ export function storedPlains(game: Address, owner: string): Map<string, HiddenPl
       if (p) out.set(commit, p);
     }
   } catch {
-    /* private mode or corrupt: the keeper still reveals from the ciphertext */
+    /* private mode or corrupt: certificate resolution does not depend on this draft */
   }
   return out;
 }
@@ -198,30 +154,55 @@ export function storePlain(game: Address, owner: string, commit: string, p: Hidd
 /** Blocks per `eth_getLogs` query: within what public RPCs accept for a filtered topic. */
 const LOG_CHUNK = 5000n;
 
-/**
- * The `HiddenMissionSent` ciphertexts, read from the logs in bounded block ranges and kept by
- * mission id, so a lookup never queries from the deployment block again and an old mission is
- * still found: the scan only moves forward, and a mission not yet seen makes it catch up.
- */
+/** Ciphertexts from canonical logs, rescanned from deployment after a reorg. */
 export class CiphertextIndex {
   private readonly found = new Map<bigint, Hex>();
+  private readonly start: bigint;
   private scanned: bigint;
+  private scannedHash: Hex | undefined;
+  private scanPending: Promise<void> | undefined;
 
   constructor(
     private readonly client: PublicClient,
     private readonly game: Address,
     fromBlock: number,
   ) {
-    this.scanned = BigInt(fromBlock) - 1n;
+    this.start = BigInt(fromBlock);
+    this.scanned = this.start - 1n;
   }
 
-  /** Reads the logs after the last scanned block, up to the chain's head, chunk by chunk. */
-  async catchUp(): Promise<void> {
-    // Not viem's cached value (`cacheTime`): a scan right after a mined order must see its block.
+  private reset() {
+    this.found.clear();
+    this.scanned = this.start - 1n;
+    this.scannedHash = undefined;
+  }
+
+  /** Share a scan so concurrent lookups cannot race cursor/cache updates. */
+  catchUp(): Promise<void> {
+    if (this.scanPending) return this.scanPending;
+    const pending = this.scan();
+    this.scanPending = pending;
+    void pending
+      .finally(() => {
+        this.scanPending = undefined;
+      })
+      .catch(() => {});
+    return pending;
+  }
+
+  private async scan(): Promise<void> {
+    // Never use a cached head immediately after a transaction or a chain revert.
     const head = await this.client.getBlockNumber({ cacheTime: 0 });
+    if (head < this.scanned) this.reset();
+    if (
+      this.scannedHash &&
+      (await this.client.getBlock({ blockNumber: this.scanned })).hash !== this.scannedHash
+    )
+      this.reset();
     while (this.scanned < head) {
       const from = this.scanned + 1n;
       const to = from + LOG_CHUNK - 1n < head ? from + LOG_CHUNK - 1n : head;
+      const before = await this.client.getBlock({ blockNumber: to });
       const logs = await this.client.getContractEvents({
         address: this.game,
         abi: gameAbi,
@@ -229,16 +210,26 @@ export class CiphertextIndex {
         fromBlock: from,
         toBlock: to,
       } as never);
-      for (const log of logs as unknown as { args: { mission: bigint; ciphertext: Hex } }[]) {
-        this.found.set(log.args.mission, log.args.ciphertext);
+      const checkpoint = this.scannedHash
+        ? (await this.client.getBlock({ blockNumber: this.scanned })).hash
+        : undefined;
+      const after = await this.client.getBlock({ blockNumber: to });
+      if (!after.hash || before.hash !== after.hash || checkpoint !== this.scannedHash) {
+        this.reset();
+        throw new Error("Chain reorganized while indexing hidden packets; retry");
       }
+      // Commit logs only after checking that both the old checkpoint and the
+      // end of this chunk still identify the branch we queried.
+      for (const log of logs as unknown as { args: { mission: bigint; ciphertext: Hex } }[])
+        this.found.set(log.args.mission, log.args.ciphertext);
       this.scanned = to;
+      this.scannedHash = after.hash;
     }
   }
 
-  /** The ciphertext of a mission, or null when no log carries it (after catching up). */
+  /** Validate the checkpoint even for an already cached mission id. */
   async get(mission: bigint): Promise<Hex | null> {
-    if (!this.found.has(mission)) await this.catchUp();
+    await this.catchUp();
     return this.found.get(mission) ?? null;
   }
 }

@@ -1,0 +1,35 @@
+{
+  "compileMs": 19557.679,
+  "componentOnly": true,
+  "constraints": 2294548,
+  "gnark": "v0.16.4",
+  "go": "go1.27.3",
+  "gomaxprocs": 4,
+  "h3Candidates": 4,
+  "maxRssKiB": 4941076,
+  "nodeVectorsProven": 2,
+  "prove0Ms": 49520.071,
+  "prove1Ms": 49056.884,
+  "publicInputs": 301,
+  "receipts": [
+    {
+      "artifact": "proof.json",
+      "capsuleValid": true,
+      "forgedResultRejected": true,
+      "name": "archived-client",
+      "proofSolidityBytes": 384
+    },
+    {
+      "artifact": "invalid-proof.json",
+      "capsuleValid": false,
+      "forgedResultRejected": true,
+      "name": "tampered-v",
+      "proofSolidityBytes": 384
+    }
+  ],
+  "referenceVectors": 4,
+  "scope": "pairing + compressed-byte binding + bounded tlock KEM; not authenticated beacon, age or mission",
+  "setupMs": 857730.649,
+  "verify0Ms": 3.705,
+  "verify1Ms": 3.892
+}

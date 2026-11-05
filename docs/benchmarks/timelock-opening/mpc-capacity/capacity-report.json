@@ -1,0 +1,260 @@
+{
+  "failure": "",
+  "scope": "Unsafe native phase-1 capacity only; fixed test challenge; no game CS, keys, independent ceremony or production approval",
+  "status": "bounded-phase1-sweep-complete",
+  "binarySha256": "07b9614126c7d655b4856d1aa3e493f54dcfc337a292465e51040c41240712a7",
+  "startedAt": "2026-11-03T19:03:05Z",
+  "hostAvailableBytesAtStart": 16064827392,
+  "workerAddressSpaceBytes": 4294967296,
+  "observedRssStopBytes": 536870912,
+  "rssPollingMilliseconds": 25,
+  "workerCpuSeconds": 90,
+  "workerWallSeconds": 120,
+  "workerFileBytes": 65536,
+  "samples": [
+    {
+      "log2": 10,
+      "domainSize": 1024,
+      "status": "measured",
+      "pid": 96006,
+      "wallMilliseconds": 2242,
+      "cpuUserMilliseconds": 2368,
+      "cpuSystemMilliseconds": 21,
+      "maxRssBytes": 13975552,
+      "sampledRssBytes": 12460032,
+      "checkpointLog": "phase1-10.jsonl",
+      "checkpointLogSha256": "8806a70b2dddd10dabab0d357da62a9938922af6a759514846c41a81d4e0798a",
+      "checkpoints": [
+        {
+          "operation": "initialize",
+          "domainSize": 1024,
+          "wallMilliseconds": 0,
+          "currentRssBytes": 6049792,
+          "processMaxRssBytes": 13975552,
+          "artifactBytes": 0,
+          "artifactSha256": ""
+        },
+        {
+          "operation": "contribute-1-and-serialize",
+          "domainSize": 1024,
+          "wallMilliseconds": 604,
+          "currentRssBytes": 10186752,
+          "processMaxRssBytes": 13975552,
+          "artifactBytes": 196873,
+          "artifactSha256": "b4481453be8bdbe3a9dec67df3ba3c53ac65908c805a7479a058968ea5e984b9"
+        },
+        {
+          "operation": "contribute-2-and-serialize",
+          "domainSize": 1024,
+          "wallMilliseconds": 600,
+          "currentRssBytes": 11096064,
+          "processMaxRssBytes": 13975552,
+          "artifactBytes": 196873,
+          "artifactSha256": "00d88e0692bae6a8b2c75c0e9288620446911c36b81f86a684aedb935ff4e4f3"
+        },
+        {
+          "operation": "decode-two-fresh",
+          "domainSize": 1024,
+          "wallMilliseconds": 307,
+          "currentRssBytes": 10883072,
+          "processMaxRssBytes": 13975552,
+          "artifactBytes": 0,
+          "artifactSha256": ""
+        },
+        {
+          "operation": "verify-seal-and-hash",
+          "domainSize": 1024,
+          "wallMilliseconds": 685,
+          "currentRssBytes": 11952128,
+          "processMaxRssBytes": 13975552,
+          "artifactBytes": 196552,
+          "artifactSha256": "cb317c970777ce91143d1d3d587ed22c0069d4990077f92a7acef156d3d33225"
+        },
+        {
+          "operation": "complete",
+          "domainSize": 1024,
+          "wallMilliseconds": 0,
+          "currentRssBytes": 11964416,
+          "processMaxRssBytes": 13975552,
+          "artifactBytes": 0,
+          "artifactSha256": ""
+        }
+      ],
+      "failure": "",
+      "exited": true
+    },
+    {
+      "log2": 12,
+      "domainSize": 4096,
+      "status": "measured",
+      "pid": 96018,
+      "wallMilliseconds": 8838,
+      "cpuUserMilliseconds": 9305,
+      "cpuSystemMilliseconds": 127,
+      "maxRssBytes": 22810624,
+      "sampledRssBytes": 23502848,
+      "checkpointLog": "phase1-12.jsonl",
+      "checkpointLogSha256": "3d7eccc64ec7120749b44e8f8c9e4cdd8605d5eca765d4a74f11f79ed53145ae",
+      "checkpoints": [
+        {
+          "operation": "initialize",
+          "domainSize": 4096,
+          "wallMilliseconds": 1,
+          "currentRssBytes": 7241728,
+          "processMaxRssBytes": 15679488,
+          "artifactBytes": 0,
+          "artifactSha256": ""
+        },
+        {
+          "operation": "contribute-1-and-serialize",
+          "domainSize": 4096,
+          "wallMilliseconds": 2420,
+          "currentRssBytes": 12525568,
+          "processMaxRssBytes": 15679488,
+          "artifactBytes": 786697,
+          "artifactSha256": "caa23f774fc2ad9881678787229cccc998cc921cf116eb465017d0dcc57ee0b2"
+        },
+        {
+          "operation": "contribute-2-and-serialize",
+          "domainSize": 4096,
+          "wallMilliseconds": 2442,
+          "currentRssBytes": 14647296,
+          "processMaxRssBytes": 15679488,
+          "artifactBytes": 786697,
+          "artifactSha256": "fb18313047ebe9af328cb2d7ffe0981d0a63c02354ceb8c72c1718ad79bc1425"
+        },
+        {
+          "operation": "decode-two-fresh",
+          "domainSize": 4096,
+          "wallMilliseconds": 1222,
+          "currentRssBytes": 15917056,
+          "processMaxRssBytes": 15679488,
+          "artifactBytes": 0,
+          "artifactSha256": ""
+        },
+        {
+          "operation": "verify-seal-and-hash",
+          "domainSize": 4096,
+          "wallMilliseconds": 2707,
+          "currentRssBytes": 15990784,
+          "processMaxRssBytes": 22810624,
+          "artifactBytes": 786376,
+          "artifactSha256": "d77eeb30f8c5aef722b503fc8e5fa35a727dfd2af603a5affb29b4e175458ea5"
+        },
+        {
+          "operation": "complete",
+          "domainSize": 4096,
+          "wallMilliseconds": 0,
+          "currentRssBytes": 15990784,
+          "processMaxRssBytes": 22810624,
+          "artifactBytes": 0,
+          "artifactSha256": ""
+        }
+      ],
+      "failure": "",
+      "exited": true
+    },
+    {
+      "log2": 14,
+      "domainSize": 16384,
+      "status": "measured",
+      "pid": 96077,
+      "wallMilliseconds": 34968,
+      "cpuUserMilliseconds": 36256,
+      "cpuSystemMilliseconds": 324,
+      "maxRssBytes": 86532096,
+      "sampledRssBytes": 87560192,
+      "checkpointLog": "phase1-14.jsonl",
+      "checkpointLogSha256": "991f07f57a75f9f374df3f30e6381e8c6f70de150853ff9c6df7bb5198981b4f",
+      "checkpoints": [
+        {
+          "operation": "initialize",
+          "domainSize": 16384,
+          "wallMilliseconds": 7,
+          "currentRssBytes": 12468224,
+          "processMaxRssBytes": 21708800,
+          "artifactBytes": 0,
+          "artifactSha256": ""
+        },
+        {
+          "operation": "contribute-1-and-serialize",
+          "domainSize": 16384,
+          "wallMilliseconds": 9835,
+          "currentRssBytes": 26861568,
+          "processMaxRssBytes": 26660864,
+          "artifactBytes": 3145993,
+          "artifactSha256": "0a157507f67108e4538447085d3d7fe0fecc8f675f660cc86ba45409e70e3edc"
+        },
+        {
+          "operation": "contribute-2-and-serialize",
+          "domainSize": 16384,
+          "wallMilliseconds": 9801,
+          "currentRssBytes": 34803712,
+          "processMaxRssBytes": 34394112,
+          "artifactBytes": 3145993,
+          "artifactSha256": "6c3260c03a8c4ae1ece02a390dc14040e64577627507228faabbfeec453f89c9"
+        },
+        {
+          "operation": "decode-two-fresh",
+          "domainSize": 16384,
+          "wallMilliseconds": 4954,
+          "currentRssBytes": 40914944,
+          "processMaxRssBytes": 39927808,
+          "artifactBytes": 0,
+          "artifactSha256": ""
+        },
+        {
+          "operation": "verify-seal-and-hash",
+          "domainSize": 16384,
+          "wallMilliseconds": 10326,
+          "currentRssBytes": 47083520,
+          "processMaxRssBytes": 86532096,
+          "artifactBytes": 3145672,
+          "artifactSha256": "328a887dd8a4a7d5c7bac18842ba871feabb3bf5df713d3d08a90c81092603ac"
+        },
+        {
+          "operation": "complete",
+          "domainSize": 16384,
+          "wallMilliseconds": 0,
+          "currentRssBytes": 47083520,
+          "processMaxRssBytes": 86532096,
+          "artifactBytes": 0,
+          "artifactSha256": ""
+        }
+      ],
+      "failure": "",
+      "exited": true
+    }
+  ],
+  "gameTargets": [
+    {
+      "circuit": "invalid-point",
+      "domainSize": 4194304,
+      "oneSrsPointArraysBytes": 1610612800,
+      "oneContributionBytes": 805306633,
+      "sealedSrsBytes": 805306312,
+      "verificationPointArraysBytes": 4831838400,
+      "twoRetainedTranscriptsBytes": 1610613266,
+      "modeledLiveBytes": 6442451666,
+      "phase1Status": "not-run-exceeds-experiment-budget",
+      "phase2Status": "not-measured-requires-budgeted-game-cs"
+    },
+    {
+      "circuit": "opening",
+      "domainSize": 8388608,
+      "oneSrsPointArraysBytes": 3221225536,
+      "oneContributionBytes": 1610613001,
+      "sealedSrsBytes": 1610612680,
+      "verificationPointArraysBytes": 9663676608,
+      "twoRetainedTranscriptsBytes": 3221226002,
+      "modeledLiveBytes": 12884902610,
+      "phase1Status": "not-run-exceeds-experiment-budget",
+      "phase2Status": "not-measured-requires-budgeted-game-cs"
+    }
+  ],
+  "productionApproved": false,
+  "gameCircuitBytesVerified": false,
+  "gameDomainMpcMeasured": false,
+  "phase2Measured": false,
+  "allStartedWorkersExited": true
+}
