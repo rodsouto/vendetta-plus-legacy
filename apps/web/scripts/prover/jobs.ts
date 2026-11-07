@@ -1,7 +1,8 @@
-import { execFile, type ExecFileOptions } from "node:child_process";
+import { execFile, spawn, type ExecFileOptions } from "node:child_process";
 import { promisify } from "node:util";
 
 const exec = promisify(execFile);
+type ProducerOptions = ExecFileOptions & { stateLeaseFd?: number };
 
 export function producerTimeout(value = 900_000): number {
   if (!Number.isSafeInteger(value) || value < 1 || value > 2_147_483_647)
@@ -15,8 +16,10 @@ export async function runProducer(
   binary: string,
   args: string[],
   timeout: number,
-  options: ExecFileOptions = {},
+  options: ProducerOptions = {},
 ) {
+  if (options.stateLeaseFd !== undefined)
+    return runLeasedProducer(binary, args, producerTimeout(timeout), options);
   const job = exec(binary, args, {
     ...options,
     timeout: producerTimeout(timeout),
@@ -28,6 +31,59 @@ export async function runProducer(
   } finally {
     await exited;
   }
+}
+
+async function runLeasedProducer(
+  binary: string,
+  args: string[],
+  timeout: number,
+  options: ProducerOptions,
+) {
+  const max = options.maxBuffer ?? 2 ** 20;
+  if (!Number.isSafeInteger(max) || max < 1 || max > 2 ** 31 - 1)
+    throw new Error("Invalid leased producer output budget");
+  const child = spawn(binary, args, {
+    ...options,
+    killSignal: "SIGKILL",
+    stdio: ["ignore", "pipe", "pipe", options.stateLeaseFd!],
+  });
+  const stdout: Buffer[] = [],
+    stderr: Buffer[] = [];
+  let bytes = 0;
+  let failure: Error | undefined;
+  const fail = (error: Error) => {
+    failure ??= error;
+    child.kill("SIGKILL");
+  };
+  const timer = setTimeout(
+    () => fail(Object.assign(new Error("Producer timed out"), { killed: true, signal: "SIGKILL" })),
+    timeout,
+  );
+  for (const [stream, chunks] of [
+    [child.stdout, stdout],
+    [child.stderr, stderr],
+  ] as const)
+    stream?.on("data", (data: Buffer) => {
+      bytes += data.length;
+      if (bytes > max) return fail(new Error("Producer output limit exceeded"));
+      chunks.push(data);
+    });
+  await new Promise<void>((resolve, reject) => {
+    child.on("error", (error) => {
+      failure ??= error;
+    });
+    child.once("close", (code, signal) => {
+      clearTimeout(timer);
+      if (failure) reject(failure);
+      else if (code !== 0)
+        reject(Object.assign(new Error("Producer process failed"), { code, signal }));
+      else resolve();
+    });
+  });
+  return {
+    stdout: Buffer.concat(stdout).toString("utf8"),
+    stderr: Buffer.concat(stderr).toString("utf8"),
+  };
 }
 
 export function serialQueue<T>(capacity: number) {

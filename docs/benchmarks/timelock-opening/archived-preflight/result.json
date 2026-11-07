@@ -1,0 +1,35 @@
+{
+  "status": "archived-hidden-v2-preflight-consistent",
+  "planSha256": "429587c48f8322b08ce1e53836eb1ce91e531b3df26327987e982468dbce0f9e",
+  "summarySha256": "1ad3b946d00bb9fa6f0ee1fc85afac2601bc0b9cd0c4e8e93ae5cf6279caf645",
+  "sourceJsonBytesRead": 41031,
+  "circuits": {
+    "opening": {
+      "manifestSha256": "e1c210611c3c110ff45027f7fc7f2459c2b065ee3ffcb3a1b9ed38a4dfcc1455",
+      "keysSha256": "12d13e25808ac946278b14dfce0d6c78ad39a55439dd251662d0fff322b261fc",
+      "declaredCircuitSha256": "06e4740642174a1f0f03ab0c0f06f2199b996534c30546df6896b9f3ab777b1f",
+      "lineageDocumentsChecked": 12,
+      "recordedPublicInputs": 55,
+      "recordedWires": 6894167,
+      "archivedReportBindingsConsistent": true
+    },
+    "invalid-point": {
+      "manifestSha256": "c4798b4f3ddc81c535c680a420b437fec9107ea007bc5c39c9504ff86a13a2c8",
+      "keysSha256": "dcf669308831f5dd9595c6cedc8e14709df734deb535b07fde17d4cccecb115e",
+      "declaredCircuitSha256": "89a9897b75e9cd785bd62feda8fc60ed50239f58e8b60211561fa560d8832898",
+      "lineageDocumentsChecked": 12,
+      "recordedPublicInputs": 2,
+      "recordedWires": 5582166,
+      "archivedReportBindingsConsistent": true
+    }
+  },
+  "recordedProofs": 3,
+  "archivedReplayMetadataConsistent": true,
+  "privateJsonSnapshotUsed": true,
+  "binaryArtifactsRead": false,
+  "nativeWorkRerun": false,
+  "currentArtifactsReverified": false,
+  "currentSourceReproductionVerified": false,
+  "independentApprovalVerified": false,
+  "productionApproved": false
+}

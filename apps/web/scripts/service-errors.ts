@@ -1,0 +1,143 @@
+const names = new Set([
+  "Error",
+  "TypeError",
+  "SyntaxError",
+  "ReferenceError",
+  "URIError",
+  "RangeError",
+  "AggregateError",
+  "AbortError",
+  "TimeoutError",
+  "HttpRequestError",
+  "RpcRequestError",
+  "ContractFunctionExecutionError",
+  "ContractFunctionRevertedError",
+  "TransactionExecutionError",
+  "WaitForTransactionReceiptTimeoutError",
+]);
+const codes = new Set([
+  "EADDRINUSE",
+  "EACCES",
+  "ECONNREFUSED",
+  "ETIMEDOUT",
+  "ENOENT",
+  "ENOSPC",
+  "EIO",
+  "EEXIST",
+  "EROFS",
+  "ECONNRESET",
+  "ENOTFOUND",
+  "EAI_AGAIN",
+  "EPIPE",
+]);
+// Exact, static application messages only. Arbitrary messages/stacks can contain
+// provider credentials, signed bytes, witnesses or bearer tokens.
+const messages = new Set([
+  "A fresh verifier output directory is required",
+  "Consumer binding mismatch",
+  "Invalid leased producer output budget",
+  "Invalid mission id",
+  "Invalid or empty deployed verifier bytecode",
+  "Invalid packet",
+  "Invalid producer HTTP limit",
+  "Invalid producer queue capacity",
+  "Invalid request identity/packet",
+  "Malformed certificate response; retry later",
+  "Missing H3 journal",
+  "Prefix completion unavailable; retry",
+  "Prefix scalar mismatch",
+  "Producer output limit exceeded",
+  "Producer process failed",
+  "Producer timed out",
+  "Producer worker exited",
+  "Producer worker exited before job dispatch",
+  "Producer worker input failed",
+  "Producer worker is busy",
+  "Producer worker output limit exceeded",
+  "Producer worker replaced",
+  "Proof/pre mismatch",
+  "Request must be an object",
+  "Request too large",
+  "Stored context/packet mismatch",
+  "Unexpected producer worker acknowledgement",
+  "Unknown producer circuit",
+  "Verifier manifest kind mismatch",
+  "Verifier output must be outside the key directory",
+  "Verifier source integrity failure",
+  "Proof rejection and cache eviction failed",
+  "Invalid producer timeout",
+  "Invalid producer cache maxBytes",
+  "Invalid producer cache maxFiles",
+  "Invalid producer cache maxAgeMs",
+  "Producer queue full; retry later",
+  "Producer is closing",
+  "Beacon release has not arrived",
+  "Mission is not awaiting evidence",
+  "Beacon service unavailable",
+  "Missing beacon response",
+  "Beacon response too large",
+  "Malformed beacon response",
+  "Mission binding is missing",
+  "Mission packet is not indexed; retrying",
+  "Mission packet framing is inconsistent",
+  "Unexpected producer cache entry",
+  "Producer worker is closed",
+  "Producer worker job aborted",
+  "Producer worker job timed out",
+  "Producer worker failed to start",
+  "Producer worker job failed",
+  "Invalid producer artifact",
+  "Invalid point certificate rejected",
+
+  "usage: prover.ts deployment.json",
+  "usage: keeper.ts deployment.json",
+  "HIDDEN_PROVER_BIN, HIDDEN_PROVER_KEYS, HIDDEN_PROVER_CACHE and HIDDEN_H3_PRIVATE_KEY are required",
+  "HIDDEN_PROVER_CLIENTS_FILE is required",
+  "HIDDEN_PROVER_URL is required: the keeper only submits verified certificates",
+  "HIDDEN_PROVER_TOKEN is required",
+  "KEEPER_PRIVATE_KEY is required",
+  "Wrong keeper chain",
+  "Configured state directory differs from supervisor STATE_DIRECTORY",
+  "Producer port must be an integer in 1..65535",
+  "Producer listener closed unexpectedly",
+  "Producer operation and cleanup failed",
+  "Producer shutdown failed",
+  "Producer startup and lease release failed",
+  "Keeper operation and lease release failed",
+  "Producer job and cleanup failed",
+  "Secure setup provenance verification is not implemented",
+  "Unsafe local setup cannot serve this deployment",
+  "Wrong setup manifest",
+  "Producer RPC chain mismatch",
+  "Configured consumer does not use this setup verifier",
+  "State directory is already in use; choose a separate cache or KEEPER_STATE_DIR",
+  "State leases require Linux flock",
+  "State lock must be a regular file with one link",
+  "State lease acquisition timed out",
+  "State lease command exceeded output budget",
+  "State lease acquisition failed; Linux flock is required",
+  "State lock entry changed during acquisition",
+  "State lease acquisition and cleanup failed",
+  "Invalid producer clients configuration",
+  "Service stop requested",
+]);
+export function serviceErrorSummary(error: unknown, depth = 0): object {
+  if (!(error instanceof Error)) return { type: "UnknownError" };
+  if (depth >= 4) return { type: "NestedError" };
+  const result: Record<string, unknown> = {
+    type: names.has(error.name) ? error.name : "ExternalError",
+  };
+  const code = (error as NodeJS.ErrnoException).code;
+  if (code && codes.has(code)) result.code = code;
+  const first = typeof error.message === "string" ? error.message.split("\n")[0]! : "";
+  if (messages.has(first)) result.message = first;
+  const missionId = (error as Error & { missionId?: unknown }).missionId;
+  if (typeof missionId === "string" && /^[1-9][0-9]{0,19}$/.test(missionId))
+    result.missionId = missionId;
+  if (error instanceof AggregateError)
+    result.errors = error.errors
+      .slice(0, 8)
+      .map((cause: unknown) => serviceErrorSummary(cause, depth + 1));
+  if (error.cause !== undefined) result.cause = serviceErrorSummary(error.cause, depth + 1);
+  return result;
+}

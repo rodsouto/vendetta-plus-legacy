@@ -176,3 +176,54 @@ supports that range. World loading still reads entities individually and grows w
 Drand/prover outages leave missions pending at their original queue position. They never expire;
 progress requires the dependencies eventually recovering.
 PasskeyDirectory is ownerless and not upgradeable: replacing it requires a new deployment/address.
+
+### Local state ownership
+
+The experimental producer and keeper require Linux and util-linux `flock` on
+a trusted PATH. Use private, stable directories on a local filesystem with
+working `flock` semantics. Each producer cache and each keeper state directory
+permits one cooperating owner, even when deployments differ. Set a distinct
+`KEEPER_STATE_DIR` for each simultaneous keeper; defaults are unchanged so existing
+journals remain discoverable. Use a dedicated signer per instance: locking does
+not prevent the same signer being configured with another directory.
+
+The persistent `.vendetta-state.lock` file must never be removed or replaced,
+including during cache cleanup. Its existence does not indicate a running owner;
+the kernel lock does. Native producer children inherit the lock, so a killed
+parent cannot allow a successor to overlap a surviving child. A hung orphan can
+keep the directory unavailable until it exits. An idle Go worker exits on stdin EOF;
+a busy orphan can exit on a broken output pipe or later EOF and can leave a
+complete proof or a partial `.tmp` file. Existing proofs are revalidated before
+reuse; partial files are not accepted and can remain until their path is reused.
+Inspect ownership with
+`fuser -v /path/to/state/.vendetta-state.lock` and identify the process before any
+manual termination; deleting the file bypasses protection. Normal producer close
+waits for HTTP, queued jobs and native children before releasing ownership. This
+protects local state coordination; it is not cryptographic verification or setup
+approval. Production deployment remains blocked.
+
+Signed transaction journals shared by the producer and keeper now synchronize
+a fresh temporary inode and its publication directory before any send or retry,
+and synchronize directory removal after a confirmed receipt. An `fsync` failure
+prevents broadcast. Recovered signed bytes are republished through a new temporary
+file before retries; this does not substitute a new nonce. Failed writes can leave
+unused `.tmp-*` files, which are never accepted as settled journals. A failure to
+synchronize deletion reports the already settled transaction status explicitly.
+Storage writeback errors require diagnosing the storage before relying on it.
+Provision the stable state directory durably before use;
+these operations do not synchronize newly created ancestor directories or prove
+power-loss behavior of the storage hardware. No physical power-cut test was run.
+
+### Service supervision preparation
+
+The [persistent service operation guide](service-operations.md) describes direct
+Node entry points, cooperative shutdown and the inert systemd templates. Repeated
+SIGINT/SIGTERM/SIGHUP request one cleanup; HUP does not reload configuration.
+Certificate fetch cancellation does not invalidate a mission. Published transaction
+journals settle or remain for the next instance, with the lease held until work ends.
+Native worker/inspection environments now inherit only runtime settings, not H3
+keys or service tokens. This does not sandbox a trusted binary from every file.
+The user-systemd synthetic probes are operational evidence only, with fixture
+resource limits; production host hardening/capacity, secure setup provenance and
+all real-network deploy gates remain pending. Nothing here installs or enables a
+production service.

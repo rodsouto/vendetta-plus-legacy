@@ -61,7 +61,8 @@ del repositorio. No regenerar setups al cambiar el witness de una misión.
 # Compilar el binario una vez con el SDK Go compatible con go.mod:
 (cd apps/web/scripts/experiments/opening-zk && go build -o "$HIDDEN_PROVER_BIN" .)
 # Compilar verificadores públicos y vincular setup con bytecode:
-pnpm --filter @vendetta/web prover:compile "$HIDDEN_PROVER_KEYS"
+pnpm --filter @vendetta/web prover:compile "$HIDDEN_PROVER_KEYS" /outside/git/new-verifiers
+export HIDDEN_PROVER_RUNTIME=/outside/git/new-verifiers/verifier-runtime.json
 # Iniciar el productor, ligado al Game y RPC del deployment:
 pnpm --filter @vendetta/web prover deployments/local.json
 # En otro proceso, con HIDDEN_PROVER_URL=http://127.0.0.1:8787/
@@ -736,3 +737,19 @@ una ruta relativa o existente; así se conservan las evidencias históricas.
 `HIDDEN_PROVER_KEYS` debe apuntar al nuevo conjunto de claves y el replay sigue
 usando exclusivamente Anvil privado. Esta opción no ejecuta una nueva prueba
 por sí misma ni habilita setups de producción.
+
+Verifier compilation requires a new output directory outside the setup directory.
+It never replaces an existing EVM workspace or archived runtime metadata. Failed
+builds retain their partial output for diagnosis; choose another fresh directory
+for retries. The output parent must already exist. The manifest digests are
+captured with the verified public sources before compilation. Keep input directories
+stable while reading; this is not an atomic snapshot of all setup files.
+`HIDDEN_PROVER_RUNTIME` selects the resulting runtime metadata; without it the
+service still reads the historical parent-of-opening-keys location. Runtime matching
+establishes setup/bytecode correspondence, not trusted compiler provenance or
+production approval. Do not recompile archived final artifacts just to refresh them.
+
+Producer and keeper now enforce exclusive ownership of their state directories
+using Linux util-linux `flock`; see [state ownership](../../../deploy-gnosis.md#local-state-ownership).
+Never delete `.vendetta-state.lock`, even after a crash. Native children preserve
+ownership after parent death until they actually exit.

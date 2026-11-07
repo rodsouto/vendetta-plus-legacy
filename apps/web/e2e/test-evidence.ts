@@ -1,6 +1,7 @@
 // Explicit trusted-consumer fixture for browser tests. Never imported by the app or keeper.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import type { Page } from "@playwright/test";
 import {
   createPublicClient,
@@ -27,7 +28,9 @@ export async function certifyTestMissions(page: Page) {
   assert(stores.length > 0, "No browser plaintext drafts for test fixture");
   const game = stores[0]!.key.split(":")[1] as Address;
   assert(/^0x[0-9a-f]{40}$/.test(game));
-  const transport = http("http://127.0.0.1:8555", { retryCount: 0, timeout: 15000 });
+  const port = Number(process.env.VENDETTA_E2E_RPC_PORT || 8555);
+  assert(Number.isSafeInteger(port) && port >= 1024 && port <= 65535, "Invalid E2E RPC port");
+  const transport = http(`http://127.0.0.1:${port}`, { retryCount: 0, timeout: 15000 });
   const client = createPublicClient({ transport, cacheTime: 0 });
   assert.equal(await client.getChainId(), 31337, "Test fixture chain only");
   const consumers = await client.readContract({
@@ -37,7 +40,12 @@ export async function certifyTestMissions(page: Page) {
   });
   const mock = JSON.parse(
     readFileSync(
-      new URL("../../../contracts/out/HiddenConsumer.sol/HiddenConsumerMock.json", import.meta.url),
+      process.env.VENDETTA_E2E_RUN_DIR
+        ? join(process.env.VENDETTA_E2E_RUN_DIR, "out/HiddenConsumer.sol/HiddenConsumerMock.json")
+        : new URL(
+            "../../../contracts/out/HiddenConsumer.sol/HiddenConsumerMock.json",
+            import.meta.url,
+          ),
       "utf8",
     ),
   );

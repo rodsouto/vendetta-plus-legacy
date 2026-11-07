@@ -1,0 +1,9 @@
+{
+  "schema": "vendetta-unsafe-local-phase1-artifact-2",
+  "operation": "first-contribution",
+  "log2": 23,
+  "bytes": 1610613001,
+  "sha256": "1b390bb4d3471a51ee2fbe320f3b9e26631a00c1f7c95994f5897a28b09cb0bf",
+  "parentArtifactSha256": "",
+  "productionApproved": false
+}

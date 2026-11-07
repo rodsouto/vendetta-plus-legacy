@@ -8,6 +8,12 @@ construction, research, training, production and missions. Use
 `LOCAL_GAME_SPEED=1 pnpm dev:local` for normal speed, or set another positive integer.
 The accelerated clock only runs on the local Anvil chain; game rules are unchanged.
 
+For a local world with the real hidden-v2 certificate producer and consumers, use
+`pnpm dev:hidden-v2 /absolute/config.json /absolute/new-session`. It reuses existing
+experimental artifacts, isolates all state and uses normal time. See
+[the local hidden-v2 guide](docs/local-hidden-v2.md) for configuration, browser
+checks and the distinction from trusted mock certificates.
+
 To prepare a building for occupation, run:
 
 ```bash

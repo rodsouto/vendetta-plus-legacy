@@ -2,9 +2,11 @@ import copy
 import hashlib
 import importlib.util
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 SPEC = importlib.util.spec_from_file_location("evidence", Path(__file__).with_name("hidden-v2-completed-evidence.py"))
 MODULE = importlib.util.module_from_spec(SPEC)
@@ -40,6 +42,10 @@ class EvidenceTests(unittest.TestCase):
             lambda s: s.update(unsafeLocalSetup=False),
             lambda s: s["proofs"][0].update(setupManifestSha256="0" * 64),
             lambda s: s["proofs"][0].update(statement=s["proofs"][1]["statement"]),
+            lambda s: s["proofs"][0].update(valid="True"),
+            lambda s: s["proofs"][0].update(sha256="not-a-pin"),
+            lambda s: s["proofs"][0].update(statement="not-a-statement"),
+            lambda s: s["proofs"][0].update(independentApprovalVerified=True),
             lambda s: s["newKeyReplay"].update(sampledPeakNativeRssBytes=1),
             lambda s: s["evidence"].update({"../escape.json": {}}),
         ):
@@ -78,7 +84,8 @@ class EvidenceTests(unittest.TestCase):
 
     def test_pin_budget_duplicates_and_special_file(self):
         path = self.root / "input.json"
-        for data in (b'{"x":1,"x":2}', b" " * (MODULE.MAX_JSON_BYTES + 1)):
+        for data in (b'{"x":1,"x":2}', b'{"x":NaN}', b'{"x":Infinity}',
+                     b'{"x":1e999}', b'{"x":-1e999}', b" " * (MODULE.MAX_JSON_BYTES + 1)):
             path.write_bytes(data)
             with self.assertRaises(ValueError):
                 MODULE.read_pinned(path, hashlib.sha256(data).hexdigest())
@@ -86,8 +93,41 @@ class EvidenceTests(unittest.TestCase):
             MODULE.read_pinned(self.root, "0" * 64)
         path.unlink()
         path.symlink_to(SOURCE / "completed-results.json")
-        with self.assertRaises(ValueError):
+        with self.assertRaises((ValueError, OSError)):
             MODULE.read_pinned(path, "0" * 64)
+
+    def test_descriptor_open_rejects_substitution(self):
+        data = b'{"fixture":true}'
+        target = self.root / "target.json"
+        target.write_bytes(data)
+        path = self.root / "input.json"
+        original_open = os.open
+        for replacement in ("symlink", "fifo"):
+            with self.subTest(replacement=replacement):
+                path.write_bytes(data)
+                def substitute(name, flags, *args, **kwargs):
+                    if Path(name) == path:
+                        self.assertTrue(flags & os.O_NOFOLLOW)
+                        self.assertTrue(flags & os.O_NONBLOCK)
+                        path.unlink()
+                        if replacement == "symlink":
+                            path.symlink_to(target)
+                        else:
+                            os.mkfifo(path)
+                    return original_open(name, flags, *args, **kwargs)
+                with patch.object(MODULE.os, "open", substitute):
+                    with self.assertRaises((ValueError, OSError)):
+                        MODULE.read_pinned(path, hashlib.sha256(data).hexdigest())
+                path.unlink()
+
+    def test_descriptor_size_budget_precedes_read(self):
+        path = self.root / "oversized.json"
+        with path.open("wb") as source:
+            source.truncate(MODULE.MAX_JSON_BYTES + 1)
+        with patch.object(MODULE.os, "fdopen", wraps=os.fdopen) as opened:
+            with self.assertRaisesRegex(ValueError, "budget"):
+                MODULE.read_pinned(path, "0" * 64)
+            opened.assert_not_called()
 
 
 if __name__ == "__main__":

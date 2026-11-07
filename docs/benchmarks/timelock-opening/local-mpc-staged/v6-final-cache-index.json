@@ -1,0 +1,75 @@
+{
+  "schema": "vendetta-unsafe-local-staged-phase2-1",
+  "csHash": "06e4740642174a1f0f03ab0c0f06f2199b996534c30546df6896b9f3ab777b1f",
+  "commonsHash": "65abc486a3a255849d4735f06d5664775b4a8129c6f90643702e426d5ce2ac82",
+  "domain": 8388608,
+  "files": {
+    "a": {
+      "path": "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run2/23-phase2-init/public/staged-cache/a.bin",
+      "sha256": "a0d87d1b75607950089f1d5c57672bf7a8000b1f1516cea51342715119d6fe0f",
+      "count": 6894167,
+      "g2": false
+    },
+    "b": {
+      "path": "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run2/23-phase2-init/public/staged-cache/b.bin",
+      "sha256": "f66ad8348e25b8d90fbacbc5ddc4c7b2169ce2ee61fc4268ad0ab2c96cb31b46",
+      "count": 6894167,
+      "g2": false
+    },
+    "c": {
+      "path": "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run2/23-phase2-init/public/staged-cache/c.bin",
+      "sha256": "b717412134a04b8508726cd43df367d453c9b1bd9ea49e32cc2d5d7a6430f67c",
+      "count": 6894167,
+      "g2": false
+    },
+    "g2-b": {
+      "path": "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run2/23-phase2-init/public/staged-cache/g2-b.bin",
+      "sha256": "b6675b982fb8b12aaab09145ec456934edee479fdd570cf298cfd5c35abda5f2",
+      "count": 6894167,
+      "g2": true
+    },
+    "k": {
+      "path": "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run2/23-phase2-init/public/staged-cache/k.bin",
+      "sha256": "d90d8dd4089ae0ac3fe7ee9b9483a835975afb4aaa089d75660ae484c80554ba",
+      "count": 6894167,
+      "g2": false
+    },
+    "k-alpha": {
+      "path": "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run2/23-phase2-init/public/staged-cache/k-alpha.bin",
+      "sha256": "c0f3a7fac6d22e9b20193f93400ab15205ff2d896d4a4458e5343c63d6723595",
+      "count": 6894167,
+      "g2": false
+    },
+    "lagrange-alpha": {
+      "path": "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run2/23-phase2-init/public/staged-cache/lagrange-alpha.bin",
+      "sha256": "9546c3439bed9f26b12a9ee05c18bd19daaff7d2b2d7a789d67bee7014118b88",
+      "count": 8388608,
+      "g2": false
+    },
+    "lagrange-beta": {
+      "path": "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run2/23-phase2-init/public/staged-cache/lagrange-beta.bin",
+      "sha256": "8dc3f2c8d79f993d246b066155eb94714e109702246972b0dc4ff884d003aece",
+      "count": 8388608,
+      "g2": false
+    },
+    "lagrange-tau1": {
+      "path": "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run2/23-phase2-init/public/staged-cache/lagrange-tau1.bin",
+      "sha256": "a3be90575cf2df2b1eb8245c8891e025f2cab7e2ed5d574d06f03d37541c1364",
+      "count": 8388608,
+      "g2": false
+    },
+    "lagrange-tau2": {
+      "path": "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run2/23-phase2-init/public/staged-cache/lagrange-tau2.bin",
+      "sha256": "a6dca2aca173445df2ca41143b84d4f64bfe8a4f170687ef64deb4946e545dd9",
+      "count": 8388608,
+      "g2": true
+    },
+    "z": {
+      "path": "/home/rodrigo/.cache/vendetta-audit/local-mpc-staged-sequence-20261105-run1/23-phase2-init/public/staged-cache/z.bin",
+      "sha256": "e94f3b25eac5ef342cfb852f0b9562e99f700e0c9c2c2e5c93833b0a648575eb",
+      "count": 8388607,
+      "g2": false
+    }
+  },
+  "productionApproved": false
+}

@@ -5,6 +5,16 @@ on:
   pull_request:
 
 jobs:
+  archived-hidden-v2:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Archived hidden v2 evidence consistency (no native work)
+        run: bash scripts/check-hidden-v2-archived.sh
+
   test:
     runs-on: ubuntu-latest
     steps:

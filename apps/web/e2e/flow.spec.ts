@@ -2,6 +2,7 @@
 // mission, B-22) and reads the battle report and the ranking. Also captures the
 // review screenshots (desktop and mobile).
 import { expect, test, type Page } from "@playwright/test";
+import { join } from "node:path";
 import { certifyTestMissions } from "./test-evidence.js";
 
 const stamp = (page: Page) => page.locator(".stamp-toast");
@@ -92,6 +93,7 @@ test("register, build, train, attack and read the report", async ({ page }) => {
   await expect(ranked.nth(1)).toBeVisible();
 
   // Review captures.
+  const screenshotDirectory = process.env.VENDETTA_E2E_SCREENSHOT_DIR || ".impeccable/review";
   const shots: [string, string][] = [
     ["book", "/#/book"],
     ["map", "/#/map"],
@@ -103,9 +105,15 @@ test("register, build, train, attack and read the report", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(url);
     await page.waitForTimeout(400);
-    await page.screenshot({ path: `.impeccable/review/desktop-${name}.png`, fullPage: true });
+    await page.screenshot({
+      path: join(screenshotDirectory, `desktop-${name}.png`),
+      fullPage: true,
+    });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(300);
-    await page.screenshot({ path: `.impeccable/review/mobile-${name}.png`, fullPage: true });
+    await page.screenshot({
+      path: join(screenshotDirectory, `mobile-${name}.png`),
+      fullPage: true,
+    });
   }
 });

@@ -40,6 +40,8 @@ pnpm format             # prettier; forge fmt inside contracts/
 scripts/ci-local.sh     # the CI steps on a fresh clone of HEAD (no GitHub needed)
 pnpm dev:local          # anvil + deploy + indexer (market history; graph-node in Docker, :8500, skipped without Docker) + optional keeper (HIDDEN_PROVER_URL, B-22) + web app on :5173 (dev accounts, time travel in the Workshop page)
 pnpm --filter @vendetta/web e2e   # Playwright flow on its own fresh chain (e2e/serve.sh, :5199)
+bash scripts/dev-hidden-v2.sh /absolute/config.json /absolute/new-session   # isolated real-consumer experimental stack using existing keys/verifier artifacts; docs/local-hidden-v2.md
+pnpm smoke:hidden-v2 /absolute/running-session   # Chromium registration/construction/routes and HTTP auth; no certificates/proving
 pnpm dev:aa             # anvil + Gnosis Chain's 4337 contracts + Alto + mock paymaster + web app: passkey accounts locally
 pnpm --filter @vendetta/web e2e:aa   # Playwright passkey flow (virtual WebAuthn authenticator) on its own 4337 stack (:5198)
 pnpm deploy:gnosis    # blocked pending hidden v2 setup approval; future real deploy to Gnosis Chain from .env; writes deployments/gnosis.json (docs/deploy-gnosis.md)
@@ -93,3 +95,42 @@ pnpm ceremony:hidden-v2 verify-review --plan /path/plan.json --plan-sha256 <pin>
 - The engine reads ruleset `roles`, never entity names (D-21).
 - `packages/rules/src/sim` and `contracts/src/core` implement the same state machine. Change both
   together: `contracts/test/core/Scenarios.t.sol` replays the TS scenarios and must match exactly.
+
+## Current experimental scope
+
+The owner chose hobby development without external collaborators. Continue useful
+local implementation and use actual Claude technical reviews where helpful; do not
+require hiring auditors to continue this scope. AI reviews do not establish
+independent ceremony participation, secure provenance or production approval. Keep
+all production gates and historical receipts intact; never rerun completed game
+MPC/setup/proving merely to refresh evidence. Consult the current continuations
+above the historical divider in `docs/proposals/hidden-v2-session-handoff.md`.
+
+Producer caches and keeper state directories now use a Linux util-linux `flock`
+lease. Never delete `.vendetta-state.lock`; use dedicated stable local directories
+and signers. Native children retain ownership after parent death until they exit.
+See `docs/deploy-gnosis.md` for operational assumptions and orphan diagnosis.
+
+The real-consumer local route is `scripts/dev-hidden-v2.sh` (`dev:hidden-v2` alias), documented in
+`docs/local-hidden-v2.md`; the original `dev:local` uses test consumers. Each
+experimental session has an isolated external directory and a unique Game address.
+It uses wall time, never an accelerated clock or fake future beacons. Fresh
+sessions create a new ephemeral world every time. No snapshots, checkpoints or
+resume path exist. Logs/build/cache remain private diagnostics after exit; never
+reuse a session directory or its journals against a replacement chain. Keep
+managed-child cleanup, leases and transaction journals: those also protect live
+sessions and persistent-network operation.
+
+The owner's current priority after this simplification is production readiness.
+Work on actual production blockers: setup provenance/import/approval, final
+artifact bindings, then operational deployment and capacity. Local world recovery
+is explicitly out of scope. Production gates stay active until their real evidence
+and trust policy exist; never relabel experimental keys as production-safe.
+
+Persistent producer/keeper operation now uses cooperative repeated stop signals,
+cancellable certificate waits and guarded signing before journal publication.
+Published transactions still settle or retain their original journal. Native
+worker/inspection environments are filtered; see docs/service-operations.md and
+the inert scripts/systemd templates. They do not authorize deployment or establish
+production capacity. The owner reaffirmed no external collaborators: Codex/Claude
+reviews continue, without claiming independent participants or secure setup provenance.

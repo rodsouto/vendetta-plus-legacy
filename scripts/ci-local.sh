@@ -14,6 +14,9 @@ git checkout --quiet "$(git -C "$repo" rev-parse "$ref")"
 
 step() { printf '\n== %s\n' "$1"; }
 
+step "archived hidden v2 evidence consistency (no native work)"
+bash scripts/check-hidden-v2-archived.sh
+
 step "install"
 pnpm install --frozen-lockfile
 

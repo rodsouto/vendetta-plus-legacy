@@ -166,6 +166,7 @@ export class CiphertextIndex {
     private readonly client: PublicClient,
     private readonly game: Address,
     fromBlock: number,
+    private readonly signal?: AbortSignal,
   ) {
     this.start = BigInt(fromBlock);
     this.scanned = this.start - 1n;
@@ -191,8 +192,10 @@ export class CiphertextIndex {
   }
 
   private async scan(): Promise<void> {
+    this.signal?.throwIfAborted();
     // Never use a cached head immediately after a transaction or a chain revert.
     const head = await this.client.getBlockNumber({ cacheTime: 0 });
+    this.signal?.throwIfAborted();
     if (head < this.scanned) this.reset();
     if (
       this.scannedHash &&
@@ -200,9 +203,11 @@ export class CiphertextIndex {
     )
       this.reset();
     while (this.scanned < head) {
+      this.signal?.throwIfAborted();
       const from = this.scanned + 1n;
       const to = from + LOG_CHUNK - 1n < head ? from + LOG_CHUNK - 1n : head;
       const before = await this.client.getBlock({ blockNumber: to });
+      this.signal?.throwIfAborted();
       const logs = await this.client.getContractEvents({
         address: this.game,
         abi: gameAbi,
@@ -210,10 +215,13 @@ export class CiphertextIndex {
         fromBlock: from,
         toBlock: to,
       } as never);
+      this.signal?.throwIfAborted();
       const checkpoint = this.scannedHash
         ? (await this.client.getBlock({ blockNumber: this.scanned })).hash
         : undefined;
+      this.signal?.throwIfAborted();
       const after = await this.client.getBlock({ blockNumber: to });
+      this.signal?.throwIfAborted();
       if (!after.hash || before.hash !== after.hash || checkpoint !== this.scannedHash) {
         this.reset();
         throw new Error("Chain reorganized while indexing hidden packets; retry");

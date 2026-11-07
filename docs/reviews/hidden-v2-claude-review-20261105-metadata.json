@@ -1,0 +1,399 @@
+{
+  "schema": "vendetta-claude-assisted-review-1",
+  "date": "2026-11-05",
+  "baseCommit": "fe95eab652303b5f84d5ec18fb1a4364c8b2880e",
+  "workingTreeIncludesUncommittedFiles": true,
+  "cliVersion": "2.1.318",
+  "initialRepositorySourceBundleSha256": "426beea7171def63fff1dfd1ac9895257e866886f66dc353beef7bd132145836",
+  "mode": "AI-assisted technical review chosen by hobby-project owner",
+  "reviewerExecutedTests": false,
+  "calls": [
+    {
+      "scope": "staged",
+      "round": "initial",
+      "report": "docs/reviews/hidden-v2-claude-staged-initial-20261105.md",
+      "reportSha256": "76b42d4741cc912207f70aa5be2bccaf0fe1183b07739c96c107a64135d4eaaf",
+      "responseOriginal": "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-claude-staged-review/response.json",
+      "responseSha256": "cf7eda1516cd8ed439ae912decf05ede9fa850596e8fc7f0c797bf76286fd67a",
+      "promptSha256": "5e1b68675622e050481738057f5302d255a6ee5ec6c0fcc0096fef784a7eb15b",
+      "inputInventorySha256": "7732631216a1161dfb3cfbcf6224106cee1466cde7ab88b0e8894b7c3a722a7c",
+      "sources": {
+        "apps/web/scripts/experiments/opening-zk/mpcstaged/boundary_test.go": {
+          "sha256": "aad3f80db4024184e76aef584d000b334dfbf7ea10768d6a746c21159a30c5fa",
+          "bytes": 4509
+        },
+        "apps/web/scripts/experiments/opening-zk/mpcstaged/cache.go": {
+          "sha256": "579ece7c091f5baf832df76e8d6002c2dc60ed07784890999b5afce677811348",
+          "bytes": 7158
+        },
+        "apps/web/scripts/experiments/opening-zk/mpcstaged/commons.go": {
+          "sha256": "ac8f67a9bd82715bf67ad7b776e19298ffe8d8bef5418b221107a6a24387663b",
+          "bytes": 2005
+        },
+        "apps/web/scripts/experiments/opening-zk/mpcstaged/initialize.go": {
+          "sha256": "72f550422231550d172c1cf8e442136c393aed5a2f8bda7aeb408b305e1a4398",
+          "bytes": 9635
+        },
+        "apps/web/scripts/experiments/opening-zk/mpcstaged/initialize_test.go": {
+          "sha256": "f22ba5c2ddf641cc1ae503afc940848f3ad13ccd6241b93c33290a39c25ca583",
+          "bytes": 9257
+        },
+        "apps/web/scripts/experiments/opening-zk/mpcstaged/lagrange.go": {
+          "sha256": "2d49e1099de75e52696f61b11697686b89cabf3155df6702325bdc268b823c4f",
+          "bytes": 6591
+        },
+        "apps/web/scripts/experiments/opening-zk/mpcstaged/seal.go": {
+          "sha256": "2ac4ca9bb982ce6f83ec2d0d07c42c495c801eb913cf37f63f2aa0729a7770cb",
+          "bytes": 2189
+        },
+        "apps/web/scripts/experiments/opening-zk/mpcstaged/seal_test.go": {
+          "sha256": "593588312785fa373faabd2108ed7371b5d8f254b0c6ac0926557fff7b51ba99",
+          "bytes": 944
+        },
+        "apps/web/scripts/experiments/opening-zk/mpcstream/cache_fuzz_test.go": {
+          "sha256": "4a104288a080a2d04152d0be2b454fc90ba9916ebca8524cb7dc260a92611f7b",
+          "bytes": 2075
+        },
+        "apps/web/scripts/experiments/opening-zk/mpcstream/commons.go": {
+          "sha256": "c39c93be25c90b855be110bab8810b178107f8adea6df97aa47455701adbe869",
+          "bytes": 2608
+        },
+        "apps/web/scripts/experiments/opening-zk/mpcstream/commons_test.go": {
+          "sha256": "1a53348e74d1aadec70de367c10ec9c21de71a2f125ec243c1db04b00f460fb0",
+          "bytes": 1948
+        },
+        "apps/web/scripts/experiments/opening-zk/mpcstream/cs.go": {
+          "sha256": "c6bdfb18c6b1fa8ecafd588a32d617cbeca54d850e5fe899b12048893717c769",
+          "bytes": 1789
+        },
+        "apps/web/scripts/experiments/opening-zk/mpcstream/cs_test.go": {
+          "sha256": "d0db06ac06127d113c36dae1e7d55da6853706d0be41a221766e5ea6b60ef030",
+          "bytes": 1569
+        },
+        "apps/web/scripts/experiments/opening-zk/mpcstream/evaluations.go": {
+          "sha256": "be8bcd9cec2bc4749e584e22e6a9e70280db04b145538e7ca67bd6bbaca13635",
+          "bytes": 4878
+        },
+        "apps/web/scripts/experiments/opening-zk/mpcstream/evaluations_test.go": {
+          "sha256": "a6db443a6f33ae7cc7ab5395db89b31409e8e2868904e6c6a00ddcb8d029c412",
+          "bytes": 3293
+        },
+        "apps/web/scripts/experiments/opening-zk/mpcstream/phase1.go": {
+          "sha256": "8da0831a1c9f444e6444e4b0578f116ca40efab534834fb91811cb965174d275",
+          "bytes": 7200
+        },
+        "apps/web/scripts/experiments/opening-zk/mpcstream/phase1_test.go": {
+          "sha256": "117f1501a08599d2c7db0ef7327bd1189fd8f7565be0db2e2de3292ff193d82e",
+          "bytes": 3828
+        },
+        "apps/web/scripts/experiments/opening-zk/mpcstaged/README.md": {
+          "sha256": "6b35829a88057f87a0cc0e997c8946962b0f48021732b8129c50748918827239",
+          "bytes": 5943
+        },
+        "apps/web/scripts/experiments/opening-zk/cmd/mpc-local-pipeline/phase2_init.go": {
+          "sha256": "bccb41ae489215a6d5e1bfe626334f3f854a865abb79eba4363f26e985edfb03",
+          "bytes": 7694
+        },
+        "apps/web/scripts/experiments/opening-zk/cmd/mpc-local-pipeline/phase2_seal.go": {
+          "sha256": "a5c88cf6c8d3e4d8804db4a71f9aed26c7c833e4a7bb65a0b21343705c5e2478",
+          "bytes": 5365
+        },
+        "apps/web/scripts/experiments/opening-zk/go.mod": {
+          "sha256": "595dae54335bcc725fe46cea09212f12eaf859b0ca571b52c638d79fedea8e4e",
+          "bytes": 782
+        },
+        "UPSTREAM/github.com/consensys/gnark@v0.16.4/backend/groth16/bn254/mpcsetup/lagrange.go": {
+          "sha256": "9a24908f857fb049f43f00dc1b0ea19e9f017155152d35c7c122d23e2fd88fb6",
+          "bytes": 5582
+        },
+        "UPSTREAM/github.com/consensys/gnark@v0.16.4/backend/groth16/bn254/mpcsetup/phase2.go": {
+          "sha256": "01bb7be08a4525acb95cf9e49d5d94e7f0b78d68a7a2c2e27d6bb3b8c8ef820e",
+          "bytes": 12483
+        },
+        "UPSTREAM/github.com/consensys/gnark@v0.16.4/backend/groth16/bn254/mpcsetup/setup.go": {
+          "sha256": "f82f422ec778f65828bf726a4bd9751f0545ed188ba32731526cb043bc73ff23",
+          "bytes": 3811
+        },
+        "UPSTREAM/github.com/consensys/gnark-crypto@v0.21.1-0.20260913224755-1409fe592052/ecc/bn254/fr/fft/domain.go": {
+          "sha256": "d98ecc2eacd8b65788755e47264306466bb979fb66d1eb64ed9ebe729696cdeb",
+          "bytes": 12392
+        }
+      },
+      "models": ["claude-opus-5-5"],
+      "durationMs": 638464,
+      "numTurns": 1,
+      "toolsAvailable": [],
+      "isError": false
+    },
+    {
+      "scope": "staged",
+      "round": "followup",
+      "report": "docs/reviews/hidden-v2-claude-staged-followup-20261105.md",
+      "reportSha256": "a01d8182bd75cb11334110d7ca29df15c01af5f70699758f1269d8e965bb9a6a",
+      "responseOriginal": "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-claude-staged-review/followup/response.json",
+      "responseSha256": "650a6a192aab1d100cd322ad0b081942431b98d74ec9f0fc6271365688026551",
+      "promptSha256": "605901e6f0ee1cf10eea76684d6557da1cb90fc2c479c6a85800011e51fc07dc",
+      "inputInventorySha256": "ba956f6ecf9118897c17474966a753fc59dac7923eb0e8b24b31a70cc7c90af0",
+      "sources": {
+        "apps/web/scripts/experiments/opening-zk/mpcstaged/cache.go": {
+          "sha256": "962f7c01d52bf5819d7917757e6fe03f9ea4facf750580c6c682d5564c8efe6d",
+          "bytes": 7177
+        },
+        "apps/web/scripts/experiments/opening-zk/mpcstaged/initialize.go": {
+          "sha256": "056223055ef42b81dee630fdb176e0e11283f42d9b74c9004240f8f2ba280965",
+          "bytes": 10469
+        },
+        "apps/web/scripts/experiments/opening-zk/mpcstaged/seal.go": {
+          "sha256": "bfd65f0b46bf8bb1a11e6d01f05417f990333c7d4bab4c8c642207bdebfb9803",
+          "bytes": 3365
+        },
+        "apps/web/scripts/experiments/opening-zk/mpcstaged/boundary_test.go": {
+          "sha256": "868a50f878f440bf77e614b466d7dbff81d8acd8f4c60d5f64ecddbf2b5bd8c7",
+          "bytes": 5670
+        },
+        "apps/web/scripts/experiments/opening-zk/mpcstaged/seal_test.go": {
+          "sha256": "c967931f48ac5732a57b97675bce4e1c9ea44fa97b5e360fb358382b8f8b3e52",
+          "bytes": 1679
+        },
+        "apps/web/scripts/experiments/opening-zk/cmd/mpc-local-pipeline/phase2_seal.go": {
+          "sha256": "03068dea5e2e9799b8e95b543d8f0fea1405d5945fee2f46d41a1b55101aef5d",
+          "bytes": 5905
+        }
+      },
+      "models": ["claude-opus-5-5"],
+      "durationMs": 256409,
+      "numTurns": 1,
+      "toolsAvailable": [],
+      "isError": false
+    },
+    {
+      "scope": "circuit",
+      "round": "initial",
+      "report": "docs/reviews/hidden-v2-claude-circuit-initial-20261105.md",
+      "reportSha256": "d5ed085eabd2c62f216c95b361bf9703fe0d6e945cc6ed9d9495d3c4589c1006",
+      "responseOriginal": "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-claude-circuit-review/response.json",
+      "responseSha256": "f778a7cb864208d3b9efa6e06508f62e620af4118f5d5477aeadc7b93bcefea1",
+      "promptSha256": "8face654835ab1cba4811603210e0a1989a0791adc5743cc0c6c7598c42fd79c",
+      "inputInventorySha256": "e14801598d92ee9f6b4ea6068cfa7c9dcf5d8bda65256873164316d600153d2d",
+      "sources": {
+        "apps/web/scripts/experiments/opening-zk/mission.go": {
+          "sha256": "284a2b4e65f9bd7596cbc37b55d9cb54160717d4aa1d2847e81c9d9f2de3b99b",
+          "bytes": 10305
+        },
+        "apps/web/scripts/experiments/opening-zk/mission_v2.go": {
+          "sha256": "ff8747a85c3e00db70a0a1459625dd06c59ce1e25cd33bef5fe36fe64129f760",
+          "bytes": 2246
+        },
+        "apps/web/scripts/experiments/opening-zk/mission_v2_input.go": {
+          "sha256": "743d34309b809653f0522b2c43e647e82e6e9a6600eec79a26039c7c30752c03",
+          "bytes": 1732
+        },
+        "apps/web/scripts/experiments/opening-zk/mission_v2_test.go": {
+          "sha256": "bf5d863ea18d9eb2de3fe6394b02d1b4952b7a4dc321043cd89a29bb5882f60e",
+          "bytes": 3991
+        },
+        "apps/web/scripts/experiments/opening-zk/mission_v2_schema_test.go": {
+          "sha256": "f7167b284352e1ce3a4265c0152f77681c78d7b514c201b5302d477d24dea86d",
+          "bytes": 1825
+        },
+        "apps/web/scripts/experiments/opening-zk/mission_input.go": {
+          "sha256": "62b91256530ed750b11fb9f4a60d57e728776273f946d7caa38e5541796ad8c8",
+          "bytes": 4032
+        },
+        "apps/web/scripts/experiments/opening-zk/invalid_point_v2.go": {
+          "sha256": "efbae3086d6c71bd9d2dfba1f90de6457c98cde30d87593f7c67b011dad55ce9",
+          "bytes": 1562
+        },
+        "apps/web/scripts/experiments/opening-zk/invalid_point_v2_input.go": {
+          "sha256": "6e8e7cd7bc5915299b988a302910226c5dcc92d1e550ab5ea6ed2eb4c73c3077",
+          "bytes": 1088
+        },
+        "apps/web/scripts/experiments/opening-zk/invalid_point_v2_test.go": {
+          "sha256": "1a3ba0bc0c4f589de3e3546c5144ef1410499ae48c9b54ead1531b7e2e8a8467",
+          "bytes": 3514
+        },
+        "apps/web/scripts/experiments/opening-zk/point_encoding.go": {
+          "sha256": "7accc28e0fafce9a8ff42857cf9067774004d745daa0e36705e56f0737dad05f",
+          "bytes": 4673
+        },
+        "apps/web/scripts/experiments/opening-zk/point_encoding_input.go": {
+          "sha256": "3094ea81d134f59dc0ca9693184a79f65d6f7fe1351ba7c6e5a5122e00875ef4",
+          "bytes": 1762
+        },
+        "apps/web/scripts/experiments/opening-zk/point_encoding_test.go": {
+          "sha256": "332daa3abe944b92b452d0a3b88ff87266cb53471ae8685bf234d221040d753c",
+          "bytes": 7482
+        },
+        "apps/web/scripts/experiments/opening-zk/beacon.go": {
+          "sha256": "e292e26ed0c9d3f62b1746bd71ea4a499cde857bccd965af8e3f25e03e9d4dbc",
+          "bytes": 3674
+        },
+        "apps/web/scripts/experiments/opening-zk/beacon_test.go": {
+          "sha256": "fb1d8208e86f52a034fde8c116e8f5150fd631849059ef5e20a8e3d6c3d9a8be",
+          "bytes": 6998
+        },
+        "apps/web/scripts/experiments/opening-zk/capsule.go": {
+          "sha256": "3128295d4f7a63d117d596e35f044aecbd04936176c141096b941f863df812b6",
+          "bytes": 5745
+        },
+        "apps/web/scripts/experiments/opening-zk/capsule_input.go": {
+          "sha256": "625923f7dc003c18412a3219ef1e670895d433b3b45137de11507d414374b2ab",
+          "bytes": 1968
+        },
+        "apps/web/scripts/experiments/opening-zk/capsule_age.go": {
+          "sha256": "2a42a976223f4f7e323cafeeab6b7497bcd580b43ccb035fc2f428a338e512fa",
+          "bytes": 5472
+        },
+        "apps/web/scripts/experiments/opening-zk/age.go": {
+          "sha256": "d04e08292124658a00236db7d354aec2f33abfc8d9a5293f7453ec9edfa80e05",
+          "bytes": 7612
+        },
+        "apps/web/scripts/experiments/opening-zk/go.mod": {
+          "sha256": "595dae54335bcc725fe46cea09212f12eaf859b0ca571b52c638d79fedea8e4e",
+          "bytes": 782
+        },
+        "contracts/src/hidden/MissionV2Consumer.sol": {
+          "sha256": "121c0b5d1259158faec4d14b4a083a8f6d8bed1b9c162068325641ab3411a7ff",
+          "bytes": 2980
+        },
+        "contracts/src/hidden/InvalidPointV2Consumer.sol": {
+          "sha256": "0d73ca507f117c70ffeca57bc0033eb576a25a9979ed8d8379a42ccaa3d859d5",
+          "bytes": 1207
+        },
+        "contracts/src/hidden/H3Prefix.sol": {
+          "sha256": "409657a6a3664b00bea1b2607c55fc88a6e06be3dff05147a351569fc570721f",
+          "bytes": 2908
+        },
+        "contracts/src/core/HiddenContext.sol": {
+          "sha256": "e333f42558151def85c745e62aa2ac559916b2e52a770db118b33140a88514c3",
+          "bytes": 2994
+        },
+        "contracts/src/core/HiddenEvidence.sol": {
+          "sha256": "9c31da8a8ec85274b46c82ccd9b064d272377fdc6cea3e83a05647f624ce406b",
+          "bytes": 3881
+        },
+        "apps/web/src/chain/codec.ts": {
+          "sha256": "6655c6d65483503db6498f40b076f9a77c0b4eb96587e4856959848237cae79e",
+          "bytes": 3700
+        },
+        "docs/reviews/hidden-mission-resolution-claude-point-validity-composition.md": {
+          "sha256": "29c968298183a00c10832014e766730ec710126b04df6704fcc09e1d21ac07a7",
+          "bytes": 6285
+        }
+      },
+      "models": ["claude-opus-5-5"],
+      "durationMs": 676617,
+      "numTurns": 1,
+      "toolsAvailable": [],
+      "isError": false
+    },
+    {
+      "scope": "circuit",
+      "round": "followup",
+      "report": "docs/reviews/hidden-v2-claude-circuit-followup-20261105.md",
+      "reportSha256": "069733a306c56650990108e996ad4ef12d7750ef0eeb84b1e2078a9a3ab3405c",
+      "responseOriginal": "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-claude-circuit-review/followup/response.json",
+      "responseSha256": "e63c238074a1e2fab283d95d9ea9ee3d8e4df58a00cadaaad07590943db42254",
+      "promptSha256": "18b94ae02e6b91158815d57fac376def5740cefa171db4d4b97c55f6a8b5d23c",
+      "inputInventorySha256": "65732321df26f420c2ff9ea89c3faf13d34e1330a3f0c55468171377c9d2c7dc",
+      "sources": {
+        "contracts/src/core/HiddenAdmission.sol": {
+          "sha256": "834db2150758f1ddafdf332b1cbc2a881a6a2c44d0ff94a2053726936df21625",
+          "bytes": 1286
+        },
+        "contracts/src/core/HiddenResolution.sol": {
+          "sha256": "b8ba13a21b8cf414682379b5467030b1f352b5ab0e081d02746d14491bc41325",
+          "bytes": 2752
+        },
+        "contracts/src/core/HiddenEvidence.sol": {
+          "sha256": "9c31da8a8ec85274b46c82ccd9b064d272377fdc6cea3e83a05647f624ce406b",
+          "bytes": 3881
+        },
+        "contracts/src/core/GameStorage.sol": {
+          "sha256": "b86a0f3bcfdc94d0c44b2721d1261c521746a073b531462eae049ffb616339ff",
+          "bytes": 9070
+        },
+        "contracts/test/core/HiddenContext.t.sol": {
+          "sha256": "01d1cbe43b984b497ca0daaae2e604b158f2763b5e6ef69712ea5d228aaca1ec",
+          "bytes": 6212
+        },
+        "contracts/test/core/DeployPolicy.t.sol": {
+          "sha256": "88224018b619071be814648da393e2bcc029aa0b347d484d3462f2a1a00e14f1",
+          "bytes": 1419
+        },
+        "apps/web/scripts/experiments/opening-zk/main.go": {
+          "sha256": "c261b1be46f91f92bf15ee09b577b0fe40f9127c8aa77c2b403aaa4335fcb26f",
+          "bytes": 6621
+        },
+        "apps/web/scripts/experiments/opening-zk/capsule_compact.go": {
+          "sha256": "b6afdae126fa92aaa7e2e4b3ec2afe82b4ea661382839f3114a3ac23438f270e",
+          "bytes": 2617
+        },
+        "apps/web/scripts/experiments/opening-zk/capsule_compact_test.go": {
+          "sha256": "feed750582bb5cca91a54a9fc53295ccfce8f260d2559fff9a4b985fde2aa777",
+          "bytes": 1827
+        },
+        "apps/web/scripts/experiments/opening-zk/point_encoding.go": {
+          "sha256": "7accc28e0fafce9a8ff42857cf9067774004d745daa0e36705e56f0737dad05f",
+          "bytes": 4673
+        },
+        "apps/web/scripts/experiments/opening-zk/point_encoding_test.go": {
+          "sha256": "332daa3abe944b92b452d0a3b88ff87266cb53471ae8685bf234d221040d753c",
+          "bytes": 7482
+        },
+        "apps/web/scripts/experiments/opening-zk/mission_v2.go": {
+          "sha256": "ff8747a85c3e00db70a0a1459625dd06c59ce1e25cd33bef5fe36fe64129f760",
+          "bytes": 2246
+        },
+        "apps/web/scripts/experiments/opening-zk/beacon.go": {
+          "sha256": "e292e26ed0c9d3f62b1746bd71ea4a499cde857bccd965af8e3f25e03e9d4dbc",
+          "bytes": 3674
+        },
+        "UPSTREAM/std/math/cmp/generic.go": {
+          "sha256": "00a7c40827170fb39fda6a25cd80d0e12371014f64bc48c27f75b3db5fbb4e2d",
+          "bytes": 4421
+        },
+        "UPSTREAM/std/math/bits/conversion_binary.go": {
+          "sha256": "64665f56af79b270db6a2021dd11ffc2b9c5529ba613897f97273d0c4225a0a4",
+          "bytes": 6342
+        },
+        "UPSTREAM/std/math/bits/hints.go": {
+          "sha256": "48a7e39ff3d7c130e25dbb9aabbabcd477333b774198c74af0f5f1b4dc897e26",
+          "bytes": 1443
+        },
+        "UPSTREAM/std/algebra/emulated/sw_bls12381/g2.go": {
+          "sha256": "c6ffc3e7ceccf6cca6ba9bdc6991c3a9e08059b9deb53839c570f1f8fd44f235",
+          "bytes": 40445
+        }
+      },
+      "models": ["claude-opus-5-5"],
+      "durationMs": 195301,
+      "numTurns": 1,
+      "toolsAvailable": [],
+      "isError": false
+    }
+  ],
+  "authorizedSourceSubmissionToClaude": true,
+  "professionalIndependentAudit": false,
+  "independentParticipantEvidence": false,
+  "productionApproved": false,
+  "postFollowupSourceChanges": {
+    "apps/web/scripts/experiments/opening-zk/mpcstaged/initialize.go": {
+      "reviewedSha256": "056223055ef42b81dee630fdb176e0e11283f42d9b74c9004240f8f2ba280965",
+      "finalSha256": "54318f1a0fae6b308a2c177b3b7201d4ba80e11b5d4929f7f2634b01fe74f9fe"
+    },
+    "apps/web/scripts/experiments/opening-zk/mpcstaged/seal.go": {
+      "reviewedSha256": "bfd65f0b46bf8bb1a11e6d01f05417f990333c7d4bab4c8c642207bdebfb9803",
+      "finalSha256": "b2c7d682ca51edd96ba2fc31628dfe143342f3eddce0f8f5de91360d89a68824"
+    },
+    "apps/web/scripts/experiments/opening-zk/mpcstaged/boundary_test.go": {
+      "reviewedSha256": "868a50f878f440bf77e614b466d7dbff81d8acd8f4c60d5f64ecddbf2b5bd8c7",
+      "finalSha256": "99c009ae2186566a81d163f04717f0b29eea0963998fca54abc7bf0666a34bca"
+    },
+    "apps/web/scripts/experiments/opening-zk/mpcstaged/seal_test.go": {
+      "reviewedSha256": "c967931f48ac5732a57b97675bce4e1c9ea44fa97b5e360fb358382b8f8b3e52",
+      "finalSha256": "bb2cdb8861a82c1b0c0042edc08b7a2f5a328f935a4104a3107f4f04a3ac958a"
+    }
+  },
+  "postFollowupChangeScope": "Primary-agent shape/capacity/nil-opener guards and regressions responding to D1/D2; not another Claude review or approval"
+}

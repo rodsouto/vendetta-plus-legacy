@@ -82,37 +82,91 @@ describe("dev account", () => {
   /** A wallet whose `failAt`-th write is rejected at its gas estimate with Backlog, as viem does. */
   function clientsFailingAt(failAt: number) {
     const sent: string[] = [];
+    const gases: bigint[] = [];
+    const estimates: unknown[] = [];
     const wallet = {
       chain: undefined,
       account: { address: from },
-      async writeContract(c: { functionName: string; args: readonly unknown[] }) {
-        if (sent.length === failAt) {
-          const revert = new ContractFunctionRevertedError({
-            abi: gameAbi,
-            data: BACKLOG,
-            functionName: c.functionName,
-          });
-          throw new ContractFunctionExecutionError(revert, {
-            abi: gameAbi,
-            functionName: c.functionName,
-            args: c.args,
-          });
-        }
+      async writeContract(c: { functionName: string; args: readonly unknown[]; gas: bigint }) {
+        gases.push(c.gas);
         sent.push(c.functionName);
         return "0x" + "33".repeat(32);
       },
     };
     const pub = {
+      estimateContractGas: async (request: { functionName: string; args: readonly unknown[] }) => {
+        estimates.push(request);
+        if (sent.length === failAt) {
+          const revert = new ContractFunctionRevertedError({
+            abi: gameAbi,
+            data: BACKLOG,
+            functionName: request.functionName,
+          });
+          throw new ContractFunctionExecutionError(revert, {
+            abi: gameAbi,
+            functionName: request.functionName,
+            args: request.args,
+          });
+        }
+        return 177518n;
+      },
       waitForTransactionReceipt: async () => ({ status: "success", blockNumber: 1n }),
     };
-    return { clients: { public: pub, wallet: () => wallet } as unknown as Clients, sent };
+    return {
+      clients: { public: pub, wallet: () => wallet } as unknown as Clients,
+      sent,
+      gases,
+      estimates,
+    };
   }
 
+  it("adds inclusion headroom to a local estimate before signing", async () => {
+    const { clients, gases, estimates } = clientsFailingAt(2);
+    await new DevSigner(clients).send([train], "actor");
+    expect(gases).toEqual([366277n]);
+    expect(estimates).toEqual([
+      expect.objectContaining({
+        address: GAME,
+        functionName: "train",
+        args: [1n, 0n, 1n],
+        account: { address: from },
+      }),
+    ]);
+  });
+  it("does not broadcast after the explicit estimate rejects with Backlog", async () => {
+    const { clients, sent, gases } = clientsFailingAt(2);
+    clients.public.estimateContractGas = async () => {
+      throw new ContractFunctionExecutionError(
+        new ContractFunctionRevertedError({ abi: gameAbi, data: BACKLOG, functionName: "train" }),
+        { abi: gameAbi, functionName: "train", args: [1n, 0n, 1n] },
+      );
+    };
+    await expect(new DevSigner(clients).send([train], "actor")).rejects.toMatchObject({
+      errorName: "Backlog",
+      failed: 0,
+    });
+    expect(sent).toEqual([]);
+    expect(gases).toEqual([]);
+  });
+  it("rounds odd estimate headroom up and preserves a transport failure without broadcasting", async () => {
+    const { clients, gases, sent } = clientsFailingAt(2);
+    clients.public.estimateContractGas = async () => 173039n;
+    await new DevSigner(clients).send([train], "actor");
+    expect(gases).toEqual([359559n]);
+    const error = new Error("synthetic RPC failure");
+    clients.public.estimateContractGas = async () => {
+      throw error;
+    };
+    await expect(new DevSigner(clients).send([train], "actor")).rejects.toBe(error);
+    expect(sent).toEqual(["train"]);
+  });
   it("names the call rejected at its gas estimate", async () => {
-    const { clients } = clientsFailingAt(1);
+    const { clients, sent, gases } = clientsFailingAt(1);
     const e = await new DevSigner(clients).send([train, train], "actor").catch((x) => x);
     expect(e).toBeInstanceOf(RevertedError);
     expect(e).toMatchObject({ errorName: "Backlog", failed: 1 });
+    expect(sent).toEqual(["train"]);
+    expect(gases).toEqual([366277n]);
   });
 
   it("an action that landed before a call rejected with Backlog is not sent again", async () => {

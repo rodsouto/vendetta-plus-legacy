@@ -191,7 +191,10 @@ it("recovers the actual keeper across lost receipts and a replaced hidden admiss
       },
       { timeout: 15000, interval: 100 },
     );
-    const [name] = await readdir(join(dir, "state"));
+    const name = (await readdir(join(dir, "state"))).find(
+      (name) => name.startsWith("keeper-") && name.endsWith(".json"),
+    );
+    expect(name).toBeDefined();
     const journal = join(dir, "state", name!);
     const raw = JSON.parse(await readFile(journal, "utf8")) as Hex;
     const originalHash = keccak256(raw);

@@ -1,0 +1,104 @@
+{
+  "schema": "vendetta-claude-operations-review-1",
+  "dateLocal": "2026-11-06",
+  "timezone": "Asia/Riyadh",
+  "actualClaudeCalls": 6,
+  "toolsEnabled": false,
+  "reviewerExecutedTests": false,
+  "sourceSubmissionAuthorized": true,
+  "independentAudit": false,
+  "independentParticipants": false,
+  "productionApproved": false,
+  "reviews": [
+    {
+      "name": "design",
+      "review": "docs/reviews/hidden-v2-claude-operations-design-20261106.md",
+      "reviewSha256": "1aa37c8846504bdb68511af57282d5e0b11db89cdfe2220ae44a7ed67ac5c93f",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "durationMs": 172309,
+      "rawRecords": {
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-state-lease/design-prompt.txt": "a7ca420b84770b6b4a739137b33571661bf9a66e71ff84b39bcc557dfb6dd26e",
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-state-lease/design-inputs.json": "a15158c632a3441beca37c2b4d58d1716be4c57affe8d4d77effb42d0b832447",
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-state-lease/design-response.json": "dfce5bb72308dee21d251536958940de283802a19af2e84a89c8c1518c8e12ab",
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-state-lease/design-stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "implementation",
+      "review": "docs/reviews/hidden-v2-claude-operations-implementation-20261106.md",
+      "reviewSha256": "90263d002b900ad89c6580330960e033755451d322a5eaef3bbb75fead77e1af",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "durationMs": 488420,
+      "rawRecords": {
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-state-lease/implementation-prompt.txt": "3030fd15af7128ec4210e640e30e08bc33f6d2ebd139cb3f5f26d45db808f66f",
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-state-lease/implementation-inputs.json": "90ff725694bcc0d1391736493904995670a6c0aeafd4c7597b1b241b59d3eeeb",
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-state-lease/implementation-response.json": "638000201802400cc233c0e34e913a2b6ddd48e442162ebcbde2a6285340fb85",
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-state-lease/implementation-stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "followup",
+      "review": "docs/reviews/hidden-v2-claude-operations-followup-20261106.md",
+      "reviewSha256": "68d5ae9c540a65ce71c9f23aa41d8d438f2fab4d525daec14939f0eb3bed3551",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "durationMs": 148879,
+      "rawRecords": {
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-state-lease/followup-prompt.txt": "aa0b5ce2c37256987a128695539111856678f2ede398ee8c713108760a28d587",
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-state-lease/followup-inputs.json": "f293ee3948881c5c2d97c9c0be056ec4e561edc833f5ee92fc0aea490142f68d",
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-state-lease/followup-response.json": "799106dcba2326959da29a96888f7f821eb059bf59628322400fcbd065c42e89",
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-state-lease/followup-stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "compile-review",
+      "review": "docs/reviews/hidden-v2-claude-operations-compile-review-20261106.md",
+      "reviewSha256": "4ec3b8b9a4310fdbb93432fa5aa7f7e45432177d0ec9977c21237a4c37806ef9",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "durationMs": 106780,
+      "rawRecords": {
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-state-lease/compile-review-prompt.txt": "a9381359f91f62eec03dfcd876ae2f6d7d9b57d9ce635f1ec9feb547db200273",
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-state-lease/compile-review-inputs.json": "1055380bd99f52f3cc5c147650eb9c00327e003b74ae0309a230d25e50364bf6",
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-state-lease/compile-review-response.json": "d6ddd8fe2a0068feeb4463105862ed1960df7995c6fba7bfc057441b780f2637",
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-state-lease/compile-review-stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "durability-review",
+      "review": "docs/reviews/hidden-v2-claude-operations-durability-review-20261106.md",
+      "reviewSha256": "420d09dd19b7a8b345f0acb8bac634784e58e353e4b5aa4722638a890edc4385",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "durationMs": 94505,
+      "rawRecords": {
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-state-lease/durability-review-prompt.txt": "0e099812ae277d7a8383b90ddbef921b7dadd03574d98e1be2eff958c4315c9e",
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-state-lease/durability-review-inputs.json": "e62851eb0a25cd081881dc4108aa00703ea8b57af44a38d8e738aa40f5418049",
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-state-lease/durability-review-response.json": "e0276ae0e62123be7a260ea89aae2637276c9be2db3cb5214f9d2fa2c1ec3e5e",
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-state-lease/durability-review-stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "durability-followup",
+      "review": "docs/reviews/hidden-v2-claude-operations-durability-followup-20261106.md",
+      "reviewSha256": "73ec219a795ee55ab300aacec9521b50a8fea0cbb5fd7f120eb2d2e105288640",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "durationMs": 56410,
+      "rawRecords": {
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-state-lease/durability-followup-prompt.txt": "22aee6e4ebc68195fb1b732eeeaf19f7b43500afc2ce9d55d9510a00a15d801b",
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-state-lease/durability-followup-inputs.json": "3d667932a9d6220d5b62f6278d2d4d55f02c728696c86a9c29bad74f8e69e1d4",
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-state-lease/durability-followup-response.json": "c949ced3014dfee18a7dbbdf26148b70484cbce0e10bc31cd53dbb17643ac8eb",
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-state-lease/durability-followup-stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ]
+}

@@ -297,6 +297,29 @@ func testRealPersistedContribution(t *testing.T, commit, staged bool) {
 	}
 
 	keysDir := filepath.Join(dir, "phase2-keys")
+	t.Run("wrong-CS-before-keys", func(t *testing.T) {
+		wrongCS := filepath.Join(dir, "wrong-circuit.bin")
+		body, err := os.ReadFile(csPath)
+		if err != nil {
+			t.Fatal(err)
+		}
+		body[len(body)-1] ^= 1
+		if err := os.WriteFile(wrongCS, body, 0600); err != nil {
+			t.Fatal(err)
+		}
+		rejectedDir := filepath.Join(dir, "wrong-CS-keys")
+		_, err = superviseConfigured(exe, rejectedDir, 3, 20*time.Second, func() (uint64, error) { return 16 << 30, nil }, Options{Operation: "phase2-seal", Input: parentDir, InputPin: parentPin, Initialization: initPublic, InitializationPin: initialPin, Previous: previousPath, PreviousPin: previousPin, Commons: filepath.Join(sealedDir, "public"), CommonsPin: commonsPin, CS: wrongCS})
+		if err == nil {
+			t.Fatal("wrong CS accepted")
+		}
+		diagnostic, err := os.ReadFile(filepath.Join(rejectedDir, "worker.txt"))
+		if err != nil || !strings.Contains(string(diagnostic), "seal CS digest differs before key generation") {
+			t.Fatalf("wrong CS not rejected by early pin check: %v %s", err, diagnostic)
+		}
+		if _, err := os.Stat(filepath.Join(rejectedDir, "public")); !os.IsNotExist(err) {
+			t.Fatalf("key output directory created before CS check: %v", err)
+		}
+	})
 	sealedKeys, err := superviseConfigured(exe, keysDir, 3, 20*time.Second, func() (uint64, error) { return 16 << 30, nil }, Options{Operation: "phase2-seal", Input: parentDir, InputPin: parentPin, Initialization: initPublic, InitializationPin: initialPin, Previous: previousPath, PreviousPin: previousPin, Commons: filepath.Join(sealedDir, "public"), CommonsPin: commonsPin, CS: csPath})
 	if err != nil || sealedKeys.Status != "phase2-sealed" {
 		detail, _ := os.ReadFile(filepath.Join(keysDir, "worker.txt"))
@@ -421,7 +444,7 @@ func TestFailureAndTimeoutReaped(t *testing.T) {
 }
 
 func TestBounds(t *testing.T) {
-	for _, args := range [][]string{{"contribute", "--log2", "22"}, {"worker", "--log2", "24", "--unsafe-test-only"}, {"contribute", "--log2", "16", "--unsafe-test-only"}} {
+	for _, args := range [][]string{{"contribute", "--log2", "22"}, {"worker", "--log2", "24", "--unsafe-test-only"}, {"contribute", "--log2", "16", "--unsafe-test-only"}, {"phase2-init", "--unsafe-test-only", "--resume-cache", "unused", "--resume-cache-sha256", strings.Repeat("a", 64)}} {
 		if err := run(args, io.Discard); err == nil {
 			t.Fatal("invalid command accepted")
 		}

@@ -41,3 +41,49 @@ it("sends authorization in headers and rejects redirects and access failures", a
     expect(f.mock.calls[0]![1].body).not.toContain("private-token");
   }
 });
+
+it("does not start a request after a caller stop", async () => {
+  const abort = new AbortController();
+  const reason = new Error("operator stop");
+  abort.abort(reason);
+  const fetcher = vi.fn();
+  await expect(
+    requestCertificate("https://prover.test", {}, fetcher, undefined, abort.signal),
+  ).rejects.toBe(reason);
+  expect(fetcher).not.toHaveBeenCalled();
+});
+it("cancels a response body without turning it into an invalidity certificate", async () => {
+  const { createServer } = await import("node:http");
+  const server = createServer((_req, res) => {
+    res.writeHead(200, { "content-type": "application/json" });
+    res.write('{"certificate":"');
+  });
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const abort = new AbortController();
+  const reason = new Error("operator stop during certificate body");
+  let receivedHeaders!: () => void;
+  const headers = new Promise<void>((resolve) => {
+    receivedHeaders = resolve;
+  });
+  const fetcher: typeof fetch = async (...args) => {
+    const response = await fetch(...args);
+    receivedHeaders();
+    return response;
+  };
+  const task = requestCertificate(
+    `http://127.0.0.1:${(server.address() as { port: number }).port}`,
+    {},
+    fetcher,
+    undefined,
+    abort.signal,
+  );
+  const outcome = task.catch((error: unknown) => error);
+  try {
+    await headers;
+    abort.abort(reason);
+    expect(await outcome).toBe(reason);
+  } finally {
+    server.closeAllConnections();
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+  }
+});

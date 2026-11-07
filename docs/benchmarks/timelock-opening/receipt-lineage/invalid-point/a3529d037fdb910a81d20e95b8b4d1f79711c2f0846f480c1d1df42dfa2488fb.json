@@ -1,0 +1,18 @@
+{
+  "schema": "vendetta-unsafe-local-phase1-verification-1",
+  "log2": 22,
+  "sourceArtifactSha256": "5034a814e60ea7606c7ff4c8c6e2f139d6d4afd8cc1f4230d9db1da9774eae6a",
+  "previousVerificationSha256": "",
+  "transcriptSha256": "476cc80043a126b2b3b9a06636a2d16849876043829ffd3f4f58a23e98383204",
+  "anchor": {
+    "schema": "vendetta-local-phase1-anchor-1",
+    "domain": 4194304,
+    "sha256": "476cc80043a126b2b3b9a06636a2d16849876043829ffd3f4f58a23e98383204",
+    "tauG1": "8fea92db39d748dadc33a3b4d8b218f55811f4fd8fcccfaef26d9e3b4524c515",
+    "alphaG1": "8469820a38f889abcd727243ef8558d8021a8df2c9a12396d3952144b3838fa6",
+    "betaG1": "8847cfa4f96f9b827dac31e1abff81bd5c7a8713bcd053b45ecae5e167df102a",
+    "betaG2": "c27ccd1b65dd563fa92bf0de344a6c21bf6a4e23c6430e49472ee797992f52890a720d1d47519c42f074d2bce9dbc3202938548f672faca0e69d187d92d2b5ea"
+  },
+  "nativeTransitionVerified": true,
+  "productionApproved": false
+}

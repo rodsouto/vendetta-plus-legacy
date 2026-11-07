@@ -1,3 +1,4 @@
+import { serviceErrorSummary } from "../service-errors.js";
 import type { producerAccess } from "./access.js";
 import { createServer, type IncomingMessage } from "node:http";
 
@@ -94,7 +95,7 @@ export function producerServer(
             .writeHead(200, { "Content-Type": "application/json" })
             .end(JSON.stringify({ certificate }));
         } catch (err) {
-          console.warn("certificate request will retry:", (err as Error).message);
+          console.warn("certificate request will retry:", JSON.stringify(serviceErrorSummary(err)));
           if (res.destroyed || res.writableEnded) return;
           res
             .writeHead(503, { "Content-Type": "application/json" })

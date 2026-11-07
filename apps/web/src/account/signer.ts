@@ -93,8 +93,9 @@ export function revertData(e: unknown): Hex | undefined {
 }
 
 /**
- * The custom error a mined transaction reverted with, replayed at its own block: anvil mines one
- * transaction per block, so that is the state and the timestamp it ran with. A mission coming due
+ * The custom error a mined transaction reverted with, called at the end of its block.
+ * Other transactions in that block can change the state/error; an absent decoded
+ * name remains a generic revert. A mission coming due
  * between the gas estimate and the block makes a drained action revert with Backlog (B-08), and
  * the client retries with advance() only when it can name the error.
  */
@@ -127,8 +128,18 @@ async function sendPlain(clients: Clients, account: number, calls: Call[]) {
   for (const [i, c] of calls.entries()) {
     let hash: Hex;
     try {
+      // Local block-time mining can change settlement/storage costs between the
+      // estimate and inclusion. Estimate first to preserve pre-broadcast errors,
+      // then leave headroom; this is not a bound for arbitrary state changes.
+      const estimated = await clients.public.estimateContractGas({
+        ...c,
+        address: c.to,
+        account: wallet.account!,
+      } as never);
+      const gas = estimated + (estimated + 1n) / 2n + 100000n;
       hash = await wallet.writeContract({
         ...c,
+        gas,
         address: c.to,
         chain: wallet.chain,
         account: wallet.account!,

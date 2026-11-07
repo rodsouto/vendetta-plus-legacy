@@ -37,7 +37,8 @@ func (c *testCircuit) Define(api frontend.API) error {
 	for range c.Depth {
 		v = api.Mul(v, c.X)
 	}
-	// Exercise coefficients 0, 1, -1, 2 and general signed constants.
+	// Exercise signed/general constants; the special coefficient branches also
+	// have a direct regression in boundary_test.go.
 	api.AssertIsEqual(api.Add(api.Mul(v, 17), api.Mul(c.X, -2), 5), c.Y)
 	for i := 0; i < c.Commits; i++ {
 		commitment, err := api.(frontend.Committer).Commit(c.X, c.Y, api.Add(v, i+1))

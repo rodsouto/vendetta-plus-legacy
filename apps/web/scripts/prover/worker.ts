@@ -30,6 +30,7 @@ export class ProducerWorker {
       timeoutMs?: number;
       env?: NodeJS.ProcessEnv;
       argsPrefix?: string[];
+      stateLeaseFd?: number;
     },
   ) {
     this.timeout = producerTimeout(config.timeoutMs);
@@ -55,6 +56,8 @@ export class ProducerWorker {
 
   private kill(state: WorkerState, error: Error) {
     state.failure ??= error;
+    state.pending?.reject(state.failure);
+    state.pending = undefined;
     if (!state.exited) state.child.kill("SIGKILL");
   }
 
@@ -66,8 +69,16 @@ export class ProducerWorker {
         "--prove-worker-v2",
         resolve(this.config.setups[circuit]),
       ],
-      { env: this.config.env ?? process.env, stdio: "pipe" },
-    );
+      {
+        env: this.config.env ?? process.env,
+        // Retain state ownership if the parent dies during a native job. The
+        // successor fails closed until that process exits; no lock-file deletion.
+        stdio:
+          this.config.stateLeaseFd === undefined
+            ? "pipe"
+            : ["pipe", "pipe", "pipe", this.config.stateLeaseFd],
+      },
+    ) as ChildProcessWithoutNullStreams;
     const state: WorkerState = {
       child,
       circuit,
@@ -157,6 +168,12 @@ export class ProducerWorker {
       const state = this.state ?? this.start(job.circuit);
       state.bytes = 0;
       await new Promise<void>((done, reject) => {
+        // A resident process can exit while the awaited output cleanup runs.
+        // Its close event will not fire again to reject a newly assigned job.
+        if (state.exited || state.failure) {
+          reject(state.failure ?? new Error("Producer worker exited before job dispatch"));
+          return;
+        }
         const id = randomUUID();
         state.pending = { id, resolve: done, reject };
         state.child.stdin.write(

@@ -4,9 +4,12 @@
 package mpcstaged
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"io"
 	"math/big"
+	"reflect"
 	"runtime"
 	"runtime/debug"
 	"slices"
@@ -24,6 +27,38 @@ type Layout struct {
 	Commitments   constraint.Groth16Commitments
 }
 
+func cloneLayout(l Layout) Layout {
+	l.Commitments = slices.Clone(l.Commitments)
+	for i := range l.Commitments {
+		l.Commitments[i].PrivateCommitted = slices.Clone(l.Commitments[i].PrivateCommitted)
+		l.Commitments[i].PublicAndCommitmentCommitted = slices.Clone(l.Commitments[i].PublicAndCommitmentCommitted)
+	}
+	return l
+}
+
+func validateLayout(l Layout) error {
+	if l.Wires <= 0 || l.Wires > 1<<25 || l.Public < 1 || l.Public > l.Wires || len(l.Commitments) > 255 || len(l.Commitments) > l.Wires-l.Public {
+		return errors.New("invalid assembly layout dimensions")
+	}
+	remaining := l.Wires - l.Public - len(l.Commitments)
+	previous := l.Public - 1
+	for _, c := range l.Commitments {
+		if c.CommitmentIndex <= previous || c.CommitmentIndex >= l.Wires || len(c.PrivateCommitted) > remaining {
+			return errors.New("invalid assembly commitment partition")
+		}
+		remaining -= len(c.PrivateCommitted)
+		previous = c.CommitmentIndex
+		last := l.Public - 1
+		for _, wire := range c.PrivateCommitted {
+			if wire <= last || wire >= l.Wires {
+				return errors.New("invalid private commitment wire order")
+			}
+			last = wire
+		}
+	}
+	return nil
+}
+
 func release() { runtime.GC(); debug.FreeOSMemory() }
 
 func (s *Store) lagrange(kind string, open OpenCommons) ([]curve.G1Affine, []curve.G2Affine, error) {
@@ -36,6 +71,9 @@ func (s *Store) lagrange(kind string, open OpenCommons) ([]curve.G1Affine, []cur
 		}
 		p, err := s.LoadG1(name, n)
 		return p, nil, err
+	}
+	if open == nil {
+		return nil, nil, errors.New("commons opener required for uncached vector")
 	}
 	if err := s.emitStage("read-powers-" + kind); err != nil {
 		return nil, nil, err
@@ -129,8 +167,21 @@ func accumulateG2(c *cs.R1CS, res *curve.G2Affine, t constraint.Term, value *cur
 // The caller can discard the compiled CS after Prepare and before Assemble.
 func Prepare(c *cs.R1CS, s *Store, open OpenCommons) (Layout, error) {
 	var empty Layout
-	if c == nil || c.GetNbConstraints() > int(s.index.Domain) {
+	if s != nil {
+		s.layout = nil
+	}
+	if c == nil || s == nil || c.GetNbConstraints() > int(s.index.Domain) {
 		return empty, errors.New("staged CS domain differs")
+	}
+	// Bind this in-memory relation even when all vectors come from a resumed
+	// cache. The CLI also checks the CS, but callers must not be able to mix a
+	// same-shaped replacement relation with vectors pinned for another CS.
+	h := sha256.New()
+	if _, err := c.WriteTo(h); err != nil {
+		return empty, err
+	}
+	if hex.EncodeToString(h.Sum(nil)) != s.index.CSHash {
+		return empty, errors.New("staged CS bytes differ from cache context")
 	}
 	commitments, ok := c.CommitmentInfo.(constraint.Groth16Commitments)
 	if !ok {
@@ -140,6 +191,9 @@ func Prepare(c *cs.R1CS, s *Store, open OpenCommons) (Layout, error) {
 		return empty, errors.New("too many commitments")
 	}
 	layout := Layout{Wires: c.GetNbInternalVariables() + c.GetNbSecretVariables() + c.GetNbPublicVariables(), Public: c.GetNbPublicVariables(), Commitments: commitments}
+	if err := validateLayout(layout); err != nil {
+		return empty, err
+	}
 	if !(s.Has("a") && s.Has("b") && s.Has("c") && s.Has("z")) {
 		if err := prepareTau1(c, s, open, layout.Wires); err != nil {
 			return empty, err
@@ -164,6 +218,8 @@ func Prepare(c *cs.R1CS, s *Store, open OpenCommons) (Layout, error) {
 		}
 		release()
 	}
+	frozen := cloneLayout(layout)
+	s.layout = &frozen
 	return layout, nil
 }
 func prepareTau1(c *cs.R1CS, s *Store, open OpenCommons, wires int) error {
@@ -254,8 +310,15 @@ func prepareTau2(c *cs.R1CS, s *Store, open OpenCommons, wires int) error {
 }
 
 func Assemble(s *Store, l Layout) (*native.Phase2, native.Phase2Evaluations, error) {
-	p := new(native.Phase2)
 	var e native.Phase2Evaluations
+	if s == nil || s.layout == nil || !reflect.DeepEqual(*s.layout, l) {
+		return nil, e, errors.New("assembly layout differs from successful preparation")
+	}
+	l = cloneLayout(*s.layout)
+	if err := validateLayout(l); err != nil {
+		return nil, e, err
+	}
+	p := new(native.Phase2)
 	var err error
 	_, _, g1, g2 := curve.Generators()
 	p.Parameters.G1.Delta = g1
@@ -310,6 +373,9 @@ func Assemble(s *Store, l Layout) (*native.Phase2, native.Phase2Evaluations, err
 			return nil, e, errors.New("private commitment out of bounds")
 		}
 		p.Parameters.G1.SigmaCKK[i] = slices.Clone(e.G1.CKK[i])
+	}
+	if seen != len(l.Commitments) || len(e.G1.VKK) != l.Public+len(l.Commitments) || len(p.Parameters.G1.PKK) != cap(p.Parameters.G1.PKK) {
+		return nil, native.Phase2Evaluations{}, errors.New("assembly wire partition differs")
 	}
 	k = nil
 	release()

@@ -1,0 +1,26 @@
+{
+  "scope": "Point-budget rejection, no game-domain native point validation or proving",
+  "cases": [
+    {
+      "kind": "opening",
+      "exitCode": 1,
+      "successJSONEmitted": false,
+      "expectedPointBudgetError": true,
+      "maxPoints": 65536,
+      "metadataSha256": "a6d95d061df2701f726e6ac7f9464a156070701201c29e6cd02a774dd4715986",
+      "pkSha256": "1d86e86939e4404c3c82d8b73cbe7444665914abbc6ab9977c3fd58bbb0dcf05",
+      "vkSha256": "10a9f756efb0bfe85d2a12abca3461be6eec02ac7aa03f1688ccdbffb6e590c4"
+    },
+    {
+      "kind": "invalid-point",
+      "exitCode": 1,
+      "successJSONEmitted": false,
+      "expectedPointBudgetError": true,
+      "maxPoints": 65536,
+      "metadataSha256": "9399fe0811c4fe51d7ffad8c66dc6d63fd6018e1041f62eeeb7b3fe2e7db620f",
+      "pkSha256": "043bfd715700598d8903b715f54c8a6cf4b2a4ffbdba84beb98e2b8cbf26d47e",
+      "vkSha256": "4e48f997b91826ad31a52fc1b836da68890d7b615974409e4576ff1eddc3f959"
+    }
+  ],
+  "productionApproved": false
+}

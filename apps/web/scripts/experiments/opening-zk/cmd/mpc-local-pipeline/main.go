@@ -123,14 +123,28 @@ func syncDirectory(path string) error {
 	return f.Sync()
 }
 func fileHash(path string) (string, error) {
-	f, err := os.Open(path)
+	// This helper also runs in the supervisor after worker limits have ended.
+	// Reject substituted special inputs before reading and bound growth as well
+	// as the initial size, so hashing cannot become an unbounded follow-up stage.
+	f, err := regular(path)
 	if err != nil {
 		return "", err
 	}
 	defer f.Close()
-	h := sha256.New()
-	if _, err = io.Copy(h, f); err != nil {
+	info, err := f.Stat()
+	if err != nil {
 		return "", err
+	}
+	if info.Size() <= 0 || uint64(info.Size()) > fileBytes {
+		return "", errors.New("hash input must be nonempty and within 2 GiB budget")
+	}
+	h := sha256.New()
+	n, err := io.Copy(h, io.LimitReader(f, info.Size()+1))
+	if err != nil {
+		return "", err
+	}
+	if n != info.Size() {
+		return "", errors.New("hash input size changed")
 	}
 	return hex.EncodeToString(h.Sum(nil)), nil
 }

@@ -1,0 +1,244 @@
+{
+  "schema": "vendetta-claude-ephemeral-local-review-1",
+  "cliVersion": "2.1.319",
+  "invocation": [
+    "--safe-mode",
+    "--strict-mcp-config",
+    "--mcp-config",
+    "{\"mcpServers\":{}}",
+    "--tools",
+    "",
+    "--permission-mode",
+    "dontAsk",
+    "--no-session-persistence",
+    "--effort",
+    "medium",
+    "--output-format",
+    "json",
+    "-p"
+  ],
+  "calls": [
+    {
+      "stage": "design",
+      "originals": {
+        "prompt.txt": {
+          "path": "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261107-ephemeral-local/design-prompt.txt",
+          "sha256": "768d67b3fe91f22e1d01f20397fa8e833f793336f8fbcc6536f237c8124feb51"
+        },
+        "response.json": {
+          "path": "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261107-ephemeral-local/design-response.json",
+          "sha256": "483b2ad6885e7e8e941e6301d76bf4979c23619575842bb306c172763b234db5"
+        },
+        "stderr.txt": {
+          "path": "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261107-ephemeral-local/design-stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "inputs.json": {
+          "path": "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261107-ephemeral-local/design-inputs.json",
+          "sha256": "de3537d3b34f399c251dbf8497087d17bb96355ce9c5798121e1d7e24fbdfcb6"
+        }
+      },
+      "inputs": [
+        {
+          "path": "apps/web/scripts/local-hidden.ts",
+          "sha256": "161b7bcb4ea83b3eb8d71c8deb5eec41a35f0b5b89598c06d01fe7b486cd1ce3"
+        },
+        {
+          "path": "apps/web/scripts/local-hidden/stack.ts",
+          "sha256": "f25b6cdd199ec21b0665fd29ecab932222e8d45d9db518772f5109ea3b790fe1"
+        },
+        {
+          "path": "apps/web/scripts/local-hidden/session.ts",
+          "sha256": "0daf0884b9a1c82b354e3ccc583d6832572046fb6343893831acb3d2659a5364"
+        },
+        {
+          "path": "apps/web/scripts/local-hidden/rpc.ts",
+          "sha256": "728443305c1b7f49544f8a4664fa628672852a103912a9a6e2ca5543cb4e1a6b"
+        },
+        {
+          "path": "apps/web/scripts/local-hidden/processes.ts",
+          "sha256": "3d636cc977d63e982f40cb0f1cc6d28b21399202021c264a9787ded83ef7a6bf"
+        },
+        {
+          "path": "apps/web/scripts/local-hidden-smoke.ts",
+          "sha256": "e1fef16f270d96c13f8728ab64afc4d0933fed32f412fa8822747e2665d6aa64"
+        }
+      ],
+      "literalAnswerSha256": "d03309d1aea582254c5b63d55ea087bd85f564c5783d3c4e4613a9290d17ed90",
+      "modelUsage": {
+        "claude-opus-5-5": {
+          "inputTokens": 2,
+          "outputTokens": 18101,
+          "cacheReadInputTokens": 1592,
+          "cacheCreationInputTokens": 23179,
+          "webSearchRequests": 0,
+          "costUSD": 0.5477784,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 15803,
+          "cacheCreationEphemeral5mInputTokens": 0,
+          "cacheCreationEphemeral1hInputTokens": 23179,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        }
+      },
+      "durationMs": 180267,
+      "claudeExecutedTests": false
+    },
+    {
+      "stage": "implementation",
+      "originals": {
+        "prompt.txt": {
+          "path": "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261107-ephemeral-local/implementation-prompt.txt",
+          "sha256": "dba56377800aae56f7e47558a23566743698da5755421dd3a7f3129fb7122fd0"
+        },
+        "response.json": {
+          "path": "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261107-ephemeral-local/implementation-response.json",
+          "sha256": "2bf7793a9ad2250fd76d3966494792dd9af9a6e882c9f703bad9e7c50d866e33"
+        },
+        "stderr.txt": {
+          "path": "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261107-ephemeral-local/implementation-stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "inputs.json": {
+          "path": "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261107-ephemeral-local/implementation-inputs.json",
+          "sha256": "72e16252ec7a18af38d8d2d7dd4b3fba3bdda445f46fff8172be52f85b4c4b18"
+        }
+      },
+      "inputs": [
+        {
+          "path": "apps/web/scripts/local-hidden.ts",
+          "sha256": "79855689b51cee355c831219ef64bb70517c0f5854e96226f108f5ea942c5a32"
+        },
+        {
+          "path": "apps/web/scripts/local-hidden/stack.ts",
+          "sha256": "dab67a88fdc154b68330e0d6a886d2f81419cacafe5f94012d3bf7e2fb246ca3"
+        },
+        {
+          "path": "apps/web/scripts/local-hidden/receipts.ts",
+          "sha256": "2637a1dda1faa92e5ca80d3cf10e4f7484de43bb51e796e74f8ea42a9e4e1de7"
+        },
+        {
+          "path": "apps/web/scripts/local-hidden/config.ts",
+          "sha256": "58e4d855edc15cf847d028fa9ba514284c7b2532b49bff29ca7ca05c2452cf24"
+        },
+        {
+          "path": "apps/web/scripts/local-hidden-smoke.ts",
+          "sha256": "fdaa0f65b167079d9f9327b6cec97c018e99eb2735fb4f89eead83df237d8e18"
+        },
+        {
+          "path": "apps/web/test/local-hidden-lifecycle.test.ts",
+          "sha256": "ae3820dd65ce5ff852b0878157a1f78cab7b61c1e54a298b9a67b65cc8e84aaa"
+        },
+        {
+          "path": "apps/web/test/local-hidden-cli.test.ts",
+          "sha256": "4a9ce82fb7552b697eaa26f4f70590766ea42e360230ec4fc9dcfb61da486feb"
+        },
+        {
+          "path": "docs/local-hidden-v2.md",
+          "sha256": "f716bdcfb77133c043b8c5161e8dc6c0cd156c99acc3df441ab3524803bf65ee"
+        }
+      ],
+      "literalAnswerSha256": "957be74420bf2b419fb45d7489cfa3b6d53cddf0e5de85ec681ebeb17a23c168",
+      "modelUsage": {
+        "claude-opus-5-5": {
+          "inputTokens": 2,
+          "outputTokens": 18132,
+          "cacheReadInputTokens": 1592,
+          "cacheCreationInputTokens": 26663,
+          "webSearchRequests": 0,
+          "costUSD": 0.5762704,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 15910,
+          "cacheCreationEphemeral5mInputTokens": 0,
+          "cacheCreationEphemeral1hInputTokens": 26663,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        }
+      },
+      "durationMs": 180684,
+      "claudeExecutedTests": false
+    },
+    {
+      "stage": "final",
+      "originals": {
+        "prompt.txt": {
+          "path": "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261107-ephemeral-local/final-prompt.txt",
+          "sha256": "4684b384cc3b90102f70972a58b7a1546d7c682b5baedc213d9e65fdd1fa77b6"
+        },
+        "response.json": {
+          "path": "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261107-ephemeral-local/final-response.json",
+          "sha256": "efc8294ce7f440ffe3b6a31c45957daae735833d118410b49ac1de1dcbb7d09d"
+        },
+        "stderr.txt": {
+          "path": "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261107-ephemeral-local/final-stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "inputs.json": {
+          "path": "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261107-ephemeral-local/final-inputs.json",
+          "sha256": "39aee66f1201ebbcb0b7780e4017b123565e6c70ec4ffc2f92399e87f454fb71"
+        }
+      },
+      "inputs": [
+        {
+          "path": "apps/web/scripts/local-hidden/processes.ts",
+          "sha256": "3d636cc977d63e982f40cb0f1cc6d28b21399202021c264a9787ded83ef7a6bf"
+        },
+        {
+          "path": "apps/web/test/local-hidden-processes.test.ts",
+          "sha256": "7c21b2e0b74eca99fd142466a42277e758b0f057e524ea5f496566ed6c5ff175"
+        },
+        {
+          "path": "apps/web/test/local-hidden-lifecycle.test.ts",
+          "sha256": "c6da6745368169a8b13a35fda49c235e850618b926e2227f73453b3dbb853d53"
+        },
+        {
+          "path": "apps/web/test/local-hidden-cli.test.ts",
+          "sha256": "3092ec7a0b793cd6945430fd866c6f1e7ae0e98d24e46a766e2bf126467c1795"
+        },
+        {
+          "path": "scripts/dev-hidden-v2.sh",
+          "sha256": "ab02c7a36c71dfeeb9110ece4e13f01af9bbb9cbebf3f51afa44a4601956e2cb"
+        },
+        {
+          "path": "apps/web/scripts/prover/setup.ts",
+          "sha256": "b9e4670ae9954e9e4d6602298ff2bf0e2f52942c3b63c9f1819c1e3b69431d7f"
+        },
+        {
+          "path": "contracts/script/Deploy.s.sol",
+          "sha256": "ef794d409ac99ae8ad52e1e726e4635b12394afdb0c557d8fb08695a953cf48b"
+        },
+        {
+          "path": "scripts/deploy-gnosis.sh",
+          "sha256": "9181eeb6db2700f2ecaa4ae9e347af29f105bf6cad4197644aa41d6711634e90"
+        }
+      ],
+      "literalAnswerSha256": "eb18b32d3cfc7ee4c971ed6c1fde9c08df83415c2661cb0b25aae68c33dc6d4a",
+      "modelUsage": {
+        "claude-opus-5-5": {
+          "inputTokens": 2,
+          "outputTokens": 9119,
+          "cacheReadInputTokens": 1592,
+          "cacheCreationInputTokens": 22164,
+          "webSearchRequests": 0,
+          "costUSD": 0.3600184,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 7954,
+          "cacheCreationEphemeral5mInputTokens": 0,
+          "cacheCreationEphemeral1hInputTokens": 22164,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        }
+      },
+      "durationMs": 95017,
+      "claudeExecutedTests": false
+    }
+  ],
+  "independentApproval": false,
+  "productionApproved": false
+}

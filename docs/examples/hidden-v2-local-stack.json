@@ -1,0 +1,20 @@
+{
+  "unsafeLocalSetup": true,
+  "binary": "/absolute/path/to/existing/binary",
+  "binarySha256": "REPLACE_WITH_EXISTING_FILE_SHA256",
+  "openingKeys": "/absolute/path/to/existing/openingKeys",
+  "openingManifestSha256": "REPLACE_WITH_EXISTING_FILE_SHA256",
+  "pointKeys": "/absolute/path/to/existing/pointKeys",
+  "pointManifestSha256": "REPLACE_WITH_EXISTING_FILE_SHA256",
+  "verifierArtifacts": "/absolute/path/to/existing/verifierArtifacts",
+  "runtimeFile": "/absolute/path/to/existing/runtimeFile",
+  "runtimeSha256": "REPLACE_WITH_EXISTING_FILE_SHA256",
+  "forge": "forge",
+  "anvil": "anvil",
+  "solc": "/absolute/path/to/solc-0.8.28",
+  "ports": {
+    "rpc": 18545,
+    "prover": 18787,
+    "web": 15173
+  }
+}

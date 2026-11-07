@@ -1,0 +1,19 @@
+{
+  "status": "unsafe-local-receipt-lineage-consistent",
+  "kind": "invalid-point",
+  "indexSha256": "d9979dda311f651298992017d0c92668bfb3ddb3af149e379222d487fa436a25",
+  "keysSha256": "dcf669308831f5dd9595c6cedc8e14709df734deb535b07fde17d4cccecb115e",
+  "manifestSha256": "c4798b4f3ddc81c535c680a420b437fec9107ea007bc5c39c9504ff86a13a2c8",
+  "declaredCircuitSha256": "89a9897b75e9cd785bd62feda8fc60ed50239f58e8b60211561fa560d8832898",
+  "documentsChecked": 12,
+  "jsonBytesRead": 9314,
+  "phase1ContributionsLinked": 2,
+  "phase2ContributionsLinked": 2,
+  "nativeMpcReverified": false,
+  "referencedBinaryBytesVerified": false,
+  "participantIdentitiesAuthenticated": false,
+  "closurePublicationAuthenticated": false,
+  "beaconAfterClosureProven": false,
+  "independentApprovalVerified": false,
+  "productionApproved": false
+}

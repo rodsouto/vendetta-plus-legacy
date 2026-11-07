@@ -14,6 +14,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
 
 	curve "github.com/consensys/gnark-crypto/ecc/bn254"
 	"vendetta-opening-pairing-experiment/ceremony"
@@ -36,9 +37,10 @@ type Index struct {
 	ProductionApproved bool              `json:"productionApproved"`
 }
 type Store struct {
-	dir   string
-	index Index
-	emit  func(string) error
+	dir    string
+	index  Index
+	emit   func(string) error
+	layout *Layout
 }
 
 func NewStore(dir, csPin, commonsPin string, n uint64, resume, resumePin string, emit func(string) error) (*Store, error) {
@@ -89,14 +91,22 @@ func validName(name string) bool {
 	return false
 }
 func regular(path string) (*os.File, error) {
-	info, err := os.Lstat(path)
+	// Check the opened descriptor; a preceding Lstat leaves a replacement window
+	// in which Open could follow a symlink or block indefinitely on a FIFO.
+	f, err := os.OpenFile(path, os.O_RDONLY|syscall.O_NOFOLLOW|syscall.O_NONBLOCK, 0)
 	if err != nil {
 		return nil, err
 	}
+	info, err := f.Stat()
+	if err != nil {
+		f.Close()
+		return nil, err
+	}
 	if !info.Mode().IsRegular() {
+		f.Close()
 		return nil, errors.New("regular cache file required")
 	}
-	return os.Open(path)
+	return f, nil
 }
 func (s *Store) Has(name string) bool { _, ok := s.index.Files[name]; return ok }
 func (s *Store) emitStage(stage string) error {
@@ -222,11 +232,15 @@ func (s *Store) load(name string, count int, g2 bool, points any) error {
 }
 func (s *Store) LoadG1(name string, count int) ([]curve.G1Affine, error) {
 	var p []curve.G1Affine
-	err := s.load(name, count, false, &p)
-	return p, err
+	if err := s.load(name, count, false, &p); err != nil {
+		return nil, err
+	}
+	return p, nil
 }
 func (s *Store) LoadG2(name string, count int) ([]curve.G2Affine, error) {
 	var p []curve.G2Affine
-	err := s.load(name, count, true, &p)
-	return p, err
+	if err := s.load(name, count, true, &p); err != nil {
+		return nil, err
+	}
+	return p, nil
 }

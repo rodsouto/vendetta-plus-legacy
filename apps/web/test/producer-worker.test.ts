@@ -3,6 +3,12 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { ProducerWorker } from "../scripts/prover/worker.js";
+import { acquireStateLease } from "../scripts/state-lease.js";
+
+vi.mock("node:fs/promises", async (original) => {
+  const fs = await original<typeof import("node:fs/promises")>();
+  return { ...fs, rm: vi.fn(fs.rm) };
+});
 
 let dir: string;
 let worker: ProducerWorker;
@@ -13,6 +19,7 @@ beforeEach(async () => {
   await writeFile(
     fixture,
     `
+process.on('SIGTERM',()=>{});
 const fs = require('node:fs');
 const readline = require('node:readline');
 const events = process.env.WORKER_EVENTS;
@@ -65,6 +72,64 @@ async function result(output: string) {
 function expectDead(pid: number) {
   expect(() => process.kill(pid, 0)).toThrow();
 }
+
+it("rejects and closes if an idle worker exits during the awaited output cleanup", async () => {
+  const first = await job();
+  await worker.run(first);
+  const { pid } = await result(first.output);
+  const state = Reflect.get(worker, "state") as {
+    closed: Promise<void>;
+    pending?: { reject: (error: Error) => void };
+  };
+  const fs = await vi.importActual<typeof import("node:fs/promises")>("node:fs/promises");
+  vi.mocked(rm).mockImplementationOnce(async (path, options) => {
+    process.kill(pid, "SIGKILL");
+    await state.closed;
+    await fs.rm(path, options);
+  });
+  const watchdog = setTimeout(
+    () => state.pending?.reject(new Error("Dispatch regression watchdog")),
+    2000,
+  );
+  try {
+    await expect(worker.run(await job())).rejects.toThrow("exited");
+    await worker.close();
+    expectDead(pid);
+  } finally {
+    clearTimeout(watchdog);
+  }
+});
+
+it("retains the lease in a resident worker until its process is confirmed dead", async () => {
+  const lease = await acquireStateLease(dir);
+  await worker.close();
+  worker = new ProducerWorker({
+    binary: process.execPath,
+    argsPrefix: [join(dir, "worker.cjs")],
+    setups: { opening: dir, "invalid-point": dir },
+    env: { ...process.env, WORKER_EVENTS: join(dir, "events") },
+    timeoutMs: 5000,
+    stateLeaseFd: lease.fd,
+  });
+  try {
+    const task = await job("hang");
+    const failed = expect(worker.run(task)).rejects.toThrow();
+    let pid = 0;
+    await vi.waitFor(async () => {
+      pid = (await result(task.output)).pid;
+    });
+    await lease.release();
+    await expect(acquireStateLease(dir)).rejects.toThrow("already in use");
+    await worker.close();
+    await failed;
+    expectDead(pid);
+    const next = await acquireStateLease(dir);
+    await next.release();
+  } finally {
+    await worker.close();
+    await lease.release();
+  }
+});
 
 it("reuses a process, parses split acknowledgements and waits for exit on circuit switches", async () => {
   const first = await job();
@@ -134,7 +199,7 @@ it("rejects overlap, aborts only after process death and recovers", async () => 
   await worker.run(await job());
 });
 
-it("closes during a job, waits for death, cleans output and rejects subsequent work", async () => {
+it("closes during a job even if SIGTERM is ignored, waits for death and rejects subsequent work", async () => {
   const blocked = await job("hang");
   const failure = expect(worker.run(blocked)).rejects.toThrow("closed");
   await vi.waitFor(async () => {

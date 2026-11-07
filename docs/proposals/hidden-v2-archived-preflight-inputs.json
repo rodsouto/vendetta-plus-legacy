@@ -1,0 +1,61 @@
+{
+  "schema": "vendetta-hidden-v2-archived-preflight-1",
+  "summary": {
+    "path": "docs/benchmarks/timelock-opening/local-mpc-staged/completed-results.json",
+    "sha256": "1ad3b946d00bb9fa6f0ee1fc85afac2601bc0b9cd0c4e8e93ae5cf6279caf645"
+  },
+  "circuits": {
+    "opening": {
+      "inventory": {
+        "path": "docs/benchmarks/timelock-opening/artifact-inventory/opening.json",
+        "sha256": "12af9ebefce6de9852e8a3097ea14f0c20a8b8622bc75356f3a684ae4eebf5ef"
+      },
+      "compiled": {
+        "path": "docs/benchmarks/timelock-opening/cs-reproduction/opening-1.json",
+        "sha256": "a6d95d061df2701f726e6ac7f9464a156070701201c29e6cd02a774dd4715986"
+      },
+      "pkStructure": {
+        "path": "docs/benchmarks/timelock-opening/pk-structure-check/opening.json",
+        "sha256": "f93db36ed1b2f9680beb048e37e42241eeddcf890821c5c79fcae4a127c49d6b"
+      },
+      "vkExport": {
+        "path": "docs/benchmarks/timelock-opening/vk-export-check/opening.json",
+        "sha256": "a0407451eca5362c7082fb798eaf923d01f9c0a2180e261147a30577af2ad13e"
+      },
+      "lineage": {
+        "packet": "docs/benchmarks/timelock-opening/receipt-lineage/opening",
+        "indexSha256": "c83a34751cccd806eeede0cb419c21620c73dea48ce4dbd52a8f90dcc0ca7d03",
+        "report": {
+          "path": "docs/benchmarks/timelock-opening/receipt-lineage/opening-result.json",
+          "sha256": "86facfff45cfc6e3d006a5f446e37b40d6089c608ac7f3b9d7b32bf0c7cc9912"
+        }
+      }
+    },
+    "invalid-point": {
+      "inventory": {
+        "path": "docs/benchmarks/timelock-opening/artifact-inventory/invalid-point.json",
+        "sha256": "7e469bbc8cd2aa8f1fb882eed284e984eb80363eb805ed586df492605b823632"
+      },
+      "compiled": {
+        "path": "docs/benchmarks/timelock-opening/cs-reproduction/invalid-point-1.json",
+        "sha256": "9399fe0811c4fe51d7ffad8c66dc6d63fd6018e1041f62eeeb7b3fe2e7db620f"
+      },
+      "pkStructure": {
+        "path": "docs/benchmarks/timelock-opening/pk-structure-check/invalid-point.json",
+        "sha256": "12c856ab902c399fed789a144d2f9fbf2ee7047775fef04ee97dd632200c1f07"
+      },
+      "vkExport": {
+        "path": "docs/benchmarks/timelock-opening/vk-export-check/invalid-point.json",
+        "sha256": "57420402944885576f08c61373463131c4213700569eccb8999a6e60bd9470ba"
+      },
+      "lineage": {
+        "packet": "docs/benchmarks/timelock-opening/receipt-lineage/invalid-point",
+        "indexSha256": "d9979dda311f651298992017d0c92668bfb3ddb3af149e379222d487fa436a25",
+        "report": {
+          "path": "docs/benchmarks/timelock-opening/receipt-lineage/invalid-point-result.json",
+          "sha256": "74ce01cb1ab823f9ae9c08d6ed77edfead58289da992e9c6b3db3bafb4e96385"
+        }
+      }
+    }
+  }
+}

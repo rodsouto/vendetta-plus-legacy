@@ -71,7 +71,7 @@ const dir =
             : []),
   );
 mkdirSync(dir, { recursive: !evidenceDirectory });
-const work = await compileProducerVerifiers(keys, forge, solc);
+const work = await compileProducerVerifiers(keys, forge, solc, join(dir, "verifiers"));
 const listener = createServer();
 await new Promise<void>((r) => listener.listen(0, "127.0.0.1", r));
 const port = (listener.address() as any).port;
@@ -317,6 +317,7 @@ try {
     binary,
     openingKeys: join(keys, "opening"),
     pointKeys: join(keys, "invalid-point"),
+    runtimeFile: join(work, "verifier-runtime.json"),
     cache,
     h3Key: key9,
     allowUnsafeLocalSetup: true,

@@ -1,11 +1,63 @@
 # Hidden v2: preparación de producción (hito 6)
 
-Estado al 5 de noviembre de 2026: en preparación, bloqueado para lanzamiento.
+Estado al 6 de noviembre de 2026: en preparación, bloqueado para lanzamiento.
 Las etapas 1–5 permanecen cerradas según el
 [candidato local](../benchmarks/timelock-opening/game-producer/local-candidate/README.md).
 Este documento concreta las evidencias que faltan; no certifica seguridad ni
 sustituye la auditoría independiente. No se han generado claves ni desplegado
 contratos en redes reales en esta continuación.
+
+El propietario eligió [revisión técnica asistida por Claude](hidden-v2-review-preparation.md)
+para este proyecto hobby, sin contratar firmas. Esa elección permite continuar
+el desarrollo y revisión local; no acredita auditoría profesional independiente,
+participación independiente ni procedencia segura de los setups experimentales.
+Los requisitos de evidencia no obtenidos se conservan como tales y las barreras
+de producción siguen activas. No bloquear el trabajo local por falta de una
+contratación que el propietario expresamente descartó.
+
+## Prioridad vigente del propietario: producción (7 de noviembre)
+
+El propietario pidió retirar la recuperación de mundos Anvil locales: cada sesión
+es efímera y se empieza otra tras pérdida. No es un requisito de producción ni un
+pendiente local. Se mantienen journals de transacciones, leases y limpieza de
+procesos: en una cadena persistente son protecciones operativas necesarias.
+Después de esta simplificación, priorizar únicamente bloqueadores reales de
+producción. Las restricciones de no ejecutar MPC/setup/proving ni desplegar en
+redes reales siguen vigentes; este cambio de prioridad no las revoca.
+
+Orden de dependencias para el próximo trabajo:
+
+1. **Procedencia y política de confianza.** Definir procedimiento de ceremonia,
+   participantes y quién aprueba, quórum, vigencia y revocación. El propietario
+   confirmó trabajar sin colaboradores externos, sólo con Codex y Claude. Esa
+   consulta está resuelta; no repetirla ni bloquear software por contratar terceros.
+   Esto no acredita participación independiente ni procedencia segura. No crear identidades ficticias,
+   autoridad por defecto ni aprobación mediante un boolean del operador.
+2. **Importador y registro de aprobación finales.** Tras esa política, vincular
+   cierre/transcripts/beacon autenticados, fuentes/CS y orden de inputs públicos,
+   CS/PK/VK, Verifier.sol, compilador/opciones/runtime y consumidores/red. Reusar
+   verificadores de integridad existentes; añadir la verificación de procedencia
+   y autorización que falta. Las firmas design-review-only no autorizan setups.
+   Probar sustitución, firmas insuficientes, expiración, revocación y replay entre
+   circuitos/redes. Mantener el rechazo actual hasta cumplirlo.
+3. **Operación persistente.** La continuación del7 añade cierre cooperativo,
+   aislamiento de entorno nativo y plantillas con ensayos sintéticos reales de
+   supervisor: [alcance y límites](../service-operations.md). Falta aceptación
+   del host/candidato, límites de recursos, alertas y presupuesto; no tratar esos
+   ensayos como disponibilidad de producción. Supervisor de todos los hijos, estado privado
+   durable y restauración de journals, política de finalidad/reorg/nonce,
+   alertas, dependencias remotas y rotación. Fijar hardware/carga/presupuesto antes
+   de medir capacidad; no relanzar pruebas largas para obtener conteos.
+4. **Candidato de lanzamiento.** Sólo con artefactos finales autorizados y nueva
+   instrucción para las operaciones hoy excluidas: comprobaciones criptográficas
+   y EVM/H3/World sobre ese candidato, configuración de roles/AA/RPC, dominio
+   HTTPS y despliegue expresamente autorizado. La evidencia experimental
+   archivada no sustituye esa aceptación del candidato final.
+
+Bloqueos actuales comprobados en código: `prover/setup.ts` rechaza procedencia
+segura no implementada; `Deploy.s.sol` sólo permite 1337/31337; el wrapper
+`deploy-gnosis.sh` aborta antes de leer secretos/contactar RPC. No se han retirado.
+Este orden es un plan de ejecución, no una autorización ni evidencia de producción.
 
 ## Procedencia del setup
 
@@ -106,9 +158,18 @@ demostrado para este recorrido local ya completado.
 ## Trabajo pendiente vigente
 
 El MPC local de ambos circuitos y el replay de tres pruebas ya terminaron.
-No repetirlos para atender las instrucciones históricas inferiores. La siguiente
-frontera es revisar los adaptadores y establecer procedencia segura de los
-artefactos finales. La [preparación de revisión](hidden-v2-review-preparation.md)
+No repetirlos para atender las instrucciones históricas inferiores. La revisión
+asistida por Claude de adaptadores/circuitos ya se ejecutó y sus hallazgos
+confirmados se corrigieron. El propietario descartó colaboradores externos para
+el alcance hobby: la procedencia segura y participación independiente siguen
+sin acreditarse, pero no bloquean el desarrollo experimental local. La continuación
+del 6 de noviembre cierra exclusión de estado entre procesos, preservación de
+outputs del compilador y sincronización de journals antes de enviar transacciones.
+La [ruta local jugable](../local-hidden-v2.md) ya conecta verificadores existentes,
+consumidores reales, productor, keeper y web en una sesión aislada. Sus smoke tests
+no generan pruebas; el flujo de jugador con certificados mock sigue separado de
+la evidencia criptográfica archivada.
+La [preparación de revisión](hidden-v2-review-preparation.md)
 fija entradas, comprobaciones locales y decisiones externas pendientes. El
 comprobador de evidencia archivada sólo verifica integridad y coherencia; no
 aprueba claves ni vuelve a ejecutar criptografía.

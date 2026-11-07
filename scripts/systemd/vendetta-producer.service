@@ -1,0 +1,34 @@
+# Deployment template only. Production setup approval remains blocked in application code.
+# Review paths, secrets, resource limits and rollout evidence before installation.
+[Unit]
+Description=Vendetta certificate producer
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=exec
+User=vendetta-producer
+Group=vendetta-producer
+WorkingDirectory=/opt/vendetta/apps/web
+EnvironmentFile=/etc/vendetta/producer.env
+Environment=HIDDEN_PROVER_CACHE=/var/lib/vendetta-producer
+ExecStart=/usr/bin/node --import /opt/vendetta/apps/web/node_modules/tsx/dist/loader.mjs /opt/vendetta/apps/web/scripts/prover.ts /etc/vendetta/deployment.json
+StateDirectory=vendetta-producer
+StateDirectoryMode=0700
+UMask=0077
+KillMode=mixed
+SendSIGKILL=yes
+TimeoutStopSec=150
+Restart=on-failure
+RestartSec=30
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+LimitCORE=0
+
+[Install]
+WantedBy=multi-user.target

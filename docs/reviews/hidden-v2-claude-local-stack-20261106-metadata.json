@@ -1,0 +1,73 @@
+{
+  "schema": "vendetta-claude-local-stack-review-1",
+  "date": "2026-11-06",
+  "cliVersionAtClosure": "2.1.319",
+  "actualClaudeCalls": 4,
+  "toolsEnabled": false,
+  "reviewerExecutedTests": false,
+  "sourceSubmissionAuthorized": true,
+  "independentAudit": false,
+  "productionApproved": false,
+  "reviews": [
+    {
+      "name": "design",
+      "review": "docs/reviews/hidden-v2-claude-local-stack-design-20261106.md",
+      "reviewSha256": "902dd9a6d42bad8cef653ae803edcd4fd42720111cb9a431619c6ce1fc0387c6",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "durationMs": 229912,
+      "rawRecords": {
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261106-local-stack/design-prompt.txt": "8006fe07e3d61fc4722c619b1d76f25d888035bd55753d3c1fbe3ed7033a6387",
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261106-local-stack/design-inputs.json": "885a2160502050d56be1cb5e3f9c54dd53290a2ec31595903a25acedbacf749b",
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261106-local-stack/design-response.json": "50ae57afe400c6fb5aab0e1c97fa57967410a5ff2ae429acda12e38dfe04332f",
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261106-local-stack/design-stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "implementation",
+      "review": "docs/reviews/hidden-v2-claude-local-stack-implementation-20261106.md",
+      "reviewSha256": "e6a02211d88d331526bfc4934aeaccca6599630ca36419f2ae582fe7af2da40c",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "durationMs": 316724,
+      "rawRecords": {
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261106-local-stack/implementation-prompt.txt": "10479dfedb2020766b9b83956e3704dae63166ca26def5c8ddc181e383a656e2",
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261106-local-stack/implementation-inputs.json": "35c693e3de89ff6ed7f6b2dba7917b6953f0ec63918909fc59cffd176558a926",
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261106-local-stack/implementation-response.json": "88e866ed826dacedc246c2908fd184ed2787525802c7306d3bcf495605c5789f",
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261106-local-stack/implementation-stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "followup",
+      "review": "docs/reviews/hidden-v2-claude-local-stack-followup-20261106.md",
+      "reviewSha256": "817780371391e4ea0d662ab7125ab4d161f7ef6c932b32a6c48377516b6d5ac8",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "durationMs": 269359,
+      "rawRecords": {
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261106-local-stack/followup-prompt.txt": "481bce7f63215d18eaaad46d43493be7bb5d3eb82047cfd2296e94eae161bf0a",
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261106-local-stack/followup-inputs.json": "8baadaf7285761ffd08cff0246b40d8bed1308bc8ce5ec6dc1ea10fec8102f68",
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261106-local-stack/followup-response.json": "fb1bcf0da4d11786ef6d8bf3b01cca9bcda82f58e86112222e54b4133ab3d245",
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261106-local-stack/followup-stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "closure",
+      "review": "docs/reviews/hidden-v2-claude-local-stack-closure-20261106.md",
+      "reviewSha256": "8e6abf39223c7180d4d82954b4c3e9d9ce3fb6ff34b6de4644b5cb0a72eac387",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "durationMs": 149243,
+      "rawRecords": {
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261106-local-stack/closure-prompt.txt": "ba9578c15b60742b37d6fc20b82eebce18e689dffb353212a91d938d30242488",
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261106-local-stack/closure-inputs.json": "2dabf67bbc05ae108192a60b0fd67f027d205ba452ffbfc4d14ac3ab03d6bab0",
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261106-local-stack/closure-response.json": "d4c5a651bcf0bf7f195c9921a0d92daa6b5eeb14ef03667129bafac00bf59f4f",
+        "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261106-local-stack/closure-stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ]
+}

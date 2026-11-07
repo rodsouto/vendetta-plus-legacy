@@ -1,5 +1,331 @@
 # Continuidad de sesión: hidden v2
 
+Estado vigente: operación persistente de productor/keeper (7 de noviembre).
+El propietario confirmó trabajar sin colaboradores externos, entre Codex y Claude.
+Anvil local sigue efímero; todos los ACTIVO históricos están vencidos.
+
+## Punto de continuidad guardado por solicitud del propietario
+
+Sesión detenida por solicitud explícita para continuar luego. No quedan tareas de
+esta sesión autorizadas para seguir ejecutándose en segundo plano. El cierre de
+implementación vigente es service-operations-close/receipt.json; conserva182 tests/
+27 archivos, ambos typechecks, seis revisiones reales de Claude y aceptación de
+arranque/cierre sin proving. No repetir esos trabajos para nuevos conteos.
+
+Al retomar: comprobar rama/HEAD y estado real, leer la continuación vigente inferior
+y el prompt de próxima sesión. Prioridad de producción, sólo Codex y Claude, sin
+colaboradores externos. Anvil efímero y gates de producción intactos. Buscar la
+siguiente carencia demostrable que no exija inventar aprobación o repetir las
+operaciones criptográficas excluidas. Host privilegiado/recursos/alertas y procedencia
+final permanecen limitaciones; no pedir privilegios ni colaboradores por defecto.
+Todos los ACTIVO antiguos están vencidos; ningún PID archivado autoriza matarlo.
+
+Guardado documental reproducible nuevo:
+/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261107-session-save/receipt.json.
+No sustituye ni modifica el recibo anterior ni sus fuentes. Sin commits/push.
+
+## Continuación vigente: parada y supervisión de servicios persistentes, 7 de noviembre de 2026
+
+Decisión resuelta: sin colaboradores externos; no volver a preguntar si se contrata
+una firma o se incluyen participantes como condición para avanzar software local.
+La decisión no acredita independencia ni procedencia segura del setup. Las claves
+experimentales siguen unsafeLocalSetup=true y no se retiran los gates de setup.ts,
+Deploy.s.sol o deploy-gnosis.sh. No se ejecutó MPC/FFT/setup/sealing/proving/replay
+del juego ni despliegue real. Prioridad: necesidades reales de producción; no
+recuperación de partidas Anvil descartables.
+
+Carencia operativa demostrada: la CLI anterior del productor usaba process.once
+tras construir el servicio; una segunda SIGTERM interrumpía el cierre. Fixture de
+fuente baseline con sólo import de factory sustituido: close iniciado/no terminado,
+exit por SIGTERM (-15), sin criptografía. El keeper no manejaba parada cooperativa.
+No eran agujeros nuevos de seguridad del estado: flock/journals ya protegían
+salidas abruptas. Se corrigen operabilidad, admisión de trabajo y estados de salida.
+
+Nueva service-stop.ts mantiene SIGINT/SIGTERM/SIGHUP mientras se drena y hace la
+espera de polling interrumpible. Prover serve.ts valida puerto antes del factory,
+recuerda parada durante construcción, no abre listener después de ella, maneja
+fallo de bind síncrono/asíncrono y listener inesperado, agrega error+limpieza y
+cierra recursos una vez. Keeper deja de programar trabajo nuevo, cancela HTTP de
+certificados (también body), comprueba parada entre lecturas del índice y conserva
+el lease hasta acabar tick. Firma compartida comprueba antes de preparar, antes de
+firmar y después de firmar: antes de publicar se puede abortar; tras publicar se
+liquida o conserva el journal. No se modificó el protocolo de recovery/journals.
+
+Hallazgo adicional confirmado de Claude: la ruta standalone pasaba process.env a
+workers e inspecciones, incluyendo H3/tokens. environment.ts filtra ambos caminos,
+incluso nativeEnv explícito; sólo locale/rutas/runtime Go documentados. No es un
+sandbox frente a un binario hostil del mismo usuario.
+
+Plantillas inertes en scripts/systemd/: Node directo, KillMode=mixed, directorios
+privados, hardening y backoff. No instaladas ni habilitadas. Validación de sintaxis
+sobre copias con única sustitución de ruta Node instalada. Probe real del manager
+user systemd259 con fixtures Python/flock: stop normal, padre SIGKILL+restart sin
+solapamiento, plazo agotado; hijos en grupo separado muertos y lease recuperado.
+128MiB/32tasks/1s son presupuestos sintéticos, no de producción. Los recursos del
+host real deben fijarse con evidencia y drop-in; TimeoutStopSec150 sólo es presupuesto
+de escalamiento, sin SLA de cierre frente a filesystem colgado. Ver
+[operación persistente](../service-operations.md).
+
+Verificación conjunta vigente:182 tests/27 archivos, typechecks scripts y web.
+Fixtures de entry-source del productor sólo sustituyen factory por HTTP/Nodeworker/
+flock: parada repetida en ejecución y construcción, exit0, worker reaped, lease
+libre, sin listener tras parada temprana. Keeper child real con RPC/journal
+sintéticos conserva lease durante lectura y durante recibo de journal publicado;
+liquida y sale sin nuevas consultas. Cancelación prepublicación no escribe journal;
+timeout posterior conserva bytes. No afirmar prueba completa de misiones/proving,
+aceptación del host objetivo, capacidad o disponibilidad remota.
+
+Feedback real y disposiciones: [revisión operaciones persistentes](../reviews/hidden-v2-claude-service-operations-20261107.md).
+Claude no ejecutó tests. Prompts/respuestas originales, pins y ensayos separados
+fuera de Git: /home/rodrigo/.cache/vendetta-audit/hidden-v2-20261107-service-operations/.
+Cierre reproducible nuevo: /home/rodrigo/.cache/vendetta-audit/hidden-v2-20261107-service-operations-close/receipt.json.
+Conservar los cierres previos, incluido ephemeral-local-close. Branch/HEAD siguen
+feat/hidden-v2-local-mpc-review / fe95eab652303b5f84d5ec18fb1a4364c8b2880e.
+Todos los cambios anteriores tracked/untracked conservados, sin commits/push/limpieza.
+
+Correcciones tras revisión: unidades con UID/grupo distintos, reintento30s sin
+lockout permanente y comprobación STATE_DIRECTORY antes de lease/RPC. Cierre
+conserva todos los errores de recursos y lease; cleanup de caché no tapa error
+primario ni descarta certificado válido (cache.healthy=false y preprune obligatorio
+en la próxima petición). Límites Go vacíos usan8/6GiB. Se reprodujo fuga de URL con
+API key sintética en stderr; logging ahora sólo categorías/errno/mensajes estáticos,
+sin mensajes arbitrarios, stacks ni URLs de terceros. El manejo interno conserva
+objetos originales/errores agregados.
+
+Productor CLI/factory reales también arrancaron con artefactos existentes en Anvil
+real-consumer efímero, métricas0requests/0proofs, salida natural0 y lease libre,
+stack cerrado. Keeper real canceló body de certificado en fixture ABI/logs/vistas
+sintético sin firmar/enviar; no es replay Game. Sandbox del system manager no se
+ejecutó: denegó autorización no interactiva; no se instalaron servicios ni se
+escalaron privilegios. Host objetivo con UIDs distintos y hardening completo sigue
+sin aceptación. Los probes user manager sólo prueban su política común de kill/
+restart, no toda la plantilla de producción. Addenda interpretan null como N/A
+sin reemplazar los resultados originales que usaban false en casos no aplicables.
+
+Cierre adicional de disponibilidad: caché JSON/forma/binding inválido se descarta
+como miss. Rechazos deterministas de ambos consumidores se decodifican con ABI
+compartida real (incluye InvalidExhaustionClaim/MismatchedScalar), se evicta y se
+cuenta proofRejections con kind/reason estáticos; RPC/UnfinishedPrefix/selector
+unknown conservan caché. Inputs no canónicos se rechazan antes de H3 packing.
+Se probaron los nombres reales exportados y declaraciones de contratos; H3Prefix
+confirma estados2/3 y scalar agotado0. False de opening es plaintext inválido
+probado, no rechazo de proof. Tres outputs archivados sólo se leyeron para
+compatibilidad de esquema/hash intacto; no son tres proofs nuevos. Seis reviews
+reales completas, sin atribuir a Claude ejecución de pruebas. Aceptación vigente
+real-entry-abi/result.json fija fuentes actuales incluidas state-lease.ts/consumer-abi.ts;
+los intentos anteriores conservan sus fuentes y límites, sin reemplazarlos.
+
+Siguiente trabajo: carencias demostradas de producción que puedan implementarse
+sin inventar autoridad ni repetir criptografía excluida. No reabrir Anvil recovery,
+ni pedir otra vez colaboradores. La procedencia/aprobación final continúa sin
+acreditarse; los ensayos operativos no la resuelven. Límites de recursos/host,
+alertas y política final de cadena/candidato siguen explícitos, sin simular SLA.
+
+---
+
+Historial preservado; las consultas antiguas sobre colaboradores ya fueron respondidas.
+
+## Continuación vigente: Anvil efímero y prioridad de producción, 7 de noviembre de 2026
+
+El propietario decidió que las partidas locales son descartables y pidió retirar
+toda recuperación local. Se eliminan --resume, snapshots/checkpoints/.used,
+identidades persistidas para reanudación, pins de fuentes/Anvil para restauración,
+attempt-UUID, gateway de congelación y drain del pool para guardar. session.ts y
+rpc.ts y sus tres suites específicas de recuperación se retiraron; originales en
+before-source.tar.gz externo y cierres previos íntegros. receipts.ts sólo escribe
+JSON diagnóstico exclusivo. No confundir esta retirada autorizada con limpieza
+del resto de cambios tracked/untracked del usuario.
+
+Cada ejecución exige directorio externo nuevo, despliega nueva Game y crea nuevos
+signers de servicio sólo en memoria/entorno. Conserva logs/cache/build privados,
+flock y journals del productor/keeper durante la sesión; nunca reutilizarlos contra
+otra cadena. No hay borrado automático. Cierre ordenado y grupos de procesos
+administrados se mantienen. Tras un crash, se inicia otra sesión. No ampliar esta
+ruta ni tratar recuperación efímera como bloqueo de producción.
+
+Anvil escucha directamente en el RPC configurado. Además del preflight, se espera
+su propia línea de listener antes de funding/deploy: se corrigió la carrera de
+ocupación del puerto señalada por Claude. Cancelación de startup sale1; cierre
+normal de una sesión lista sale0 si la limpieza pasa. Los recibos no autorizan
+restauración. La CLI rechaza flags adicionales, incluido --resume.
+
+Verificación propia:75 tests/9 archivos y typecheck scripts. Aceptación real final
+con verificadores existentes: keeper SIGKILL detiene la sesión, directorio usado
+rechazado byte a byte intacto, nueva Game y smoke browser (registro, construcción,
+rutas, auth/canary), colisión RPC posterior al preflight rechazada sin una sola
+petición al servidor ajeno y cancelación durante build sale1. Cero solicitudes de
+certificados/proofs. Los ensayos fallidos de fixtures se conservan separados del
+resultado final; no se suman repeticiones. No se ejecutó MPC/FFT/setup/sealing ni
+replay/proving del juego. No se desplegó en red real.
+
+Feedback real Claude y disposiciones: [revisión efímera](../reviews/hidden-v2-claude-ephemeral-local-20261107.md).
+Claude no ejecutó pruebas. Prompts/respuestas originales e inputs fijados fuera de
+Git en /home/rodrigo/.cache/vendetta-audit/hidden-v2-20261107-ephemeral-local/.
+Aceptación final final-acceptance/result.json. Cierre nuevo reproducible y recibo:
+/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261107-ephemeral-local-close/receipt.json.
+Todos los cierres anteriores se conservan y documentan fuentes históricas, no
+capacidad actual de resume. Branch/HEAD sin cambios:
+feat/hidden-v2-local-mpc-review / fe95eab652303b5f84d5ec18fb1a4364c8b2880e.
+
+El propietario pidió dar prioridad a producción después de esta simplificación.
+El [orden vigente de ejecución](hidden-v2-production-readiness.md#prioridad-vigente-del-propietario-producción-7-de-noviembre)
+empieza por procedencia y política de confianza, importador/registro y bindings de
+artefactos finales; después operación persistente y candidato de lanzamiento.
+La preferencia anterior sin colaboradores externos debe conciliarse con
+participantes independientes antes de fijar autoridad: se consultó al propietario,
+no asumir una respuesta. Las claves actuales siguen unsafeLocalSetup=true; no
+renombrarlas ni inventar aprobadores. setup.ts/Deploy.s.sol/deploy-gnosis.sh conservan
+sus gates. Prioridad de producción no autoriza repetir operaciones criptográficas
+excluidas, contactar terceros, publicar, push o desplegar. Mantener las decisiones
+pendientes explícitas y avanzar lo independiente sin redundancias.
+
+---
+
+Historial preservado: los siguientes cierres describen versiones anteriores.
+
+## Continuación vigente: recuperación de arranque y snapshots compactos, 7 de noviembre de 2026
+
+Este apartado sustituye el cierre operativo anterior; los apartados siguientes son historial conservado. Branch/HEAD siguen feat/hidden-v2-local-mpc-review / fe95eab652303b5f84d5ec18fb1a4364c8b2880e. Todos los ACTIVO antiguos están vencidos.
+
+Se corrigió una carencia reproducida: tras consumir un checkpoint, un fallo de productor, web o cancelación dejaba un mundo sano sin reanudación. Ahora la validación de bindings/clientes precede al consumo y un cierre limpio posterior guarda una generación nueva. Nunca se borra `.used` ni se vuelve a un checkpoint consumido. Fresh sólo guarda tras validar el constructor productor. Los recibos diferencian saved/unsaved/unknown; ante publicación ambigua sólo ofrecen candidateCheckpoint y el loader decide. Un error tardío al liberar lease no revoca un cierre autorizado. Se conservan ambos errores si fallan operación y liberación, incluidos setup, servicio, keeper y adquisición de lease.
+
+El smoke lee credenciales de la sesión raíz aunque los recibos estén en attempt-UUID; comprueba mundo sin jugadores antes de abrir Chromium. No repetirlo sobre un mundo jugado: la negativa no cambia nonce/counters. También exige HTTP200 al comprobar el canary.
+
+Otra carencia medida: copias históricas completas del estado dominaban el crecimiento de los dumps. Anvil ya no usa --preserve-historical-states. Conserva estado del dump head, headers/logs/recibos y nuevos estados posteriores; llamadas arbitrarias al estado anterior al dump no están disponibles. El head base permanece legible tras avanzar bloques en Anvil1.8.6 probado. revertName histórico puede devolver error genérico. Los bloques/transacciones siguen creciendo: 512MiB/60s son rechazos, sin duración segura ni garantía de disco. Un rechazo de guardado tras consumo todavía puede perder reanudación. No hay recuperación general de SIGKILL/host/Anvil crash ni de consumo ambiguo.
+
+Verificación: 101 tests/11 archivos (local-hidden, producer-service, state-lease, keeper-lease, producer-worker) y typecheck scripts. Fixtures Node/EVM sintéticos, sin pruebas criptográficas nuevas. Aceptación real en loopback con artefactos consumidores existentes: fallo fresh, constructor con journal pendiente, recuperación de raw sin nonce nuevo, fallo web, cancelación consumida, cierre ambiguo y reanudación de candidato, smoke fresh y attempt, rechazo de mundo jugado. Un addendum restaura nueve snapshots sin minería: el exceso de entradas corresponde a genesis, no altura; genesis canónico y parentHash de bloque1 coinciden y se conservan. No se adopta proyección de duración por tamaño. Múltiples generaciones conservan Game, logs/recibos originales y hash del World (1 jugador, 1 edificio, cola1). loadWorld cruza bloques; pendingFor y CiphertextIndex ejecutados con índices de invitaciones/ciphertext vacíos, sin cobertura de misiones ocultas. Cero solicitudes de certificados/proofs.
+
+Evidencias privadas: /home/rodrigo/.cache/vendetta-audit/hidden-v2-20261107-startup-recovery/. Acceptance final: verified-acceptance/acceptance/result.json; no sustituir los ensayos anteriores. Cierre reproducible nuevo: /home/rodrigo/.cache/vendetta-audit/hidden-v2-20261107-startup-recovery-close/receipt.json. El recibo fija fuentes, hashes, resultados y checkpoint final. El cierre session-resume-close anterior sigue intacto. Credenciales, dumps y journals quedan fuera de Git y prompts. PID antiguos no autorizan matar procesos actuales.
+
+Feedback Claude real: [revisión y disposiciones](../reviews/hidden-v2-claude-startup-recovery-20261107.md), originales y pins asociados. Claude no ejecutó tests. No hay aprobación independiente ni de producción. Se retiró una hipótesis sobre pérdida del base head al contrastarla con Anvil instalado; se corrigieron nonce vacío y errores dobles. No repetir MPC/FFT/setup/sealing/replay/proving para nuevos conteos.
+
+La línea local de recuperación documentada queda agotada con sus límites explícitos. La próxima sesión debe buscar una carencia demostrable distinta en código/operación, sin tratar limitaciones históricas ya corregidas como pendientes. Mantener hobby experimental, barreras de producción, todos los cambios anteriores y cierres originales; sin commits/push/despliegues reales.
+
+## Continuación vigente: reanudación del mismo mundo local, 7 de noviembre de 2026
+
+Branch/HEAD comprobados: feat/hidden-v2-local-mpc-review /
+fe95eab652303b5f84d5ec18fb1a4364c8b2880e. Cambios anteriores tracked/untracked y
+cierres previos conservados; sin commits, limpieza destructiva, push o publicación.
+
+Carencia elegida: una caída del keeper o cierre normal perdía el mundo aunque
+Anvil estuviera sano. Era una limitación documentada, no un bug del cierre anterior.
+La ruta ahora conserva identidades Ethereum H3/keeper y permite reanudar un
+checkpoint de cierre en la **misma sesión**, con Game, token y journals originales.
+No migra sesiones antiguas que carecen de identidades/checkpoint.
+
+- `bash scripts/dev-hidden-v2.sh config session --resume /absolute/checkpoint.json` exige el
+  mismo config, pins, ABI, fuentes seleccionadas de ejecución/datos de reglas y
+  binarios productor/Anvil. No compila, fondea, despliega ni genera claves de setup.
+- Root lease flock heredado por hijos administrados; logs/recibos nuevos en
+  attempt-UUID. Los recibos anteriores permanecen byte a byte intactos.
+- Antes de consumir el checkpoint, Anvil lo carga sin escritores y con RPC público oculto.
+  Hash histórico, head y nonces H3/keeper comprobados por backend privado.
+  Fallo de validación conserva el checkpoint. La misma instancia Anvil continúa:
+  no expone bloques de una rama temporal. Luego sincroniza `.used` exclusivo antes
+  de exponer escrituras o iniciar productor/keeper: no borrarlo.
+- Cierre: keeper/productor fuera; gateway bloquea escrituras de pestañas y batches,
+  espera forwards ya admitidos y drena pool con bloques normales. No fuerza bloques
+  ni tiempo/beacons. Anvil vuelca historial al salir; snapshot, inventario de estado
+  y closed/checkpoint se sincronizan. Checkpoint sólo autorizado tras cierre exitoso.
+- Stop/load Anvil60s y dump<=512MiB son límites de rechazo, no capacidad/SLA ni cuota
+  física. No hay recuperación de SIGKILL/host/Anvil crash. Un startup consumido que
+  falla puede perder la reanudación; jamás volver a cadena vieja con journals nuevos.
+- CLI usa Node con loader tsx directamente: el wrapper CLI tsx podía enmascarar
+  salida tras Ctrl-C de grupo. Cancelación consumida informa mundo no guardado y
+  sale con error en el script directo. pnpm9 puede ocultar ese exit al recibir
+  Ctrl-C de grupo; no se modifica el vendor. Usar el script directo y closed.json.
+  Config fuera de fuentes/keys sigue siendo obligatorio.
+
+Pruebas y revisiones se registran en
+[revisión real y disposición](../reviews/hidden-v2-claude-session-resume-20261107.md).
+Claude sólo leyó fuentes; las pruebas las ejecutó el agente principal. Prompts,
+respuestas originales, pins, intentos de desarrollo y logs están en
+`/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261106-recovery-review/`.
+El nombre conserva la fecha de inicio; el trabajo siguió el7 local.
+
+Validación de implementación:65 tests TypeScript/9 archivos de sesión, gateway,
+procesos/leases y recuperación real sintética de journals; typecheck. Incluyen
+alteración de snapshot/journals/identidades/binario, fuentes/datos cambiados,
+checkpoint consumido, validación con hash/nonce incorrectos con retry, generaciones,
+pool atascado, dump no cero, fallo de drain y cancelación consumida. Anvil real
+recupera journals minados H3/keeper y raw aún no enviado sin preparar otro nonce;
+comprueba historial, enlace del bloque siguiente, timestamps y tarifa base.
+No son pruebas de corte físico de energía ni de criptografía del juego. Anvil
+muerto antes/durante drain da error de mundo no guardado, nunca un éxito silencioso.
+
+Los ensayos completos de navegador y reanudación tienen logs separados por intento.
+Run1 quedó rechazado al añadir el vínculo a fuentes durante desarrollo; run2
+pasó dos reanudaciones y recuperación de keeper. Run3 confirmó el camino refinado
+pero descubrió el exit0 del wrapper durante Ctrl-C; run4 confirmó el handler pnpm9.
+Run5 pasó la entrada directa. Se preservan esos intentos y sus límites propios.
+Run6 dejó un fallo de construcción: la traza confirmó out-of-gas delegado, no corrupción
+del snapshot. Se añadió margen tras estimar en sendPlain (dev/admin local;4337 sin
+cambios). La atribución inicial de gas se corrigió: límite177518, consumido173038;
+la construcción posterior necesitó190493. Raw y corrección permanecen separados.
+
+Run7/harness-v2 pasó el recorrido final: navegador con construcción, cancelación
+previa al consumo con RPC503/checkpoint reutilizable, dos reanudaciones y keeper
+SIGKILL,52 lecturas desde pestaña abierta sin retroceso ni head prematuro,
+cancelación consumida con exit no cero, identidades/recibos previos idénticos y
+cero requests/proofs. El primer harness leyó un stack.json todavía incompleto;
+cerró y se reanudó el checkpoint del mismo mundo para completar el ensayo.
+El recibo externo fija fuentes, resultados, hashes y límites.
+Todos permanecen archivados; no se sustituyeron artefactos ni recibos.
+
+[Guía operativa](../local-hidden-v2.md). La evidencia criptográfica Game/H3 sigue
+siendo la archivada. Cero MPC/init/FFT/sellados/generación de claves de setup y
+ningún replay/proving del juego nuevo. Producción e independencia siguen bloqueadas;
+los snapshots e inventarios locales no acreditan procedencia segura ni aprobación.
+
+Cierre reproducible, inventario, revisión final y recibo externos nuevos:
+`/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261107-session-resume-close/`.
+Conservar los cierres anteriores local-stack-close y session-handoff del6.
+
+## Punto de reanudación guardado: 6 de noviembre de 2026
+
+El propietario solicitó guardar estado y un prompt para nueva sesión. Usar el
+[prompt de continuación](hidden-v2-next-session-prompt.md), que conserva la
+instrucción de feedback real con Claude por bloque significativo y continuidad
+autónoma sin parar después de cada etapa. No implica abrir otro ensayo MPC.
+
+Estado real comprobado: branch feat/hidden-v2-local-mpc-review, HEAD
+fe95eab652303b5f84d5ec18fb1a4364c8b2880e, con todos los cambios tracked/untracked
+anteriores preservados y sin commits. El cierre de implementación permanece en
+`/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261106-local-stack-close/receipt.json`:
+bundle SHA20cb8012138dcdf5da56e79e5bff7ae06951dfa8806bb37a212ac5b459bd45aa,
+991 fuentes,746 hashes,151 tests TS/21 archivos y38 Python. La evidencia criptográfica
+real sigue siendo el replay archivado; no confundir con el flujo browser mock.
+
+No se deja un worker propio trabajando ni un fallo confirmado pendiente de la
+línea cerrada. La siguiente sesión debe elegir una carencia local demostrable,
+no reabrir por defecto las comprobaciones concluidas. Límite concreto a evaluar:
+el launcher es single-use y no conserva el mundo al apagar. Persistencia/reanudación
+no está implementada; nunca reciclar journals contra otro Anvil. El recorrido
+oculto completo del nuevo launcher tampoco se volvió a ejecutar, por la instrucción
+de no repetir proving/replay del juego.
+
+Para repetir la modalidad de revisión con Claude, conservar prompts/respuestas
+fuera de Git y entradas fijadas por hash. Invocación utilizada (verificar CLI
+actual antes de asumir flags/versiones):
+
+```bash
+claude --safe-mode --strict-mcp-config --mcp-config '{"mcpServers":{}}' \
+  --tools '' --permission-mode dontAsk --no-session-persistence \
+  --effort medium --output-format json -p < prompt.txt > response.json 2> stderr.txt
+```
+
+Claude lee fuentes, sin herramientas en esta modalidad. El agente principal
+reproduce los hallazgos y ejecuta las pruebas. No enviar los archivos privados
+de credenciales de sesiones ni claves/transcripts; no confundir una respuesta
+real archivada con aprobación independiente o tests ejecutados por Claude.
+
+Esta actualización sólo guarda continuidad; no modifica implementación ni vuelve
+a ejecutar suites sin justificación. El inventario se actualiza y se congela una
+entrega documental nueva en
+`/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261106-session-handoff/`, con receipt
+que enlaza el cierre anterior y comprueba que el código/evidencia permanecen idénticos.
+Los cierres previos y sus recibos no se sobrescriben.
+
 ## Trabajo local completado: 5 de noviembre, 05:32:46 UTC
 
 **No quedan workers/controladores de este ensayo activos.** Sesión16383
@@ -95,6 +421,779 @@ operativo objetivo. No se inventó esa autoridad para habilitar manifests seguro
 El importador/registro de producción debe implementarse contra esa política y
 pasar revisión; las firmas design-review-only no la sustituyen. Producción sigue
 bloqueada. Sin publicaciones, contactos, commits ni despliegues reales.
+
+## Continuación local: fronteras del adaptador, 5 de noviembre de 2026
+
+Tras el commit `fe95eab` en `feat/hidden-v2-local-mpc-review`, se continuó con
+revisión interna de las APIs de mpcstaged. No se repitió MPC, inicialización/FFT
+ni proving del juego. No se cambiaron setups, manifests de claves ni evidencia
+raw del replay completado.
+
+Se reprodujeron y corrigieron dos defensas de API:
+
+1. `Prepare` aceptaba un CS de bytes distintos con las mismas dimensiones,
+   incluso con toda la caché reanudada. Ahora comprueba SHA-256 del CS en
+   streaming contra el contexto del store antes de leer commons, usar caché
+   o emitir etapas. La CLI ya comprobaba el CS antes de llamar: no se atribuye
+   un bypass a las ejecuciones históricas. También rechaza store nil.
+2. `LoadG1`/`LoadG2` devolvían puntos parciales con error de decoder, o puntos
+   completos cuando fallaba el callback posterior. Ahora devuelven nil ante
+   todo error. Los callers existentes ya comprobaban el error; la corrección
+   evita una futura reutilización incorrecta de resultados fallidos.
+
+Las seis variantes adversarias nuevas fallaron antes del parche y pasan
+con él. Regresión offline de mpcstaged/mpcstream/mpcinspect/cmd/mpc-local-pipeline:
+**158 eventos Go aprobados** (51/18/64/25), cero fallos; incluye circuitos
+pequeños con comparación exacta nativa y pruebas positivas/negativas. Go vet,
+go mod verify y gofmt aprobados. La evidencia final existente también volvió
+a pasar el cotejo de hashes/copias/originales externos, sin reejecutar criptografía.
+Prettier y git diff --check aprobados.
+
+Alcance, reproducción y límites en
+[revisión interna](../reviews/hidden-v2-staged-boundaries-internal.md).
+No es auditoría independiente. No modifica ecuaciones, formatos de caché ni
+algoritmo declarado; añade un pase SHA del CS en Prepare, sin buffer serializado.
+Ese pase adicional no está medido en dominio completo. Mantener las mediciones
+históricas asociadas a sus fuentes/binarios v6/v7. Los CS/layouts siguen siendo
+salidas confiables del compilador: esto no habilita deserialización arbitraria
+ni autenticación independiente de los pins.
+
+Bundle nuevo de cierre y recibo fuera de Git:
+`/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-staged-boundaries/`.
+Incluye logs antes/después del parche; el receipt fija digest/número de fuentes.
+El inventario del benchmark se actualizó sin reemplazar outputs existentes.
+No se hizo nuevo commit ni push en esta continuación.
+
+Siguiente frontera sigue siendo revisión independiente/procedencia. Faltan
+identidades de revisores/participantes y política externa de aprobación
+(quórum, vigencia, revocación y bindings), publicación autenticada del cierre,
+beacon futuro impredecible y objetivo/presupuesto de operación. No hay evidencia
+local que permita decidir esas identidades o aprobar nuestros propios cambios.
+La preparación de revisión describe las entradas disponibles; producción sigue
+bloqueada. Sin publicaciones, contactos o despliegues reales, ni workers pesados.
+
+## Continuación local: inventario de exports, 5 de noviembre de 2026
+
+Se implementó una pieza independiente de la política externa aún pendiente:
+`pnpm inspect:artifacts-hidden-v2`. Es inspección offline de integridad sobre
+exports locales existentes; no instala/importa setups en el servicio ni concede
+aprobación. Recibe pins externos del manifest y de keys.json, kind y presupuesto
+de lectura explícito. Sólo soporta el esquema experimental inseguro vigente.
+
+Comprueba inventario exacto de seis archivos, flags/contexto/CS conocidos,
+conteos declarados, relación recibo→manifest y SHA-256 streaming de cuatro
+cuerpos. Usa descriptor de directorio, opens no bloqueantes/sin symlinks finales,
+fstat, presupuesto previo, JSON estricto acotado, EOF y comparación de entradas
+y metadatos antes/después. Lista como máximo siete entradas antes de rechazar
+un inventario inesperado. No deserializa claves ni CS. Las comprobaciones de
+cambio no sustituyen snapshot atómico; mantener fuentes inmutables.
+
+Se ejecutó sobre ambos exports finales existentes con presupuesto 2 GiB por
+export. Opening: **1.556.506.446 bytes**, invalid-point: **1.071.059.209 bytes**.
+Los hashes de cuerpos coinciden con los manifests ya usados por el replay.
+Pins de keys.json: opening
+`12d13e25808ac946278b14dfce0d6c78ad39a55439dd251662d0fff322b261fc`;
+invalid-point
+`dcf669308831f5dd9595c6cedc8e14709df734deb535b07fde17d4cccecb115e`.
+Estos pins se cotejaron como inventario local; no se autentican participantes,
+cierres, beacons o aprobación por el hecho de calcularlos aquí.
+
+Resultado unsafe-local-export-inventory-verified, artifactBytesVerified=true;
+nativeDecodingPerformed, artifactRelationsVerified, mpcTranscriptsVerified,
+beaconAfterClosureProven, independentApprovalVerified y productionApproved=false.
+Procedimiento/límites en [inventario offline](hidden-v2-artifact-inventory.md),
+outputs sin reformatear y contexto en
+[benchmark](../benchmarks/timelock-opening/artifact-inventory/README.md).
+No se reemplazó evidencia anterior, no hubo setup/FFT/MPC/proving nuevos.
+
+Validación: **8 tests Python nuevos**, con variantes de los cuatro cuerpos
+sustituidos, pins, scope/conteos, inventario/campos extra, JSON duplicado/profundo/
+no finito, presupuesto anterior a lectura, FIFO/symlinks/vacíos, entrada reemplazada
+y CLI sin JSON de éxito ante fallo. Regresiones: cinco tests de evidencia y cinco
+del empaquetador aprobados. **15 tests web de setup y dos Solidity DeployPolicy**
+aprobados; confirman rechazo de seguridad autodeclarada y redes reales, y acceso
+local con opt-in. Prettier y git diff --check aprobados. No se repitieron suites
+Go: sus fuentes no cambiaron desde los 158 eventos de la continuación anterior.
+
+Bundle nuevo y recibo de cierre externos en
+`/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-artifact-inventory/`.
+Outputs grandes y setups anteriores intactos; sin nuevo commit, publicación,
+contacto o despliegue real. Las correcciones sin commit de la continuación
+anterior se conservaron. No quedan workers del inventario activos.
+
+Lo pendiente de producción no se reduce a cotejar hashes: faltan relaciones
+nativas/transcripts sobre CS autenticado, cierres/beacon independientes y
+política de aprobación externa ligada a circuito/claves/runtime/red. Antes de
+implementar la autoridad del registro hay que fijar revisores/participantes,
+quórum, vigencia y revocación; no se deducen de este inventario ni de los tests.
+Producción y manifests autodeclarados seguros continúan bloqueados.
+
+## Continuación local: VK → Solidity, 5 de noviembre de 2026
+
+Se avanzó otra relación comprobable sin decisiones de autoridad externa:
+paquete Go artifactcheck, CLI cmd/vk-export-check y wrapper
+`pnpm check:vk-export-hidden-v2`. Sólo lee la VK comprimida y Verifier.sol
+existentes, con pins SHA-256 externos y número esperado de inputs públicos.
+No lee PK/CS/transcripts ni ejecuta setup, MPC, proving o EVM.
+
+Presupuestos: VK 64 KiB, fuente/exportación 1 MiB, inputs 0–256 y cero/un
+compromiso. Preflight en una copia privada comprueba todos los prefijos de
+asignación/tags comprimidos/índices/EOF antes de ReadFrom sobre esos mismos
+bytes. Decoder nativo valida puntos/subgrupos; reserialización canónica y
+exportación Solidity por defecto se comparan con tamaño/hash originales.
+No se escribe una fuente nueva ni se devuelve objeto VK reutilizable.
+Más de un compromiso se rechaza explícitamente: gnark fijado advierte que el
+exportador Solidity no lo soporta aunque pueda emitir texto.
+
+Ambas VK finales existentes pasaron: opening 2256 bytes/55 inputs y fuente
+64723 bytes; invalid-point 560 bytes/2 inputs y fuente 32722 bytes, un compromiso
+en cada una. Los pins siguen siendo los de manifests/inventarios anteriores.
+Resultado vk-solidity-export-verified, vkPointsValidated/vkCanonical/
+solidityExportMatches=true. circuitBindingVerified, provingKeyRelationVerified,
+mpcTranscriptsVerified, independentApprovalVerified y productionApproved=false.
+Validez de puntos/export no demuestra no degeneración ni procedencia segura.
+
+Wrapper real offline y pnpm probados, con rutas absolutas y relativas en flags
+separados/=. Worker acotado con prlimit (4 GiB AS, 20 s CPU, 1 MiB file, cores
+cero) y timeout 30 s; Go memory 256 MiB/dos threads son objetivos. Build previo
+fuera de esos límites; no es supervisor de producción ni cuota kernel RSS.
+
+Validación: **188 eventos Go aprobados** en seis paquetes (30 nuevos en checker/
+CLI, 158 de regresión previa), cero fallos. Tests de claves efímeras pequeñas,
+export exacto cero/un compromiso, rechazo de dos, pin/VK/fuente/input sustituidos,
+headers/índices/puntos maliciosos, todos los truncados, EOF, presupuestos y CLI
+con archivos especiales/fallos sin JSON. No se generaron claves ni pruebas del
+juego. Fuzz sólo framing, target 10 s/dos workers, **6117 evaluaciones** sin fallo;
+no fuzz de pairing/export ni prueba de RSS. Vet offline, gofmt, sintaxis Bash,
+Prettier y git diff --check aprobados.
+
+[Procedimiento](hidden-v2-vk-export-check.md) y
+[informes](../benchmarks/timelock-opening/vk-export-check/README.md).
+Bundle/receipt/logs externos nuevos:
+`/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-vk-export/`.
+invalid-point.json conserva exactamente la línea JSON del stdout pnpm;
+el banner completo queda en invalid-point-pnpm.txt externo. Outputs existentes,
+setups, replay y fuentes de lanzamiento v6/v7 intactos. Se conservaron cambios
+sin commit anteriores; no nuevo commit/push, publicación, contacto o despliegue.
+Ningún worker de esta comprobación queda activo.
+
+Sigue pendiente importación de producción con CS/PK/VK/transcripts/compilación/
+runtime autenticados y aprobación independiente. Las comprobaciones locales no
+pueden acreditar participantes independientes, cierre público autenticado ni
+beacon futuro impredecible. Faltan identidades/autoridad y política externa de
+quórum/vigencia/revocación/bindings antes de activar un registro. Mantener todas
+las barreras de producción; estas herramientas sólo entregan evidencia acotada.
+
+## Continuación local: estructura PK y parámetros VK, 5 de noviembre de 2026
+
+Se añadió `pnpm check:pk-structure-hidden-v2`, una relación parcial adicional
+sin recomputar claves ni proving. Paquete artifactcheck/pk.go y CLI separada
+recorren la PK en streaming: hash/EOF, dominio canónico sin precomputar FFT,
+vectores/compromisos/wires contra metadatos compilados fijados, máscaras bool
+0/1 y sus contadores, tags comprimidos y cinco puntos compartidos con VK
+(alpha/beta/delta G1, beta/delta G2). La VK se decodifica con el lector protegido
+y canónico reutilizado del checker anterior; la PK nunca se deserializa.
+
+Los metadatos existentes opening-1.json e invalid-point-1.json de cs-reproduction
+se pasan por pin externo, junto al CS esperado declarado, PK y VK. No se lee el
+CS ni se acredita autoría de metadatos. Presupuestos de formato: PK <=2 GiB,
+metadatos/VK <=64 KiB, wires <=2^25, dominio <=2^23 y cero/un compromiso.
+El wrapper ejecuta worker con 4 GiB AS/60 s CPU/90 s wall/1 MiB file/cores cero;
+Go memory 256 MiB/dos threads son objetivos, no cuotas RSS/CPU. Build offline
+previo fuera de esos límites; sin supervisor de producción ni sandbox.
+
+Ambas PK finales existentes pasaron: opening **1.215.401.903 bytes**, dominio
+8388608/wires 6894167; invalid-point **845.623.725 bytes**, dominio4194304/wires5582166.
+Los hashes PK/VK siguen siendo los de manifests finales. Pins de metadatos:
+opening `a6d95d061df2701f726e6ac7f9464a156070701201c29e6cd02a774dd4715986`;
+invalid-point `9399fe0811c4fe51d7ffad8c66dc6d63fd6018e1041f62eeeb7b3fe2e7db620f`.
+
+Resultado pk-structure-and-shared-parameters-verified. Sólo
+dimensionsMatchPinnedMetadata/sharedParametersMatchVk/vkPointsValidated=true.
+allPkPointsValidated, circuitBindingVerified, fullKeyRelationVerified,
+mpcTranscriptsVerified y productionApproved=false. Los puntos de vectores se
+recorren por tag/formato, sin comprobar todas sus coordenadas/subgrupos. Un test
+confirma que un punto inválido con tag/pin coherentes puede pasar manteniendo
+esos flags false. No presentar coincidencia parcial como relación algebraica
+completa ni procedencia segura. No hubo lectura de CS del juego, arrays nativos
+PK, setup, FFT grande, MPC, prueba del juego o replay nuevos.
+
+Validación: **221 eventos Go aprobados** en siete paquetes, cero fallos:
+33 nuevos de scanner/CLI, más regresión VK export y paquetes anteriores. Claves
+efímeras pequeñas cero/un compromiso, todos los truncados, headers/dominio/
+conteos/máscaras maliciosos, PK/VK/parámetros/pins/metadatos sustituidos,
+trailing/hash/presupuestos y CLI/archivos especiales sin JSON de éxito al fallar.
+Vet offline, gofmt, sintaxis Bash, Prettier y git diff --check aprobados.
+
+[Procedimiento](hidden-v2-pk-structure-check.md) e
+[informes](../benchmarks/timelock-opening/pk-structure-check/README.md).
+Bundle/receipt/logs externos nuevos en
+`/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-pk-structure/`.
+Se conservaron setups, outputs raw/pins y cambios sin commit previos. No se hizo
+commit/push, publicación, contacto ni despliegue real. Workers terminados.
+
+Sigue pendiente la relación criptográfica completa y procedencia con transcripts/
+CS autenticados, revisión independiente y política externa. Los roles,
+quórum/vigencia/revocación/bindings del registro, participantes independientes,
+cierre autenticado y beacon futuro no pueden deducirse de estos scans locales.
+Mantener producción bloqueada; las comprobaciones existentes son piezas de
+validación, no un importador/aprobador final.
+
+## Continuación local: puntos PK acotados, 5 de noviembre de 2026
+
+Se extendió el scanner PK existente, sin otra CLI nueva, con
+`--validate-points --max-points N` y API `CheckPKPoints`. El modo por defecto
+sigue siendo el scan de estructura/tags ya medido en ambos exports del juego.
+El modo opt-in valida cada punto PK con el decoder nativo de curva/subgrupo y
+reencoding canónico dentro del buffer que se hashea. No acumula vectores ni
+entrega un objeto PK reutilizable; cabeceras compartidas siguen ligadas a VK
+comprobada. No deserializa dominio FFT/PK, no lee CS ni genera artefactos.
+
+Presupuesto obligatorio y fijo para exports pequeños: cota conservadora total
+PK <=65536 puntos, calculada desde metadatos fijados, no headers de la PK. Se
+comprueba antes de construir el lector PK o decodificar la VK. Límites de
+worker anteriores (4 GiB AS, 60 s CPU, 90 s wall) intactos; no ampliar el ensayo
+pequeño al juego. El presupuesto no demuestra RSS máximo ni capacidad/SLA.
+
+Tests de exports pequeños cero/un compromiso pasaron. Puntos G1/G2 inválidos e
+infinito no canónico con hashes coherentes pasan el modo de tags conservando
+false y son rechazados por el nuevo modo. Tests de reader que falla al usarse
+confirman rechazo previo a lectura/decoder con presupuesto insuficiente o forma
+grande. Wrapper y pnpm reales pasaron con fixture sintético de puntos válidos;
+no se atribuye relación CS/clave a ese fixture.
+
+Éxito pequeño: pk-points-structure-and-shared-parameters-verified,
+allPkPointsValidated=true. circuitBindingVerified/fullKeyRelationVerified/
+mpcTranscriptsVerified/productionApproved siguen false. Ambos exports reales del
+juego se invocaron con el máximo permitido y se rechazaron por presupuesto antes
+del lector PK, sin JSON de éxito. No se repitió validación nativa masiva de sus
+puntos ni el MPC/setup/FFT/proving/replay completos; el replay histórico ya había
+cargado esas claves. No confundir la prueba de rechazo con nueva validación del
+dominio completo. Pins y raw outputs previos permanecen intactos.
+
+Validación: **232 eventos Go aprobados** en siete paquetes: suite de 229 eventos
+más tres del test nuevo de wrapper/pnpm (11 eventos nuevos frente a 221 previos).
+Vet offline, gofmt, sintaxis Bash, Prettier y git diff --check aprobados. Sin
+cambios de dependencias ni suites web/Solidity repetidas al no cambiar esas fuentes.
+
+[Procedimiento ampliado](hidden-v2-pk-structure-check.md) y
+[evidencia](../benchmarks/timelock-opening/pk-point-validation/README.md).
+Bundle/receipt/logs nuevos fuera de Git en
+`/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-pk-points/`.
+Se conservaron cambios sin commit anteriores y todos los setups/artefactos de
+cierre. Sin nuevo commit/push, publicación, contacto o despliegue real; workers
+terminados. Producción sigue bloqueada.
+
+Pendientes de producción: vínculo algebraico con CS/transcripts autenticados,
+procedencia/registro con política externa revisada, participantes/cierre/beacon
+independientes y aprobación. Las validaciones locales de puntos tampoco deciden
+quién aprueba, quórum/vigencia/revocación ni bindings de runtime/red. No sustituir
+esas decisiones por flags del operador ni ejecutar cálculos grandes para intentar
+acreditar independencia. El importador final continúa sin habilitar producción.
+
+## Continuación local: linaje de recibos, 5 de noviembre de 2026
+
+Se implementó `pnpm check:lineage-hidden-v2`: lectura offline de paquetes de
+recibos JSON fijados por hash, sin transcripts/CS/PK/VK binarios. Cada export
+final enlaza ahora un paquete autocontenido de **12 documentos**: keys/manifest,
+init, dos artifacts/verificaciones de fase 2 y commons con dos artifacts/
+verificaciones de fase 1. Sólo se seleccionaron bytes alcanzables desde las
+claves finales; se conservaron los originales y los intentos históricos ajenos
+al grafo. No se ejecutó MPC, sellado, FFT, setup ni proving.
+
+Ambos paquetes originales pasaron. Opening: **9338 bytes JSON** incluido índice;
+invalid-point: **9314 bytes**. Pins de índice:
+opening `c83a34751cccd806eeede0cb419c21620c73dea48ce4dbd52a8f90dcc0ca7d03`;
+invalid-point `d9979dda311f651298992017d0c92668bfb3ddb3af149e379222d487fa436a25`.
+Los pins keys/manifest/CS son los finales ya registrados. El índice, sus 12
+recibos y resultados raw se incluyeron en docs/benchmarks para revisión portable;
+no se requiere acceso a la caché de binarios para comprobar este grafo JSON.
+
+Validación: inventario del índice <=32 documentos, <=64 KiB/JSON y <=2 MiB
+totales, profundidad16, JSON/fields estrictos y paths digest.json relativos a un
+fd de directorio. Archivos regulares/no bloqueantes/sin symlinks finales; pins
+externos de índice/keys/manifest/CS, contexto dominio/perfil/flags inseguros,
+padres/verificaciones hasta raíz, anchors de fase1, shape/evaluaciones y tamaños
+wire declarados; rechazo de documentos indexados no alcanzables. El primer
+recibo histórico fase1 schema1 sólo se acepta si está enlazado por hash al cierre
+final; no confundirlo con una misión v1 ni con estados activos antiguos.
+
+Resultado unsafe-local-receipt-lineage-consistent. nativeMpcReverified,
+referencedBinaryBytesVerified, participantIdentitiesAuthenticated,
+closurePublicationAuthenticated, beaconAfterClosureProven,
+independentApprovalVerified y productionApproved=false. Los flags históricos
+nativeTransitionVerified=true se comprueban como claims de recibos, no como
+verificación criptográfica nueva. La coherencia de JSON/pins locales no acredita
+procedencia independiente ni impide que un operador fabrique un grafo coherente.
+
+Ocho tests Python nuevos aprobados, con 15 variantes semánticas que recalculan
+hashes de todos los antecesores para llegar a los rechazos de contexto/enlaces.
+Incluyen ramas/padres/verificaciones omitidos/sustituidos, CS/dominio/dimensiones,
+beacon/aprobación forjados, pins, cambios de bytes, FIFO/symlink, JSON/path/budgets,
+documentos huérfanos y CLI sin JSON de éxito al fallar. Pasaron también 18 tests
+previos (inventario8/evidencia5/empaquetador5): **26 tests Python** en total.
+CLI y pnpm reales con los paquetes incluidos aprobados. Prettier y git diff
+--check aprobados. No se repitieron suites Go/web/Solidity: no cambiaron sus
+implementaciones desde los tests anteriores.
+
+[Procedimiento](hidden-v2-receipt-lineage.md) e
+[índices/recibos/resultados](../benchmarks/timelock-opening/receipt-lineage/README.md).
+Bundle, build receipt de selección de documentos, cierre y logs nuevos fuera
+de Git en `/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-receipt-lineage/`.
+Sin commits/push, publicaciones, contactos ni despliegues; cambios previos
+conservados. No quedan workers activos de esta comprobación.
+
+La importación segura sigue necesitando verificación criptográfica/CS/transcripts
+autenticados y autoridad/política de aprobación independiente. Faltan participantes,
+publicación autenticada de cierre, beacon posterior impredecible y política de
+quórum/vigencia/revocación/bindings. Estos recibos locales sólo aportan trazabilidad
+y selección de entradas para revisión; no habilitar producción con ellos.
+
+## Continuación local: preflight conjunto archivado, 5 de noviembre de 2026
+
+Se implementó `pnpm preflight:archived-hidden-v2` (también Python directo) para
+unificar la revisión de informes existentes. Plan fijado en
+`docs/proposals/hidden-v2-archived-preflight-inputs.json`, SHA-256
+`429587c48f8322b08ce1e53836eb1ce91e531b3df26327987e982468dbce0f9e`.
+Conecta ambos circuitos y el resumen/replay de tres pruebas con inventarios,
+metadatos compilados, reportes PK/VK y paquetes/resultados de linaje.
+
+Se ejecutó con éxito leyendo **41031 bytes de fuentes JSON**; las relecturas de
+copias privadas no se incluyen en ese contador. Comprueba identidades/pins,
+tamaños, dominios/wires/inputs/compromisos, manifests y claims de alcance, y
+vuelve a ejecutar los checkers JSON de linaje y evidencia. Los informes nativos
+siguen siendo históricos: no se vuelven a leer/validar sus binarios y no se
+exige una misma revisión de software para compilación/init/keys/replay. Los
+antiguos flags de medición de compilación tampoco se convierten en pendientes
+actuales. No se ejecutó MPC, FFT, setup, proving ni replay del juego.
+
+Lectura de JSON sólo bajo raíz elegida, por fd y sin symlinks en componentes
+inferiores, paths canónicos, tamaños/pins antes de parsear, profundidad16 y
+JSON/scope estrictos. Topes lógicos: 2 MiB/JSON, 64 KiB/plan/recibo y 8 MiB de
+fuentes. Checkers que reabren entradas operan sólo en copias temporales privadas
+de bytes ya fijados; no siguen paths externos de originales archivados. Un test
+cambia la fuente original tras snapshot y comprueba el uso de la copia fijada.
+No se afirma snapshot atómico global, cuotas kernel ni RSS máximo.
+
+Resultado archived-hidden-v2-preflight-consistent, dos circuitos/12 recibos
+por circuito y tres pruebas registradas. binaryArtifactsRead/nativeWorkRerun/
+currentArtifactsReverified/currentSourceReproductionVerified/
+independentApprovalVerified/productionApproved=false. Es coherencia del dossier,
+no nueva validación nativa ni procedencia segura del setup.
+
+Ocho tests nuevos, con 16 variantes semánticas re-pinneadas, prueban mezclas de
+circuitos, reportes/metadatos/pins/campos de aprobación, presupuesto de archivos,
+rutas/FIFO/symlinks, paquetes alterados, snapshots privados y CLI sin JSON al
+fallar. Pasaron 26 tests previos: **34 tests Python** en total, Python/pnpm
+reales y comparación de sus salidas. Prettier y git diff --check aprobados.
+No se repitieron suites Go/web/Solidity, cuyas implementaciones no cambiaron.
+
+[Procedimiento](hidden-v2-archived-preflight.md) y
+[resultado portable](../benchmarks/timelock-opening/archived-preflight/README.md).
+Bundle/receipt/logs nuevos fuera de Git en
+`/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-archived-preflight/`.
+Tras verificar el bundle, se extrajo y ejecutó el preflight con Python aislado,
+sin Git/pnpm/Go en PATH: stdout idéntico al resultado archivado. Esto prueba la
+portabilidad del dossier JSON, no reproducción de circuitos/claves/pruebas.
+No commits/push, publicaciones, contactos ni despliegues; cambios previos y
+artefactos nativos intactos. Ningún worker pendiente.
+
+La importación/aprobación real sigue requiriendo relaciones criptográficas,
+CS/transcripts/autores autenticados y política/autoridad externa revisada. Faltan
+participantes independientes, cierre publicado auténtico, beacon posterior
+impredecible, quórum/vigencia/revocación/bindings. El dossier coherente no cubre
+esas propiedades ni autoriza a cambiar los flags inseguros o las barreras de
+producción. No repetir el recorrido nativo completado para generar este informe.
+
+## Continuación local: integración del dossier en CI, 5 de noviembre de 2026
+
+Se confirmó rama `feat/hidden-v2-local-mpc-review`, HEAD `fe95eab` y se
+conservaron todos los cambios previos, incluidos los archivos sin seguimiento.
+Se leyeron CLAUDE.md y este handoff completos; el estado vigente es el cierre
+local más las continuaciones superiores, no los estados ACTIVO históricos.
+
+Carencia concreta cerrada: CI y ci-local no ejecutaban ninguna comprobación del
+dossier. Ahora un job separado de `.github/workflows/ci.yml` y ci-local invocan
+`scripts/check-hidden-v2-archived.sh`, disponible también como
+`pnpm check:archived-hidden-v2`. Reutiliza los cinco módulos/34 tests existentes,
+el plan con su pin anterior y comparación byte a byte con result.json archivado.
+No se añadió otro checker ni se cambiaron los informes/pins/artefactos históricos.
+El job no necesita instalar dependencias Node, Go o Foundry. No se lanzó CI remoto.
+
+Validación local del wrapper: **34 tests Python aprobados**, preflight idéntico
+al resultado archivado (41031 bytes JSON), sintaxis Bash, Prettier y diff check.
+Se actualizaron los hashes del inventario, incluyendo workflow, ci-local y wrapper.
+Bundle/receipt/logs nuevos y exclusivos fuera de Git en
+`/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-archived-ci/`.
+El recibo externo registra las comprobaciones de cierre y la ejecución extraída.
+ci-local completo no se ejecutó: clonaría HEAD sin los cambios de trabajo y
+repetiría suites del juego que esta integración no modifica.
+
+Esta línea de integración local queda agotada. Para avanzar a importación y
+aprobación de producción faltan identidades/alcance de revisión independiente,
+participantes reales, publicación autenticada del cierre/beacon posterior y
+autoridad/política externa (quórum, vigencia, revocación y bindings a circuito,
+claves, compilación, runtime y red); operación requiere carga/presupuesto/entorno
+objetivo. No se pueden deducir esas entradas de nuestros recibos. Coherencia
+del dossier no equivale a nueva verificación criptográfica ni aprobación
+independiente. Barreras de producción intactas; sin MPC/FFT/setup/sellados/claves/
+proving/replay nuevos, commits, push, publicaciones, contactos o despliegues.
+
+## Continuación local: apertura individual de evidencia, 5 de noviembre de 2026
+
+Se conservó rama/HEAD y todo el trabajo sin commit. Al revisar pendientes se
+reprodujo un defecto concreto del checker individual de evidencia: entre lstat
+y open se podía sustituir el JSON por un symlink final y read_pinned lo seguía
+si sus bytes coincidían con el pin. Un FIFO en esa ventana podía bloquear open.
+El preflight conjunto usa copias privadas fijadas: no se atribuye un bypass a
+sus ejecuciones archivadas ni a los artefactos nativos del MPC/replay.
+
+Se corrigió el lector existente, sin otra CLI/checker: os.open con O_NOFOLLOW y
+O_NONBLOCK, fstat del descriptor antes de leer, presupuesto por tamaño y lectura
+de tamaño+1 para detectar crecimiento/truncado, cierre en finally. No autentica
+componentes padre ni impone snapshot atómico; el hash sigue autenticando sólo
+correspondencia al pin, no autoría independiente.
+
+Dos tests nuevos cubren sustitución antes de abrir por symlink/FIFO y rechazo
+del presupuesto antes de construir el stream de lectura. Los cinco módulos del
+wrapper pasan ahora **36 tests Python**, y su preflight conserva stdout idéntico
+al resultado archivado. No se repitieron suites nativas/juego: sus fuentes no
+cambian. Inventario actualizado y cierre reproducible con bundle/receipt/logs
+externos nuevos en
+`/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-evidence-open/`.
+El recibo registra el caso aceptado antes del parche, validación y reproducción
+del wrapper desde fuentes extraídas, sin modificar los cierres anteriores.
+
+La revisión de apertura queda cerrada; producción permanece bloqueada por
+revisión y política externas, participantes/cierre/beacon independientes y
+artefactos finales autenticados. Sin MPC, inicializaciones/FFT, sellados, claves,
+proving/replay nuevos, commits, push, publicaciones, contactos o despliegues.
+Coherencia de evidencia no implica verificación criptográfica ni aprobación.
+
+## Continuación local: apertura de cachés staged, 5 de noviembre de 2026
+
+Se encadenó la revisión del helper regular de mpcstaged al encontrar el mismo
+patrón lstat→open. Se corrigió con O_NOFOLLOW/O_NONBLOCK y Stat del descriptor,
+cierre ante error y retorno nil; lo usan los índices de reanudación y vectores.
+El test del modo nonblocking falló antes del parche y pasó después. También se
+prueban archivo regular, symlink, FIFO, directorio y ruta inexistente. No se
+afirma que ocurriera una sustitución en las cachés históricas; sus directorios
+padre siguen siendo confiables/inmutables, sin promesa de snapshot atómico.
+
+Regresión offline pertinente: **82 eventos Go aprobados**, mpcstaged57 y
+cmd/mpc-local-pipeline25, vet y gofmt; sólo fixtures pequeños. Los 36 tests Python
+y el cotejo de originales de la corrección inmediatamente anterior conservan
+su resultado; no se repitieron porque este parche Go no cambia esas fuentes.
+No se ejecutaron MPC/FFT/setup/proving del juego ni se tocaron sus cachés.
+
+Revisión interna e inventario actualizados; bundle/recibo/logs externos finales
+de esta continuación en
+`/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-cache-open/`.
+Este cierre incluye ambas correcciones de apertura y conserva el bundle/receipt
+anterior de evidence-open. No se publicaron ni enviaron a terceros.
+
+Agotada la línea concreta de aperturas revisadas, la siguiente frontera sigue
+requiriendo revisores/participantes reales y autoridad/política de procedencia,
+cierre autenticado/beacon posterior y objetivos operativos externos. No se
+fabricaron esas entradas ni se habilitó producción. Sin commits, push o
+despliegues. Integridad y defensas de lectura no equivalen a verificación de
+transcripts ni aprobación independiente.
+
+## Continuación local: revisión ampliada del dossier y supervisor, 5 de noviembre de 2026
+
+El usuario reiteró que no se debe parar entre arreglos. Se encadenó revisión de
+las rutas relacionadas y su integración, conservando rama/HEAD fe95eab, todo el
+trabajo sin commit y los cierres anteriores. No se tomó el historial ACTIVO como
+estado vigente ni se relanzó el recorrido nativo del juego.
+
+Defectos concretos reproducidos y corregidos en las herramientas existentes:
+
+- Doce variantes semánticas con pins recalculados pasaban el preflight: overflow
+  numérico 1e999/perfiles infinitos, RSS negativo, bool/float como contador,
+  medición duplicada/ausencia de invalid-point, nombre duplicado, reutilización
+  mal tipada, duración negativa, cola pendiente o contadores de prueba/caché
+  incongruentes. Ahora se exige distribución por circuito, nombres únicos,
+  secuencia frío/caliente, métricas finitas/no negativas y contadores enteros
+  coherentes con las tres pruebas y su replay de caché. El checker individual
+  también valida pins/statements/valid booleano del inventario de proofs.
+- Los parsers existentes rechazan overflow de exponentes además de constantes
+  NaN/Infinity. No se añadió otro checker ni otra autoridad de aprobación.
+- Dos lectores Python perdían descriptores si fdopen rechazaba un directorio;
+  se reprodujeron cuatro fugas en cuatro intentos por lector. Ahora fstat precede
+  al stream y finally/ExitStack cierra siempre, incluso si fdopen falla.
+- El helper fileHash del pipeline usaba Open/Copy sin cota fuera del worker.
+  Ahora reutiliza regular protegido y limita tamaño inicial a 2 GiB y lectura
+  a tamaño+1, rechazando cambio de tamaño. El test de symlink falló antes del
+  parche. No es una cuota de tiempo/I/O ni un sandbox para directorios hostiles.
+
+Validación pertinente: **38 tests Python**, con las doce variantes re-pinneadas,
+FDs sin fugas y regresiones de parsers/CLI; **32 eventos Go** de pipeline y vet,
+gofmt y diff check. El preflight original sigue siendo byte a byte idéntico,
+41031 bytes JSON; el cotejo de JSON originales externos también pasa.
+La reproducción extraída se registra en el recibo, junto a hashes y logs antes/
+después. Las suites nativas no afectadas no se repitieron. No se leyeron claves/
+transcripts del juego ni se ejecutó MPC/FFT/setup/proving/replay del juego.
+
+Inventario y documentación de alcance actualizados. Bundle/receipt/logs finales
+externos y exclusivos en
+`/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-dossier-boundaries/`.
+Los bytes/pins históricos de informes, plan, resultado y artefactos permanecen
+intactos; nuevas fuentes no sustituyen los binarios de las mediciones v6/v7.
+
+Revisadas las aperturas restantes del alcance: Open de readKB sólo se usa sobre
+/proc; syncDirectory abre directorios de salida propios; Lstat de outside busca
+.git en padres. Las CLIs PK/VK/inspector y lectores staged ya usan descriptores
+regulares/no bloqueantes/sin symlinks finales. Los directorios padre confiables
+y la inmutabilidad de fuentes siguen siendo precondiciones, no garantías nuevas.
+
+No queda un fallo concreto conocido abierto en esta línea de revisión interna.
+Para continuar con el importador/registro real son imprescindibles identidad y
+alcance de revisores, participantes independientes, política externa de quórum/
+vigencia/revocación/bindings y procedimiento autenticado de cierre/beacon futuro;
+operación necesita carga/presupuesto/entorno y responsables. Elegirlos aquí sería
+inventar la autoridad/evidencia ausente. Las correcciones sólo mejoran integridad
+y coherencia local; no reverifican criptografía del juego ni aprueban procedencia.
+Barreras de producción intactas; sin commits, push, publicación, contactos ni
+despliegues reales. No dejar estos pendientes externos como órdenes de repetir
+los cálculos locales ya completados.
+
+## Continuación local: revisión real con Claude para el hobby, 5 de noviembre de 2026
+
+El propietario indicó que no puede contratar una firma y autorizó usar Claude
+como segundo revisor técnico y en otros roles de análisis necesarios. Esa es la
+modalidad vigente para seguir el desarrollo hobby: no volver a frenar el trabajo
+local exigiendo contratar auditores. Se mantienen los límites reales de evidencia
+y las barreras de producción; no inventar independencia, firmas ni aprobaciones.
+
+Se ejecutaron realmente **cuatro llamadas Claude Code 2.1.318 / modelo reportado
+claude-opus-5-5**, sin herramientas ni ejecución de comandos, con fuentes
+numeradas/fijadas y respuestas originales archivadas. Dos revisiones iniciales
+(adaptadores y circuitos/consumidores) y dos seguimientos para contrastar
+correcciones y código omitido. Claude no corrió tests: las regresiones son del
+agente principal. No se enviaron claves/transcripts; sí fuentes al servicio
+Claude por autorización del propietario. No hubo publicación ni contactos con
+participantes humanos.
+
+[Disposición vigente y enlaces a respuestas/pins](../reviews/hidden-v2-claude-review-20261105.md).
+Los números de línea de cada respuesta describen sus entradas congeladas, no
+necesariamente el árbol corregido final. Prompts, JSON raw, inventarios y logs:
+`/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-claude-{staged,circuit}-review/`;
+seguimientos en followup/. Se preservan todos los cambios sin commit anteriores.
+
+Trabajo concreto encadenado:
+
+- F1/F2 reproducidos antes del parche: Seal podía mutar/panicar con CKK extra;
+  Assemble aceptaba layouts truncados/reordenados o con listas sustituidas.
+  Se validan forma/particiones antes del beacon; Store conserva layout privado
+  profundo sólo tras Prepare exitoso y lo exige antes de cargar vectores.
+  Preparación fallida lo invalida. Layouts malformados pineados y opener nil
+  se rechazan sin panic/trabajo de caché. Se documenta propiedad exclusiva y
+  ausencia de solapamiento entre buffers del Seal optimizado.
+- F3: el CS se hashea antes de claves/beacon, reteniendo su descriptor para
+  copiarlo y comprobando también el hash final. El test entre procesos con CS
+  sustituido no crea directorio público de claves. No es snapshot atómico si
+  otro actor escribe posteriormente: salida parcial sin recibo final no vale.
+- F4: nota separada initialization-provenance.json y copia exacta del índice
+  final v6. Enlazan launch/binario/fuentes/init/checkpoints/keys, sin alterar
+  recibos ni leer vectores grandes. Es referencia local, no procedencia segura.
+- S1/S3/S4/S5: coeficientes especiales y scheduling secuencial/paralelo pequeño,
+  flags resume rechazados correctamente, cota wire anterior al payload y G2 en
+  curva fuera de subgrupo rechazado con pin coherente. S2 no justifica repetir
+  CS del juego: ShapeFromCS ya hacía WriteTo/hash en el CLI histórico; siguen
+  sin nueva medición la pasada adicional y las copias de Layout.
+- H1/H2/H3 de la revisión de circuitos se retiraron explícitamente por Claude
+  al ver HiddenAdmission/Resolution, comprobación de módulo y AddUnified real.
+  Pasaron además el comparador pequeño con hint a+q y los dos tests Foundry de
+  binding/configuración. No se cambió ninguna definición de circuito/consumidor.
+  Los supuestos genéricos criptográficos no se presentan como pruebas formales.
+
+Las regresiones Go pertinentes conservan bytes nativos exactos en fixtures
+pequeños y pruebas positivas/negativas; vet, módulos offline, formato y diff
+check aprobados. El recibo final conserva conteos/logs por ejecución, incluidos
+casos antes/después y reproducción extraída del dossier. No se volvieron a
+ejecutar suites no afectadas sólo por obtener otro número de tests.
+
+Nuevo cierre reproducible con bundle/receipt fuera de Git:
+`/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-claude-review-close/`.
+Inventario actualizado incluyendo las respuestas reales, metadata y nota de
+procedencia local. Sources/binarios históricos v6/v7 y artefactos originales
+permanecen intactos. Las nuevas validaciones no se atribuyen a esos binarios.
+
+Este ciclo de revisión no deja hallazgos confirmados abiertos en entradas
+soportadas. No se implementó otro verificador algebraico masivo por sugerencia
+genérica ni se repitió MPC/FFT/init/sellado/proving/replay del juego. No commits,
+push, publicación, despliegue ni cambio de flags de producción. AI-assisted
+review no equivale a auditoría profesional, verificación criptográfica nueva
+del juego, participación independiente o aprobación de procedencia. Una futura
+decisión de riesgo/lanzamiento del propietario es separada y no se presupone.
+
+## Continuación vigente: operación experimental, 6 de noviembre de 2026 (Arabia)
+
+El propietario confirmó que no habrá colaboradores externos y pidió continuar
+autónomamente mientras se ausenta. Se trabaja con Claude como segundo revisor
+técnico, sin atribuirle independencia, participación MPC ni aprobación. No se
+necesita contratar una empresa para continuar este alcance. Branch/HEAD reales:
+`feat/hidden-v2-local-mpc-review`, `fe95eab652303b5f84d5ec18fb1a4364c8b2880e`.
+Todos los cambios previos, incluidos untracked, se preservan sin commits.
+
+Carencias locales concretas cerradas en esta línea:
+
+- **Ownership entre procesos:** productor y keeper adquieren un lease Linux
+  util-linux flock antes de RPC o trabajo de estado. Archivo persistente
+  .vendetta-state.lock, fd numérico, validación regular/nlink/inodo, código busy75,
+  salida acotada y timeout con reap. Release idempotente. No borrar el lock.
+  Los procesos nativos reciben la misma open file description: SIGKILL del padre
+  no permite solapamiento mientras viva un hijo. Un huérfano colgado bloquea
+  reinicio; diagnosticarlo manualmente. No existe unicidad global de signer
+  entre directorios distintos. El keeper exige directorio dedicado por instancia
+  simultánea, incluso entre deployments diferentes; defaults/journals no migrados.
+- **Shutdown y carrera del worker:** closing antes de enqueue/drain, allSettled
+  de HTTP/worker/cola antes de release, assertOpen tras beacon y abort al worker.
+  Se reprodujo/corrigió la muerte del worker idle durante await rm: ahora rechaza
+  antes de asignar pending y kill rechaza incluso tras exit. Prune conserva el
+  inodo del lock y no lo cuenta como caché. Entrypoint libera ante fallo de listen.
+- **Compilación sin sobrescritura:** prover:compile exige keys y output fresco
+  fuera del árbol real de claves (también targets de symlinks por circuito).
+  No escribe keys/evm ni verifier-runtime.json archivado. Captura digest del
+  manifest con la fuente antes del build; valida kind y runtime hex no vacío.
+  Servicio admite runtimeFile/HIDDEN_PROVER_RUNTIME; fallback histórico de lectura
+  conservado, incluido override vacío. CLI, ejemplo y replay caller integrados.
+  El caller se actualizó por código/tipos, sin ejecutar replay.
+- **Durabilidad de journals compartidos por H3/keeper:** antes de cada envío o
+  reintento se republican los mismos bytes firmados mediante temporal exclusivo
+  nuevo, fsync/close, rename y fsync de directorio. Un fallo impide broadcast.
+  Esto evita confiar sólo en otro fsync de bytes antiguos tras writeback error.
+  El borrado confirmado se sincroniza; si falla, el error conserva explícitamente
+  success/reverted. Directorios padre preexistentes y storage confiable son
+  supuestos: no hay prueba física de corte de corriente ni garantía de hardware.
+
+Validación final: **127 tests TypeScript /18 archivos** de producer/keeper/lease,
+con procesos reales pequeños, SIGKILL/orfandad, RPC sintético y recuperación/reorg
+en Anvil con certificados mock. Fallos inyectados de sync/rename, ninguna prueba
+Groth16 nueva. Typecheck de scripts aprobado. Forge/solc reales compilaron sólo
+dos contratos mínimos sintéticos en dos outputs nuevos y produjeron los mismos
+hashes por circuito entre roots. Tests de clase/proceso no equivalen a pruebas
+criptográficas del juego ni a validación física de durabilidad.
+
+[Revisión y disposición de hallazgos](../reviews/hidden-v2-claude-operations-20261106.md),
+con seis llamadas reales, respuestas literales y metadata de entradas/pins. Claude leyó fuentes sin
+herramientas y no ejecutó tests. Raw prompts/respuestas/logs están fuera de Git:
+`/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261105-state-lease/`.
+La carpeta conserva fecha de inicio; el cierre es del6 local (día5 UTC).
+Se enviaron fuentes al servicio Claude con autorización; no claves/transcripts.
+
+Cierre reproducible nuevo, sin reemplazar entregas anteriores:
+`/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261106-operations-close/`.
+Bundle y receipt externos fijan inventario final, fuentes, revisiones, logs y
+reproducción extraída del preflight archivado. No se reejecutaron suites Go ni
+circuitos/consumidores porque no cambiaron en esta continuación; sus resultados
+anteriores conservan su propio alcance/pins.
+
+No queda entrada del propietario pendiente para los cambios de esta línea.
+La operación local sigue experimental: entorno, util-linux, filesystem estable,
+signer dedicado y supervisor confiables. Un error persistente de almacenamiento
+o un huérfano real exigiría diagnóstico del operador, no fabricar evidencia ni
+quitar el lock. Producción continúa bloqueada por procedencia/garantías que no
+se han obtenido; no se convierte la ausencia voluntaria de colaboradores en
+impedimento para desarrollar localmente. Sin MPC/init/FFT/sellados/claves/pruebas
+reales nuevas, sin reemplazar artefactos/recibos, push, publicación o despliegue real.
+
+## Continuación vigente: stack local jugable y recorrido del jugador, 6 de noviembre de 2026
+
+Se continuó por instrucción del propietario y se consultó realmente con Claude
+ante/después de los bloques de integración. Branch/HEAD siguen
+`feat/hidden-v2-local-mpc-review` / `fe95eab652303b5f84d5ec18fb1a4364c8b2880e`,
+sin commits. Cambios previos y entregas históricas conservados.
+
+Carencia inicial: dev:local despliega HiddenConsumerMock y no inicia un productor
+real. Ahora `pnpm dev:hidden-v2 /absolute/config.json /absolute/new-session` inicia
+Anvil31337 en loopback, verificadores archivados, consumidores/Game actuales,
+productor, keeper y Vite. [Guía y ejemplo](../local-hidden-v2.md). La ruta anterior
+con consumidores test se conserva y se distingue expresamente.
+
+- Configuración explícita unsafe, paths absolutos y pins de binario/manifests/
+  runtime. No lee PK/CS/transcripts para arrancar. Compara los artifacts públicos
+  existentes y el servicio coteja runtime/setup contra los consumidores en cadena.
+  Binario nativo copiado y hasheado en el run; su worker sigue siendo perezoso.
+- Run nuevo fuera de fuentes/keys/verifiers, puertos propios libres, sin sobrescribir
+  deployment.local.json. Game/consumidores Solidity se compilan sólo al output nuevo;
+  los verificadores finales no se recompilan. Foundry out/cache/broadcast, estado,
+  logs y credenciales quedan allí. Estado nuevo, no resume de Anvil.
+- Desplegador/H3/keeper usan cuentas Ethereum efímeras diferentes, financiadas
+  desde Anvil0; los roles del Workshop permanecen en0. No son claves de setup.
+  La dirección Game cambia entre sesiones, separando borradores del navegador.
+- Entorno de CLI/children allowlist; nativeEnv explícito en productor, default
+  anterior preservado. Vite no carga .env raíz ni publica VITE_* del shell.
+  Un canary ficticio inyectado al segundo arranque no apareció en el navegador.
+- Cierre keeper→productor/drain→web→Anvil, señales repetidas y SIGHUP, grupos propios.
+  Vite está en middlewareMode con HTTP propio porque su SIGTERM standalone podía
+  saltarse el cierre. Descendientes se terminan al salir su padre, sin matar por
+  nombre ni usar PIDs acabados horas después. Fallos de receipts no impiden cleanup.
+- Tiempo normal, bloques1s, sin reloj acelerado: saltar Anvil no publica drand futuro.
+  No se introdujeron beacons falsos ni otro camino de aprobación. UI usa cuentas
+  dev, no passkeys; la ruta AA existente no cambió.
+
+Validaciones concretas:
+
+- Dos arranques reales con las claves/verificadores finales existentes, en
+  `hidden-v2-20261106-stack-smoke{1,2}` fuera de Git. Chromium registró cuenta1,
+  encoló construcción y abrió misiones/informes/ranking. Metrics sin auth401 y
+  con auth200; **cero solicitudes de certificados, cero proving nativo nuevo**.
+  Game addresses distintos. Primer cierre SIGHUP; segundo TERM+INT+INT: closed.json
+  cleanupErrors=0. No se tocó el servidor preexistente del puerto5199.
+- SIGKILL al Anvil propio durante startup: error de child identificado, salida1,
+  failed.json y closed.json con la causa y cleanupErrors=0. Test de error de disco
+  al registrar fallo confirma cleanup y preservación de causas.
+- Flujo completo de jugador con consumidores MOCK y certificados explícitos:
+  registrar2, construir, entrenar, enviar misión oculta, esperar, resolver y ver
+  informe/ranking. Playwright usa puertos alternativos, outputs y capturas nuevos
+  fuera de Git. Fixture aislado y fingerprint del mock desde su propio output.
+  Esto no equivale a nuevo replay criptográfico con consumidores reales.
+- **151 tests TypeScript /21 archivos** de producer/keeper/local launcher, con
+  recuperación/reorg existentes y nuevos casos de puertos/pins/cierre/grupos.
+  Typecheck de scripts, Bash/formato/diff checks del cierre. No repetir Go/circuitos
+  porque no cambiaron en esta continuación.
+
+Cierre adicional contrastado tras la revisión:
+
+- Tercer arranque mediante **pnpm dev:hidden-v2** y smoke estricto: contadores
+  numéricos explícitos requests/proofs=0, títulos por ruta y pageerror sin fallos.
+  Canary de entorno consta como suministrado y ausente en el módulo del navegador.
+- Excepción no capturada inyectada sólo por un preload de test externo: Node
+  cierra keeper/productor/web/Anvil, registra causa, todos sus PID desaparecen y
+  pnpm termina con código1 después de cleanup. El preload no forma parte del producto.
+- SIGINT durante forge build, también por el comando pnpm: salida0 sólo para la
+  razón exacta de cancelación, closed.json existente antes de devolver el prompt.
+  Fallos reales/cleanup no se ocultan por una señal posterior.
+- El flujo Playwright con path implícito pasó y no dejó directorios nuevos en
+  /tmp tras añadir gracefulShutdown SIGTERM y trap. Artefactos y capturas de
+  intentos anteriores se conservan. No se eliminó el servidor ajeno de5199.
+- Durante la edición se sustituyó accidentalmente un test por otro. Se restauró
+  desde el bundle anterior verificado por hash y sólo se reaplicaron las dos
+  pruebas nuevas. Las151 pruebas finales incluyen todos los casos anteriores.
+
+[Cuatro revisiones reales y disposición final](../reviews/hidden-v2-claude-local-stack-20261106.md).
+La última respuesta no vio defectos bloqueantes en sus entradas; dejó checks
+concretos de cierre que se ejecutaron después. No interpretarla como aprobación.
+
+Prompts, respuestas reales Claude y logs:
+`/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261106-local-stack/`.
+El config específico de esta PC está en stack-config.json allí (paths/pins, no
+privadas de setup). Run de fallo chain-failure-run/; pruebas mock bajo browser-fixture*/.
+Las credenciales de sesiones están sólo en sus directorios privados, no en Git
+ni en los prompts de revisión. Las fuentes sí se enviaron a Claude por autorización.
+
+Cierre reproducible externo de esta continuación:
+`/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261106-local-stack-close/`.
+Receipt fija bundle, inventario y logs, con reproducción extraída del dossier
+archivado. No hay procesos propios que deban permanecer activos al cerrar.
+
+Límite vigente: cada sesión es un mundo en memoria y no conserva cadena/firmantes
+al apagar. Para otra sesión usar directorio nuevo; nunca reciclar journals con
+otro Anvil. No se reejecutaron MPC/init/FFT/sellados/generación de claves de setup
+ni replay/proving del juego; artefactos y recibos anteriores intactos. La prueba
+criptográfica real Game/H3 sigue siendo la archivada. Producción/independencia/
+procedencia segura siguen sin acreditarse, y las barreras de producción continúan.
 
 ## Historial de ejecución (todos los estados ACTIVO inferiores ya vencieron)
 

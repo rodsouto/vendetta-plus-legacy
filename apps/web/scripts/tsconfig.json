@@ -20,6 +20,9 @@
     "keeper/**/*.ts",
     "../e2e/test-evidence.ts",
     "../test/producer-settlement.test.ts",
-    "../test/keeper-reorg.test.ts"
+    "../test/keeper-reorg.test.ts",
+    "local-hidden.ts",
+    "local-hidden/**/*.ts",
+    "local-hidden-smoke.ts"
   ]
 }

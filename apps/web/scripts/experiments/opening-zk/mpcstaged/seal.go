@@ -12,10 +12,39 @@ import (
 // Seal preserves native beacon contribution and key construction, filtering the
 // three wire vectors in place instead of allocating native temporary clones.
 // The caller must relinquish evals: its A/B vectors no longer have wire order.
+// Inputs require exclusive ownership: wire buffers must not overlap each other,
+// and commitment bases must not alias phase2 sigma bases. The native decoders
+// and Assemble create distinct buffers; this is not an arbitrary-object importer.
 func Seal(p *native.Phase2, commons *native.SrsCommons, evals *native.Phase2Evaluations, beacon []byte) (groth16.ProvingKey, groth16.VerifyingKey, error) {
+	if p == nil || commons == nil || evals == nil {
+		return nil, nil, errors.New("seal requires phase2, commons and evaluations")
+	}
 	n := len(evals.G1.A)
-	if len(evals.G1.B) != n || len(evals.G2.B) != n {
+	domain, k := len(commons.G1.AlphaTau), len(p.Sigmas)
+	if n == 0 || len(evals.G1.B) != n || len(evals.G2.B) != n {
 		return nil, nil, errors.New("seal wire vector dimensions differ")
+	}
+	if domain < 2 || domain > 1<<23 || domain&(domain-1) != 0 || k > 255 || len(p.Parameters.G1.Z) != domain-1 || len(commons.G1.BetaTau) == 0 ||
+		len(p.Parameters.G1.SigmaCKK) != k || len(p.Parameters.G2.Sigma) != k || len(evals.G1.CKK) != k || len(evals.PublicAndCommitmentCommitted) != k || len(evals.G1.VKK) < k+1 {
+		return nil, nil, errors.New("seal domain or commitment dimensions differ")
+	}
+	wires := len(p.Parameters.G1.PKK) + len(evals.G1.VKK)
+	public := len(evals.G1.VKK) - k
+	for i := range k {
+		if len(evals.G1.CKK[i]) != len(p.Parameters.G1.SigmaCKK[i]) {
+			return nil, nil, errors.New("seal commitment basis dimensions differ")
+		}
+		wires += len(evals.G1.CKK[i])
+		previous := 0
+		for _, index := range evals.PublicAndCommitmentCommitted[i] {
+			if index <= previous || index >= public+i {
+				return nil, nil, errors.New("seal public commitment index differs")
+			}
+			previous = index
+		}
+	}
+	if wires != n {
+		return nil, nil, errors.New("seal wire partition differs")
 	}
 	flagsA, flagsB := make([]bool, n), make([]bool, n)
 	for i := range n {

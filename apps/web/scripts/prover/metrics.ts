@@ -1,7 +1,9 @@
 import { performance } from "node:perf_hooks";
 
-export function producerMetrics() {
-  const counters: Record<string, number> = {};
+export function producerMetrics(initialCounters: string[] = []) {
+  const counters: Record<string, number> = Object.fromEntries(
+    initialCounters.map((name) => [name, 0]),
+  );
   const stages: Record<
     string,
     { calls: number; failures: number; totalMs: number; maxMs: number }

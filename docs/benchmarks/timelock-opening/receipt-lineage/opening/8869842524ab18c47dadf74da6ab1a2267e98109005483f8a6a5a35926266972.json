@@ -1,0 +1,11 @@
+{
+  "schema": "vendetta-unsafe-local-commons-1",
+  "log2": 23,
+  "bytes": 1610612680,
+  "sha256": "65abc486a3a255849d4735f06d5664775b4a8129c6f90643702e426d5ce2ac82",
+  "sourceArtifactSha256": "52f4be3a4319772f03a5945ac6fb38088ad032a6004697e79ea41a6d72bd1ec0",
+  "verificationSha256": "00a07b24629ee08f53461def4096112e280958021800b430c276dc921f2813b1",
+  "beacon": "VENDETTA_UNSAFE_LOCAL_PHASE1_CAPACITY_BEACON_V1",
+  "beaconAfterClosureProven": false,
+  "productionApproved": false
+}

@@ -1,0 +1,18 @@
+{
+  "schema": "vendetta-unsafe-local-phase1-verification-1",
+  "log2": 22,
+  "sourceArtifactSha256": "22d92d7e099d5c4db13a58ad084a3a923260c6574475c04355962d7e69a5d673",
+  "previousVerificationSha256": "a3529d037fdb910a81d20e95b8b4d1f79711c2f0846f480c1d1df42dfa2488fb",
+  "transcriptSha256": "3a76432e2cd8361a5757cda90ab9783249afb0f297e83b009c67baa3f10fa44a",
+  "anchor": {
+    "schema": "vendetta-local-phase1-anchor-1",
+    "domain": 4194304,
+    "sha256": "3a76432e2cd8361a5757cda90ab9783249afb0f297e83b009c67baa3f10fa44a",
+    "tauG1": "d233957d8784a1d30b3830f0f4d2b02df08e30b915f2fd727fa2f4cd93a62225",
+    "alphaG1": "a761510819e35fc9df68ae2656f1e106b0902fc51e953b5b7e47a93823398902",
+    "betaG1": "ed20de36785a5ac1dd0d675f9d3348592bea6bdaa181587878ca9af510f3419f",
+    "betaG2": "e0a38f2c1b876e4c7f190ea9700d47a8a6fdcf96baa1b442947b1b09e199e2e32c7b8da9df0702c0da928bd7b8b9b758c37952fb3f5db103a08ef319c1501a97"
+  },
+  "nativeTransitionVerified": true,
+  "productionApproved": false
+}

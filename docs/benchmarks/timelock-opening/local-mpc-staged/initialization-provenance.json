@@ -1,0 +1,26 @@
+{
+  "schema": "vendetta-local-initialization-provenance-note-1",
+  "kind": "opening",
+  "scope": "Local archival cross-reference, not authenticated independent provenance or a new native verification",
+  "method": "staged-adapter-v6-with-resumed-z-cache",
+  "algorithm": "vendetta-unsafe-local-staged-phase2-1",
+  "initializationSha256": "f23056da6aac64466512dea6496a098dbdb5562b208ff4d326a9c8f9de0f0675",
+  "keysSha256": "12d13e25808ac946278b14dfce0d6c78ad39a55439dd251662d0fff322b261fc",
+  "binarySha256": "7168c4854ea52665d96ab9e0933b3328708bc1885c8305ff45f6170605c325b1",
+  "launchSourceBundleSha256": "57f67bd53b9f799766cf04c5ee2386bb054e857c857fcdaa56ad11b32e6c57d5",
+  "resumeCacheSha256": "ae7f9aa2c09c46a01c4cb2542532c4f4b906d42097f83a1110745e12aee57471",
+  "finalCacheIndexSha256": "08effe131b6eeceaa9277898119eac3ca5a1eb388375b452c94bbf7f98838842",
+  "references": {
+    "sequence-v6-launch.json": "f3dc3407bc3676c27888d92f1fa975f1682823d56711efa2441f14d964b0e522",
+    "v6-opening-init-report.json": "88ee88d873367d02ef5706ccacdf36fa9f05743bea24eb71965987ab0cb1ee0c",
+    "v6-opening-init-metadata.json": "f23056da6aac64466512dea6496a098dbdb5562b208ff4d326a9c8f9de0f0675",
+    "v6-opening-checkpoints.jsonl": "dc810b189eea4932e140134e05a7b9cb575d25a42dcef4cd8ea2429cbb8833ac",
+    "v6-fft-provenance.json": "c67fe408d325e161ebbcfc9ddd64a5168f0cd0d9d537ffd904fc04f1191da306",
+    "v7-opening-phase2-keys-keys.json": "12d13e25808ac946278b14dfce0d6c78ad39a55439dd251662d0fff322b261fc",
+    "v6-final-cache-index.json": "08effe131b6eeceaa9277898119eac3ca5a1eb388375b452c94bbf7f98838842"
+  },
+  "vectorBodiesRead": false,
+  "nativeWorkRerun": false,
+  "independentApprovalVerified": false,
+  "productionApproved": false
+}

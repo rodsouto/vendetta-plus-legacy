@@ -1,4 +1,6 @@
-import { readFile, rename, writeFile, rm } from "node:fs/promises";
+import { readFile, rename, open, rm } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
+import { dirname } from "node:path";
 import { keccak256, type Hex } from "viem";
 
 export interface TransactionIO {
@@ -18,15 +20,44 @@ export async function recoverTransaction(file: string, io: TransactionIO, label 
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
     raw = await io.prepare();
-    await writeFile(file + ".tmp", JSON.stringify(raw), { mode: 0o600 });
-    await rename(file + ".tmp", file);
   }
+  // Republish even recovered bytes: retrying fsync on a new descriptor after
+  // writeback failure alone cannot establish that old cached bytes reached disk.
+  const temporaryPath = file + ".tmp-" + randomUUID();
+  const temporary = await open(temporaryPath, "wx", 0o600);
+  try {
+    await temporary.writeFile(JSON.stringify(raw));
+    await temporary.sync();
+  } finally {
+    await temporary.close();
+  }
+  await rename(temporaryPath, file);
+  await syncFile(dirname(file));
   // Already-known, nonce-too-low and a lost send response are all ambiguous.
   // Only a receipt settles the journal. A timeout leaves it available to retry.
   await io.broadcast(raw).catch(() => {});
   const status = await io.receipt(keccak256(raw));
   if (status !== "success" && status !== "reverted")
     throw new Error(`Invalid ${label} transaction receipt`);
-  await rm(file);
+  try {
+    await rm(file);
+    await syncFile(dirname(file));
+  } catch (cause) {
+    throw Object.assign(
+      new Error(`${label} transaction ${status}; journal deletion could not be completed`, {
+        cause,
+      }),
+      { transactionStatus: status },
+    );
+  }
   if (status !== "success") throw new Error(`${label} transaction reverted`);
+}
+
+async function syncFile(path: string) {
+  const handle = await open(path, "r");
+  try {
+    await handle.sync();
+  } finally {
+    await handle.close();
+  }
 }

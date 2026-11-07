@@ -29,7 +29,18 @@
     "probe:local-hidden-v2": "bash scripts/hidden-v2-local-probe.sh",
     "pipeline:local-hidden-v2": "bash scripts/hidden-v2-local-pipeline.sh",
     "check:evidence-hidden-v2": "python3 scripts/hidden-v2-completed-evidence.py",
-    "test:evidence-hidden-v2": "python3 -m unittest discover -s scripts -p test_hidden_v2_completed_evidence.py -v"
+    "test:evidence-hidden-v2": "python3 -m unittest discover -s scripts -p test_hidden_v2_completed_evidence.py -v",
+    "inspect:artifacts-hidden-v2": "python3 scripts/hidden-v2-artifact-inventory.py",
+    "test:artifacts-hidden-v2": "python3 -m unittest discover -s scripts -p test_hidden_v2_artifact_inventory.py -v",
+    "check:vk-export-hidden-v2": "bash scripts/hidden-v2-vk-export-check.sh",
+    "check:pk-structure-hidden-v2": "bash scripts/hidden-v2-pk-structure-check.sh",
+    "check:lineage-hidden-v2": "python3 scripts/hidden-v2-receipt-lineage.py",
+    "test:lineage-hidden-v2": "python3 -m unittest discover -s scripts -p test_hidden_v2_receipt_lineage.py -v",
+    "preflight:archived-hidden-v2": "python3 scripts/hidden-v2-archived-preflight.py",
+    "test:preflight-hidden-v2": "python3 -m unittest discover -s scripts -p test_hidden_v2_archived_preflight.py -v",
+    "check:archived-hidden-v2": "bash scripts/check-hidden-v2-archived.sh",
+    "dev:hidden-v2": "bash scripts/dev-hidden-v2.sh",
+    "smoke:hidden-v2": "pnpm --filter @vendetta/web exec tsx scripts/local-hidden-smoke.ts"
   },
   "devDependencies": {
     "prettier": "^3.6.0",

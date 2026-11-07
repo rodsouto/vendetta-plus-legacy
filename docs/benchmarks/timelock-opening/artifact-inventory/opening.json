@@ -1,0 +1,33 @@
+{
+  "status": "unsafe-local-export-inventory-verified",
+  "kind": "opening",
+  "manifestSha256": "e1c210611c3c110ff45027f7fc7f2459c2b065ee3ffcb3a1b9ed38a4dfcc1455",
+  "receiptSha256": "12d13e25808ac946278b14dfce0d6c78ad39a55439dd251662d0fff322b261fc",
+  "bytesChecked": 1556506446,
+  "artifacts": {
+    "Verifier.sol": {
+      "sha256": "5bcd76e107a434e642d3547527c44f1bf30b6aed81a93eff71a21f76d19bb41c",
+      "bytes": 64723
+    },
+    "circuit.bin": {
+      "sha256": "06e4740642174a1f0f03ab0c0f06f2199b996534c30546df6896b9f3ab777b1f",
+      "bytes": 341035999
+    },
+    "proving.key": {
+      "sha256": "1d86e86939e4404c3c82d8b73cbe7444665914abbc6ab9977c3fd58bbb0dcf05",
+      "bytes": 1215401903
+    },
+    "verifying.key": {
+      "sha256": "10a9f756efb0bfe85d2a12abca3461be6eec02ac7aa03f1688ccdbffb6e590c4",
+      "bytes": 2256
+    }
+  },
+  "artifactBytesVerified": true,
+  "nativeDecodingPerformed": false,
+  "artifactRelationsVerified": false,
+  "mpcTranscriptsVerified": false,
+  "beaconAfterClosureProven": false,
+  "independentApprovalVerified": false,
+  "unsafeLocalSetup": true,
+  "productionApproved": false
+}

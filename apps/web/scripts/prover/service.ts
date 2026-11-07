@@ -1,4 +1,15 @@
+import { openingAbi, pointAbi, prefixAbi } from "./consumer-abi.js";
+import { serviceErrorSummary } from "../service-errors.js";
+import {
+  cachedCertificate,
+  validCertificateArtifact,
+  withProofVerification,
+  type CertificateArtifact as Proof,
+} from "./proof-cache.js";
+import { prepareSignedTransaction } from "./signing.js";
 import { fetchBeacon } from "./beacon.js";
+import { runWithCleanup } from "./finalize.js";
+import { producerNativeEnv } from "./environment.js";
 import { ProducerWorker } from "./worker.js";
 import { producerAccess } from "./access.js";
 import { recoverTransaction } from "./recovery.js";
@@ -6,6 +17,7 @@ import { producerMetrics } from "./metrics.js";
 import { cacheLimits, pruneCache, type CacheLimits } from "./cache.js";
 import { serialQueue, runProducer, producerTimeout } from "./jobs.js";
 import { validateSetupManifest } from "./setup.js";
+import { acquireStateLease } from "../state-lease.js";
 import { createHash } from "node:crypto";
 // Experimental certificate producer. The configured Game and RPC are operator-owned, never request parameters.
 import { producerServer } from "./http.js";
@@ -20,7 +32,6 @@ import {
   fromHex,
   toHex,
   keccak256,
-  parseAbi,
   type Abi,
   type ContractFunctionReturnType,
   type Address,
@@ -31,22 +42,6 @@ import { sim } from "@vendetta/rules";
 import { gameAbi } from "../../src/chain/abi.js";
 import { decodeHiddenEvidence } from "../../src/chain/hidden-evidence.js";
 import { decodePacket } from "../../src/chain/codec.js";
-const openingAbi = parseAbi([
-  "function begin(bytes32) returns (bytes32)",
-  "function verifier() view returns (address)",
-  "function prefix() view returns (address)",
-  "function check(bytes32,bytes,uint256[55]) view returns (bool,bytes)",
-]);
-const pointAbi = parseAbi([
-  "function verifier() view returns(address)",
-  "function check(bytes32,bytes,uint256[2]) view returns (bool)",
-]);
-const prefixAbi = parseAbi([
-  "function contextInitialized(bytes32) view returns (bool)",
-  "function receiptForContext(bytes32) view returns (bytes32)",
-  "function states(bytes32) view returns (bytes32,uint256,uint32,uint32,uint8)",
-  "function advance(bytes32,uint16)",
-]);
 export interface ProducerConfig {
   clients: unknown;
   rpc: string;
@@ -55,6 +50,8 @@ export interface ProducerConfig {
   binary: string;
   openingKeys: string;
   pointKeys: string;
+  runtimeFile?: string;
+  nativeEnv?: NodeJS.ProcessEnv;
   cache: string;
   h3Key: Hex;
   allowUnsafeLocalSetup?: boolean;
@@ -62,18 +59,28 @@ export interface ProducerConfig {
   cacheLimits?: Partial<CacheLimits>;
   beacon?: (round: bigint) => Promise<string>;
 }
-interface Proof {
-  kind: "opening" | "invalid-point";
-  statement: Hex;
-  proof: Hex;
-  publicInputs: string[];
-  pre?: Hex;
-  elapsedMs: number;
-  setupManifestSha256: string;
-}
 export async function certificateProducer(config: ProducerConfig) {
+  const lease = await acquireStateLease(config.cache);
+  try {
+    return await startProducer(config, lease);
+  } catch (error) {
+    try {
+      await lease.release();
+    } catch (releaseError) {
+      throw new AggregateError([error, releaseError], "Producer startup and lease release failed", {
+        cause: error,
+      });
+    }
+    throw error;
+  }
+}
+
+async function startProducer(
+  config: ProducerConfig,
+  lease: Awaited<ReturnType<typeof acquireStateLease>>,
+) {
   const access = producerAccess(config.clients);
-  const metrics = producerMetrics();
+  const metrics = producerMetrics(["requests", "proofs", "cacheHits", "proofRejections"]);
   const timeout = producerTimeout(config.jobTimeoutMs);
   const retention = cacheLimits(config.cacheLimits);
   const client = createPublicClient({
@@ -98,7 +105,10 @@ export async function certificateProducer(config: ProducerConfig) {
     functionName: "hiddenConsumers",
   });
   const hashes = JSON.parse(
-    await readFile(join(config.openingKeys, "..", "verifier-runtime.json"), "utf8"),
+    await readFile(
+      config.runtimeFile || join(config.openingKeys, "..", "verifier-runtime.json"),
+      "utf8",
+    ),
   );
   for (const [index, kind] of [
     [0, "opening"],
@@ -119,6 +129,7 @@ export async function certificateProducer(config: ProducerConfig) {
   }
   await mkdir(config.cache, { recursive: true, mode: 0o700 });
   let cacheUsage = await pruneCache(config.cache, retention);
+  let cacheHealthy = true;
   const wallet = createWalletClient({
     transport: http(config.rpc, { timeout: 15000, retryCount: 0 }),
     account: privateKeyToAccount(config.h3Key),
@@ -156,11 +167,8 @@ export async function certificateProducer(config: ProducerConfig) {
     binary: config.binary,
     setups: { opening: config.openingKeys, "invalid-point": config.pointKeys },
     timeoutMs: timeout,
-    env: {
-      ...process.env,
-      GOMAXPROCS: process.env.PROVER_THREADS ?? "8",
-      GOMEMLIMIT: process.env.PROVER_MEMORY ?? "6GiB",
-    },
+    stateLeaseFd: lease.fd,
+    env: producerNativeEnv(config.nativeEnv),
   });
   let proofs = 0,
     cacheHits = 0;
@@ -176,15 +184,18 @@ export async function certificateProducer(config: ProducerConfig) {
     assertOpen();
     await metrics.measure("h3Transaction", () =>
       recoverTransaction(journal, {
-        prepare: async () => {
-          const request = await wallet.prepareTransactionRequest({
-            chain: null,
-            chainId: config.chainId,
-            to: address,
-            data: encodeFunctionData({ abi, functionName, args }),
-          });
-          return wallet.signTransaction({ ...request, chain: null });
-        },
+        prepare: () =>
+          prepareSignedTransaction(
+            assertOpen,
+            () =>
+              wallet.prepareTransactionRequest({
+                chain: null,
+                chainId: config.chainId,
+                to: address,
+                data: encodeFunctionData({ abi, functionName, args }),
+              }),
+            (request) => wallet.signTransaction({ ...request, chain: null }),
+          ),
         broadcast: (serializedTransaction) => client.sendRawTransaction({ serializedTransaction }),
         receipt: async (hash) =>
           (
@@ -237,9 +248,13 @@ export async function certificateProducer(config: ProducerConfig) {
       await write(cache, prefixAbi, "advance", [receipt, 128]);
     }
   }
-  const native: typeof runProducer = (...args) =>
-    metrics.measure(args[1][0] === "--inspect-v2" ? "inspect" : "prove", () =>
-      runProducer(...args),
+  const native: typeof runProducer = (binary, args, timeout, options) =>
+    metrics.measure(args[0] === "--inspect-v2" ? "inspect" : "prove", () =>
+      runProducer(binary, args, timeout, {
+        ...options,
+        env: producerNativeEnv(config.nativeEnv),
+        stateLeaseFd: lease.fd,
+      }),
     );
   async function generate(body: Record<string, unknown>): Promise<Hex> {
     assertOpen();
@@ -303,7 +318,7 @@ export async function certificateProducer(config: ProducerConfig) {
     )
       throw new Error("Stored context/packet mismatch");
     const key = keccak256(toHex(context));
-    let artifact: Proof;
+    let artifact: Proof | undefined;
     const input = join(config.cache, key + ".request.json"),
       inspectionInput = join(config.cache, key + ".inspect-request.json"),
       inspection = join(config.cache, key + ".inspect.json");
@@ -322,16 +337,18 @@ export async function certificateProducer(config: ProducerConfig) {
     };
     if (kind !== "opening" && kind !== "invalid-point") throw new Error("Unknown producer circuit");
     const output = join(config.cache, key + "." + setupDigests[kind] + ".proof.json");
-    try {
-      artifact = JSON.parse(await readFile(output, "utf8"));
+    const expected = { kind, statement, setup: setupDigests[kind]! };
+    artifact = await cachedCertificate(output, expected);
+    assertOpen();
+    if (artifact) {
       cacheHits++;
       metrics.increment("cacheHits");
-    } catch (err) {
-      if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
+    } else {
       const signature =
         kind === "opening"
           ? await metrics.measure("beacon", () => (config.beacon ?? fetchBeacon)(p.round))
           : "";
+      assertOpen();
       await writeFile(
         input,
         JSON.stringify({ abi: toHex(context), statement, packet: body.packet, signature }),
@@ -339,7 +356,9 @@ export async function certificateProducer(config: ProducerConfig) {
       );
       // Serialized jobs avoid multiple large proving keys/constraint systems resident at once.
       try {
-        await metrics.measure("prove", () => worker.run({ circuit: kind, input, output }));
+        await metrics.measure("prove", () =>
+          worker.run({ circuit: kind, input, output, signal: abort.signal }),
+        );
       } catch (error) {
         await rm(output, { force: true });
         throw error;
@@ -348,42 +367,51 @@ export async function certificateProducer(config: ProducerConfig) {
       proofs++;
       metrics.increment("proofs");
     }
-    if (
-      artifact.setupManifestSha256 !== setupDigests[kind] ||
-      artifact.kind !== kind ||
-      artifact.statement !== statement ||
-      !/^0x[0-9a-f]{768}$/i.test(artifact.proof) ||
-      artifact.publicInputs.length !== (kind === "opening" ? 55 : 2)
-    )
+    if (!validCertificateArtifact(artifact, expected)) {
+      await rm(output, { force: true });
       throw new Error("Invalid producer artifact");
-    assertOpen();
-    const x = artifact.publicInputs.map(BigInt);
-    if (kind === "opening") {
-      await metrics.measure("h3Prefix", () => prefix(consumers[0], artifact, x));
-      await client.readContract({
-        address: consumers[0],
-        abi: openingAbi,
-        functionName: "check",
-        args: [statement, artifact.proof, x as never],
-      });
-    } else {
-      if (
-        !(await client.readContract({
-          address: consumers[1],
-          abi: pointAbi,
-          functionName: "check",
-          args: [statement, artifact.proof, x as never],
-        }))
-      )
-        throw new Error("Invalid point certificate rejected");
     }
-    const inputs =
-      kind === "opening"
-        ? encodeAbiParameters([{ type: "uint256[55]" }], [x as never])
-        : encodeAbiParameters([{ type: "uint256[2]" }], [x as [bigint, bigint]]);
-    return encodeAbiParameters(
-      [{ type: "uint8" }, { type: "bytes" }, { type: "bytes" }],
-      [kind === "opening" ? 1 : 2, artifact.proof, inputs],
+    const proofArtifact = artifact;
+    return withProofVerification(
+      output,
+      async () => {
+        assertOpen();
+        const x = proofArtifact.publicInputs.map(BigInt);
+        if (kind === "opening") {
+          await metrics.measure("h3Prefix", () => prefix(consumers[0], proofArtifact, x));
+          await client.readContract({
+            address: consumers[0],
+            abi: openingAbi,
+            functionName: "check",
+            args: [statement, proofArtifact.proof, x as never],
+          });
+        } else {
+          if (
+            !(await client.readContract({
+              address: consumers[1],
+              abi: pointAbi,
+              functionName: "check",
+              args: [statement, proofArtifact.proof, x as never],
+            }))
+          )
+            throw new Error("Invalid point certificate rejected");
+        }
+        const inputs =
+          kind === "opening"
+            ? encodeAbiParameters([{ type: "uint256[55]" }], [x as never])
+            : encodeAbiParameters([{ type: "uint256[2]" }], [x as [bigint, bigint]]);
+        return encodeAbiParameters(
+          [{ type: "uint8" }, { type: "bytes" }, { type: "bytes" }],
+          [kind === "opening" ? 1 : 2, proofArtifact.proof, inputs],
+        );
+      },
+      (reason) => {
+        metrics.increment("proofRejections");
+        console.warn(
+          "Producer proof artifact rejected; evicting private cache",
+          JSON.stringify({ kind, reason }),
+        );
+      },
     );
   }
   const server = producerServer(
@@ -400,25 +428,51 @@ export async function certificateProducer(config: ProducerConfig) {
       return enqueue(key, () =>
         metrics.measure("job", async () => {
           assertOpen();
-          cacheUsage = await metrics.measure("cachePrune", () =>
-            pruneCache(config.cache, retention),
-          );
           try {
-            if ((await client.getChainId()) !== config.chainId)
-              throw new Error("Producer RPC chain mismatch");
-            await settlePending();
-            return await generate(body);
-          } finally {
             cacheUsage = await metrics.measure("cachePrune", () =>
               pruneCache(config.cache, retention),
             );
+          } catch (error) {
+            cacheHealthy = false;
+            throw error;
           }
+          cacheHealthy = true;
+          const result = await runWithCleanup(
+            async () => {
+              if ((await client.getChainId()) !== config.chainId)
+                throw new Error("Producer RPC chain mismatch");
+              assertOpen();
+              await settlePending();
+              return generate(body);
+            },
+            async () => {
+              try {
+                cacheUsage = await metrics.measure("cachePrune", () =>
+                  pruneCache(config.cache, retention),
+                );
+                cacheHealthy = true;
+              } catch (error) {
+                cacheHealthy = false;
+                throw error;
+              }
+            },
+          );
+          if (result.cleanupFailure)
+            console.warn(
+              "Producer cache cleanup failed; next job will recheck cache limits",
+              JSON.stringify(serviceErrorSummary(result.cleanupFailure.error)),
+            );
+          return result.value;
         }),
       );
     },
     {
       access,
-      metrics: () => ({ ...metrics.snapshot(), queue: enqueue.stats(), cache: { ...cacheUsage } }),
+      metrics: () => ({
+        ...metrics.snapshot(),
+        queue: enqueue.stats(),
+        cache: { ...cacheUsage, healthy: cacheHealthy },
+      }),
     },
   );
   let shutdown: Promise<void> | undefined;
@@ -428,7 +482,21 @@ export async function certificateProducer(config: ProducerConfig) {
     abort.abort();
     const httpClosed = new Promise<void>((done) => server.close(() => done()));
     server.closeAllConnections();
-    shutdown = Promise.all([httpClosed, worker.close(), enqueue.drain()]).then(() => {});
+    shutdown = Promise.allSettled([httpClosed, worker.close(), enqueue.drain()]).then(
+      async (results) => {
+        const failures = results.flatMap((result) =>
+          result.status === "rejected" ? [result.reason] : [],
+        );
+        try {
+          await lease.release();
+        } catch (releaseError) {
+          failures.push(releaseError);
+        }
+        if (failures.length === 1) throw failures[0];
+        if (failures.length)
+          throw new AggregateError(failures, "Producer shutdown failed", { cause: failures[0] });
+      },
+    );
     return shutdown;
   };
   // Also release a resident worker when an embedding caller closes the listener.
@@ -443,7 +511,7 @@ export async function certificateProducer(config: ProducerConfig) {
       cacheHits,
       ...metrics.snapshot(),
       queue: enqueue.stats(),
-      cache: { ...cacheUsage },
+      cache: { ...cacheUsage, healthy: cacheHealthy },
     }),
   };
 }

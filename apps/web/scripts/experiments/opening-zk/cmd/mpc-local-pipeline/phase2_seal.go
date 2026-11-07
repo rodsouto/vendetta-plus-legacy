@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"io"
 	"os"
@@ -47,6 +49,31 @@ func phase2Seal(log2 int, dir string, o Options) error {
 	}
 	info, err := pinnedInitialization(o.Initialization, o.InitializationPin, log2)
 	if err != nil {
+		return err
+	}
+	// Authenticate the CS before the beacon update or any key output. Retain
+	// this descriptor for the copy, and still verify its digest after copying.
+	csFile, err := regular(o.CS)
+	if err != nil {
+		return err
+	}
+	defer csFile.Close()
+	stat, err := csFile.Stat()
+	if err != nil {
+		return err
+	}
+	if stat.Size() > 400<<20 || stat.Size() < 32 {
+		return errors.New("CS copy byte budget exceeded")
+	}
+	h := sha256.New()
+	n, err := io.Copy(h, io.LimitReader(csFile, stat.Size()+1))
+	if err != nil {
+		return err
+	}
+	if n != stat.Size() || hex.EncodeToString(h.Sum(nil)) != info.CSHash {
+		return errors.New("seal CS digest differs before key generation")
+	}
+	if _, err = csFile.Seek(0, io.SeekStart); err != nil {
 		return err
 	}
 	a, err := pinnedPhase2Artifact(o.Input, o.InputPin, o.InitializationPin, log2, info.Shape)
@@ -126,19 +153,7 @@ func phase2Seal(log2 int, dir string, o Options) error {
 	if err != nil {
 		return err
 	}
-	f, err = regular(o.CS)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	stat, err := f.Stat()
-	if err != nil {
-		return err
-	}
-	if stat.Size() > 400<<20 || stat.Size() < 32 {
-		return errors.New("CS copy byte budget exceeded")
-	}
-	copyCS := writerToFunc(func(w io.Writer) (int64, error) { return io.Copy(w, io.LimitReader(f, 400<<20)) })
+	copyCS := writerToFunc(func(w io.Writer) (int64, error) { return io.Copy(w, io.LimitReader(csFile, stat.Size()+1)) })
 	_, hashes["circuit.bin"], err = persistNative(filepath.Join(dir, "circuit.bin"), copyCS)
 	if err != nil {
 		return err
