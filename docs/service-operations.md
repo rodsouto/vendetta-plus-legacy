@@ -166,3 +166,34 @@ The final acceptance executionSources field is a selected runtime file set, not 
 complete transitive import closure. The final source bundle inventories the whole
 modern working tree separately. Startup with zero certificate requests does not
 exercise rejection handling; that handling is covered by synthetic unit tests.
+
+
+## Certificate response transport
+
+The keeper/client retains at most 64 KiB of decoded HTTP response bytes before
+UTF-8/JSON parsing, independent of Content-Length. Larger bodies are cancelled
+without waiting for EOF. Error-status bodies are cancelled without parsing. The
+existing certificate limit remains 16 KiB of hex-decoded bytes; the field must be
+an actual string. These are transport limits, not cryptographic verification.
+Only on-chain consumers decide certificate validity. A malformed/oversized body
+remains an operation failure for retry, never evidence that a mission is invalid.
+
+The current producer's artifact guard requires a 384-byte proof before encoding
+it with 55 opening or two invalid-point public inputs. Both ABI envelopes fit
+within the existing certificate cap and the new response cap. Compatibility tests
+use synthetic proof bytes with the real HTTP handler; they do not prove a mission
+or authenticate setup provenance. The existing 120-second fetch deadline and caller
+stop signal still cover headers and response-body reads. A caller stop observed
+before reporting an error, including during response cleanup, wins unless the
+timeout signal already won; no certificate is returned after an observed stop.
+Cleanup releases readers
+and cancels unsuccessful responses. Safe logs distinguish authentication, forbidden
+access, rate limiting, generic unavailability and response overflow using static
+messages, without provider URLs, bodies or arbitrary remote error text.
+
+The byte cap bounds retained decoded payload, not fetch/decompression buffers,
+JSON overhead, CPU or process RSS. Compressed responses are still supported; a
+compressed body can incur decompression work before overflow rejection. These
+checks do not select production capacity, alert thresholds, remote TLS/finality
+policy or target-host acceptance. The transport review and closure are recorded
+in [the November 10 review](reviews/hidden-v2-claude-certificate-transport-20261110.md).

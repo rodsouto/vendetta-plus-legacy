@@ -1,5 +1,23 @@
 Trabaja en /home/rodrigo/orca-projects/vendetta-plus-legacy.
 
+Documento integrador nuevo: docs/hidden-v2-implementation-spec.md. Leerlo para arquitectura, formatos exactos, estados, circuitos/H3 y operación; distingue código actual de producción pendiente y enumera texto histórico obsoleto. Cierre documental: /home/rodrigo/.cache/vendetta-audit/hidden-v2-20261110-implementation-spec/receipt.json. No cambia lógica ni reemplaza los recibos de implementación/guardado inferiores.
+
+Sesión guardada por solicitud del propietario para continuar en otra sesión. Guardado documental vigente: /home/rodrigo/.cache/vendetta-audit/hidden-v2-20261110-session-save/receipt.json. Conserva el cierre de implementación certificate-transport y sus límites. No deja trabajo en segundo plano autorizado; retomar sólo tras nueva instrucción del propietario. Las instrucciones de continuación inferiores aplican al reanudar.
+
+Continuidad vigente al10 de noviembre: transporte acotado de certificados, no el guardado detenido del7. Lee completos CLAUDE.md y hidden-v2-session-handoff.md y docs/service-operations.md. HEAD comprobado c84b9f6393e57025df4c3648ec59f7fe4dc6c040 en feat/hidden-v2-local-mpc-review, posterior a fe95eab. Conserva todos los cambios tracked/untracked. Sin commits/reset/stash/limpieza/push/publicación/despliegue.
+
+Nuevo cierre: /home/rodrigo/.cache/vendetta-audit/hidden-v2-20261110-certificate-transport/receipt.json. Consulta docs/reviews/hidden-v2-claude-certificate-transport-20261110.md y metadata. requestCertificate tiene cota64KiB de payload decodificado antes de JSON, string real y máximo16KiB de certificado; safe logs con categorías estáticas.33 tests/5 archivos y ambos typechecks; fixtures sintéticos/HTTP loopback, no criptografía. No repetir suite para nuevos conteos. Los17/19/29 preliminares y182/27 del cierre previo tienen alcance separado. Los /tmp del7 se perdieron; no atribuir resultado a esa consulta Claude. Se conservan los originales reales del10 y sus pins. Cierres session-save/service-operations y anteriores intactos.
+
+Continúa otra carencia demostrable de producción resoluble localmente, sin reabrir Anvil recovery. Anvil es efímero: no snapshots/checkpoints/--resume; journals y leases persistentes necesarios se conservan. Host con usuarios separados/hardening completo sigue sin aceptación: denegó el system manager no interactivo. No inventar recursos/SLA/autoridad/aprobaciones. Producción bloqueada por procedencia real y gates actuales. Sólo Codex y Claude; no preguntar otra vez por colaboradores ni contratar firmas. Feedback real por bloque significativo, CLI tools vacías/MCP vacío estricto/no persistence, originales y hashes archivados. No atribuir a Claude ejecución de tests. Encadenar trabajo autorizado sin pedir continuar. Respetar permisos efectivos del entorno.
+
+No repetir MPC/init/FFT/sellados/setup keygen/replay/proving del juego. No sustituir artefactos/recibos ni contactar terceros o redes reales. Antes de cerrar, verificaciones justificadas, handoff/inventarios y recibo externo nuevo. Todos los ACTIVO históricos vencidos; PIDs antiguos no autorizan matar procesos.
+
+---
+
+Prompt anterior preservado como historial (guardado del7 ya reanudado):
+
+Trabaja en /home/rodrigo/orca-projects/vendetta-plus-legacy.
+
 Sesión guardada por solicitud del propietario para continuar luego. Guardado documental: /home/rodrigo/.cache/vendetta-audit/hidden-v2-20261107-session-save/receipt.json; conserva el cierre de implementación service-operations-close y sus límites. Reanuda trabajo sólo ante una nueva instrucción del propietario.
 
 Lee completos CLAUDE.md y docs/proposals/hidden-v2-session-handoff.md. Lee docs/local-hidden-v2.md, docs/reviews/hidden-v2-claude-service-operations-20261107.md y la prioridad vigente de docs/proposals/hidden-v2-production-readiness.md. El cierre vigente es operación persistente de productor/keeper del7. Resume/snapshots/checkpoints fueron retirados por decisión del propietario, no son pendientes. Todos los ACTIVO antiguos están vencidos.

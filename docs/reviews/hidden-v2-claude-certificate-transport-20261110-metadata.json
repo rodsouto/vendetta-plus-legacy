@@ -1,0 +1,98 @@
+{
+  "schema": "vendetta-claude-certificate-transport-review-1",
+  "cliVersion": "2.1.321",
+  "flags": [
+    "--safe-mode",
+    "--strict-mcp-config",
+    "--mcp-config",
+    "{\"mcpServers\":{}}",
+    "--tools",
+    "",
+    "--permission-mode",
+    "dontAsk",
+    "--no-session-persistence",
+    "--effort",
+    "medium",
+    "--output-format",
+    "json",
+    "-p"
+  ],
+  "calls": [
+    {
+      "stage": "initial",
+      "externalDirectory": "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261110-certificate-transport",
+      "files": {
+        "review-prompt.txt": "a9435a7dedb336028660f78e995fe2962250bd02d17b0a7a03056e17709f9639",
+        "review-response.json": "642f6b84df608b72e772a708e8668c67fc0dbd1e00517691d37265c1b046b079",
+        "review-inputs.json": "418fca9ff109bfb5afb62ceaf1a9ddf8c8021444df6e1542b10d4efbc779d289",
+        "review-stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "sourceInputs": {
+        "apps/web/src/chain/certificates.ts": "8dd2aced8557eb367bcab05c0b16a6aec81a6fae8ce8702e6683d48dac859db4",
+        "apps/web/test/certificates.test.ts": "12347b5f37fdf19d6e8e16f4ce0c228763d5dee542986d6abb255680b481a399",
+        "apps/web/scripts/prover/http.ts": "e5da3b4fb259d520ea75860b733b8b3d6e112d288f03a7e94a72c8f622930b9c",
+        "apps/web/scripts/prover/service.ts": "24130e5c7b8b0fee43ddd154fb1d4c2602564867e1353f179a562943354366fc",
+        "apps/web/scripts/keeper.ts": "a6eb8d694e07feab1c616528d6e420ee1895cd1096aeda4ff07d15f512ac5e59",
+        "apps/web/test/keeper-certificate-stop.test.ts": "8a28393272662d156dcb5b83f8ee243837b1537aaca96e3bac491ac5a47c2048",
+        "apps/web/scripts/service-errors.ts": "7cf6d8f4c60a0715325a824fe965cbbe029e0b58e2c6fb64b6e513d4df5ffd15"
+      },
+      "models": ["claude-opus-5-5"],
+      "resultSha256": "6ec0487f4aa268ff2d68a7e16b01344d7845f8176050b75c34e4a5fe6f50acde",
+      "resultFile": "docs/reviews/hidden-v2-claude-certificate-transport-20261110-initial.md",
+      "claudeExecutedTests": false,
+      "toolsEnabled": false
+    },
+    {
+      "stage": "followup",
+      "externalDirectory": "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261110-certificate-transport",
+      "files": {
+        "followup-prompt.txt": "c1e91ad8b49821d490809eac8d5c31ffab451969793d773fe1f2a87a017ac2bd",
+        "followup-retry-response.json": "746436fdcff6d68e841c045355073191695a41c0eb134ac760ff0c6fa50c9aae",
+        "followup-inputs.json": "5b5a5f9dc344580c3a2115833b3b87d174b3b5dd661ba4c141aea64765dd3caa",
+        "followup-retry-stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "sourceInputs": {
+        "apps/web/src/chain/certificates.ts": "4635a94f39ee7ef95de38ff740a7f05c9542047bb06f60f60c801764b5a88e3b",
+        "apps/web/test/certificates.test.ts": "0199fb484eb6f6faf74f3433c6ce4d41d3744f5e87362c956e635767741c4e18",
+        "apps/web/scripts/prover/proof-cache.ts": "f7e2c9fe1a260020d52cfc15e5d58a371290b8018f362cef6f55be45bbb198ca",
+        "apps/web/scripts/prover/http.ts": "e5da3b4fb259d520ea75860b733b8b3d6e112d288f03a7e94a72c8f622930b9c",
+        "apps/web/scripts/service-errors.ts": "411b14b628a0c0bd2a4aac2c2a0e92b4a9fd0c4dc6c882746ea8cfc57eb32126",
+        "apps/web/scripts/keeper.ts": "a6eb8d694e07feab1c616528d6e420ee1895cd1096aeda4ff07d15f512ac5e59",
+        "docs/service-operations.md": "2b181c95643b93d013f3631474352373d15c8f38b2d483066871f291a0011ea1",
+        "package.json": "9b893ce356ce276c804ba686823f5852f10ad525a87862cec1f666d6f4ca2e58",
+        "apps/web/test/service-errors.test.ts": "a1c52c52a1e538fe0eb79232fc4587f4bf652f6359aac93bf452b7febd1cb298"
+      },
+      "models": ["claude-opus-5-5"],
+      "resultSha256": "15de7058c11d674b314439964a94f97cbc16d3115a08e10c0278be7caf85c43c",
+      "resultFile": "docs/reviews/hidden-v2-claude-certificate-transport-20261110-followup.md",
+      "claudeExecutedTests": false,
+      "toolsEnabled": false
+    },
+    {
+      "stage": "closure",
+      "externalDirectory": "/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261110-certificate-transport",
+      "files": {
+        "closure-prompt.txt": "b947d7ed08944eaadb7425b3b06bb540759265b936861b8569ef2ab2dc1379b1",
+        "closure-response.json": "3435f73193ee9effa3ddf9d8ee151f6f540a41115f59a9990786f569576008e0",
+        "closure-inputs.json": "da9f7c35b12a502d6b003d49b854d6955a4e7c9e4d388a78c0771b0e0a87487a",
+        "closure-stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "sourceInputs": {
+        "apps/web/src/chain/certificates.ts": "5632f5ab592e9792e7a8066cefa947e435eba350a447710440ab3d5986a20a8e",
+        "apps/web/test/certificates.test.ts": "be0e51e5aa6a3a5f7233c7925466758caf4999b937761d94f38a43aa01702d18",
+        "apps/web/scripts/prover/proof-cache.ts": "f7e2c9fe1a260020d52cfc15e5d58a371290b8018f362cef6f55be45bbb198ca",
+        "apps/web/scripts/prover/service.ts": "24130e5c7b8b0fee43ddd154fb1d4c2602564867e1353f179a562943354366fc",
+        "apps/web/scripts/service-errors.ts": "411b14b628a0c0bd2a4aac2c2a0e92b4a9fd0c4dc6c882746ea8cfc57eb32126"
+      },
+      "models": ["claude-opus-5-5"],
+      "resultSha256": "636b0be07eb95c2dc346e54ed3a27bc9d81972bd032a90742a8a2e437ca683d1",
+      "resultFile": "docs/reviews/hidden-v2-claude-certificate-transport-20261110-closure.md",
+      "claudeExecutedTests": false,
+      "toolsEnabled": false
+    }
+  ],
+  "lostPriorSession": "November7 /tmp evidence no longer present; no prior review result credited",
+  "failedRestrictedFollowup": "followup-response.json empty, exit1; not counted as review",
+  "independentApproval": false,
+  "productionApproved": false
+}

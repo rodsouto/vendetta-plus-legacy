@@ -14,6 +14,17 @@ const walk = (dir: string): string[] =>
         : [],
   );
 const files = [
+  "docs/hidden-v2-implementation-spec.md",
+  "docs/reviews/hidden-v2-claude-implementation-spec-20261110.md",
+  "docs/reviews/hidden-v2-claude-implementation-spec-20261110-metadata.json",
+  "docs/reviews/hidden-v2-claude-implementation-spec-20261110-initial.md",
+  "docs/reviews/hidden-v2-claude-implementation-spec-20261110-followup.md",
+  "docs/reviews/hidden-v2-claude-implementation-spec-20261110-closure.md",
+  "docs/reviews/hidden-v2-claude-certificate-transport-20261110.md",
+  "docs/reviews/hidden-v2-claude-certificate-transport-20261110-metadata.json",
+  "docs/reviews/hidden-v2-claude-certificate-transport-20261110-initial.md",
+  "docs/reviews/hidden-v2-claude-certificate-transport-20261110-followup.md",
+  "docs/reviews/hidden-v2-claude-certificate-transport-20261110-closure.md",
   "docs/reviews/hidden-v2-claude-service-operations-20261107-abi.md",
   "docs/reviews/hidden-v2-claude-service-operations-20261107-closure.md",
   "docs/reviews/hidden-v2-claude-service-operations-20261107-followup.md",

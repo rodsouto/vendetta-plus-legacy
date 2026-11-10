@@ -1,8 +1,108 @@
 # Continuidad de sesión: hidden v2
 
-Estado vigente: operación persistente de productor/keeper (7 de noviembre).
+Estado vigente: transporte acotado de certificados (10 de noviembre).
 El propietario confirmó trabajar sin colaboradores externos, entre Codex y Claude.
 Anvil local sigue efímero; todos los ACTIVO históricos están vencidos.
+
+## Nota documental posterior: especificación integradora de hidden v2
+
+Por solicitud del propietario se creó
+[la especificación de implementación](../hidden-v2-implementation-spec.md), para
+que otro implementador disponga de arquitectura, formatos binarios/ABI, contexto,
+circuitos/H3, estados/frontera, productor/keeper, operación, pruebas y gates finales.
+Describe la implementación actual y separa requisitos de producción no acreditados.
+Se contrastó con fuentes y feedback real de Claude; véanse revisión y metadata
+`docs/reviews/hidden-v2-claude-implementation-spec-20261110*`.
+No se cambió lógica ni se repitieron suites, setup o proving del juego: los33/5 y
+182/27 anteriores conservan sus alcances. Se comprobaron formato, enlaces, tamaños,
+constantes y preservación de fuentes. La especificación advierte sobre resúmenes/
+comentarios históricos obsoletos; no copiar de ellos aparcado/reveal directo ni
+helpers V1 de contexto/armor.
+
+Cierre documental nuevo, sin sustituir recibos anteriores:
+/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261110-implementation-spec/receipt.json.
+El guardado inferior sigue siendo el punto de implementación; esta petición sólo
+añade documentación, revisión e inventario. No autoriza trabajo en segundo plano
+ni retira gates de producción. La próxima sesión debe leer también la especificación.
+
+## Guardado vigente por solicitud del propietario: 10 de noviembre de 2026
+
+Sesión guardada para continuar en otra sesión por solicitud explícita. No quedan
+trabajos autorizados para seguir en segundo plano. Retomar implementación sólo
+ante una nueva instrucción del propietario. El cierre vigente de implementación
+es hidden-v2-20261110-certificate-transport/receipt.json:33 tests/5 archivos,
+ambos typechecks, tres revisiones reales de Claude y sus límites documentados.
+Este guardado sólo actualiza documentación e inventario; no repite tests ni añade
+revisión de implementación. Los cierres anteriores y sus evidencias se conservan.
+
+Rama comprobada feat/hidden-v2-local-mpc-review; HEAD
+c84b9f6393e57025df4c3648ec59f7fe4dc6c040. Se conservan los cambios tracked/untracked,
+sin commits, push, limpieza ni operaciones criptográficas o despliegues.
+Al retomar comprobar estado real y leer este handoff, CLAUDE.md, el prompt siguiente
+y docs/service-operations.md. No interpretar los ACTIVO históricos como vigentes.
+Elegir otra carencia demostrable de producción resoluble localmente; la línea de
+transporte está cerrada con sus pruebas y revisiones, no repetirla para conteos.
+Anvil sigue efímero; conservar journals/leases de cadenas persistentes. Sólo
+Codex/Claude, sin volver a preguntar por colaboradores. Host con usuarios separados
+y hardening, recursos/alertas/cadena/candidato y procedencia/aprobación final
+siguen sin acreditarse. Mantener gates y exclusiones de MPC/setup/proving del juego.
+
+Guardado documental reproducible nuevo:
+/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261110-session-save/receipt.json.
+Enlaza el cierre de implementación sin sustituirlo; conserva fuentes y evidencia
+originales. El prompt de próxima sesión fija ese punto de continuidad.
+
+## Continuación vigente: transporte de certificados, 10 de noviembre de 2026
+
+Se retomó el bloque interrumpido del7 por instrucciones nuevas del propietario.
+Rama feat/hidden-v2-local-mpc-review; HEAD real c84b9f6393e57025df4c3648ec59f7fe4dc6c040,
+posterior a la referencia fe95eab. No se hicieron commits en esta continuación.
+Al retomar había sólo src/chain/certificates.ts y su test
+modificados; se conservaron. Las evidencias /tmp del7 ya no existían y no se
+atribuye resultado alguno a esa consulta Claude perdida. Los cierres anteriores
+service-operations-close y session-save permanecen intactos y con su alcance.
+
+Defectos reproducidos contra HEAD mediante fixture finito sin red/criptografía:
+requestCertificate aceptaba un array convertido por regex y un JSON65573 bytes
+con certificado pequeño. Ahora retiene <=65536 bytes decodificados antes del
+parseo, exige string y conserva máximo16384 bytes de certificado. Cancela cuerpo
+excesivo sin EOF y respuestas fallidas sin parsearlas. UTF-8 inválido/JSON/forma
+fallidos son errores reintentables; jamás INVALID. No cambia el timeout120s,
+señales de parada, journals, leases ni protocolo criptográfico.
+
+Claude confirmó que el resumen seguro ocultaba el nuevo error de exceso; se
+corrigió con categorías estáticas para401/403/429/otros HTTP/exceso, sin URLs,
+bodies ni mensajes remotos. Su duda sobre tamaño de proof se contrastó con
+proof-cache.ts: exige384 bytes antes de codificar; ambos sobres ABI caben.
+Las sugerencias sobre timers de Node no demostraron defecto nuevo; Node>=22
+ya es requisito. Un fallo real que coincide con parada mantiene exit no cero
+por política vigente. TLS sigue siendo requisito de despliegue, no autorización.
+
+Validación propia final:33 tests/5 archivos (certificates, keeper-certificate-stop,
+keeper-shutdown, service-errors, service-logging), ambos typechecks y formato.
+HTTP real sobre loopback: gzip, rechazo de redirect sin contactar destino,
+parada antes/durante body y cancelación de chunked sin EOF; handler productor real
+con sobres ABI y proof bytes sintéticos, sin factory criptográfica ni pruebas del
+juego. No sumar los17/19 tests preliminares ni los182/27 históricos a este conteo.
+Las ejecuciones restringidas sin diagnóstico están separadas de la suite final.
+El stdout final se archivó desde la salida original de herramienta. Los29 tests
+previos quedaron registrados aparte desde el resultado observado; no reemplazan
+la ejecución final33. Véase la revisión y metadata asociada.
+
+Cierre nuevo externo persistente:
+/home/rodrigo/.cache/vendetta-audit/hidden-v2-20261110-certificate-transport/receipt.json.
+Incluye fuentes congeladas reproducibles, originales de revisión y pins de entrada.
+Los originales de noviembre10 siguen disponibles; no confundirlos con /tmp perdido
+del7. La línea de transporte queda acotada; no acredita RSS/capacidad, host con
+usuarios separados/hardening, SLA ni aprobación de claves. Seguir por otra carencia
+local demostrada de producción; recursos/alertas/cadena/candidato/procedencia
+siguen pendientes de entradas reales. Sólo Codex/Claude, sin colaboradores externos.
+Anvil efímero, todos los ACTIVO históricos vencidos, gates de producción intactos.
+Sin MPC/init/FFT/sellados/setup/replay/proving del juego ni despliegues/publicaciones.
+
+---
+
+Historial preservado: el guardado siguiente fue reanudado por el propietario.
 
 ## Punto de continuidad guardado por solicitud del propietario
 
