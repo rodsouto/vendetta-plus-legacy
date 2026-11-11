@@ -2,7 +2,11 @@
 // a real proof waits behind other jobs. Keep a single, explicit total deadline.
 import { request } from "node:http";
 
-export function benchmarkFetch(timeoutMs: number, token: string): typeof fetch {
+export function benchmarkFetch(
+  timeoutMs: number,
+  token: string,
+  stopSignal?: AbortSignal,
+): typeof fetch {
   return async (input, init) => {
     if (typeof input !== "string") throw new Error("Benchmark requires a loopback URL");
     const url = new URL(input);
@@ -14,7 +18,9 @@ export function benchmarkFetch(timeoutMs: number, token: string): typeof fetch {
         {
           method: init?.method,
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          signal: AbortSignal.timeout(timeoutMs),
+          signal: stopSignal
+            ? AbortSignal.any([AbortSignal.timeout(timeoutMs), stopSignal])
+            : AbortSignal.timeout(timeoutMs),
           agent: false,
         },
         (res) => {

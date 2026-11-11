@@ -23,12 +23,14 @@ import { certificateProducer } from "../prover/service.js";
 import { loadLocalStackConfig, readArtifact, sha256File, type Artifact } from "./config.js";
 import { LocalProcesses, type ManagedProcess } from "./processes.js";
 
+import { prepareAcceptanceClock } from "./acceptance-clock.js";
+
 import { acquireStateLease } from "../state-lease.js";
 import { exclusiveJson, regularJson } from "./receipts.js";
 
 const repository = fileURLToPath(new URL("../../../../", import.meta.url));
 const webRoot = join(repository, "apps/web");
-const key0 = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+const localFunder = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" as const;
 
 export async function assertPortAvailable(port: number) {
   const server = createNetServer();
@@ -51,6 +53,7 @@ export async function startLocalHiddenStack(
   output: string,
   signal?: AbortSignal,
   browserCanarySupplied = false,
+  acceptance?: { beacon: (round: bigint) => Promise<string>; timeScale?: number },
 ) {
   if (process.platform !== "linux") throw new Error("Experimental local stack requires Linux");
   signal?.throwIfAborted();
@@ -193,6 +196,10 @@ export async function startLocalHiddenStack(
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
     }
+    const contractsDirectory =
+      acceptance?.timeScale && acceptance.timeScale !== 1
+        ? await prepareAcceptanceClock(repository, run, acceptance.timeScale)
+        : join(repository, "contracts");
     const foundryEnv = {
       ...env,
       FOUNDRY_PROFILE: "default",
@@ -207,7 +214,7 @@ export async function startLocalHiddenStack(
         args,
         join(run, log),
         { ...foundryEnv, ...extra },
-        join(repository, "contracts"),
+        contractsDirectory,
         false,
       );
       const command = activeCommand;
@@ -285,7 +292,7 @@ export async function startLocalHiddenStack(
       const funder = createWalletClient({
         chain,
         transport: http(rpc, { timeout: 5000, retryCount: 0 }),
-        account: privateKeyToAccount(key0),
+        account: localFunder,
       });
       for (const key of [deployKey, h3Key, keeperKey])
         await receipt(
@@ -308,7 +315,7 @@ export async function startLocalHiddenStack(
         [pointVerifier],
       );
       check();
-      const admin = privateKeyToAccount(key0).address;
+      const admin = localFunder;
       await runForge(
         [
           "script",
@@ -382,6 +389,7 @@ export async function startLocalHiddenStack(
       h3Key,
       nativeEnv: { ...env, PROVER_THREADS: "4", PROVER_MEMORY: "5GiB", GOGC: "25" },
       allowUnsafeLocalSetup: true,
+      beacon: acceptance?.beacon,
     });
     check();
     await new Promise<void>((resolve, reject) => {
@@ -396,30 +404,32 @@ export async function startLocalHiddenStack(
     });
     if (!readiness.ok) throw new Error("Local producer authenticated readiness failed");
     check();
-    keeper = processes.start(
-      process.execPath,
-      ["--import", "tsx", "scripts/keeper.ts", deploymentFile],
-      join(run, "keeper.log"),
-      {
-        ...env,
-        RPC_URL: rpc,
-        KEEPER_STATE_DIR: join(run, "keeper"),
-        KEEPER_PRIVATE_KEY: keeperKey,
-        HIDDEN_PROVER_URL: proverUrl,
-        HIDDEN_PROVER_TOKEN: token,
-      },
-      webRoot,
-    );
-    const keeperDeadline = Date.now() + 15000;
-    for (;;) {
+    if (!acceptance) {
+      keeper = processes.start(
+        process.execPath,
+        ["--import", "tsx", "scripts/keeper.ts", deploymentFile],
+        join(run, "keeper.log"),
+        {
+          ...env,
+          RPC_URL: rpc,
+          KEEPER_STATE_DIR: join(run, "keeper"),
+          KEEPER_PRIVATE_KEY: keeperKey,
+          HIDDEN_PROVER_URL: proverUrl,
+          HIDDEN_PROVER_TOKEN: token,
+        },
+        webRoot,
+      );
+      const keeperDeadline = Date.now() + 15000;
+      for (;;) {
+        check();
+        if ((await readFile(join(run, "keeper.log"), "utf8")).includes("certificate keeper for "))
+          break;
+        if (Date.now() > keeperDeadline)
+          throw new Error("Local keeper startup timed out; inspect keeper.log");
+        await delay(100);
+      }
       check();
-      if ((await readFile(join(run, "keeper.log"), "utf8")).includes("certificate keeper for "))
-        break;
-      if (Date.now() > keeperDeadline)
-        throw new Error("Local keeper startup timed out; inspect keeper.log");
-      await delay(100);
     }
-    check();
     webHttp = createHttpServer((req, res) => {
       if (web) web.middlewares(req, res);
       else res.writeHead(503).end();
@@ -458,6 +468,8 @@ export async function startLocalHiddenStack(
     const summary = {
       scope: "unsafe experimental local stack",
       browserCanarySupplied,
+      submissionMode: acceptance ? "acceptance-harness" : "keeper",
+      gameTimeScale: acceptance?.timeScale ?? 1,
       deployment,
       web: url,
       prover: proverUrl,
@@ -465,14 +477,14 @@ export async function startLocalHiddenStack(
       ephemeral: true,
       openingManifestSha256: config.openingManifestSha256,
       pointManifestSha256: config.pointManifestSha256,
-      pids: { orchestrator: process.pid, anvil: anvil.child.pid, keeper: keeper.child.pid },
+      pids: { orchestrator: process.pid, anvil: anvil.child.pid, keeper: keeper?.child.pid },
       productionApproved: false,
     };
     await writeFile(join(run, "stack.json"), JSON.stringify(summary, null, 2) + "\n", {
       flag: "wx",
       mode: 0o600,
     });
-    return { summary, token, close, failure: processes.failure };
+    return { summary, token, close, failure: processes.failure, stats: () => producer!.stats() };
   } catch (error) {
     const errors: unknown[] = [];
     try {

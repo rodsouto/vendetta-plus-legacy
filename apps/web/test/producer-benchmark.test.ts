@@ -36,6 +36,11 @@ it("waits for a queued benchmark response using its own deadline and does not fo
     const fetcher = benchmarkFetch(1000, "local-token");
     expect(await (await fetcher(url, { signal: AbortSignal.abort() })).text()).toBe("ready");
     expect(authorized).toBe(true);
+    await expect(benchmarkFetch(1000, "local-token", AbortSignal.abort())(url)).rejects.toThrow();
+    const stopping = new AbortController();
+    const request = benchmarkFetch(1000, "local-token", stopping.signal)(url);
+    stopping.abort();
+    await expect(request).rejects.toThrow();
     expect((await fetcher(url + "/redirect")).status).toBe(302);
     expect(redirected).toBe(false);
     await expect(benchmarkFetch(10, "local-token")(url)).rejects.toThrow();
