@@ -1,5 +1,6 @@
 // Starts an anvil node and deploys the Game, for tests that need a real chain.
-import { execFileSync, spawn, type ChildProcess } from "node:child_process";
+import { execFile, spawn, type ChildProcess } from "node:child_process";
+import { promisify } from "node:util";
 import { tmpdir } from "node:os";
 import { mkdtempSync, rmSync, readFileSync, mkdirSync, existsSync, copyFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -14,6 +15,7 @@ const localDeployEnv = () =>
   );
 
 const contracts = join(dirname(fileURLToPath(import.meta.url)), "../../../contracts");
+const execFileAsync = promisify(execFile);
 
 export async function startChain(port: number): Promise<{ clients: Clients; stop: () => void }> {
   const broadcastRoot = mkdtempSync(join(tmpdir(), "vendetta-test-broadcast-"));
@@ -30,15 +32,20 @@ export async function startChain(port: number): Promise<{ clients: Clients; stop
   });
   try {
     const rpc = `http://127.0.0.1:${port}`;
-    for (let i = 0; i < 100; i++) {
+    const readyBy = Date.now() + 10000;
+    for (;;) {
       try {
-        execFileSync("cast", ["block-number", "--rpc-url", rpc], { stdio: "ignore" });
+        await execFileAsync("cast", ["block-number", "--rpc-url", rpc], {
+          timeout: 1000,
+          killSignal: "SIGKILL",
+        });
         break;
-      } catch {
+      } catch (error) {
+        if (Date.now() >= readyBy) throw error;
         await new Promise((r) => setTimeout(r, 100));
       }
     }
-    execFileSync(
+    await execFileAsync(
       "forge",
       [
         "script",
@@ -51,7 +58,8 @@ export async function startChain(port: number): Promise<{ clients: Clients; stop
       ],
       {
         cwd: contracts,
-        stdio: "pipe",
+        timeout: 30000,
+        killSignal: "SIGKILL",
         env: {
           ...localDeployEnv(),
           FOUNDRY_BROADCAST: broadcastRoot,

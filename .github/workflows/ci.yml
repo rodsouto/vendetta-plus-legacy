@@ -48,8 +48,13 @@ jobs:
           pnpm format:check
           forge fmt --check --root contracts
 
-      - name: Tests (rules engine, contracts)
-        run: pnpm -r test
+      - name: Tests (spec data, rules engine, contracts)
+        timeout-minutes: 10
+        run: pnpm --filter '!@vendetta/web' -r test
+
+      - name: Web tests (including local chain)
+        timeout-minutes: 5
+        run: pnpm --filter @vendetta/web exec vitest run --reporter=verbose --reporter=hanging-process
 
       - name: Hidden v2 cryptography and circuit/execution differential (no setup or proving)
         run: bash scripts/test-hidden-v2-crypto.sh

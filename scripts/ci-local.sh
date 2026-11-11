@@ -28,8 +28,11 @@ step "format"
 pnpm format:check
 forge fmt --check --root contracts
 
-step "tests (rules engine, contracts)"
-pnpm -r test
+step "tests (spec data, rules engine, contracts)"
+pnpm --filter '!@vendetta/web' -r test
+
+step "web tests (including local chain)"
+pnpm --filter @vendetta/web exec vitest run --reporter=verbose --reporter=hanging-process
 
 step "hidden v2 cryptography and circuit/execution differential (no setup or proving)"
 bash scripts/test-hidden-v2-crypto.sh

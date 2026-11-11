@@ -1,6 +1,8 @@
 // The loader + projection must agree with the contract: project the loaded world to a time T, then
 // make the chain settle every building at exactly T and compare.
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { encodeAbiParameters, toHex, type Address, type Hex } from "viem";
 import { execFileSync } from "node:child_process";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -18,6 +20,28 @@ try {
 } catch {
   hasAnvil = false;
 }
+
+it.skipIf(!hasAnvil)("keeps timers live and reports a failed fixture deployment", async () => {
+  const bin = mkdtempSync(join(tmpdir(), "vendetta-test-cli-"));
+  const path = process.env.PATH;
+  let ticked = false;
+  const timer = setTimeout(() => (ticked = true), 50);
+  try {
+    writeFileSync(join(bin, "cast"), "#!/bin/sh\nexit 0\n", { mode: 0o700 });
+    writeFileSync(
+      join(bin, "forge"),
+      '#!/bin/sh\nsleep 0.2\necho "synthetic deployment failure" >&2\nexit 1\n',
+      { mode: 0o700 },
+    );
+    process.env.PATH = `${bin}:${path}`;
+    await expect(startChain(8618)).rejects.toThrow("synthetic deployment failure");
+    expect(ticked).toBe(true);
+  } finally {
+    clearTimeout(timer);
+    process.env.PATH = path;
+    rmSync(bin, { recursive: true, force: true });
+  }
+});
 
 describe.skipIf(!hasAnvil)("chain loader", () => {
   let clients: Clients;
