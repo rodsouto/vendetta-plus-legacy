@@ -42,8 +42,12 @@ it("distinguishes static retry/configuration reasons and filesystem errors witho
     "Beacon release has not arrived",
     "Mission is not awaiting evidence",
     "Producer is closing",
+    "Keeper transaction reverted",
   ])
     expect(serviceErrorSummary(new Error(message))).toEqual({ type: "Error", message });
+  expect(serviceErrorSummary(new Error("Keeper transaction reverted: synthetic-secret"))).toEqual({
+    type: "Error",
+  });
   expect(
     serviceErrorSummary(Object.assign(new Error("private host and path"), { code: "EROFS" })),
   ).toEqual({ type: "Error", code: "EROFS" });

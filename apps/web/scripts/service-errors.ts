@@ -114,6 +114,7 @@ const messages = new Set([
   "Unsafe local setup cannot serve this deployment",
   "Wrong setup manifest",
   "Producer RPC chain mismatch",
+  "Keeper transaction reverted",
   "Configured consumer does not use this setup verifier",
   "State directory is already in use; choose a separate cache or KEEPER_STATE_DIR",
   "State leases require Linux flock",

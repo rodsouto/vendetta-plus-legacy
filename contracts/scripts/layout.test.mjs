@@ -1,7 +1,18 @@
 // Regression fixtures for the storage layout rules (layout.mjs, B-17). Run: node --test scripts/layout.test.mjs
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { incompatibilities, normalize } from "./layout.mjs";
+
+test("storage layout CLI checks the actual CoreState against the recorded layout", () => {
+  const output = execFileSync(
+    process.execPath,
+    [fileURLToPath(new URL("./storage-layout.mjs", import.meta.url))],
+    { encoding: "utf8" },
+  );
+  assert.equal(output.trim(), "Storage layout matches contracts/storage-layout.json");
+});
 
 const member = (label, slot, offset, type) => ({ label, slot: String(slot), offset, type });
 const struct = (name, bytes, members) => ({

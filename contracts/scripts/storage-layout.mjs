@@ -28,7 +28,7 @@ try {
     JSON.parse(
       execFileSync(
         "forge",
-        ["inspect", "test/layout/CoreStateLayout.sol:CoreStateLayout", "storageLayout", "--json"],
+        ["inspect", "CoreStateLayout", "storageLayout", "--json"],
         { cwd: root, encoding: "utf8" },
       ),
     ),
