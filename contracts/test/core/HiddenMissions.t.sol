@@ -7,6 +7,7 @@ import {HiddenEvidenceState} from "../../src/core/HiddenResolution.sol";
 import {HiddenAdmission} from "../../src/core/HiddenAdmission.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {HiddenContext} from "../../src/core/HiddenContext.sol";
+import {HiddenEvidence} from "../../src/core/HiddenEvidence.sol";
 import {Backlog, BadReveal} from "../../src/core/GameErrors.sol";
 import {TROOPS, RESOURCES} from "../../src/generated/VendettaRuleset.sol";
 
@@ -119,6 +120,34 @@ contract HiddenMissionsTest is GameTestBase {
         assertEq(game.advance(1), 1);
         assertEq(game.getMission(id).start, m.arrival);
         assertTrue(game.getMission(id).returning);
+    }
+
+    function testCertificateSchemasRejectWrongLengthsWithoutInvalidating() public {
+        uint64 id = send(5);
+        for (uint8 kind = 1; kind <= 2; ++kind) {
+            uint256 size = kind == 1 ? 55 * 32 : 2 * 32;
+            for (uint256 i; i < 4; ++i) {
+                uint256 length = i == 0 ? 0 : i == 1 ? size - 1 : i == 2 ? size + 1 : size + 32;
+                vm.expectRevert(HiddenEvidence.ResolutionInvalidProof.selector);
+                game.submitHiddenEvidence(id, abi.encode(kind, hex"00", new bytes(length)));
+                assertEq(evidence(id).receipt.status, 1);
+                assertFalse(evidence(id).receipt.consumed);
+            }
+        }
+        Mission memory m = game.getMission(id);
+        vm.warp(uint256(m.arrival) + 7200);
+        assertEq(game.advance(20), 0);
+        assertEq(game.pendingMissions()[0], id);
+        rejectMission(game, id);
+        assertEq(game.advance(1), 1);
+        assertTrue(game.getMission(id).returning);
+        assertEq(game.getMission(id).arrival, uint256(m.arrival) + m.duration);
+        game.advance(20);
+        assertEq(game.getMission(id).owner, 0);
+        assertEq(game.getBuilding(1).troops[0], 7);
+        assertEq(game.getPlayer(1).missions, 0);
+        assertEq(game.advance(20), 0);
+        assertEq(game.getBuilding(1).troops[0], 7);
     }
 
     function testDefensiveValidationRollsBackConsumption() public {

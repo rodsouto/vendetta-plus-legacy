@@ -31,6 +31,9 @@ forge fmt --check --root contracts
 step "tests (rules engine, contracts)"
 pnpm -r test
 
+step "hidden v2 cryptography and circuit/execution differential (no setup or proving)"
+bash scripts/test-hidden-v2-crypto.sh
+
 step "web build"
 pnpm --filter @vendetta/web build
 

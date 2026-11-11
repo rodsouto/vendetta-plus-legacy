@@ -31,6 +31,11 @@ jobs:
         with:
           version: v1.4.4
 
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: apps/web/scripts/experiments/opening-zk/go.mod
+          cache-dependency-path: apps/web/scripts/experiments/opening-zk/go.sum
+
       - run: pnpm install --frozen-lockfile
 
       - name: Generated spec data is up to date
@@ -45,6 +50,9 @@ jobs:
 
       - name: Tests (rules engine, contracts)
         run: pnpm -r test
+
+      - name: Hidden v2 cryptography and circuit/execution differential (no setup or proving)
+        run: bash scripts/test-hidden-v2-crypto.sh
 
       - name: Web build
         run: pnpm --filter @vendetta/web build
